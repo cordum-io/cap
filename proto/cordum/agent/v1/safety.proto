@@ -74,6 +74,17 @@ message PolicyConstraints {
     string redaction_level = 5;
 }
 
+// PolicyRemediation suggests a safer alternative when a request is denied.
+message PolicyRemediation {
+    string id = 1;
+    string title = 2;
+    string summary = 3;
+    string replacement_topic = 4;
+    string replacement_capability = 5;
+    map<string, string> add_labels = 6;
+    repeated string remove_labels = 7;
+}
+
 // PolicyCheckResponse conveys the decision and optional redaction pointer.
 message PolicyCheckResponse {
     DecisionType decision = 1;
@@ -84,6 +95,7 @@ message PolicyCheckResponse {
     PolicyConstraints constraints = 6;
     bool approval_required = 7;
     string approval_ref = 8;
+    repeated PolicyRemediation remediations = 9;
 }
 
 // ListSnapshotsRequest asks for loaded policy snapshots.

@@ -534,6 +534,99 @@ func (x *PolicyConstraints) GetRedactionLevel() string {
 	return ""
 }
 
+// PolicyRemediation suggests a safer alternative when a request is denied.
+type PolicyRemediation struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title                 string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Summary               string                 `protobuf:"bytes,3,opt,name=summary,proto3" json:"summary,omitempty"`
+	ReplacementTopic      string                 `protobuf:"bytes,4,opt,name=replacement_topic,json=replacementTopic,proto3" json:"replacement_topic,omitempty"`
+	ReplacementCapability string                 `protobuf:"bytes,5,opt,name=replacement_capability,json=replacementCapability,proto3" json:"replacement_capability,omitempty"`
+	AddLabels             map[string]string      `protobuf:"bytes,6,rep,name=add_labels,json=addLabels,proto3" json:"add_labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	RemoveLabels          []string               `protobuf:"bytes,7,rep,name=remove_labels,json=removeLabels,proto3" json:"remove_labels,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *PolicyRemediation) Reset() {
+	*x = PolicyRemediation{}
+	mi := &file_cordum_agent_v1_safety_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyRemediation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyRemediation) ProtoMessage() {}
+
+func (x *PolicyRemediation) ProtoReflect() protoreflect.Message {
+	mi := &file_cordum_agent_v1_safety_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyRemediation.ProtoReflect.Descriptor instead.
+func (*PolicyRemediation) Descriptor() ([]byte, []int) {
+	return file_cordum_agent_v1_safety_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *PolicyRemediation) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *PolicyRemediation) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *PolicyRemediation) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
+func (x *PolicyRemediation) GetReplacementTopic() string {
+	if x != nil {
+		return x.ReplacementTopic
+	}
+	return ""
+}
+
+func (x *PolicyRemediation) GetReplacementCapability() string {
+	if x != nil {
+		return x.ReplacementCapability
+	}
+	return ""
+}
+
+func (x *PolicyRemediation) GetAddLabels() map[string]string {
+	if x != nil {
+		return x.AddLabels
+	}
+	return nil
+}
+
+func (x *PolicyRemediation) GetRemoveLabels() []string {
+	if x != nil {
+		return x.RemoveLabels
+	}
+	return nil
+}
+
 // PolicyCheckResponse conveys the decision and optional redaction pointer.
 type PolicyCheckResponse struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
@@ -545,13 +638,14 @@ type PolicyCheckResponse struct {
 	Constraints        *PolicyConstraints     `protobuf:"bytes,6,opt,name=constraints,proto3" json:"constraints,omitempty"`
 	ApprovalRequired   bool                   `protobuf:"varint,7,opt,name=approval_required,json=approvalRequired,proto3" json:"approval_required,omitempty"`
 	ApprovalRef        string                 `protobuf:"bytes,8,opt,name=approval_ref,json=approvalRef,proto3" json:"approval_ref,omitempty"`
+	Remediations       []*PolicyRemediation   `protobuf:"bytes,9,rep,name=remediations,proto3" json:"remediations,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
 
 func (x *PolicyCheckResponse) Reset() {
 	*x = PolicyCheckResponse{}
-	mi := &file_cordum_agent_v1_safety_proto_msgTypes[6]
+	mi := &file_cordum_agent_v1_safety_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -563,7 +657,7 @@ func (x *PolicyCheckResponse) String() string {
 func (*PolicyCheckResponse) ProtoMessage() {}
 
 func (x *PolicyCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_safety_proto_msgTypes[6]
+	mi := &file_cordum_agent_v1_safety_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -576,7 +670,7 @@ func (x *PolicyCheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyCheckResponse.ProtoReflect.Descriptor instead.
 func (*PolicyCheckResponse) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_safety_proto_rawDescGZIP(), []int{6}
+	return file_cordum_agent_v1_safety_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *PolicyCheckResponse) GetDecision() DecisionType {
@@ -635,6 +729,13 @@ func (x *PolicyCheckResponse) GetApprovalRef() string {
 	return ""
 }
 
+func (x *PolicyCheckResponse) GetRemediations() []*PolicyRemediation {
+	if x != nil {
+		return x.Remediations
+	}
+	return nil
+}
+
 // ListSnapshotsRequest asks for loaded policy snapshots.
 type ListSnapshotsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -644,7 +745,7 @@ type ListSnapshotsRequest struct {
 
 func (x *ListSnapshotsRequest) Reset() {
 	*x = ListSnapshotsRequest{}
-	mi := &file_cordum_agent_v1_safety_proto_msgTypes[7]
+	mi := &file_cordum_agent_v1_safety_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -656,7 +757,7 @@ func (x *ListSnapshotsRequest) String() string {
 func (*ListSnapshotsRequest) ProtoMessage() {}
 
 func (x *ListSnapshotsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_safety_proto_msgTypes[7]
+	mi := &file_cordum_agent_v1_safety_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -669,7 +770,7 @@ func (x *ListSnapshotsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSnapshotsRequest.ProtoReflect.Descriptor instead.
 func (*ListSnapshotsRequest) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_safety_proto_rawDescGZIP(), []int{7}
+	return file_cordum_agent_v1_safety_proto_rawDescGZIP(), []int{8}
 }
 
 // ListSnapshotsResponse returns currently loaded snapshots.
@@ -682,7 +783,7 @@ type ListSnapshotsResponse struct {
 
 func (x *ListSnapshotsResponse) Reset() {
 	*x = ListSnapshotsResponse{}
-	mi := &file_cordum_agent_v1_safety_proto_msgTypes[8]
+	mi := &file_cordum_agent_v1_safety_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -694,7 +795,7 @@ func (x *ListSnapshotsResponse) String() string {
 func (*ListSnapshotsResponse) ProtoMessage() {}
 
 func (x *ListSnapshotsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_safety_proto_msgTypes[8]
+	mi := &file_cordum_agent_v1_safety_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -707,7 +808,7 @@ func (x *ListSnapshotsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListSnapshotsResponse.ProtoReflect.Descriptor instead.
 func (*ListSnapshotsResponse) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_safety_proto_rawDescGZIP(), []int{8}
+	return file_cordum_agent_v1_safety_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListSnapshotsResponse) GetSnapshots() []string {
@@ -762,7 +863,19 @@ const file_cordum_agent_v1_safety_proto_rawDesc = "" +
 	"\asandbox\x18\x02 \x01(\v2\x1f.cordum.agent.v1.SandboxProfileR\asandbox\x12C\n" +
 	"\ttoolchain\x18\x03 \x01(\v2%.cordum.agent.v1.ToolchainConstraintsR\ttoolchain\x124\n" +
 	"\x04diff\x18\x04 \x01(\v2 .cordum.agent.v1.DiffConstraintsR\x04diff\x12'\n" +
-	"\x0fredaction_level\x18\x05 \x01(\tR\x0eredactionLevel\"\xf2\x02\n" +
+	"\x0fredaction_level\x18\x05 \x01(\tR\x0eredactionLevel\"\xec\x02\n" +
+	"\x11PolicyRemediation\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
+	"\asummary\x18\x03 \x01(\tR\asummary\x12+\n" +
+	"\x11replacement_topic\x18\x04 \x01(\tR\x10replacementTopic\x125\n" +
+	"\x16replacement_capability\x18\x05 \x01(\tR\x15replacementCapability\x12P\n" +
+	"\n" +
+	"add_labels\x18\x06 \x03(\v21.cordum.agent.v1.PolicyRemediation.AddLabelsEntryR\taddLabels\x12#\n" +
+	"\rremove_labels\x18\a \x03(\tR\fremoveLabels\x1a<\n" +
+	"\x0eAddLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xba\x03\n" +
 	"\x13PolicyCheckResponse\x129\n" +
 	"\bdecision\x18\x01 \x01(\x0e2\x1d.cordum.agent.v1.DecisionTypeR\bdecision\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x120\n" +
@@ -771,7 +884,8 @@ const file_cordum_agent_v1_safety_proto_rawDesc = "" +
 	"\arule_id\x18\x05 \x01(\tR\x06ruleId\x12D\n" +
 	"\vconstraints\x18\x06 \x01(\v2\".cordum.agent.v1.PolicyConstraintsR\vconstraints\x12+\n" +
 	"\x11approval_required\x18\a \x01(\bR\x10approvalRequired\x12!\n" +
-	"\fapproval_ref\x18\b \x01(\tR\vapprovalRef\"\x16\n" +
+	"\fapproval_ref\x18\b \x01(\tR\vapprovalRef\x12F\n" +
+	"\fremediations\x18\t \x03(\v2\".cordum.agent.v1.PolicyRemediationR\fremediations\"\x16\n" +
 	"\x14ListSnapshotsRequest\"5\n" +
 	"\x15ListSnapshotsResponse\x12\x1c\n" +
 	"\tsnapshots\x18\x01 \x03(\tR\tsnapshots*\xc5\x01\n" +
@@ -803,7 +917,7 @@ func file_cordum_agent_v1_safety_proto_rawDescGZIP() []byte {
 }
 
 var file_cordum_agent_v1_safety_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_cordum_agent_v1_safety_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_cordum_agent_v1_safety_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_cordum_agent_v1_safety_proto_goTypes = []any{
 	(DecisionType)(0),             // 0: cordum.agent.v1.DecisionType
 	(*PolicyCheckRequest)(nil),    // 1: cordum.agent.v1.PolicyCheckRequest
@@ -812,40 +926,44 @@ var file_cordum_agent_v1_safety_proto_goTypes = []any{
 	(*ToolchainConstraints)(nil),  // 4: cordum.agent.v1.ToolchainConstraints
 	(*DiffConstraints)(nil),       // 5: cordum.agent.v1.DiffConstraints
 	(*PolicyConstraints)(nil),     // 6: cordum.agent.v1.PolicyConstraints
-	(*PolicyCheckResponse)(nil),   // 7: cordum.agent.v1.PolicyCheckResponse
-	(*ListSnapshotsRequest)(nil),  // 8: cordum.agent.v1.ListSnapshotsRequest
-	(*ListSnapshotsResponse)(nil), // 9: cordum.agent.v1.ListSnapshotsResponse
-	nil,                           // 10: cordum.agent.v1.PolicyCheckRequest.LabelsEntry
-	(JobPriority)(0),              // 11: cordum.agent.v1.JobPriority
-	(*Budget)(nil),                // 12: cordum.agent.v1.Budget
-	(*JobMetadata)(nil),           // 13: cordum.agent.v1.JobMetadata
+	(*PolicyRemediation)(nil),     // 7: cordum.agent.v1.PolicyRemediation
+	(*PolicyCheckResponse)(nil),   // 8: cordum.agent.v1.PolicyCheckResponse
+	(*ListSnapshotsRequest)(nil),  // 9: cordum.agent.v1.ListSnapshotsRequest
+	(*ListSnapshotsResponse)(nil), // 10: cordum.agent.v1.ListSnapshotsResponse
+	nil,                           // 11: cordum.agent.v1.PolicyCheckRequest.LabelsEntry
+	nil,                           // 12: cordum.agent.v1.PolicyRemediation.AddLabelsEntry
+	(JobPriority)(0),              // 13: cordum.agent.v1.JobPriority
+	(*Budget)(nil),                // 14: cordum.agent.v1.Budget
+	(*JobMetadata)(nil),           // 15: cordum.agent.v1.JobMetadata
 }
 var file_cordum_agent_v1_safety_proto_depIdxs = []int32{
-	11, // 0: cordum.agent.v1.PolicyCheckRequest.priority:type_name -> cordum.agent.v1.JobPriority
-	12, // 1: cordum.agent.v1.PolicyCheckRequest.budget:type_name -> cordum.agent.v1.Budget
-	10, // 2: cordum.agent.v1.PolicyCheckRequest.labels:type_name -> cordum.agent.v1.PolicyCheckRequest.LabelsEntry
-	13, // 3: cordum.agent.v1.PolicyCheckRequest.meta:type_name -> cordum.agent.v1.JobMetadata
+	13, // 0: cordum.agent.v1.PolicyCheckRequest.priority:type_name -> cordum.agent.v1.JobPriority
+	14, // 1: cordum.agent.v1.PolicyCheckRequest.budget:type_name -> cordum.agent.v1.Budget
+	11, // 2: cordum.agent.v1.PolicyCheckRequest.labels:type_name -> cordum.agent.v1.PolicyCheckRequest.LabelsEntry
+	15, // 3: cordum.agent.v1.PolicyCheckRequest.meta:type_name -> cordum.agent.v1.JobMetadata
 	2,  // 4: cordum.agent.v1.PolicyConstraints.budgets:type_name -> cordum.agent.v1.BudgetConstraints
 	3,  // 5: cordum.agent.v1.PolicyConstraints.sandbox:type_name -> cordum.agent.v1.SandboxProfile
 	4,  // 6: cordum.agent.v1.PolicyConstraints.toolchain:type_name -> cordum.agent.v1.ToolchainConstraints
 	5,  // 7: cordum.agent.v1.PolicyConstraints.diff:type_name -> cordum.agent.v1.DiffConstraints
-	0,  // 8: cordum.agent.v1.PolicyCheckResponse.decision:type_name -> cordum.agent.v1.DecisionType
-	6,  // 9: cordum.agent.v1.PolicyCheckResponse.constraints:type_name -> cordum.agent.v1.PolicyConstraints
-	1,  // 10: cordum.agent.v1.SafetyKernel.Check:input_type -> cordum.agent.v1.PolicyCheckRequest
-	1,  // 11: cordum.agent.v1.SafetyKernel.Evaluate:input_type -> cordum.agent.v1.PolicyCheckRequest
-	1,  // 12: cordum.agent.v1.SafetyKernel.Explain:input_type -> cordum.agent.v1.PolicyCheckRequest
-	1,  // 13: cordum.agent.v1.SafetyKernel.Simulate:input_type -> cordum.agent.v1.PolicyCheckRequest
-	8,  // 14: cordum.agent.v1.SafetyKernel.ListSnapshots:input_type -> cordum.agent.v1.ListSnapshotsRequest
-	7,  // 15: cordum.agent.v1.SafetyKernel.Check:output_type -> cordum.agent.v1.PolicyCheckResponse
-	7,  // 16: cordum.agent.v1.SafetyKernel.Evaluate:output_type -> cordum.agent.v1.PolicyCheckResponse
-	7,  // 17: cordum.agent.v1.SafetyKernel.Explain:output_type -> cordum.agent.v1.PolicyCheckResponse
-	7,  // 18: cordum.agent.v1.SafetyKernel.Simulate:output_type -> cordum.agent.v1.PolicyCheckResponse
-	9,  // 19: cordum.agent.v1.SafetyKernel.ListSnapshots:output_type -> cordum.agent.v1.ListSnapshotsResponse
-	15, // [15:20] is the sub-list for method output_type
-	10, // [10:15] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	12, // 8: cordum.agent.v1.PolicyRemediation.add_labels:type_name -> cordum.agent.v1.PolicyRemediation.AddLabelsEntry
+	0,  // 9: cordum.agent.v1.PolicyCheckResponse.decision:type_name -> cordum.agent.v1.DecisionType
+	6,  // 10: cordum.agent.v1.PolicyCheckResponse.constraints:type_name -> cordum.agent.v1.PolicyConstraints
+	7,  // 11: cordum.agent.v1.PolicyCheckResponse.remediations:type_name -> cordum.agent.v1.PolicyRemediation
+	1,  // 12: cordum.agent.v1.SafetyKernel.Check:input_type -> cordum.agent.v1.PolicyCheckRequest
+	1,  // 13: cordum.agent.v1.SafetyKernel.Evaluate:input_type -> cordum.agent.v1.PolicyCheckRequest
+	1,  // 14: cordum.agent.v1.SafetyKernel.Explain:input_type -> cordum.agent.v1.PolicyCheckRequest
+	1,  // 15: cordum.agent.v1.SafetyKernel.Simulate:input_type -> cordum.agent.v1.PolicyCheckRequest
+	9,  // 16: cordum.agent.v1.SafetyKernel.ListSnapshots:input_type -> cordum.agent.v1.ListSnapshotsRequest
+	8,  // 17: cordum.agent.v1.SafetyKernel.Check:output_type -> cordum.agent.v1.PolicyCheckResponse
+	8,  // 18: cordum.agent.v1.SafetyKernel.Evaluate:output_type -> cordum.agent.v1.PolicyCheckResponse
+	8,  // 19: cordum.agent.v1.SafetyKernel.Explain:output_type -> cordum.agent.v1.PolicyCheckResponse
+	8,  // 20: cordum.agent.v1.SafetyKernel.Simulate:output_type -> cordum.agent.v1.PolicyCheckResponse
+	10, // 21: cordum.agent.v1.SafetyKernel.ListSnapshots:output_type -> cordum.agent.v1.ListSnapshotsResponse
+	17, // [17:22] is the sub-list for method output_type
+	12, // [12:17] is the sub-list for method input_type
+	12, // [12:12] is the sub-list for extension type_name
+	12, // [12:12] is the sub-list for extension extendee
+	0,  // [0:12] is the sub-list for field type_name
 }
 
 func init() { file_cordum_agent_v1_safety_proto_init() }
@@ -860,7 +978,7 @@ func file_cordum_agent_v1_safety_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cordum_agent_v1_safety_proto_rawDesc), len(file_cordum_agent_v1_safety_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -29,6 +29,9 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/map.h>  // IWYU pragma: export
+#include <google/protobuf/map_entry.h>
+#include <google/protobuf/map_field_inl.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
@@ -50,17 +53,49 @@ namespace v1 {
 class Heartbeat;
 struct HeartbeatDefaultTypeInternal;
 extern HeartbeatDefaultTypeInternal _Heartbeat_default_instance_;
+class Heartbeat_LabelsEntry_DoNotUse;
+struct Heartbeat_LabelsEntry_DoNotUseDefaultTypeInternal;
+extern Heartbeat_LabelsEntry_DoNotUseDefaultTypeInternal _Heartbeat_LabelsEntry_DoNotUse_default_instance_;
 }  // namespace v1
 }  // namespace agent
 }  // namespace coretex
 PROTOBUF_NAMESPACE_OPEN
 template<> ::coretex::agent::v1::Heartbeat* Arena::CreateMaybeMessage<::coretex::agent::v1::Heartbeat>(Arena*);
+template<> ::coretex::agent::v1::Heartbeat_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::coretex::agent::v1::Heartbeat_LabelsEntry_DoNotUse>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace coretex {
 namespace agent {
 namespace v1 {
 
 // ===================================================================
+
+class Heartbeat_LabelsEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<Heartbeat_LabelsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<Heartbeat_LabelsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> SuperType;
+  Heartbeat_LabelsEntry_DoNotUse();
+  explicit PROTOBUF_CONSTEXPR Heartbeat_LabelsEntry_DoNotUse(
+      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit Heartbeat_LabelsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const Heartbeat_LabelsEntry_DoNotUse& other);
+  static const Heartbeat_LabelsEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const Heartbeat_LabelsEntry_DoNotUse*>(&_Heartbeat_LabelsEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "coretex.agent.v1.Heartbeat.LabelsEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "coretex.agent.v1.Heartbeat.LabelsEntry.value");
+ }
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  friend struct ::TableStruct_coretex_2fagent_2fv1_2fheartbeat_2eproto;
+};
+
+// -------------------------------------------------------------------
 
 class Heartbeat final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coretex.agent.v1.Heartbeat) */ {
@@ -110,7 +145,7 @@ class Heartbeat final :
                &_Heartbeat_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    1;
 
   friend void swap(Heartbeat& a, Heartbeat& b) {
     a.Swap(&b);
@@ -171,6 +206,8 @@ class Heartbeat final :
   protected:
   explicit Heartbeat(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
   public:
 
   static const ClassData _class_data_;
@@ -180,10 +217,12 @@ class Heartbeat final :
 
   // nested types ----------------------------------------------------
 
+
   // accessors -------------------------------------------------------
 
   enum : int {
     kCapabilitiesFieldNumber = 7,
+    kLabelsFieldNumber = 13,
     kWorkerIdFieldNumber = 1,
     kRegionFieldNumber = 2,
     kTypeFieldNumber = 3,
@@ -216,6 +255,23 @@ class Heartbeat final :
   const std::string& _internal_capabilities(int index) const;
   std::string* _internal_add_capabilities();
   public:
+
+  // map<string, string> labels = 13;
+  int labels_size() const;
+  private:
+  int _internal_labels_size() const;
+  public:
+  void clear_labels();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_labels() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_labels();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      labels() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_labels();
 
   // string worker_id = 1;
   void clear_worker_id();
@@ -318,6 +374,11 @@ class Heartbeat final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> capabilities_;
+    ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+        Heartbeat_LabelsEntry_DoNotUse,
+        std::string, std::string,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> labels_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr worker_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr region_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr type_;
@@ -340,6 +401,8 @@ class Heartbeat final :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // Heartbeat
 
 // string worker_id = 1;
@@ -697,9 +760,40 @@ inline void Heartbeat::set_max_parallel_jobs(int32_t value) {
   // @@protoc_insertion_point(field_set:coretex.agent.v1.Heartbeat.max_parallel_jobs)
 }
 
+// map<string, string> labels = 13;
+inline int Heartbeat::_internal_labels_size() const {
+  return _impl_.labels_.size();
+}
+inline int Heartbeat::labels_size() const {
+  return _internal_labels_size();
+}
+inline void Heartbeat::clear_labels() {
+  _impl_.labels_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+Heartbeat::_internal_labels() const {
+  return _impl_.labels_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+Heartbeat::labels() const {
+  // @@protoc_insertion_point(field_map:coretex.agent.v1.Heartbeat.labels)
+  return _internal_labels();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+Heartbeat::_internal_mutable_labels() {
+  return _impl_.labels_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+Heartbeat::mutable_labels() {
+  // @@protoc_insertion_point(field_mutable_map:coretex.agent.v1.Heartbeat.labels)
+  return _internal_mutable_labels();
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 

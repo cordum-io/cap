@@ -16,6 +16,25 @@ OUT_PY="${CAP_OUT_PY:-$ROOT_DIR/python}"
 OUT_CPP="${CAP_OUT_CPP:-$ROOT_DIR/cpp}"
 OUT_JS="${CAP_OUT_JS:-$ROOT_DIR/node}"
 
+# Ensure writable outputs (fallback to /tmp when mounted paths are read-only).
+ensure_out_dir() {
+  local target="$1"
+  local fallback="$2"
+  mkdir -p "$target" 2>/dev/null || true
+  if [ -w "$target" ]; then
+    echo "$target"
+  else
+    echo "WARN: $target not writable; using fallback $fallback" >&2
+    mkdir -p "$fallback"
+    echo "$fallback"
+  fi
+}
+
+OUT_GO="$(ensure_out_dir "$OUT_GO" /tmp/capgen/go)"
+OUT_PY="$(ensure_out_dir "$OUT_PY" /tmp/capgen/python)"
+OUT_CPP="$(ensure_out_dir "$OUT_CPP" /tmp/capgen/cpp)"
+OUT_JS="$(ensure_out_dir "$OUT_JS" /tmp/capgen/node)"
+
 # Prefer a working python; fall back to python3 if python is missing.
 PYTHON_BIN="${PYTHON_BIN:-python}"
 if ! command -v "$PYTHON_BIN" >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then

@@ -557,6 +557,7 @@ The Safety Kernel is a critical component for policy enforcement. To enable more
   - `user_id`, `client_ip`
   - A hash of the `context_ptr` data, to allow the Safety Kernel to check for known malicious inputs without having access to the raw data.
   - `env` metadata.
+  - `effective_config` (marshaled EffectiveConfig for the resolved context).
 
 ## Input Validation
 

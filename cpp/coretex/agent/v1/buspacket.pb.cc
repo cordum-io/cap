@@ -76,23 +76,23 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_coretex_2fagent_2fv1_2fbuspacket_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\037coretex/agent/v1/buspacket.proto\022\017corte"
-  "x.agent.v1\032\037google/protobuf/timestamp.pr"
-  "oto\032\031coretex/agent/v1/job.proto\032\037coretex/a"
-  "gent/v1/heartbeat.proto\032\033coretex/agent/v1"
-  "/alert.proto\"\336\002\n\tBusPacket\022\020\n\010trace_id\030\001"
-  " \001(\t\022\021\n\tsender_id\030\002 \001(\t\022.\n\ncreated_at\030\003 "
-  "\001(\0132\032.google.protobuf.Timestamp\022\030\n\020proto"
-  "col_version\030\004 \001(\005\0222\n\013job_request\030\n \001(\0132\033"
-  ".coretex.agent.v1.JobRequestH\000\0220\n\njob_res"
-  "ult\030\013 \001(\0132\032.coretex.agent.v1.JobResultH\000\022"
-  "/\n\theartbeat\030\014 \001(\0132\032.coretex.agent.v1.Hea"
-  "rtbeatH\000\022-\n\005alert\030\r \001(\0132\034.coretex.agent.v"
-  "1.SystemAlertH\000\022\021\n\tsignature\030\016 \001(\014B\t\n\007pa"
-  "yloadB\177\n\026ai.coretex.cap.agent.v1P\001Z+githu"
-  "b.com/coretexos/cap/go/coretex/agent/v1\252\002"
-  "\017coretex.Agent.V1\312\002\017coretex\\Agent\\V1\352\002\021Cor"
-  "tex::Agent::V1b\006proto3"
+  "\n coretex/agent/v1/buspacket.proto\022\020core"
+  "tex.agent.v1\032\037google/protobuf/timestamp."
+  "proto\032\032coretex/agent/v1/job.proto\032 coret"
+  "ex/agent/v1/heartbeat.proto\032\034coretex/age"
+  "nt/v1/alert.proto\"\342\002\n\tBusPacket\022\020\n\010trace"
+  "_id\030\001 \001(\t\022\021\n\tsender_id\030\002 \001(\t\022.\n\ncreated_"
+  "at\030\003 \001(\0132\032.google.protobuf.Timestamp\022\030\n\020"
+  "protocol_version\030\004 \001(\005\0223\n\013job_request\030\n "
+  "\001(\0132\034.coretex.agent.v1.JobRequestH\000\0221\n\nj"
+  "ob_result\030\013 \001(\0132\033.coretex.agent.v1.JobRe"
+  "sultH\000\0220\n\theartbeat\030\014 \001(\0132\033.coretex.agen"
+  "t.v1.HeartbeatH\000\022.\n\005alert\030\r \001(\0132\035.corete"
+  "x.agent.v1.SystemAlertH\000\022\021\n\tsignature\030\016 "
+  "\001(\014B\t\n\007payloadB\207\001\n\027ai.coretex.cap.agent."
+  "v1P\001Z/github.com/coretexos/cap/v2/go/cor"
+  "etex/agent/v1\252\002\020coretex.Agent.V1\312\002\020coret"
+  "ex\\Agent\\V1\352\002\022coretex::Agent::V1b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_deps[4] = {
   &::descriptor_table_coretex_2fagent_2fv1_2falert_2eproto,
@@ -102,7 +102,7 @@ static const ::_pbi::DescriptorTable* const descriptor_table_coretex_2fagent_2fv
 };
 static ::_pbi::once_flag descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto = {
-    false, false, 662, descriptor_table_protodef_coretex_2fagent_2fv1_2fbuspacket_2eproto,
+    false, false, 680, descriptor_table_protodef_coretex_2fagent_2fv1_2fbuspacket_2eproto,
     "coretex/agent/v1/buspacket.proto",
     &descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_once, descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_deps, 4, 1,
     schemas, file_default_instances, TableStruct_coretex_2fagent_2fv1_2fbuspacket_2eproto::offsets,

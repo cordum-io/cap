@@ -31,6 +31,7 @@ message PolicyCheckRequest {
     string principal_id = 7;
     map<string, string> labels = 8;
     string memory_id = 9;
+    bytes effective_config = 10; // marshaled EffectiveConfig for policy context
 }
 
 // PolicyCheckResponse conveys the decision and optional redaction pointer.

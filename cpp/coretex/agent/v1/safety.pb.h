@@ -261,6 +261,7 @@ class PolicyCheckRequest final :
     kTenantFieldNumber = 3,
     kPrincipalIdFieldNumber = 7,
     kMemoryIdFieldNumber = 9,
+    kEffectiveConfigFieldNumber = 10,
     kBudgetFieldNumber = 6,
     kEstimatedCostFieldNumber = 5,
     kPriorityFieldNumber = 4,
@@ -352,6 +353,20 @@ class PolicyCheckRequest final :
   std::string* _internal_mutable_memory_id();
   public:
 
+  // bytes effective_config = 10;
+  void clear_effective_config();
+  const std::string& effective_config() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_effective_config(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_effective_config();
+  PROTOBUF_NODISCARD std::string* release_effective_config();
+  void set_allocated_effective_config(std::string* effective_config);
+  private:
+  const std::string& _internal_effective_config() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_effective_config(const std::string& value);
+  std::string* _internal_mutable_effective_config();
+  public:
+
   // .coretex.agent.v1.Budget budget = 6;
   bool has_budget() const;
   private:
@@ -406,6 +421,7 @@ class PolicyCheckRequest final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr tenant_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr principal_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr memory_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr effective_config_;
     ::coretex::agent::v1::Budget* budget_;
     double estimated_cost_;
     int priority_;
@@ -1009,6 +1025,56 @@ inline void PolicyCheckRequest::set_allocated_memory_id(std::string* memory_id) 
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyCheckRequest.memory_id)
+}
+
+// bytes effective_config = 10;
+inline void PolicyCheckRequest::clear_effective_config() {
+  _impl_.effective_config_.ClearToEmpty();
+}
+inline const std::string& PolicyCheckRequest::effective_config() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyCheckRequest.effective_config)
+  return _internal_effective_config();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyCheckRequest::set_effective_config(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.effective_config_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.PolicyCheckRequest.effective_config)
+}
+inline std::string* PolicyCheckRequest::mutable_effective_config() {
+  std::string* _s = _internal_mutable_effective_config();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyCheckRequest.effective_config)
+  return _s;
+}
+inline const std::string& PolicyCheckRequest::_internal_effective_config() const {
+  return _impl_.effective_config_.Get();
+}
+inline void PolicyCheckRequest::_internal_set_effective_config(const std::string& value) {
+  
+  _impl_.effective_config_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyCheckRequest::_internal_mutable_effective_config() {
+  
+  return _impl_.effective_config_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyCheckRequest::release_effective_config() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyCheckRequest.effective_config)
+  return _impl_.effective_config_.Release();
+}
+inline void PolicyCheckRequest::set_allocated_effective_config(std::string* effective_config) {
+  if (effective_config != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.effective_config_.SetAllocated(effective_config, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.effective_config_.IsDefault()) {
+    _impl_.effective_config_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyCheckRequest.effective_config)
 }
 
 // -------------------------------------------------------------------

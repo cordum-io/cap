@@ -31,19 +31,23 @@ jobs:
           sudo apt-get install -y protobuf-compiler
 
       - name: Install build deps
+        env:
+          PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install build grpcio-tools
+          "$PYTHON_BIN" -m pip install --upgrade pip
+          "$PYTHON_BIN" -m pip install build grpcio-tools
+          "$PYTHON_BIN" -m grpc_tools.protoc --version
 
       - name: Set version from tag
         env:
           VERSION: ${{ github.ref_name }}
+          PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
         run: |
           if [[ -z "${VERSION}" ]]; then
             echo "VERSION not set from tag"; exit 1
           fi
           VERSION="${VERSION#v}"
-          python - <<'PY'
+          "$PYTHON_BIN" - <<'PY'
 import os
 import tomllib
 from pathlib import Path
@@ -71,16 +75,21 @@ print(f"Set version to {version}")
 PY
 
       - name: Generate Python stubs
+        env:
+          PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
         run: |
           mkdir -p cap/pb
-          python -m grpc_tools.protoc \
+          "$PYTHON_BIN" -m grpc_tools.protoc \
             -I../../proto \
             --python_out=./cap/pb \
             --grpc_python_out=./cap/pb \
             ../../proto/cortex/agent/v1/*.proto
 
       - name: Build package
-        run: python -m build
+        env:
+          PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
+        run: |
+          "$PYTHON_BIN" -m build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

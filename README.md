@@ -9,7 +9,7 @@
 
 ## Status
 - Protocol (wire): CAP 1.0.0 — Stable; append-only changes only.
-- Implementation / SDK: cap v1.0.5 (tagged releases in this repo).
+- Implementation / SDK: cap v2.0.0 (tagged releases in this repo).
 - Transport profile: NATS-first; other buses experimental.
 - Reference implementation: CortexOS.
 
@@ -17,7 +17,7 @@
 | Component | Version | Notes |
 | --- | --- | --- |
 | Protocol wire schema | 1.0.0 | Append-only evolution; never renumber fields. |
-| Repo / SDKs | 1.0.5 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
+| Repo / SDKs | 2.0.0 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
 | `protocol_version` field | 1 | Used in `BusPacket` for negotiation. |
 
 ## MCP != CAP

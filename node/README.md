@@ -5,6 +5,8 @@ CommonJS protobuf stubs generated from `proto/cortex/agent/v1/*.proto`:
 ```bash
 ./tools/make_protos.sh   # writes to /node by default
 ```
+Artifacts:
+- `cap_pb.js` / `cap_pb.d.ts` — bundled static modules for all messages.
 
 Use with `protobufjs` or plain `google-protobuf` runtime:
 

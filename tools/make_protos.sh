@@ -48,23 +48,29 @@ fi
 # JavaScript stubs (CommonJS, binary wire) for Node consumers.
 if [ "${CAP_RUN_JS:-1}" = "1" ]; then
   if command -v protoc-gen-js >/dev/null 2>&1; then
-    echo "Generating Node JS stubs..."
+    echo "Generating Node JS stubs (protoc)..."
     protoc \
       -I"$PROTO_DIR" \
       --js_out=import_style=commonjs,binary:"$OUT_JS" \
       $(find "$PROTO_DIR" -name '*.proto')
+  elif command -v pbjs >/dev/null 2>&1; then
+    echo "Generating Node JS stubs (pbjs)..."
+    pbjs -p "$PROTO_DIR" -t static-module -w commonjs -r cortex.agent.v1 -o "$OUT_JS/cap_pb.js" $(find "$PROTO_DIR" -name '*.proto')
   else
-    echo "protoc-gen-js not found; skipping Node JS stubs (install google-protobuf/npm protoc-gen-js to enable)"
+    echo "No JS generator found; skipping Node JS stubs (install protoc-gen-js or pbjs)"
   fi
 
-  # Generate TypeScript definitions when protoc-gen-ts is available.
+  # Generate TypeScript definitions when protoc-gen-ts or pbts is available.
   if command -v protoc-gen-ts >/dev/null 2>&1; then
     protoc \
       -I"$PROTO_DIR" \
       --ts_out="$OUT_JS" \
       $(find "$PROTO_DIR" -name '*.proto')
+  elif command -v pbts >/dev/null 2>&1 && [ -f "$OUT_JS/cap_pb.js" ]; then
+    echo "Generating TypeScript typings (pbts)..."
+    pbts -o "$OUT_JS/cap_pb.d.ts" "$OUT_JS/cap_pb.js"
   else
-    echo "protoc-gen-ts not found; skipping TypeScript typings (install ts-proto or protoc-gen-ts to enable)"
+    echo "No TS generator found; skipping TypeScript typings (install protoc-gen-ts or pbjs/pbts)"
   fi
 else
   echo "CAP_RUN_JS not set to 1; skipping Node JS stubs"

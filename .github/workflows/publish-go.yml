@@ -28,12 +28,14 @@ jobs:
 
       - name: Generate Go stubs
         run: |
-          bash ./tools/make_protos.sh
-          ls -la generated/go || true
+          CAP_SKIP_PY=1 bash ./tools/make_protos.sh
+          ls -la gen/go || ls -la generated/go || true
 
       - name: Go test (generated)
         run: |
-          if [ -d generated/go ]; then
+          if [ -d gen/go ]; then
+            go test ./gen/go/...
+          elif [ -d generated/go ]; then
             go test ./generated/go/...
           else
             echo "No generated Go stubs found" && exit 1

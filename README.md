@@ -154,6 +154,7 @@ func main() {
 - **Discord:** [Join our Discord server!](https://discord.gg/your-invite-link)
 - **GitHub Discussions:** [Ask questions and share ideas](https://github.com/your-repo/discussions)
 - **Mailing List:** [Subscribe to our mailing list](https://example.com/subscribe)
+- **Email US:** admin@coretexos.io
 
 ## Compatibility and Contributing
 - Wire evolution is append-only: never renumber or repurpose existing protobuf fields.

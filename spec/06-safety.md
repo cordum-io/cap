@@ -7,7 +7,7 @@ CAP makes safety a first-class control-plane hook via the Safety Kernel.
 - Inputs: `job_id`, `topic`, `tenant`, `principal_id`, `priority`, `budget`, optional `estimated_cost`, `labels`, `memory_id`, and optional `effective_config` (marshaled EffectiveConfig for the request context).
 - Outputs: decision, human-readable `reason`, optional `redacted_context_ptr`, and optional policy metadata (`policy_snapshot`, `rule_id`, `constraints`, `approval_required`, `approval_ref`).
 
-## Canonical Service (see `proto/coretex/agent/v1/safety.proto`)
+## Canonical Service (see `proto/cordum/agent/v1/safety.proto`)
 ```proto
 service SafetyKernel {
   rpc Check(PolicyCheckRequest) returns (PolicyCheckResponse);

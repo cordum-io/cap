@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple helper to generate language-specific stubs into ./coretex (Go), ./python, ./cpp, and ./node
+# Simple helper to generate language-specific stubs into ./cordum (Go), ./python, ./cpp, and ./node
 # (configurable via CAP_OUT_GO/CAP_OUT_PY/CAP_OUT_CPP/CAP_OUT_JS)
 # Requirements:
 # - protoc
@@ -79,11 +79,15 @@ if [ "${CAP_RUN_JS:-1}" = "1" ]; then
       -I"$PROTO_DIR" \
       --js_out=import_style=commonjs,binary:"$OUT_JS" \
       $(find "$PROTO_DIR" -name '*.proto')
-  elif command -v pbjs >/dev/null 2>&1; then
-    echo "Generating Node JS stubs (pbjs)..."
-    pbjs -p "$PROTO_DIR" -t static-module -w commonjs -r coretex.agent.v1 -o "$OUT_JS/cap_pb.js" $(find "$PROTO_DIR" -name '*.proto')
-  else
-    echo "No JS generator found; skipping Node JS stubs (install protoc-gen-js, grpc-tools, or pbjs)"
+  fi
+
+  if command -v pbjs >/dev/null 2>&1; then
+    echo "Generating Node JS bundle (pbjs)..."
+    pbjs -p "$PROTO_DIR" -t static-module -w commonjs -r cordum.agent.v1 -o "$OUT_JS/cap_pb.js" $(find "$PROTO_DIR" -name '*.proto')
+  fi
+
+  if [ -z "$PROTOC_JS" ] && ! command -v pbjs >/dev/null 2>&1; then
+    echo "No JS generator found; skipping Node JS stubs (install protoc-gen-js or grpc-tools, or pbjs)"
   fi
 
   # Generate TypeScript definitions when protoc-gen-ts or pbts is available.

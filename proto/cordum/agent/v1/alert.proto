@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package cordum.agent.v1;
+
+option go_package = "github.com/cordum/cap/v2/cordum/agent/v1";
+option java_package = "io.cordum.cap.agent.v1";
+option java_multiple_files = true;
+option csharp_namespace = "Cordum.Agent.V1";
+option php_namespace = "cordum\\Agent\\V1";
+option ruby_package = "Cordum::Agent::V1";
+
+// SystemAlert is a lightweight signal for system-level issues.
+message SystemAlert {
+    string level = 1;     // INFO, WARN, CRITICAL
+    string message = 2;   // human-readable detail
+    string component = 3; // emitting component name
+    string code = 4;      // optional machine-readable code
+}

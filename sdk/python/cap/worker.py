@@ -2,7 +2,7 @@ import asyncio
 from typing import Callable, Awaitable, Dict
 
 from google.protobuf import timestamp_pb2
-from cap.pb.coretex.agent.v1 import buspacket_pb2, job_pb2
+from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 

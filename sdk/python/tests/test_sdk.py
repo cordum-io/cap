@@ -16,7 +16,7 @@ sys.path.append(os.path.join(_sdk_root, "cap", "pb"))
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 
-from cap.pb.coretex.agent.v1 import job_pb2
+from cap.pb.cordum.agent.v1 import job_pb2
 from cap import client
 from cap import worker
 
@@ -88,7 +88,7 @@ class TestSDK(unittest.TestCase):
             self.assertEqual(subj, worker.SUBJECT_RESULT)
 
             # Verify the signature of the result
-            from cap.pb.coretex.agent.v1 import buspacket_pb2
+            from cap.pb.cordum.agent.v1 import buspacket_pb2
             result_packet = buspacket_pb2.BusPacket()
             result_packet.ParseFromString(data)
             signature = result_packet.signature

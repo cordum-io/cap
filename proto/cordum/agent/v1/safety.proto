@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package cordum.agent.v1;
+
+option go_package = "github.com/cordum/cap/v2/cordum/agent/v1";
+option java_package = "io.cordum.cap.agent.v1";
+option java_multiple_files = true;
+option csharp_namespace = "Cordum.Agent.V1";
+option php_namespace = "cordum\\Agent\\V1";
+option ruby_package = "Cordum::Agent::V1";
+
+import "cordum/agent/v1/job.proto";
+
+// DecisionType enumerates policy outcomes from the SafetyKernel.
+enum DecisionType {
+    DECISION_TYPE_UNSPECIFIED = 0;
+    DECISION_TYPE_ALLOW = 1;
+    DECISION_TYPE_DENY = 2;
+    DECISION_TYPE_REQUIRE_HUMAN = 3;
+    DECISION_TYPE_THROTTLE = 4;
+    DECISION_TYPE_ALLOW_WITH_CONSTRAINTS = 5;
+}
+
+// PolicyCheckRequest carries job metadata to the SafetyKernel.
+message PolicyCheckRequest {
+    string job_id = 1;
+    string topic = 2;
+    string tenant = 3;
+    JobPriority priority = 4;
+    double estimated_cost = 5;
+    Budget budget = 6; // optional budget hints for the decision
+    string principal_id = 7;
+    map<string, string> labels = 8;
+    string memory_id = 9;
+    bytes effective_config = 10; // marshaled EffectiveConfig for policy context
+    JobMetadata meta = 11;       // structured identity/capability metadata
+}
+
+// BudgetConstraints capture execution caps enforced by policy.
+message BudgetConstraints {
+    int64 max_runtime_ms = 1;
+    int32 max_retries = 2;
+    int64 max_artifact_bytes = 3;
+    int32 max_concurrent_jobs = 4;
+}
+
+// SandboxProfile describes runtime isolation and access boundaries.
+message SandboxProfile {
+    bool isolated = 1;
+    repeated string network_allowlist = 2;
+    repeated string fs_read_only = 3;
+    repeated string fs_read_write = 4;
+}
+
+// ToolchainConstraints define allowed tooling for execution.
+message ToolchainConstraints {
+    repeated string allowed_tools = 1;
+    repeated string allowed_commands = 2;
+}
+
+// DiffConstraints bound change-set sizes and path filters.
+message DiffConstraints {
+    int32 max_files = 1;
+    int32 max_lines = 2;
+    repeated string deny_path_globs = 3;
+}
+
+// PolicyConstraints capture structured enforcement limits.
+message PolicyConstraints {
+    BudgetConstraints budgets = 1;
+    SandboxProfile sandbox = 2;
+    ToolchainConstraints toolchain = 3;
+    DiffConstraints diff = 4;
+    string redaction_level = 5;
+}
+
+// PolicyCheckResponse conveys the decision and optional redaction pointer.
+message PolicyCheckResponse {
+    DecisionType decision = 1;
+    string reason = 2;
+    string redacted_context_ptr = 3; // optional pointer to sanitized context
+    string policy_snapshot = 4; // version/hash of the loaded policy
+    string rule_id = 5;         // matched rule identifier
+    PolicyConstraints constraints = 6;
+    bool approval_required = 7;
+    string approval_ref = 8;
+}
+
+// ListSnapshotsRequest asks for loaded policy snapshots.
+message ListSnapshotsRequest {}
+
+// ListSnapshotsResponse returns currently loaded snapshots.
+message ListSnapshotsResponse {
+    repeated string snapshots = 1;
+}
+
+// SafetyKernel defines the policy decision service.
+service SafetyKernel {
+    rpc Check(PolicyCheckRequest) returns (PolicyCheckResponse);
+    rpc Evaluate(PolicyCheckRequest) returns (PolicyCheckResponse);
+    rpc Explain(PolicyCheckRequest) returns (PolicyCheckResponse);
+    rpc Simulate(PolicyCheckRequest) returns (PolicyCheckResponse);
+    rpc ListSnapshots(ListSnapshotsRequest) returns (ListSnapshotsResponse);
+}

@@ -13,7 +13,7 @@ bool Worker::Start() {
 }
 
 void Worker::OnMessage(const BusMessage& msg) {
-  coretex::agent::v1::BusPacket packet;
+  cordum::agent::v1::BusPacket packet;
   if (!packet.ParseFromArray(msg.data.data(), static_cast<int>(msg.data.size()))) {
     return;
   }
@@ -22,20 +22,20 @@ void Worker::OnMessage(const BusMessage& msg) {
   }
 
   const auto& req = packet.job_request();
-  std::unique_ptr<coretex::agent::v1::JobResult> res;
+  std::unique_ptr<cordum::agent::v1::JobResult> res;
   if (handler_) {
     res = handler_(req);
   }
   if (!res) {
-    res = std::make_unique<coretex::agent::v1::JobResult>();
+    res = std::make_unique<cordum::agent::v1::JobResult>();
     res->set_job_id(req.job_id());
-    res->set_status(coretex::agent::v1::JOB_STATUS_FAILED);
+    res->set_status(cordum::agent::v1::JOB_STATUS_FAILED);
     res->set_error_message("handler returned null");
   }
   if (res->job_id().empty()) res->set_job_id(req.job_id());
   if (res->worker_id().empty()) res->set_worker_id(sender_id_);
 
-  coretex::agent::v1::BusPacket out;
+  cordum::agent::v1::BusPacket out;
   out.set_trace_id(packet.trace_id());
   out.set_sender_id(sender_id_);
   out.set_protocol_version(protocol_version_);

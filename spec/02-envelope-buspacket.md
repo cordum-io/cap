@@ -10,7 +10,7 @@ All CAP traffic is wrapped in a `BusPacket`. The envelope provides tracing, send
 - `payload`: exactly one of `JobRequest`, `JobResult`, `Heartbeat`, or `SystemAlert`.
 - `signature` (optional but recommended): digital signature of the serialized `BusPacket` for authenticity and integrity. Producers SHOULD sign; consumers SHOULD verify when configured with public keys.
 
-## Canonical Proto (see `proto/coretex/agent/v1/buspacket.proto`)
+## Canonical Proto (see `proto/cordum/agent/v1/buspacket.proto`)
 ```proto
 message BusPacket {
   string trace_id = 1;

@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/coretexos/cap/v2/sdk/go"
-	agentv1 "github.com/coretexos/cap/v2/coretex/agent/v1"
+	"github.com/cordum/cap/v2/sdk/go"
+	agentv1 "github.com/cordum/cap/v2/cordum/agent/v1"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"

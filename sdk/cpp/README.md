@@ -25,10 +25,10 @@ cmake --build sdk/cpp/build
 ```cpp
 auto bus = std::make_unique<MyNatsBus>(); // implements cap::BusClient
 cap::Worker worker(bus.get(), "job.echo",
-  [](const coretex::agent::v1::JobRequest& req) {
-    auto res = std::make_unique<coretex::agent::v1::JobResult>();
+  [](const cordum::agent::v1::JobRequest& req) {
+    auto res = std::make_unique<cordum::agent::v1::JobResult>();
     res->set_job_id(req.job_id());
-    res->set_status(coretex::agent::v1::JOB_STATUS_SUCCEEDED);
+    res->set_status(cordum::agent::v1::JOB_STATUS_SUCCEEDED);
     res->set_result_ptr("redis://res/" + req.job_id());
     res->set_worker_id("worker-echo-1");
     return res;
@@ -36,7 +36,7 @@ cap::Worker worker(bus.get(), "job.echo",
 worker.Start();
 
 cap::Client client(bus.get(), "gateway-1");
-coretex::agent::v1::JobRequest req;
+cordum::agent::v1::JobRequest req;
 req.set_job_id("job-1");
 req.set_topic("job.echo");
 req.set_context_ptr("redis://ctx/job-1");

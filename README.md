@@ -1,4 +1,4 @@
-# coretex Agent Protocol (CAP)
+# Cordum Agent Protocol (CAP)
 
 ## TL;DR
 - Cluster-native job protocol for AI agents: standard envelopes, jobs, heartbeats, and workflows over a bus.
@@ -9,15 +9,15 @@
 
 ## Status
 - Protocol (wire): CAP 1.0.0 — Stable; append-only changes only.
-- Implementation / SDK: cap v2.0.5 (tagged releases in this repo).
+- Implementation / SDK: cap v2.0.8 (tagged releases in this repo).
 - Transport profile: NATS-first; other buses experimental.
-- Reference implementation: coretexOS.
+- Reference implementation: Cordum.
 
 ### Versioning at a glance
 | Component | Version | Notes |
 | --- | --- | --- |
 | Protocol wire schema | 1.0.0 | Append-only evolution; never renumber fields. |
-| Repo / SDKs | 2.0.5 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
+| Repo / SDKs | 2.0.8 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
 | `protocol_version` field | 1 | Used in `BusPacket` for negotiation. |
 
 ## MCP != CAP
@@ -74,7 +74,7 @@ sequenceDiagram
 - **Workflows**: orchestrators fan out child jobs and publish a parent result without changing the core job shape.
 
 ## Protocol Contracts
-Canonical protobuf definitions live under `proto/coretex/agent/v1/`:
+Canonical protobuf definitions live under `proto/cordum/agent/v1/`:
 - `buspacket.proto` — envelope and payload selection.
 - `job.proto` — job request/result messages and enums.
 - `heartbeat.proto` — liveness and capacity signals.
@@ -95,7 +95,7 @@ package main
 import (
 	"log"
 
-	agentv1 "github.com/coretexos/cap/v2/coretex/agent/v1"
+	agentv1 "github.com/cordum/cap/v2/cordum/agent/v1"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 )
@@ -145,17 +145,17 @@ func main() {
 - `examples/` - JSON and sequence flows for common scenarios.
 - `tools/` - helper scripts for proto generation (optional).
 - `sdk/` - starter SDKs for Go, Python, Node/TS, and C++ with NATS helpers.
-- `coretex/` - Go protobuf stubs (import path `github.com/coretexos/cap/v2/coretex/agent/v1`).
+- `cordum/` - Go protobuf stubs (import path `github.com/cordum/cap/v2/cordum/agent/v1`).
 - `python/` - Python protobuf stubs (enable with `CAP_RUN_PY=1`).
 - `cpp/` - C++ protobuf stubs (vendored headers/sources).
 - `node/` - Node JS protobuf stubs (CommonJS, binary wire format).
-- Go module path: `github.com/coretexos/cap/v2` (see `go.mod`).
+- Go module path: `github.com/cordum/cap/v2` (see `go.mod`).
 
 ## Community
 - **Discord:** [Join our Discord server!](https://discord.gg/your-invite-link)
 - **GitHub Discussions:** [Ask questions and share ideas](https://github.com/your-repo/discussions)
 - **Mailing List:** [Subscribe to our mailing list](https://example.com/subscribe)
-- **Email US:** admin@coretexos.io
+- **Email US:** admin@cordum.io
 
 ## Compatibility and Contributing
 - Wire evolution is append-only: never renumber or repurpose existing protobuf fields.

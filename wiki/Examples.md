@@ -1,6 +1,6 @@
 # CAP Examples
 
-This page provides practical examples and tutorials to help you get started with the coretex Agent Protocol (CAP).
+This page provides practical examples and tutorials to help you get started with the Cordum Agent Protocol (CAP).
 
 ## Simple Echo
 
@@ -21,8 +21,8 @@ import (
 	"crypto/rand"
 	"log"
 
-	"github.com/coretexos/cap/v2/sdk/go/worker"
-	agentv1 "github.com/coretexos/cap/v2/coretex/agent/v1"
+	"github.com/cordum/cap/v2/sdk/go/worker"
+	agentv1 "github.com/cordum/cap/v2/cordum/agent/v1"
 	"github.com/nats-io/nats.go"
 )
 
@@ -80,8 +80,8 @@ import (
 	"crypto/rand"
 	"log"
 
-	"github.com/coretexos/cap/v2/sdk/go/client"
-	agentv1 "github.com/coretexos/cap/v2/coretex/agent/v1"
+	"github.com/cordum/cap/v2/sdk/go/client"
+	agentv1 "github.com/cordum/cap/v2/cordum/agent/v1"
 	"github.com/nats-io/nats.go"
 )
 
@@ -118,7 +118,7 @@ log.Println("Job submitted")
 import asyncio
 
 from cap import worker
-from cap.pb.coretex.agent.v1 import job_pb2
+from cap.pb.cordum.agent.v1 import job_pb2
 
 
 async def handle(req: job_pb2.JobRequest) -> job_pb2.JobResult:
@@ -151,7 +151,7 @@ import asyncio
 
 import nats
 from cap import client
-from cap.pb.coretex.agent.v1 import job_pb2
+from cap.pb.cordum.agent.v1 import job_pb2
 
 
 async def main():

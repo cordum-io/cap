@@ -6,12 +6,12 @@
 
 #include "cap/bus_interface.h"
 #include "cap/subjects.h"
-#include "coretex/agent/v1/buspacket.pb.h"
+#include "cordum/agent/v1/buspacket.pb.h"
 
 namespace cap {
 
-using JobHandler = std::function<std::unique_ptr<coretex::agent::v1::JobResult>(
-    const coretex::agent::v1::JobRequest&)>;
+using JobHandler = std::function<std::unique_ptr<cordum::agent::v1::JobResult>(
+    const cordum::agent::v1::JobRequest&)>;
 
 class Worker {
  public:

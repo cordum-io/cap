@@ -99,8 +99,8 @@ const file_cordum_agent_v1_alert_proto_rawDesc = "" +
 	"\x05level\x18\x01 \x01(\tR\x05level\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1c\n" +
 	"\tcomponent\x18\x03 \x01(\tR\tcomponent\x12\x12\n" +
-	"\x04code\x18\x04 \x01(\tR\x04codeB|\n" +
-	"\x16io.cordum.cap.agent.v1P\x01Z(github.com/cordum/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
+	"\x04code\x18\x04 \x01(\tR\x04codeB\x7f\n" +
+	"\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
 
 var (
 	file_cordum_agent_v1_alert_proto_rawDescOnce sync.Once

@@ -110,14 +110,14 @@ const char descriptor_table_protodef_cordum_2fagent_2fv1_2fheartbeat_2eproto[] P
   "\014\n\004pool\030\013 \001(\t\022\031\n\021max_parallel_jobs\030\014 \001(\005"
   "\0226\n\006labels\030\r \003(\0132&.cordum.agent.v1.Heart"
   "beat.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001"
-  " \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B|\n\026io.cordum.cap"
-  ".agent.v1P\001Z(github.com/cordum/cap/v2/co"
-  "rdum/agent/v1\252\002\017Cordum.Agent.V1\312\002\017cordum"
-  "\\Agent\\V1\352\002\021Cordum::Agent::V1b\006proto3"
+  " \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\177\n\026io.cordum.cap"
+  ".agent.v1P\001Z+github.com/cordum-io/cap/v2"
+  "/cordum/agent/v1\252\002\017Cordum.Agent.V1\312\002\017cor"
+  "dum\\Agent\\V1\352\002\021Cordum::Agent::V1b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fheartbeat_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fheartbeat_2eproto = {
-    false, false, 477, descriptor_table_protodef_cordum_2fagent_2fv1_2fheartbeat_2eproto,
+    false, false, 480, descriptor_table_protodef_cordum_2fagent_2fv1_2fheartbeat_2eproto,
     "cordum/agent/v1/heartbeat.proto",
     &descriptor_table_cordum_2fagent_2fv1_2fheartbeat_2eproto_once, nullptr, 0, 2,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fheartbeat_2eproto::offsets,

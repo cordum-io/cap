@@ -7,8 +7,8 @@ import (
 	"crypto/rand"
 	"log"
 
-	agentv1 "github.com/cordum/cap/v2/cordum/agent/v1"
-	"github.com/cordum/cap/v2/sdk/go/client"
+	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+	"github.com/cordum-io/cap/v2/sdk/go/client"
 	"github.com/nats-io/nats.go"
 )
 

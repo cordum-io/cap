@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package cordum.agent.v1;
 
-option go_package = "github.com/cordum/cap/v2/cordum/agent/v1";
+option go_package = "github.com/cordum-io/cap/v2/cordum/agent/v1";
 option java_package = "io.cordum.cap.agent.v1";
 option java_multiple_files = true;
 option csharp_namespace = "Cordum.Agent.V1";

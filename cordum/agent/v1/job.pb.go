@@ -966,8 +966,8 @@ const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"\tActorType\x12\x1a\n" +
 	"\x16ACTOR_TYPE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10ACTOR_TYPE_HUMAN\x10\x01\x12\x16\n" +
-	"\x12ACTOR_TYPE_SERVICE\x10\x02B|\n" +
-	"\x16io.cordum.cap.agent.v1P\x01Z(github.com/cordum/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
+	"\x12ACTOR_TYPE_SERVICE\x10\x02B\x7f\n" +
+	"\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
 
 var (
 	file_cordum_agent_v1_job_proto_rawDescOnce sync.Once

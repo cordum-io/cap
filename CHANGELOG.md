@@ -13,8 +13,8 @@
 ## v2.0.6 — 2026-01-03
 - Added `JobRequest.meta` for structured pack-ready identity/capability metadata.
 - SafetyKernel: expanded PolicyCheckResponse with policy snapshots, rule IDs, and structured constraints; added Evaluate/Explain/Simulate/ListSnapshots RPCs.
-- Go: canonical protobuf import path `github.com/cordum/cap/v2/cordum/agent/v1`; removed duplicate `/go` stubs and updated generation defaults.
-- Go SDK moved under the root module (`github.com/cordum/cap/v2/sdk/go`) for unified versioning.
+- Go: canonical protobuf import path `github.com/cordum-io/cap/v2/cordum/agent/v1`; removed duplicate `/go` stubs and updated generation defaults.
+- Go SDK moved under the root module (`github.com/cordum-io/cap/v2/sdk/go`) for unified versioning.
 - Regenerated stubs across Go/C++/Python/Node for the updated contracts.
 
 ## v2.0.5 — 2026-01-02
@@ -34,6 +34,6 @@
 ## v0.1.0 — 2025-12-11
 - First public draft of the Cordum Agent Protocol (CAP): BusPacket, JobRequest/JobResult, Heartbeat, SafetyKernel, and Alert protobuf contracts under `proto/cordum/agent/v1`.
 - Transport profile documented for NATS with canonical subjects (`sys.job.submit`, `sys.job.result`, `sys.heartbeat`) and pointer semantics (`context_ptr`, `result_ptr`, `redacted_context_ptr`).
-- SDKs: Go (`github.com/cordum/cap/v2/cordum/agent/v1` import path via `/cordum/agent/v1` stubs), Python (asyncio + NATS), and Node/TypeScript (protobufjs loader) aligned to the same contracts.
+- SDKs: Go (`github.com/cordum-io/cap/v2/cordum/agent/v1` import path via `/cordum/agent/v1` stubs), Python (asyncio + NATS), and Node/TypeScript (protobufjs loader) aligned to the same contracts.
 - Tooling: `tools/make_protos.sh` to generate Go/Python stubs into `/cordum/agent/v1` and `/python`; Python virtualenv support via `PYTHON_BIN`.
 - Examples: simple echo, workflow repo review, and heartbeat samples called out from the README for quick starts.

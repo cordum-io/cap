@@ -369,18 +369,18 @@ const char descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto[] PROT
   "1.PolicyCheckRequest\032$.cordum.agent.v1.P"
   "olicyCheckResponse\022^\n\rListSnapshots\022%.co"
   "rdum.agent.v1.ListSnapshotsRequest\032&.cor"
-  "dum.agent.v1.ListSnapshotsResponseB|\n\026io"
-  ".cordum.cap.agent.v1P\001Z(github.com/cordu"
-  "m/cap/v2/cordum/agent/v1\252\002\017Cordum.Agent."
-  "V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent::V1"
-  "b\006proto3"
+  "dum.agent.v1.ListSnapshotsResponseB\177\n\026io"
+  ".cordum.cap.agent.v1P\001Z+github.com/cordu"
+  "m-io/cap/v2/cordum/agent/v1\252\002\017Cordum.Age"
+  "nt.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent:"
+  ":V1b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_deps[1] = {
   &::descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto = {
-    false, false, 2248, descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto,
+    false, false, 2251, descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto,
     "cordum/agent/v1/safety.proto",
     &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once, descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_deps, 1, 10,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets,

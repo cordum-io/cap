@@ -18,7 +18,7 @@ Before you begin, you will need to have the following installed:
 1.  **Clone the CAP repository:**
 
     ```bash
-    git clone https://github.com/cordum/cap.git
+    git clone https://github.com/cordum-io/cap.git
     cd cap
     ```
 

@@ -5,7 +5,7 @@ The Go SDK for CAP is the reference implementation and provides a comprehensive 
 ## Installation
 
 ```bash
-go get github.com/cordum/cap/v2/sdk/go
+go get github.com/cordum-io/cap/v2/sdk/go
 ```
 
 ## Client
@@ -33,8 +33,8 @@ import (
 	"crypto/rand"
 	"log"
 
-	"github.com/cordum/cap/v2/sdk/go/client"
-	agentv1 "github.com/cordum/cap/v2/cordum/agent/v1"
+	"github.com/cordum-io/cap/v2/sdk/go/client"
+	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	"github.com/nats-io/nats.go"
 )
 
@@ -103,8 +103,8 @@ import (
 	"crypto/rand"
 	"log"
 
-	"github.com/cordum/cap/v2/sdk/go/worker"
-	agentv1 "github.com/cordum/cap/v2/cordum/agent/v1"
+	"github.com/cordum-io/cap/v2/sdk/go/worker"
+	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	"github.com/nats-io/nats.go"
 )
 

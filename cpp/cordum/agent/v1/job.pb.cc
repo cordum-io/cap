@@ -402,14 +402,14 @@ const char descriptor_table_protodef_cordum_2fagent_2fv1_2fjob_2eproto[] PROTOBU
   "US_DENIED\020\010\022\026\n\022JOB_STATUS_TIMEOUT\020\t*U\n\tA"
   "ctorType\022\032\n\026ACTOR_TYPE_UNSPECIFIED\020\000\022\024\n\020"
   "ACTOR_TYPE_HUMAN\020\001\022\026\n\022ACTOR_TYPE_SERVICE"
-  "\020\002B|\n\026io.cordum.cap.agent.v1P\001Z(github.c"
-  "om/cordum/cap/v2/cordum/agent/v1\252\002\017Cordu"
-  "m.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::A"
-  "gent::V1b\006proto3"
+  "\020\002B\177\n\026io.cordum.cap.agent.v1P\001Z+github.c"
+  "om/cordum-io/cap/v2/cordum/agent/v1\252\002\017Co"
+  "rdum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum"
+  "::Agent::V1b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto = {
-    false, false, 2216, descriptor_table_protodef_cordum_2fagent_2fv1_2fjob_2eproto,
+    false, false, 2219, descriptor_table_protodef_cordum_2fagent_2fv1_2fjob_2eproto,
     "cordum/agent/v1/job.proto",
     &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once, nullptr, 0, 10,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fjob_2eproto::offsets,

@@ -42,19 +42,17 @@ jobs:
       - name: Generate Go stubs
         env:
           CAP_RUN_PY: 1
-          CAP_OUT_GO: generated/go
+          CAP_OUT_GO: .
           PYTHON_BIN: python
         run: |
           "$PYTHON_BIN" -m pip install grpcio-tools
           bash ./tools/make_protos.sh
-          ls -la generated/go || ls -la gen/go || true
+          ls -la cortex/agent/v1 || true
 
       - name: Go test (generated)
         run: |
-          if [ -d generated/go ]; then
-            go test ./generated/go/...
-          elif [ -d gen/go ]; then
-            go test ./gen/go/...
+          if [ -d cortex/agent/v1 ]; then
+            go test ./cortex/agent/v1/...
           else
             echo "No generated Go stubs found" && exit 1
           fi

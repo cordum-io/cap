@@ -10,10 +10,10 @@ This folder contains the normative specification for the Cordum Agent Protocol (
 ## Versioning
 - `protocol_version` in `BusPacket` is used for wire negotiation. Current wire version: `1` (schema 1.0.0).
 - Protobuf evolution is append-only: add new fields with new numbers; do not delete or reuse.
-- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.15`) for reproducibility.
+- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.16`) for reproducibility.
 - Protocol vs SDK:
   - Protocol wire schema: 1.0.0 (stable).
-  - Repository/SDK: 2.0.15 (may add helpers, docs, and generated stubs without wire breaks).
+  - Repository/SDK: 2.0.16 (may add helpers, docs, and generated stubs without wire breaks).
 
 ## Table of Contents
 - [01 Overview](01-overview.md)
@@ -179,6 +179,7 @@ CAP jobs are the core unit of work. Gateways submit `JobRequest` packets, worker
 - `worker_id`: identifier of the emitting worker.
 - `execution_ms`: elapsed processing time measured by the worker.
 - `error_code` / `error_message`: optional diagnostics for failures or denials.
+- Use `FAILED_RETRYABLE` for transient errors (rate limits, temporary network), and `FAILED_FATAL` for non-recoverable errors that should trigger rollback.
 
 ## Job Lifecycle Diagram
 
@@ -373,6 +374,8 @@ CAP standardizes job lifecycle states to keep schedulers and workers interoperab
 - `RUNNING`
 - `SUCCEEDED`
 - `FAILED`
+- `FAILED_RETRYABLE`
+- `FAILED_FATAL`
 - `CANCELLED`
 - `DENIED`
 - `TIMEOUT`
@@ -386,6 +389,8 @@ stateDiagram-v2
     DISPATCHED --> RUNNING : worker starts execution
     RUNNING --> SUCCEEDED : worker emits JobResult status=SUCCEEDED
     RUNNING --> FAILED : worker emits JobResult status=FAILED
+    RUNNING --> FAILED_RETRYABLE : transient failure, safe to retry
+    RUNNING --> FAILED_FATAL : fatal failure, trigger rollback
     RUNNING --> TIMEOUT : reconciler marks stale
     DISPATCHED --> TIMEOUT : worker never starts
     SCHEDULED --> DENIED : safety rejects
@@ -409,6 +414,10 @@ stateDiagram-v2
 - A `JobResult` that conflicts with an existing terminal state SHOULD be logged and ignored unless override policy is explicit.
 - `CANCELLED` MAY be set from any non-terminal state.
 - Timeouts SHOULD be configurable per pool or tenant.
+- `FAILED_RETRYABLE` SHOULD be treated as non-terminal by orchestrators that implement retry loops.
+- `FAILED_FATAL` SHOULD be treated as terminal and MAY trigger saga rollback when a compensation stack exists.
+
+Tags: `job-status`, `retry`, `fatal`.
 
 ## Metadata Expectations
 - Store `context_ptr`, `result_ptr`, `worker_id`, `execution_ms`, safety decisions, and timestamps for each transition.

@@ -5,6 +5,7 @@ Quick copy/paste messages and flows:
 - `job-request.json` — minimal `BusPacket{JobRequest}` for an echo pool.
 - `job-request-compensation.json` — `JobRequest` with a compensation template for rollback.
 - `job-result.json` — matching `BusPacket{JobResult}`.
+- `job-result-fatal.json` — `JobResult` with `JOB_STATUS_FAILED_FATAL` (rollback trigger).
 - `heartbeat.json` — standalone `BusPacket{Heartbeat}` advertising pool membership and load.
 - `simple-echo/` — end-to-end submission + result with sequence diagram and bus messages (Go/Python/Node snippets).
 - `workflow-repo-review/` — multi-step parent/child workflow with aggregation and message traces.

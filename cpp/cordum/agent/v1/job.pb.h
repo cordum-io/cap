@@ -150,12 +150,14 @@ enum JobStatus : int {
   JOB_STATUS_CANCELLED = 7,
   JOB_STATUS_DENIED = 8,
   JOB_STATUS_TIMEOUT = 9,
+  JOB_STATUS_FAILED_RETRYABLE = 10,
+  JOB_STATUS_FAILED_FATAL = 11,
   JobStatus_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   JobStatus_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool JobStatus_IsValid(int value);
 constexpr JobStatus JobStatus_MIN = JOB_STATUS_UNSPECIFIED;
-constexpr JobStatus JobStatus_MAX = JOB_STATUS_TIMEOUT;
+constexpr JobStatus JobStatus_MAX = JOB_STATUS_FAILED_FATAL;
 constexpr int JobStatus_ARRAYSIZE = JobStatus_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* JobStatus_descriptor();

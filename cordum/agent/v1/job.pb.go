@@ -78,43 +78,49 @@ func (JobPriority) EnumDescriptor() ([]byte, []int) {
 type JobStatus int32
 
 const (
-	JobStatus_JOB_STATUS_UNSPECIFIED JobStatus = 0
-	JobStatus_JOB_STATUS_PENDING     JobStatus = 1
-	JobStatus_JOB_STATUS_SCHEDULED   JobStatus = 2
-	JobStatus_JOB_STATUS_DISPATCHED  JobStatus = 3
-	JobStatus_JOB_STATUS_RUNNING     JobStatus = 4
-	JobStatus_JOB_STATUS_SUCCEEDED   JobStatus = 5
-	JobStatus_JOB_STATUS_FAILED      JobStatus = 6
-	JobStatus_JOB_STATUS_CANCELLED   JobStatus = 7
-	JobStatus_JOB_STATUS_DENIED      JobStatus = 8
-	JobStatus_JOB_STATUS_TIMEOUT     JobStatus = 9
+	JobStatus_JOB_STATUS_UNSPECIFIED      JobStatus = 0
+	JobStatus_JOB_STATUS_PENDING          JobStatus = 1
+	JobStatus_JOB_STATUS_SCHEDULED        JobStatus = 2
+	JobStatus_JOB_STATUS_DISPATCHED       JobStatus = 3
+	JobStatus_JOB_STATUS_RUNNING          JobStatus = 4
+	JobStatus_JOB_STATUS_SUCCEEDED        JobStatus = 5
+	JobStatus_JOB_STATUS_FAILED           JobStatus = 6
+	JobStatus_JOB_STATUS_CANCELLED        JobStatus = 7
+	JobStatus_JOB_STATUS_DENIED           JobStatus = 8
+	JobStatus_JOB_STATUS_TIMEOUT          JobStatus = 9
+	JobStatus_JOB_STATUS_FAILED_RETRYABLE JobStatus = 10 // transient failure; safe to retry
+	JobStatus_JOB_STATUS_FAILED_FATAL     JobStatus = 11 // fatal failure; triggers rollback
 )
 
 // Enum value maps for JobStatus.
 var (
 	JobStatus_name = map[int32]string{
-		0: "JOB_STATUS_UNSPECIFIED",
-		1: "JOB_STATUS_PENDING",
-		2: "JOB_STATUS_SCHEDULED",
-		3: "JOB_STATUS_DISPATCHED",
-		4: "JOB_STATUS_RUNNING",
-		5: "JOB_STATUS_SUCCEEDED",
-		6: "JOB_STATUS_FAILED",
-		7: "JOB_STATUS_CANCELLED",
-		8: "JOB_STATUS_DENIED",
-		9: "JOB_STATUS_TIMEOUT",
+		0:  "JOB_STATUS_UNSPECIFIED",
+		1:  "JOB_STATUS_PENDING",
+		2:  "JOB_STATUS_SCHEDULED",
+		3:  "JOB_STATUS_DISPATCHED",
+		4:  "JOB_STATUS_RUNNING",
+		5:  "JOB_STATUS_SUCCEEDED",
+		6:  "JOB_STATUS_FAILED",
+		7:  "JOB_STATUS_CANCELLED",
+		8:  "JOB_STATUS_DENIED",
+		9:  "JOB_STATUS_TIMEOUT",
+		10: "JOB_STATUS_FAILED_RETRYABLE",
+		11: "JOB_STATUS_FAILED_FATAL",
 	}
 	JobStatus_value = map[string]int32{
-		"JOB_STATUS_UNSPECIFIED": 0,
-		"JOB_STATUS_PENDING":     1,
-		"JOB_STATUS_SCHEDULED":   2,
-		"JOB_STATUS_DISPATCHED":  3,
-		"JOB_STATUS_RUNNING":     4,
-		"JOB_STATUS_SUCCEEDED":   5,
-		"JOB_STATUS_FAILED":      6,
-		"JOB_STATUS_CANCELLED":   7,
-		"JOB_STATUS_DENIED":      8,
-		"JOB_STATUS_TIMEOUT":     9,
+		"JOB_STATUS_UNSPECIFIED":      0,
+		"JOB_STATUS_PENDING":          1,
+		"JOB_STATUS_SCHEDULED":        2,
+		"JOB_STATUS_DISPATCHED":       3,
+		"JOB_STATUS_RUNNING":          4,
+		"JOB_STATUS_SUCCEEDED":        5,
+		"JOB_STATUS_FAILED":           6,
+		"JOB_STATUS_CANCELLED":        7,
+		"JOB_STATUS_DENIED":           8,
+		"JOB_STATUS_TIMEOUT":          9,
+		"JOB_STATUS_FAILED_RETRYABLE": 10,
+		"JOB_STATUS_FAILED_FATAL":     11,
 	}
 )
 
@@ -1116,7 +1122,7 @@ const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"\x18JOB_PRIORITY_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18JOB_PRIORITY_INTERACTIVE\x10\x01\x12\x16\n" +
 	"\x12JOB_PRIORITY_BATCH\x10\x02\x12\x19\n" +
-	"\x15JOB_PRIORITY_CRITICAL\x10\x03*\x86\x02\n" +
+	"\x15JOB_PRIORITY_CRITICAL\x10\x03*\xc4\x02\n" +
 	"\tJobStatus\x12\x1a\n" +
 	"\x16JOB_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12JOB_STATUS_PENDING\x10\x01\x12\x18\n" +
@@ -1127,7 +1133,10 @@ const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"\x11JOB_STATUS_FAILED\x10\x06\x12\x18\n" +
 	"\x14JOB_STATUS_CANCELLED\x10\a\x12\x15\n" +
 	"\x11JOB_STATUS_DENIED\x10\b\x12\x16\n" +
-	"\x12JOB_STATUS_TIMEOUT\x10\t*U\n" +
+	"\x12JOB_STATUS_TIMEOUT\x10\t\x12\x1f\n" +
+	"\x1bJOB_STATUS_FAILED_RETRYABLE\x10\n" +
+	"\x12\x1b\n" +
+	"\x17JOB_STATUS_FAILED_FATAL\x10\v*U\n" +
 	"\tActorType\x12\x1a\n" +
 	"\x16ACTOR_TYPE_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10ACTOR_TYPE_HUMAN\x10\x01\x12\x16\n" +

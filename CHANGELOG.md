@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.16 — 2026-01-26
+- Added `FAILED_RETRYABLE` and `FAILED_FATAL` to `JobStatus` for explicit retry vs rollback handling.
+- Updated state machine/spec/docs and examples for the new failure semantics.
+
 ## v2.0.15 — 2026-01-26
 - Updated Go toolchain to 1.24.11 and bumped Go deps (grpc/x/*) to address vulnerability reports.
 - Fixed Node SDK proto path resolution for built artifacts and added npm override to remediate diff advisory.

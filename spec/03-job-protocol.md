@@ -25,6 +25,7 @@ CAP jobs are the core unit of work. Gateways submit `JobRequest` packets, worker
 - `worker_id`: identifier of the emitting worker.
 - `execution_ms`: elapsed processing time measured by the worker.
 - `error_code` / `error_message`: optional diagnostics for failures or denials.
+- Use `FAILED_RETRYABLE` for transient errors (rate limits, temporary network), and `FAILED_FATAL` for non-recoverable errors that should trigger rollback.
 
 ## Job Lifecycle Diagram
 

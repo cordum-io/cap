@@ -1,0 +1,19 @@
+name: Sync Wiki
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'wiki/**'
+
+jobs:
+  sync-wiki:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: spenserblack/actions-wiki@v3 # I corrected the name here
+        with:
+          path: wiki                       # The folder in your code
+          token: ${{ secrets.WIKI_TOKEN }} # <--- THIS IS CRITICAL

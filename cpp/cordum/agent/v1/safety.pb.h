@@ -77,6 +77,12 @@ extern PolicyCheckResponseDefaultTypeInternal _PolicyCheckResponse_default_insta
 class PolicyConstraints;
 struct PolicyConstraintsDefaultTypeInternal;
 extern PolicyConstraintsDefaultTypeInternal _PolicyConstraints_default_instance_;
+class PolicyRemediation;
+struct PolicyRemediationDefaultTypeInternal;
+extern PolicyRemediationDefaultTypeInternal _PolicyRemediation_default_instance_;
+class PolicyRemediation_AddLabelsEntry_DoNotUse;
+struct PolicyRemediation_AddLabelsEntry_DoNotUseDefaultTypeInternal;
+extern PolicyRemediation_AddLabelsEntry_DoNotUseDefaultTypeInternal _PolicyRemediation_AddLabelsEntry_DoNotUse_default_instance_;
 class SandboxProfile;
 struct SandboxProfileDefaultTypeInternal;
 extern SandboxProfileDefaultTypeInternal _SandboxProfile_default_instance_;
@@ -95,6 +101,8 @@ template<> ::cordum::agent::v1::PolicyCheckRequest* Arena::CreateMaybeMessage<::
 template<> ::cordum::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::cordum::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse>(Arena*);
 template<> ::cordum::agent::v1::PolicyCheckResponse* Arena::CreateMaybeMessage<::cordum::agent::v1::PolicyCheckResponse>(Arena*);
 template<> ::cordum::agent::v1::PolicyConstraints* Arena::CreateMaybeMessage<::cordum::agent::v1::PolicyConstraints>(Arena*);
+template<> ::cordum::agent::v1::PolicyRemediation* Arena::CreateMaybeMessage<::cordum::agent::v1::PolicyRemediation>(Arena*);
+template<> ::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse>(Arena*);
 template<> ::cordum::agent::v1::SandboxProfile* Arena::CreateMaybeMessage<::cordum::agent::v1::SandboxProfile>(Arena*);
 template<> ::cordum::agent::v1::ToolchainConstraints* Arena::CreateMaybeMessage<::cordum::agent::v1::ToolchainConstraints>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
@@ -1496,6 +1504,303 @@ class PolicyConstraints final :
 };
 // -------------------------------------------------------------------
 
+class PolicyRemediation_AddLabelsEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<PolicyRemediation_AddLabelsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<PolicyRemediation_AddLabelsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> SuperType;
+  PolicyRemediation_AddLabelsEntry_DoNotUse();
+  explicit PROTOBUF_CONSTEXPR PolicyRemediation_AddLabelsEntry_DoNotUse(
+      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit PolicyRemediation_AddLabelsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const PolicyRemediation_AddLabelsEntry_DoNotUse& other);
+  static const PolicyRemediation_AddLabelsEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const PolicyRemediation_AddLabelsEntry_DoNotUse*>(&_PolicyRemediation_AddLabelsEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cordum.agent.v1.PolicyRemediation.AddLabelsEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cordum.agent.v1.PolicyRemediation.AddLabelsEntry.value");
+ }
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  friend struct ::TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto;
+};
+
+// -------------------------------------------------------------------
+
+class PolicyRemediation final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cordum.agent.v1.PolicyRemediation) */ {
+ public:
+  inline PolicyRemediation() : PolicyRemediation(nullptr) {}
+  ~PolicyRemediation() override;
+  explicit PROTOBUF_CONSTEXPR PolicyRemediation(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  PolicyRemediation(const PolicyRemediation& from);
+  PolicyRemediation(PolicyRemediation&& from) noexcept
+    : PolicyRemediation() {
+    *this = ::std::move(from);
+  }
+
+  inline PolicyRemediation& operator=(const PolicyRemediation& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PolicyRemediation& operator=(PolicyRemediation&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PolicyRemediation& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const PolicyRemediation* internal_default_instance() {
+    return reinterpret_cast<const PolicyRemediation*>(
+               &_PolicyRemediation_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    8;
+
+  friend void swap(PolicyRemediation& a, PolicyRemediation& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(PolicyRemediation* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PolicyRemediation* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PolicyRemediation* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<PolicyRemediation>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const PolicyRemediation& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const PolicyRemediation& from) {
+    PolicyRemediation::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(PolicyRemediation* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "cordum.agent.v1.PolicyRemediation";
+  }
+  protected:
+  explicit PolicyRemediation(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kAddLabelsFieldNumber = 6,
+    kRemoveLabelsFieldNumber = 7,
+    kIdFieldNumber = 1,
+    kTitleFieldNumber = 2,
+    kSummaryFieldNumber = 3,
+    kReplacementTopicFieldNumber = 4,
+    kReplacementCapabilityFieldNumber = 5,
+  };
+  // map<string, string> add_labels = 6;
+  int add_labels_size() const;
+  private:
+  int _internal_add_labels_size() const;
+  public:
+  void clear_add_labels();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_add_labels() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_add_labels();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      add_labels() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_add_labels();
+
+  // repeated string remove_labels = 7;
+  int remove_labels_size() const;
+  private:
+  int _internal_remove_labels_size() const;
+  public:
+  void clear_remove_labels();
+  const std::string& remove_labels(int index) const;
+  std::string* mutable_remove_labels(int index);
+  void set_remove_labels(int index, const std::string& value);
+  void set_remove_labels(int index, std::string&& value);
+  void set_remove_labels(int index, const char* value);
+  void set_remove_labels(int index, const char* value, size_t size);
+  std::string* add_remove_labels();
+  void add_remove_labels(const std::string& value);
+  void add_remove_labels(std::string&& value);
+  void add_remove_labels(const char* value);
+  void add_remove_labels(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& remove_labels() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_remove_labels();
+  private:
+  const std::string& _internal_remove_labels(int index) const;
+  std::string* _internal_add_remove_labels();
+  public:
+
+  // string id = 1;
+  void clear_id();
+  const std::string& id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_id();
+  PROTOBUF_NODISCARD std::string* release_id();
+  void set_allocated_id(std::string* id);
+  private:
+  const std::string& _internal_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_id(const std::string& value);
+  std::string* _internal_mutable_id();
+  public:
+
+  // string title = 2;
+  void clear_title();
+  const std::string& title() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_title(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_title();
+  PROTOBUF_NODISCARD std::string* release_title();
+  void set_allocated_title(std::string* title);
+  private:
+  const std::string& _internal_title() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_title(const std::string& value);
+  std::string* _internal_mutable_title();
+  public:
+
+  // string summary = 3;
+  void clear_summary();
+  const std::string& summary() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_summary(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_summary();
+  PROTOBUF_NODISCARD std::string* release_summary();
+  void set_allocated_summary(std::string* summary);
+  private:
+  const std::string& _internal_summary() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_summary(const std::string& value);
+  std::string* _internal_mutable_summary();
+  public:
+
+  // string replacement_topic = 4;
+  void clear_replacement_topic();
+  const std::string& replacement_topic() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_replacement_topic(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_replacement_topic();
+  PROTOBUF_NODISCARD std::string* release_replacement_topic();
+  void set_allocated_replacement_topic(std::string* replacement_topic);
+  private:
+  const std::string& _internal_replacement_topic() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_replacement_topic(const std::string& value);
+  std::string* _internal_mutable_replacement_topic();
+  public:
+
+  // string replacement_capability = 5;
+  void clear_replacement_capability();
+  const std::string& replacement_capability() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_replacement_capability(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_replacement_capability();
+  PROTOBUF_NODISCARD std::string* release_replacement_capability();
+  void set_allocated_replacement_capability(std::string* replacement_capability);
+  private:
+  const std::string& _internal_replacement_capability() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_replacement_capability(const std::string& value);
+  std::string* _internal_mutable_replacement_capability();
+  public:
+
+  // @@protoc_insertion_point(class_scope:cordum.agent.v1.PolicyRemediation)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+        PolicyRemediation_AddLabelsEntry_DoNotUse,
+        std::string, std::string,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> add_labels_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> remove_labels_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr title_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr summary_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr replacement_topic_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr replacement_capability_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto;
+};
+// -------------------------------------------------------------------
+
 class PolicyCheckResponse final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cordum.agent.v1.PolicyCheckResponse) */ {
  public:
@@ -1544,7 +1849,7 @@ class PolicyCheckResponse final :
                &_PolicyCheckResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    9;
 
   friend void swap(PolicyCheckResponse& a, PolicyCheckResponse& b) {
     a.Swap(&b);
@@ -1617,6 +1922,7 @@ class PolicyCheckResponse final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kRemediationsFieldNumber = 9,
     kReasonFieldNumber = 2,
     kRedactedContextPtrFieldNumber = 3,
     kPolicySnapshotFieldNumber = 4,
@@ -1626,6 +1932,24 @@ class PolicyCheckResponse final :
     kDecisionFieldNumber = 1,
     kApprovalRequiredFieldNumber = 7,
   };
+  // repeated .cordum.agent.v1.PolicyRemediation remediations = 9;
+  int remediations_size() const;
+  private:
+  int _internal_remediations_size() const;
+  public:
+  void clear_remediations();
+  ::cordum::agent::v1::PolicyRemediation* mutable_remediations(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::PolicyRemediation >*
+      mutable_remediations();
+  private:
+  const ::cordum::agent::v1::PolicyRemediation& _internal_remediations(int index) const;
+  ::cordum::agent::v1::PolicyRemediation* _internal_add_remediations();
+  public:
+  const ::cordum::agent::v1::PolicyRemediation& remediations(int index) const;
+  ::cordum::agent::v1::PolicyRemediation* add_remediations();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::PolicyRemediation >&
+      remediations() const;
+
   // string reason = 2;
   void clear_reason();
   const std::string& reason() const;
@@ -1740,6 +2064,7 @@ class PolicyCheckResponse final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::PolicyRemediation > remediations_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr reason_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr redacted_context_ptr_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr policy_snapshot_;
@@ -1802,7 +2127,7 @@ class ListSnapshotsRequest final :
                &_ListSnapshotsRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    10;
 
   friend void swap(ListSnapshotsRequest& a, ListSnapshotsRequest& b) {
     a.Swap(&b);
@@ -1921,7 +2246,7 @@ class ListSnapshotsResponse final :
                &_ListSnapshotsResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    11;
 
   friend void swap(ListSnapshotsResponse& a, ListSnapshotsResponse& b) {
     a.Swap(&b);
@@ -3608,6 +3933,366 @@ inline void PolicyConstraints::set_allocated_redaction_level(std::string* redact
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
+// PolicyRemediation
+
+// string id = 1;
+inline void PolicyRemediation::clear_id() {
+  _impl_.id_.ClearToEmpty();
+}
+inline const std::string& PolicyRemediation::id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyRemediation.id)
+  return _internal_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyRemediation::set_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyRemediation.id)
+}
+inline std::string* PolicyRemediation::mutable_id() {
+  std::string* _s = _internal_mutable_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyRemediation.id)
+  return _s;
+}
+inline const std::string& PolicyRemediation::_internal_id() const {
+  return _impl_.id_.Get();
+}
+inline void PolicyRemediation::_internal_set_id(const std::string& value) {
+  
+  _impl_.id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyRemediation::_internal_mutable_id() {
+  
+  return _impl_.id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyRemediation::release_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyRemediation.id)
+  return _impl_.id_.Release();
+}
+inline void PolicyRemediation::set_allocated_id(std::string* id) {
+  if (id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.id_.SetAllocated(id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.id_.IsDefault()) {
+    _impl_.id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyRemediation.id)
+}
+
+// string title = 2;
+inline void PolicyRemediation::clear_title() {
+  _impl_.title_.ClearToEmpty();
+}
+inline const std::string& PolicyRemediation::title() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyRemediation.title)
+  return _internal_title();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyRemediation::set_title(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.title_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyRemediation.title)
+}
+inline std::string* PolicyRemediation::mutable_title() {
+  std::string* _s = _internal_mutable_title();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyRemediation.title)
+  return _s;
+}
+inline const std::string& PolicyRemediation::_internal_title() const {
+  return _impl_.title_.Get();
+}
+inline void PolicyRemediation::_internal_set_title(const std::string& value) {
+  
+  _impl_.title_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyRemediation::_internal_mutable_title() {
+  
+  return _impl_.title_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyRemediation::release_title() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyRemediation.title)
+  return _impl_.title_.Release();
+}
+inline void PolicyRemediation::set_allocated_title(std::string* title) {
+  if (title != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.title_.SetAllocated(title, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.title_.IsDefault()) {
+    _impl_.title_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyRemediation.title)
+}
+
+// string summary = 3;
+inline void PolicyRemediation::clear_summary() {
+  _impl_.summary_.ClearToEmpty();
+}
+inline const std::string& PolicyRemediation::summary() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyRemediation.summary)
+  return _internal_summary();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyRemediation::set_summary(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.summary_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyRemediation.summary)
+}
+inline std::string* PolicyRemediation::mutable_summary() {
+  std::string* _s = _internal_mutable_summary();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyRemediation.summary)
+  return _s;
+}
+inline const std::string& PolicyRemediation::_internal_summary() const {
+  return _impl_.summary_.Get();
+}
+inline void PolicyRemediation::_internal_set_summary(const std::string& value) {
+  
+  _impl_.summary_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyRemediation::_internal_mutable_summary() {
+  
+  return _impl_.summary_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyRemediation::release_summary() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyRemediation.summary)
+  return _impl_.summary_.Release();
+}
+inline void PolicyRemediation::set_allocated_summary(std::string* summary) {
+  if (summary != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.summary_.SetAllocated(summary, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.summary_.IsDefault()) {
+    _impl_.summary_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyRemediation.summary)
+}
+
+// string replacement_topic = 4;
+inline void PolicyRemediation::clear_replacement_topic() {
+  _impl_.replacement_topic_.ClearToEmpty();
+}
+inline const std::string& PolicyRemediation::replacement_topic() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyRemediation.replacement_topic)
+  return _internal_replacement_topic();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyRemediation::set_replacement_topic(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.replacement_topic_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyRemediation.replacement_topic)
+}
+inline std::string* PolicyRemediation::mutable_replacement_topic() {
+  std::string* _s = _internal_mutable_replacement_topic();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyRemediation.replacement_topic)
+  return _s;
+}
+inline const std::string& PolicyRemediation::_internal_replacement_topic() const {
+  return _impl_.replacement_topic_.Get();
+}
+inline void PolicyRemediation::_internal_set_replacement_topic(const std::string& value) {
+  
+  _impl_.replacement_topic_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyRemediation::_internal_mutable_replacement_topic() {
+  
+  return _impl_.replacement_topic_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyRemediation::release_replacement_topic() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyRemediation.replacement_topic)
+  return _impl_.replacement_topic_.Release();
+}
+inline void PolicyRemediation::set_allocated_replacement_topic(std::string* replacement_topic) {
+  if (replacement_topic != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.replacement_topic_.SetAllocated(replacement_topic, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.replacement_topic_.IsDefault()) {
+    _impl_.replacement_topic_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyRemediation.replacement_topic)
+}
+
+// string replacement_capability = 5;
+inline void PolicyRemediation::clear_replacement_capability() {
+  _impl_.replacement_capability_.ClearToEmpty();
+}
+inline const std::string& PolicyRemediation::replacement_capability() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyRemediation.replacement_capability)
+  return _internal_replacement_capability();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyRemediation::set_replacement_capability(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.replacement_capability_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyRemediation.replacement_capability)
+}
+inline std::string* PolicyRemediation::mutable_replacement_capability() {
+  std::string* _s = _internal_mutable_replacement_capability();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyRemediation.replacement_capability)
+  return _s;
+}
+inline const std::string& PolicyRemediation::_internal_replacement_capability() const {
+  return _impl_.replacement_capability_.Get();
+}
+inline void PolicyRemediation::_internal_set_replacement_capability(const std::string& value) {
+  
+  _impl_.replacement_capability_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyRemediation::_internal_mutable_replacement_capability() {
+  
+  return _impl_.replacement_capability_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyRemediation::release_replacement_capability() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyRemediation.replacement_capability)
+  return _impl_.replacement_capability_.Release();
+}
+inline void PolicyRemediation::set_allocated_replacement_capability(std::string* replacement_capability) {
+  if (replacement_capability != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.replacement_capability_.SetAllocated(replacement_capability, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.replacement_capability_.IsDefault()) {
+    _impl_.replacement_capability_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyRemediation.replacement_capability)
+}
+
+// map<string, string> add_labels = 6;
+inline int PolicyRemediation::_internal_add_labels_size() const {
+  return _impl_.add_labels_.size();
+}
+inline int PolicyRemediation::add_labels_size() const {
+  return _internal_add_labels_size();
+}
+inline void PolicyRemediation::clear_add_labels() {
+  _impl_.add_labels_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+PolicyRemediation::_internal_add_labels() const {
+  return _impl_.add_labels_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+PolicyRemediation::add_labels() const {
+  // @@protoc_insertion_point(field_map:cordum.agent.v1.PolicyRemediation.add_labels)
+  return _internal_add_labels();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+PolicyRemediation::_internal_mutable_add_labels() {
+  return _impl_.add_labels_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+PolicyRemediation::mutable_add_labels() {
+  // @@protoc_insertion_point(field_mutable_map:cordum.agent.v1.PolicyRemediation.add_labels)
+  return _internal_mutable_add_labels();
+}
+
+// repeated string remove_labels = 7;
+inline int PolicyRemediation::_internal_remove_labels_size() const {
+  return _impl_.remove_labels_.size();
+}
+inline int PolicyRemediation::remove_labels_size() const {
+  return _internal_remove_labels_size();
+}
+inline void PolicyRemediation::clear_remove_labels() {
+  _impl_.remove_labels_.Clear();
+}
+inline std::string* PolicyRemediation::add_remove_labels() {
+  std::string* _s = _internal_add_remove_labels();
+  // @@protoc_insertion_point(field_add_mutable:cordum.agent.v1.PolicyRemediation.remove_labels)
+  return _s;
+}
+inline const std::string& PolicyRemediation::_internal_remove_labels(int index) const {
+  return _impl_.remove_labels_.Get(index);
+}
+inline const std::string& PolicyRemediation::remove_labels(int index) const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyRemediation.remove_labels)
+  return _internal_remove_labels(index);
+}
+inline std::string* PolicyRemediation::mutable_remove_labels(int index) {
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyRemediation.remove_labels)
+  return _impl_.remove_labels_.Mutable(index);
+}
+inline void PolicyRemediation::set_remove_labels(int index, const std::string& value) {
+  _impl_.remove_labels_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyRemediation.remove_labels)
+}
+inline void PolicyRemediation::set_remove_labels(int index, std::string&& value) {
+  _impl_.remove_labels_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyRemediation.remove_labels)
+}
+inline void PolicyRemediation::set_remove_labels(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.remove_labels_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:cordum.agent.v1.PolicyRemediation.remove_labels)
+}
+inline void PolicyRemediation::set_remove_labels(int index, const char* value, size_t size) {
+  _impl_.remove_labels_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:cordum.agent.v1.PolicyRemediation.remove_labels)
+}
+inline std::string* PolicyRemediation::_internal_add_remove_labels() {
+  return _impl_.remove_labels_.Add();
+}
+inline void PolicyRemediation::add_remove_labels(const std::string& value) {
+  _impl_.remove_labels_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:cordum.agent.v1.PolicyRemediation.remove_labels)
+}
+inline void PolicyRemediation::add_remove_labels(std::string&& value) {
+  _impl_.remove_labels_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:cordum.agent.v1.PolicyRemediation.remove_labels)
+}
+inline void PolicyRemediation::add_remove_labels(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.remove_labels_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:cordum.agent.v1.PolicyRemediation.remove_labels)
+}
+inline void PolicyRemediation::add_remove_labels(const char* value, size_t size) {
+  _impl_.remove_labels_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:cordum.agent.v1.PolicyRemediation.remove_labels)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+PolicyRemediation::remove_labels() const {
+  // @@protoc_insertion_point(field_list:cordum.agent.v1.PolicyRemediation.remove_labels)
+  return _impl_.remove_labels_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+PolicyRemediation::mutable_remove_labels() {
+  // @@protoc_insertion_point(field_mutable_list:cordum.agent.v1.PolicyRemediation.remove_labels)
+  return &_impl_.remove_labels_;
+}
+
+// -------------------------------------------------------------------
+
 // PolicyCheckResponse
 
 // .cordum.agent.v1.DecisionType decision = 1;
@@ -3990,6 +4675,46 @@ inline void PolicyCheckResponse::set_allocated_approval_ref(std::string* approva
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckResponse.approval_ref)
 }
 
+// repeated .cordum.agent.v1.PolicyRemediation remediations = 9;
+inline int PolicyCheckResponse::_internal_remediations_size() const {
+  return _impl_.remediations_.size();
+}
+inline int PolicyCheckResponse::remediations_size() const {
+  return _internal_remediations_size();
+}
+inline void PolicyCheckResponse::clear_remediations() {
+  _impl_.remediations_.Clear();
+}
+inline ::cordum::agent::v1::PolicyRemediation* PolicyCheckResponse::mutable_remediations(int index) {
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyCheckResponse.remediations)
+  return _impl_.remediations_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::PolicyRemediation >*
+PolicyCheckResponse::mutable_remediations() {
+  // @@protoc_insertion_point(field_mutable_list:cordum.agent.v1.PolicyCheckResponse.remediations)
+  return &_impl_.remediations_;
+}
+inline const ::cordum::agent::v1::PolicyRemediation& PolicyCheckResponse::_internal_remediations(int index) const {
+  return _impl_.remediations_.Get(index);
+}
+inline const ::cordum::agent::v1::PolicyRemediation& PolicyCheckResponse::remediations(int index) const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyCheckResponse.remediations)
+  return _internal_remediations(index);
+}
+inline ::cordum::agent::v1::PolicyRemediation* PolicyCheckResponse::_internal_add_remediations() {
+  return _impl_.remediations_.Add();
+}
+inline ::cordum::agent::v1::PolicyRemediation* PolicyCheckResponse::add_remediations() {
+  ::cordum::agent::v1::PolicyRemediation* _add = _internal_add_remediations();
+  // @@protoc_insertion_point(field_add:cordum.agent.v1.PolicyCheckResponse.remediations)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::PolicyRemediation >&
+PolicyCheckResponse::remediations() const {
+  // @@protoc_insertion_point(field_list:cordum.agent.v1.PolicyCheckResponse.remediations)
+  return _impl_.remediations_;
+}
+
 // -------------------------------------------------------------------
 
 // ListSnapshotsRequest
@@ -4076,6 +4801,10 @@ ListSnapshotsResponse::mutable_snapshots() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

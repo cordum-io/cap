@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package cortex.agent.v1;
+
+option go_package = "github.com/cortex-agent-protocol/go/gen/cortex/agent/v1";
+
+// SystemAlert is a lightweight signal for system-level issues.
+message SystemAlert {
+    string level = 1;     // INFO, WARN, CRITICAL
+    string message = 2;   // human-readable detail
+    string component = 3; // emitting component name
+    string code = 4;      // optional machine-readable code
+}

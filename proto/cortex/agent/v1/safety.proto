@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package cortex.agent.v1;
+
+option go_package = "github.com/cortex-agent-protocol/go/gen/cortex/agent/v1";
+
+import "cortex/agent/v1/job.proto";
+
+// DecisionType enumerates policy outcomes from the SafetyKernel.
+enum DecisionType {
+    DECISION_TYPE_UNSPECIFIED = 0;
+    DECISION_TYPE_ALLOW = 1;
+    DECISION_TYPE_DENY = 2;
+    DECISION_TYPE_REQUIRE_HUMAN = 3;
+    DECISION_TYPE_THROTTLE = 4;
+}
+
+// PolicyCheckRequest carries job metadata to the SafetyKernel.
+message PolicyCheckRequest {
+    string job_id = 1;
+    string topic = 2;
+    string tenant = 3;
+    JobPriority priority = 4;
+    double estimated_cost = 5;
+}
+
+// PolicyCheckResponse conveys the decision and optional redaction pointer.
+message PolicyCheckResponse {
+    DecisionType decision = 1;
+    string reason = 2;
+    string redacted_context_ptr = 3; // optional pointer to sanitized context
+}
+
+// SafetyKernel defines the policy decision service.
+service SafetyKernel {
+    rpc Check(PolicyCheckRequest) returns (PolicyCheckResponse);
+}

@@ -1,0 +1,12 @@
+.DS_Store
+*.log
+node_modules/
+venv/
+.venv/
+__pycache__/
+dist/
+build/
+out/
+.idea/
+.vscode/
+generated/

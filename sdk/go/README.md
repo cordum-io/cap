@@ -44,14 +44,27 @@ go w.Start()
 // publish jobs with client.Submit(...)
 ```
 
+Client submit example:
+```go
+req := &agentv1.JobRequest{
+    JobId:      "job-echo-1",
+    Topic:      "job.echo",
+    ContextPtr: "redis://ctx/job-echo-1",
+}
+if err := client.Submit(context.Background(), nc, req, "trace-1", "client-go", privateKey); err != nil {
+    log.Fatal(err)
+}
+```
+
 ## Signing
-- `client.Submit` and `worker.Worker` sign envelopes; pass a non-nil ECDSA private key (P-256) and configure `PublicKeys` to verify incoming packets when you want authenticity enforcement.
+- `client.Submit` and `worker.Worker` sign envelopes when you pass a non-nil ECDSA private key (P-256); configure `PublicKeys` to verify incoming packets when you want authenticity enforcement.
 - Generate a keypair in Go:
   ```go
   priv, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
   pub := &priv.PublicKey
   ```
+ - Pass `nil` as the private key to send unsigned envelopes.
 
 ## Notes
-- The protobuf `go_package` is `github.com/coretexos/cap/go/coretex/agent/v1`; the replace in `go.mod` points to `../..`.
+- The protobuf `go_package` is `github.com/coretexos/cap/v2/go/coretex/agent/v1`; the replace in `go.mod` points to `../..`.
 - Swap the NATS adapter if you prefer another bus; only `bus/` needs to change.

@@ -12,13 +12,14 @@ go get github.com/coretexos/cap/sdk/go
 
 The `client` package provides functions for submitting jobs to the CAP bus.
 
-### `submitJob`
+### `Submit`
 
-The `submitJob` function sends a `JobRequest` to the bus.
+The `Submit` function sends a `JobRequest` to the bus.
 
 ```go
-func submitJob(nc *nats.Conn, jobRequest *agentv1.JobRequest, traceID, senderID string, privateKey *ecdsa.PrivateKey) error
+func Submit(ctx context.Context, pub Publisher, req *agentv1.JobRequest, traceID, senderID string, privateKey *ecdsa.PrivateKey) error
 ```
+Pass `nil` as the private key to send an unsigned envelope.
 
 **Example:**
 
@@ -33,7 +34,7 @@ import (
 	"log"
 
 	"github.com/coretexos/cap/sdk/go/client"
-	agentv1 "github.com/coretexos/cap/go/coretex/agent/v1"
+	agentv1 "github.com/coretexos/cap/v2/go/coretex/agent/v1"
 	"github.com/nats-io/nats.go"
 )
 
@@ -50,8 +51,9 @@ func main() {
 	}
 
 	req := &agentv1.JobRequest{
-		JobId: "my-test-job",
-		Topic: "job.echo",
+		JobId:      "my-test-job",
+		Topic:      "job.echo",
+		ContextPtr: "redis://ctx/my-test-job",
 	}
 
 	if err := client.Submit(context.Background(), nc, req, "my-trace-id", "my-client", privateKey); err != nil {
@@ -102,14 +104,17 @@ import (
 	"log"
 
 	"github.com/coretexos/cap/sdk/go/worker"
-	agentv1 "github.com/coretexos/cap/go/coretex/agent/v1"
+	agentv1 "github.com/coretexos/cap/v2/go/coretex/agent/v1"
 	"github.com/nats-io/nats.go"
 )
 
 func myHandler(ctx context.Context, req *agentv1.JobRequest) (*agentv1.JobResult, error) {
 	log.Printf("Received job: %s", req.JobId)
 	return &agentv1.JobResult{
-		Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED,
+		JobId:     req.JobId,
+		Status:    agentv1.JobStatus_JOB_STATUS_SUCCEEDED,
+		ResultPtr: "redis://res/" + req.JobId,
+		WorkerId:  "my-worker",
 	}, nil
 }
 

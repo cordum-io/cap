@@ -11,9 +11,10 @@ import (
 	"time"
 
 	"github.com/coretexos/cap/sdk/go"
-	agentv1 "github.com/coretexos/cap/go/coretex/agent/v1"
+	agentv1 "github.com/coretexos/cap/v2/go/coretex/agent/v1"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // Handler processes a JobRequest and returns a JobResult.
@@ -35,7 +36,7 @@ type Worker struct {
 	SenderID    string
 }
 
-// Start begins consuming and handling JobRequests. It blocks until the subscription is closed.
+// Start begins consuming and handling JobRequests. It returns after the subscription is created.
 func (w *Worker) Start() error {
 	if w.NATS == nil {
 		return errors.New("worker: NATS connection is nil")
@@ -91,6 +92,13 @@ func (w *Worker) Start() error {
 				ErrorMessage: err.Error(),
 			}
 		}
+		if res == nil {
+			res = &agentv1.JobResult{
+				JobId:        req.GetJobId(),
+				Status:       agentv1.JobStatus_JOB_STATUS_FAILED,
+				ErrorMessage: "handler returned nil",
+			}
+		}
 		// Fill required metadata if missing
 		if res.JobId == "" {
 			res.JobId = req.GetJobId()
@@ -105,7 +113,7 @@ func (w *Worker) Start() error {
 			TraceId:         packet.GetTraceId(),
 			SenderId:        w.SenderID,
 			ProtocolVersion: capsdk.DefaultProtocolVersion,
-			CreatedAt:       packet.CreatedAt,
+			CreatedAt:       timestamppb.Now(),
 			Payload: &agentv1.BusPacket_JobResult{
 				JobResult: res,
 			},

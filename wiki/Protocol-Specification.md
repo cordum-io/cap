@@ -10,10 +10,10 @@ This folder contains the normative specification for the coretex Agent Protocol 
 ## Versioning
 - `protocol_version` in `BusPacket` is used for wire negotiation. Current wire version: `1` (schema 1.0.0).
 - Protobuf evolution is append-only: add new fields with new numbers; do not delete or reuse.
-- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.0`) for reproducibility.
+- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.5`) for reproducibility.
 - Protocol vs SDK:
   - Protocol wire schema: 1.0.0 (stable).
-  - Repository/SDK: 2.0.0 (may add helpers, docs, and generated stubs without wire breaks).
+  - Repository/SDK: 2.0.5 (may add helpers, docs, and generated stubs without wire breaks).
 
 ## Table of Contents
 - [01 Overview](01-overview.md)

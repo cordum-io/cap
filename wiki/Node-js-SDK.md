@@ -23,9 +23,11 @@ export async function submitJob(
   jobRequest: Record<string, unknown>,
   traceId: string,
   senderId: string,
-  privateKey: string
+  privateKey?: string
 )
 ```
+Pass `undefined` as the private key to send unsigned envelopes.
+Use camelCase field names (`jobId`, `contextPtr`, `resultPtr`, `workerId`) when building objects for protobufjs.
 
 **Example:**
 
@@ -38,14 +40,15 @@ async function main() {
   const nc = await connect({ servers: "nats://localhost:4222" });
 
   const { privateKey } = crypto.generateKeyPairSync("ec", {
-    namedCurve: "secp256k1",
+    namedCurve: "prime256v1",
     privateKeyEncoding: { type: "pkcs8", format: "pem" },
     publicKeyEncoding: { type: "spki", format: "pem" },
   });
 
   const req = {
-    job_id: "my-test-job",
+    jobId: "my-test-job",
     topic: "job.echo",
+    contextPtr: "redis://ctx/my-test-job",
   };
 
   await submitJob(nc, req, "my-trace-id", "my-client", privateKey);
@@ -94,7 +97,7 @@ async function main() {
   const nc = await connect({ servers: "nats://localhost:4222" });
 
   const { privateKey } = crypto.generateKeyPairSync("ec", {
-    namedCurve: "secp256k1",
+    namedCurve: "prime256v1",
     privateKeyEncoding: { type: "pkcs8", format: "pem" },
     publicKeyEncoding: { type: "spki", format: "pem" },
   });
@@ -105,9 +108,12 @@ async function main() {
     senderId: "my-worker",
     privateKey,
     handler: async (req: any) => {
-      console.log(`Received job: ${req.job_id}`);
+      console.log(`Received job: ${req.jobId}`);
       return {
+        jobId: req.jobId,
         status: "JOB_STATUS_SUCCEEDED",
+        resultPtr: `redis://res/${req.jobId}`,
+        workerId: "my-worker",
       };
     },
   });

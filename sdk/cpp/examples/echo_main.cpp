@@ -39,6 +39,7 @@ int main() {
                        res->set_job_id(req.job_id());
                        res->set_status(coretex::agent::v1::JOB_STATUS_SUCCEEDED);
                        res->set_result_ptr("redis://res/" + req.job_id());
+                       res->set_worker_id("worker-echo-1");
                        return res;
                      });
   worker.Start();

@@ -1,7 +1,7 @@
 import { Root, loadSync } from "protobufjs";
 import path from "path";
 
-const PROTO_BASE_DIR = path.resolve(__dirname, "..", "..", "..", "..", "proto");
+const PROTO_BASE_DIR = path.resolve(__dirname, "..", "..", "..", "proto");
 const PROTOS = [
   "alert.proto",
   "buspacket.proto",

@@ -9,7 +9,7 @@
 
 ## Status
 - Protocol (wire): CAP 1.0.0 — Stable; append-only changes only.
-- Implementation / SDK: cap v2.0.1 (tagged releases in this repo).
+- Implementation / SDK: cap v2.0.5 (tagged releases in this repo).
 - Transport profile: NATS-first; other buses experimental.
 - Reference implementation: coretexOS.
 
@@ -17,7 +17,7 @@
 | Component | Version | Notes |
 | --- | --- | --- |
 | Protocol wire schema | 1.0.0 | Append-only evolution; never renumber fields. |
-| Repo / SDKs | 2.0.1 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
+| Repo / SDKs | 2.0.5 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
 | `protocol_version` field | 1 | Used in `BusPacket` for negotiation. |
 
 ## MCP != CAP
@@ -83,7 +83,7 @@ Canonical protobuf definitions live under `proto/coretex/agent/v1/`:
 - `BusPacket.signature` — optional digital signature for authenticity; SDK helpers sign/verify envelopes when provided keys.
 
 ## Examples
-- `examples/simple-echo/` — smallest possible job submission + result with bus messages and sequence.
+- `examples/simple-echo/` — smallest possible job submission + result with bus messages and sequence (Go/Python/Node).
 - `examples/workflow-repo-review/` — parent/child workflow with aggregation.
 - `examples/heartbeat.json` — standalone heartbeat sample.
 - `examples/README.md` — quick pointers to all flows.

@@ -35,6 +35,28 @@ Asyncio-first SDK with NATS helpers for CAP workers and clients.
    asyncio.run(worker.run_worker("nats://127.0.0.1:4222", "job.echo", handle))
    ```
 
+4. Submit a job (client):
+   ```python
+   import asyncio
+   from cryptography.hazmat.primitives.asymmetric import ec
+   from cap import client
+   from cap.pb.coretex.agent.v1 import job_pb2
+   import nats
+
+   async def main():
+       nc = await nats.connect("nats://127.0.0.1:4222")
+       priv = ec.generate_private_key(ec.SECP256R1())
+       req = job_pb2.JobRequest(
+           job_id="job-echo-1",
+           topic="job.echo",
+           context_ptr="redis://ctx/job-echo-1",
+       )
+       await client.submit_job(nc, req, "trace-1", "client-py", priv)
+       await nc.drain()
+
+   asyncio.run(main())
+   ```
+
 ## Files
 - `cap/bus.py` — NATS connector.
 - `cap/worker.py` — worker skeleton with handler hook.
@@ -51,5 +73,7 @@ Asyncio-first SDK with NATS helpers for CAP workers and clients.
   pub = priv.public_key()
   ```
 - Set `public_keys` on `run_worker` to verify incoming packets.
+- Omit `public_keys` to accept unsigned packets.
+- Pass `private_key=None` to `submit_job` if you want to send unsigned envelopes.
 
 Swap out `cap.bus` if you need a different transport.

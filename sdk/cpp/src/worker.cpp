@@ -1,5 +1,7 @@
 #include "cap/worker.h"
 
+#include <google/protobuf/util/time_util.h>
+
 namespace cap {
 
 bool Worker::Start() {
@@ -31,11 +33,13 @@ void Worker::OnMessage(const BusMessage& msg) {
     res->set_error_message("handler returned null");
   }
   if (res->job_id().empty()) res->set_job_id(req.job_id());
+  if (res->worker_id().empty()) res->set_worker_id(sender_id_);
 
   coretex::agent::v1::BusPacket out;
   out.set_trace_id(packet.trace_id());
   out.set_sender_id(sender_id_);
   out.set_protocol_version(protocol_version_);
+  out.mutable_created_at()->CopyFrom(google::protobuf::util::TimeUtil::GetCurrentTime());
   *(out.mutable_job_result()) = *res;
 
   const auto size = out.ByteSizeLong();

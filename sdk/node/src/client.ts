@@ -7,7 +7,7 @@ export async function submitJob(
   jobRequest: Record<string, unknown>,
   traceId: string,
   senderId: string,
-  privateKey: string
+  privateKey?: string
 ) {
   const root = await loadRoot();
   const BusPacket = root.lookupType("coretex.agent.v1.BusPacket");
@@ -22,17 +22,19 @@ export async function submitJob(
     jobRequest: jrMsg,
   });
 
-  // Serialize the packet without the signature for signing
-  const unsignedPayload: any = BusPacket.fromObject(payload.toJSON());
-  unsignedPayload.signature = Buffer.from([]); // Ensure signature field is empty for hashing
-  const unsignedData = BusPacket.encode(unsignedPayload).finish();
+  if (privateKey) {
+    // Serialize the packet without the signature for signing
+    const unsignedPayload: any = BusPacket.fromObject(payload.toJSON());
+    unsignedPayload.signature = Buffer.from([]); // Ensure signature field is empty for hashing
+    const unsignedData = BusPacket.encode(unsignedPayload).finish();
 
-  // Sign the data
-  const sign = crypto.createSign("sha256");
-  sign.update(unsignedData);
-  const signature = sign.sign(privateKey);
+    // Sign the data
+    const sign = crypto.createSign("sha256");
+    sign.update(unsignedData);
+    const signature = sign.sign(privateKey);
 
-  (payload as any).signature = signature;
+    (payload as any).signature = signature;
+  }
 
   const data = BusPacket.encode(payload).finish();
   await nc.publish(SUBJECT_SUBMIT, data);

@@ -42,13 +42,36 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
           return;
         }
       } else if (cfg.publicKeyMap && (!packet.signature || packet.signature.length === 0)) {
-          console.warn(`Worker: Message from sender ${packet.senderId} has no signature but public keys are configured. Dropping message.`);
-          return;
+        console.warn(`Worker: Message from sender ${packet.senderId} has no signature but public keys are configured. Dropping message.`);
+        return;
       }
 
       const jr = packet.jobRequest;
       if (!jr) return;
-      const resObj = await cfg.handler(jr);
+      let resObj: any;
+      try {
+        resObj = await cfg.handler(jr);
+      } catch (err) {
+        resObj = {
+          jobId: jr.jobId,
+          status: "JOB_STATUS_FAILED",
+          errorMessage: err instanceof Error ? err.message : String(err),
+        };
+      }
+      if (!resObj) {
+        resObj = {
+          jobId: jr.jobId,
+          status: "JOB_STATUS_FAILED",
+          errorMessage: "handler returned null",
+        };
+      }
+      if (!resObj.jobId) {
+        resObj.jobId = jr.jobId;
+      }
+      if (!resObj.workerId) {
+        resObj.workerId = cfg.senderId;
+      }
+
       const jrMsg = JobResult.fromObject(resObj);
       const out = BusPacket.fromObject({
         traceId: packet.traceId,
@@ -60,13 +83,13 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
 
       // Signing outgoing packet
       if (cfg.privateKey) {
-          const unsignedOut: any = BusPacket.fromObject(out.toJSON());
-          unsignedOut.signature = Buffer.from([]);
-          const unsignedOutData = BusPacket.encode(unsignedOut).finish();
+        const unsignedOut: any = BusPacket.fromObject(out.toJSON());
+        unsignedOut.signature = Buffer.from([]);
+        const unsignedOutData = BusPacket.encode(unsignedOut).finish();
 
-          const sign = crypto.createSign("sha256");
-          sign.update(unsignedOutData);
-          out.signature = sign.sign(cfg.privateKey);
+        const sign = crypto.createSign("sha256");
+        sign.update(unsignedOutData);
+        out.signature = sign.sign(cfg.privateKey);
       }
 
       const data = BusPacket.encode(out).finish();
@@ -78,12 +101,5 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
   };
 
   const sub: any = (cfg.nc as any).subscribe(cfg.subject, { queue: cfg.queue ?? cfg.subject }, onMessage);
-  if (sub && (sub as any)[Symbol.asyncIterator]) {
-    (async () => {
-      for await (const msg of sub as any) {
-        await onMessage(msg);
-      }
-    })();
-  }
   return sub;
 }

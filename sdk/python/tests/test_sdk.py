@@ -4,10 +4,14 @@ import os
 import unittest
 from typing import Callable, Awaitable, Dict
 
+_repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+_sdk_root = os.path.join(_repo_root, "sdk", "python")
+
 # Avoid loading duplicate generated stubs from both /python and sdk/python/cap/pb.
 sys.path = [p for p in sys.path if not p.rstrip("/").endswith("python")]
-# Ensure generated modules under sdk/python/cap/pb are discoverable for `coretex.agent.v1.*`.
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "cap", "pb")))
+# Ensure the SDK package and generated modules are discoverable from repo root.
+sys.path.insert(0, _sdk_root)
+sys.path.append(os.path.join(_sdk_root, "cap", "pb"))
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
@@ -85,14 +89,12 @@ class TestSDK(unittest.TestCase):
 
             # Verify the signature of the result
             from cap.pb.coretex.agent.v1 import buspacket_pb2
-            import hashlib
             result_packet = buspacket_pb2.BusPacket()
             result_packet.ParseFromString(data)
             signature = result_packet.signature
             result_packet.ClearField("signature")
             unsigned_data = result_packet.SerializeToString()
-            digest = hashlib.sha256(unsigned_data).digest()
-            worker_key.public_key().verify(signature, digest, ec.ECDSA(hashes.SHA256()))
+            worker_key.public_key().verify(signature, unsigned_data, ec.ECDSA(hashes.SHA256()))
 
             worker_task.cancel()
 

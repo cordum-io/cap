@@ -8,15 +8,19 @@ This folder contains the normative specification for the Cortex Agent Protocol (
 - Implementations are compliant when they honor message shapes, state machine rules, and safety hooks defined here.
 
 ## Versioning
-- `protocol_version` in `BusPacket` is used for wire negotiation. Current: `1`.
-- Protobuf evolution follows the standard rule set: add new fields with new numbers; do not delete or reuse.
-- Transport and workflow guidance are versioned in this repo via tags/releases; consumers should pin to a release.
+- `protocol_version` in `BusPacket` is used for wire negotiation. Current wire version: `1` (schema 1.0.0).
+- Protobuf evolution is append-only: add new fields with new numbers; do not delete or reuse.
+- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (e.g., `v1.0.5`) for reproducibility.
+- Protocol vs SDK:
+  - Protocol wire schema: 1.0.0 (stable).
+  - Repository/SDK: 1.0.x (may add helpers, docs, and generated stubs without wire breaks).
 
 ## Table of Contents
 - [01 Overview](01-overview.md)
 - [02 Envelope - BusPacket](02-envelope-buspacket.md)
 - [03 Job Protocol](03-job-protocol.md)
 - [04 Memory Pointer Spec](04-memory-pointer-spec.md)
+- [04b Context and Memory Model](04b-context-and-memory.md)
 - [05 Heartbeats](05-heartbeats.md)
 - [06 Safety](06-safety.md)
 - [07 State Machine](07-state-machine.md)

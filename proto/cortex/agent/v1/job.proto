@@ -31,6 +31,22 @@ enum JobStatus {
     JOB_STATUS_TIMEOUT = 9;
 }
 
+// ContextHints describe how a worker may fetch or adapt context.
+message ContextHints {
+    int32 max_input_tokens = 1;  // per-call token budget
+    bool allow_summarization = 2; // worker may summarize input to fit
+    bool allow_retrieval = 3;     // worker may retrieve using memory_id
+    repeated string tags = 4;     // optional retrieval scope: logs/code/etc.
+}
+
+// Budget carries soft limits for execution.
+message Budget {
+    int64 max_input_tokens = 1;   // total input token budget for the job
+    int64 max_output_tokens = 2;  // total output token budget for the job
+    int64 max_total_tokens = 3;   // combined in/out ceiling
+    int64 deadline_ms = 4;        // soft deadline for completion
+}
+
 // JobRequest represents a schedulable unit of work.
 message JobRequest {
     string job_id = 1;           // globally unique job identifier
@@ -42,6 +58,12 @@ message JobRequest {
     string parent_job_id = 7;    // optional parent link
     string workflow_id = 8;      // optional workflow identifier
     int32 step_index = 9;        // optional ordering within a workflow
+    string memory_id = 10;       // logical corpus id (repo/chat/kb/etc.)
+    ContextHints context_hints = 11; // guidance for retrieval/summarization
+    Budget budget = 12;          // soft limits for cost/time
+    string tenant_id = 13;       // tenant or organization id
+    string principal_id = 14;    // end-user or service identity
+    map<string, string> labels = 15; // arbitrary routing/placement labels
 }
 
 // JobResult conveys the outcome of a job.

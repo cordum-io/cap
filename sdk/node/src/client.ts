@@ -15,11 +15,11 @@ export async function submitJob(
 
   const jrMsg = JobRequest.fromObject(jobRequest);
   const payload = BusPacket.fromObject({
-    trace_id: traceId,
-    sender_id: senderId,
-    protocol_version: DEFAULT_PROTOCOL_VERSION,
-    created_at: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
-    job_request: jrMsg,
+    traceId: traceId,
+    senderId: senderId,
+    protocolVersion: DEFAULT_PROTOCOL_VERSION,
+    createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
+    jobRequest: jrMsg,
   });
 
   // Serialize the packet without the signature for signing

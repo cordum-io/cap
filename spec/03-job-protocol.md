@@ -7,8 +7,13 @@ CAP jobs are the core unit of work. Gateways submit `JobRequest` packets, worker
 - `topic`: bus subject representing the target pool (e.g., `job.chat.simple`, `job.tools`, `job.image`).
 - `priority`: scheduling hint (`INTERACTIVE`, `BATCH`, `CRITICAL`). Higher values SHOULD be dispatched before lower ones when capacity is constrained.
 - `context_ptr`: opaque URI to input payload stored in external memory.
+- `memory_id`: logical corpus identifier (`repo:foo/bar`, `chat:session-123`, `kb:incident-42`) used for retrieval.
+- `context_hints`: optional hints for retrieval/summarization (token budgets, allow_summarization, allow_retrieval, tags).
 - `adapter_id`: optional specialization hint (model/tool flavor).
-- `env`: key/value metadata (tenant, locale, sandbox flags, cost caps, etc.).
+- `budget`: soft execution limits (input/output/total tokens, deadline_ms).
+- `env`: key/value metadata (locale, sandbox flags, etc.).
+- `tenant_id`, `principal_id`: multi-tenant identities for policy/audit.
+- `labels`: arbitrary routing/placement metadata (environment, project, compliance flags).
 - `parent_job_id`, `workflow_id`, `step_index`: optional workflow metadata for orchestrators.
 
 ## JobResult Semantics
@@ -49,7 +54,7 @@ sequenceDiagram
 1. Client writes input to external memory and obtains `context_ptr`.
 2. Gateway validates, populates `job_id`, and publishes `BusPacket{JobRequest}` to `sys.job.submit`.
 3. Scheduler persists `PENDING -> SCHEDULED`, calls safety, and dispatches the request to a pool subject (`job.<pool>`).
-4. Worker consumes from the pool subject, reads `context_ptr`, and begins execution.
+4. Worker consumes from the pool subject, reads `context_ptr`, and begins execution (optionally using `memory_id` and `context_hints` for retrieval/summarization).
 
 ## Completion Flow
 1. Worker writes output to external memory and produces `result_ptr`.
@@ -60,6 +65,11 @@ sequenceDiagram
 - Re-delivery of the same `job_id` MUST be tolerated; consumers should deduplicate via `job_id`.
 - Retries SHOULD reuse the same `job_id` only if the worker behavior is idempotent; otherwise emit a new `job_id` and link via `parent_job_id`.
 - JobResults for already-terminal jobs SHOULD be logged and ignored unless policy allows overrides.
+
+## Tracing and Relationships
+- `trace_id` in `BusPacket` MUST remain stable across an entire workflow tree; orchestrators SHOULD reuse the parent `trace_id` when fanning out.
+- `workflow_id`, `parent_job_id`, and `step_index` SHOULD be populated by orchestrators to describe the DAG; schedulers/workers SHOULD propagate these values unchanged.
+- Observability backends MAY build a trace graph from (`job_id`, `parent_job_id`, `workflow_id`, `step_index`) without inspecting payloads.
 
 ## Payload Size
 - Keep payloads out of the bus; use pointers for any blob larger than a few kilobytes.

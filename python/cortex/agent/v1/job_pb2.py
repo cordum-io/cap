@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19\x63ortex/agent/v1/job.proto\x12\x0f\x63ortex.agent.v1\"\xa3\x02\n\nJobRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12.\n\x08priority\x18\x03 \x01(\x0e\x32\x1c.cortex.agent.v1.JobPriority\x12\x13\n\x0b\x63ontext_ptr\x18\x04 \x01(\t\x12\x12\n\nadapter_id\x18\x05 \x01(\t\x12\x31\n\x03\x65nv\x18\x06 \x03(\x0b\x32$.cortex.agent.v1.JobRequest.EnvEntry\x12\x15\n\rparent_job_id\x18\x07 \x01(\t\x12\x13\n\x0bworkflow_id\x18\x08 \x01(\t\x12\x12\n\nstep_index\x18\t \x01(\x05\x1a*\n\x08\x45nvEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xaf\x01\n\tJobResult\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12*\n\x06status\x18\x02 \x01(\x0e\x32\x1a.cortex.agent.v1.JobStatus\x12\x12\n\nresult_ptr\x18\x03 \x01(\t\x12\x11\n\tworker_id\x18\x04 \x01(\t\x12\x14\n\x0c\x65xecution_ms\x18\x05 \x01(\x03\x12\x12\n\nerror_code\x18\x06 \x01(\t\x12\x15\n\rerror_message\x18\x07 \x01(\t*|\n\x0bJobPriority\x12\x1c\n\x18JOB_PRIORITY_UNSPECIFIED\x10\x00\x12\x1c\n\x18JOB_PRIORITY_INTERACTIVE\x10\x01\x12\x16\n\x12JOB_PRIORITY_BATCH\x10\x02\x12\x19\n\x15JOB_PRIORITY_CRITICAL\x10\x03*\x86\x02\n\tJobStatus\x12\x1a\n\x16JOB_STATUS_UNSPECIFIED\x10\x00\x12\x16\n\x12JOB_STATUS_PENDING\x10\x01\x12\x18\n\x14JOB_STATUS_SCHEDULED\x10\x02\x12\x19\n\x15JOB_STATUS_DISPATCHED\x10\x03\x12\x16\n\x12JOB_STATUS_RUNNING\x10\x04\x12\x18\n\x14JOB_STATUS_SUCCEEDED\x10\x05\x12\x15\n\x11JOB_STATUS_FAILED\x10\x06\x12\x18\n\x14JOB_STATUS_CANCELLED\x10\x07\x12\x15\n\x11JOB_STATUS_DENIED\x10\x08\x12\x16\n\x12JOB_STATUS_TIMEOUT\x10\tB\x7f\n\x16\x61i.cortex.cap.agent.v1P\x01Z+github.com/coretexos/cap/go/cortex/agent/v1\xaa\x02\x0f\x43ortex.Agent.V1\xca\x02\x0f\x43ortex\\Agent\\V1\xea\x02\x11\x43ortex::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x19\x63ortex/agent/v1/job.proto\x12\x0f\x63ortex.agent.v1\"l\n\x0c\x43ontextHints\x12\x18\n\x10max_input_tokens\x18\x01 \x01(\x05\x12\x1b\n\x13\x61llow_summarization\x18\x02 \x01(\x08\x12\x17\n\x0f\x61llow_retrieval\x18\x03 \x01(\x08\x12\x0c\n\x04tags\x18\x04 \x03(\t\"l\n\x06\x42udget\x12\x18\n\x10max_input_tokens\x18\x01 \x01(\x03\x12\x19\n\x11max_output_tokens\x18\x02 \x01(\x03\x12\x18\n\x10max_total_tokens\x18\x03 \x01(\x03\x12\x13\n\x0b\x64\x65\x61\x64line_ms\x18\x04 \x01(\x03\"\xa6\x04\n\nJobRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12.\n\x08priority\x18\x03 \x01(\x0e\x32\x1c.cortex.agent.v1.JobPriority\x12\x13\n\x0b\x63ontext_ptr\x18\x04 \x01(\t\x12\x12\n\nadapter_id\x18\x05 \x01(\t\x12\x31\n\x03\x65nv\x18\x06 \x03(\x0b\x32$.cortex.agent.v1.JobRequest.EnvEntry\x12\x15\n\rparent_job_id\x18\x07 \x01(\t\x12\x13\n\x0bworkflow_id\x18\x08 \x01(\t\x12\x12\n\nstep_index\x18\t \x01(\x05\x12\x11\n\tmemory_id\x18\n \x01(\t\x12\x34\n\rcontext_hints\x18\x0b \x01(\x0b\x32\x1d.cortex.agent.v1.ContextHints\x12\'\n\x06\x62udget\x18\x0c \x01(\x0b\x32\x17.cortex.agent.v1.Budget\x12\x11\n\ttenant_id\x18\r \x01(\t\x12\x14\n\x0cprincipal_id\x18\x0e \x01(\t\x12\x37\n\x06labels\x18\x0f \x03(\x0b\x32\'.cortex.agent.v1.JobRequest.LabelsEntry\x1a*\n\x08\x45nvEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\xaf\x01\n\tJobResult\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12*\n\x06status\x18\x02 \x01(\x0e\x32\x1a.cortex.agent.v1.JobStatus\x12\x12\n\nresult_ptr\x18\x03 \x01(\t\x12\x11\n\tworker_id\x18\x04 \x01(\t\x12\x14\n\x0c\x65xecution_ms\x18\x05 \x01(\x03\x12\x12\n\nerror_code\x18\x06 \x01(\t\x12\x15\n\rerror_message\x18\x07 \x01(\t*|\n\x0bJobPriority\x12\x1c\n\x18JOB_PRIORITY_UNSPECIFIED\x10\x00\x12\x1c\n\x18JOB_PRIORITY_INTERACTIVE\x10\x01\x12\x16\n\x12JOB_PRIORITY_BATCH\x10\x02\x12\x19\n\x15JOB_PRIORITY_CRITICAL\x10\x03*\x86\x02\n\tJobStatus\x12\x1a\n\x16JOB_STATUS_UNSPECIFIED\x10\x00\x12\x16\n\x12JOB_STATUS_PENDING\x10\x01\x12\x18\n\x14JOB_STATUS_SCHEDULED\x10\x02\x12\x19\n\x15JOB_STATUS_DISPATCHED\x10\x03\x12\x16\n\x12JOB_STATUS_RUNNING\x10\x04\x12\x18\n\x14JOB_STATUS_SUCCEEDED\x10\x05\x12\x15\n\x11JOB_STATUS_FAILED\x10\x06\x12\x18\n\x14JOB_STATUS_CANCELLED\x10\x07\x12\x15\n\x11JOB_STATUS_DENIED\x10\x08\x12\x16\n\x12JOB_STATUS_TIMEOUT\x10\tB\x7f\n\x16\x61i.cortex.cap.agent.v1P\x01Z+github.com/coretexos/cap/go/cortex/agent/v1\xaa\x02\x0f\x43ortex.Agent.V1\xca\x02\x0f\x43ortex\\Agent\\V1\xea\x02\x11\x43ortex::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,14 +34,22 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._serialized_options = b'\n\026ai.cortex.cap.agent.v1P\001Z+github.com/coretexos/cap/go/cortex/agent/v1\252\002\017Cortex.Agent.V1\312\002\017Cortex\\Agent\\V1\352\002\021Cortex::Agent::V1'
   _globals['_JOBREQUEST_ENVENTRY']._loaded_options = None
   _globals['_JOBREQUEST_ENVENTRY']._serialized_options = b'8\001'
-  _globals['_JOBPRIORITY']._serialized_start=518
-  _globals['_JOBPRIORITY']._serialized_end=642
-  _globals['_JOBSTATUS']._serialized_start=645
-  _globals['_JOBSTATUS']._serialized_end=907
-  _globals['_JOBREQUEST']._serialized_start=47
-  _globals['_JOBREQUEST']._serialized_end=338
-  _globals['_JOBREQUEST_ENVENTRY']._serialized_start=296
-  _globals['_JOBREQUEST_ENVENTRY']._serialized_end=338
-  _globals['_JOBRESULT']._serialized_start=341
-  _globals['_JOBRESULT']._serialized_end=516
+  _globals['_JOBREQUEST_LABELSENTRY']._loaded_options = None
+  _globals['_JOBREQUEST_LABELSENTRY']._serialized_options = b'8\001'
+  _globals['_JOBPRIORITY']._serialized_start=997
+  _globals['_JOBPRIORITY']._serialized_end=1121
+  _globals['_JOBSTATUS']._serialized_start=1124
+  _globals['_JOBSTATUS']._serialized_end=1386
+  _globals['_CONTEXTHINTS']._serialized_start=46
+  _globals['_CONTEXTHINTS']._serialized_end=154
+  _globals['_BUDGET']._serialized_start=156
+  _globals['_BUDGET']._serialized_end=264
+  _globals['_JOBREQUEST']._serialized_start=267
+  _globals['_JOBREQUEST']._serialized_end=817
+  _globals['_JOBREQUEST_ENVENTRY']._serialized_start=728
+  _globals['_JOBREQUEST_ENVENTRY']._serialized_end=770
+  _globals['_JOBREQUEST_LABELSENTRY']._serialized_start=772
+  _globals['_JOBREQUEST_LABELSENTRY']._serialized_end=817
+  _globals['_JOBRESULT']._serialized_start=820
+  _globals['_JOBRESULT']._serialized_end=995
 # @@protoc_insertion_point(module_scope)

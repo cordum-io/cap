@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from cortex.agent.v1 import job_pb2 as cortex_dot_agent_dot_v1_dot_job__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1c\x63ortex/agent/v1/safety.proto\x12\x0f\x63ortex.agent.v1\x1a\x19\x63ortex/agent/v1/job.proto\"\x8b\x01\n\x12PolicyCheckRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x0e\n\x06tenant\x18\x03 \x01(\t\x12.\n\x08priority\x18\x04 \x01(\x0e\x32\x1c.cortex.agent.v1.JobPriority\x12\x16\n\x0e\x65stimated_cost\x18\x05 \x01(\x01\"t\n\x13PolicyCheckResponse\x12/\n\x08\x64\x65\x63ision\x18\x01 \x01(\x0e\x32\x1d.cortex.agent.v1.DecisionType\x12\x0e\n\x06reason\x18\x02 \x01(\t\x12\x1c\n\x14redacted_context_ptr\x18\x03 \x01(\t*\x9b\x01\n\x0c\x44\x65\x63isionType\x12\x1d\n\x19\x44\x45\x43ISION_TYPE_UNSPECIFIED\x10\x00\x12\x17\n\x13\x44\x45\x43ISION_TYPE_ALLOW\x10\x01\x12\x16\n\x12\x44\x45\x43ISION_TYPE_DENY\x10\x02\x12\x1f\n\x1b\x44\x45\x43ISION_TYPE_REQUIRE_HUMAN\x10\x03\x12\x1a\n\x16\x44\x45\x43ISION_TYPE_THROTTLE\x10\x04\x32\x62\n\x0cSafetyKernel\x12R\n\x05\x43heck\x12#.cortex.agent.v1.PolicyCheckRequest\x1a$.cortex.agent.v1.PolicyCheckResponseB\x7f\n\x16\x61i.cortex.cap.agent.v1P\x01Z+github.com/coretexos/cap/go/cortex/agent/v1\xaa\x02\x0f\x43ortex.Agent.V1\xca\x02\x0f\x43ortex\\Agent\\V1\xea\x02\x11\x43ortex::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1c\x63ortex/agent/v1/safety.proto\x12\x0f\x63ortex.agent.v1\x1a\x19\x63ortex/agent/v1/job.proto\"\xcd\x02\n\x12PolicyCheckRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x0e\n\x06tenant\x18\x03 \x01(\t\x12.\n\x08priority\x18\x04 \x01(\x0e\x32\x1c.cortex.agent.v1.JobPriority\x12\x16\n\x0e\x65stimated_cost\x18\x05 \x01(\x01\x12\'\n\x06\x62udget\x18\x06 \x01(\x0b\x32\x17.cortex.agent.v1.Budget\x12\x14\n\x0cprincipal_id\x18\x07 \x01(\t\x12?\n\x06labels\x18\x08 \x03(\x0b\x32/.cortex.agent.v1.PolicyCheckRequest.LabelsEntry\x12\x11\n\tmemory_id\x18\t \x01(\t\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"t\n\x13PolicyCheckResponse\x12/\n\x08\x64\x65\x63ision\x18\x01 \x01(\x0e\x32\x1d.cortex.agent.v1.DecisionType\x12\x0e\n\x06reason\x18\x02 \x01(\t\x12\x1c\n\x14redacted_context_ptr\x18\x03 \x01(\t*\x9b\x01\n\x0c\x44\x65\x63isionType\x12\x1d\n\x19\x44\x45\x43ISION_TYPE_UNSPECIFIED\x10\x00\x12\x17\n\x13\x44\x45\x43ISION_TYPE_ALLOW\x10\x01\x12\x16\n\x12\x44\x45\x43ISION_TYPE_DENY\x10\x02\x12\x1f\n\x1b\x44\x45\x43ISION_TYPE_REQUIRE_HUMAN\x10\x03\x12\x1a\n\x16\x44\x45\x43ISION_TYPE_THROTTLE\x10\x04\x32\x62\n\x0cSafetyKernel\x12R\n\x05\x43heck\x12#.cortex.agent.v1.PolicyCheckRequest\x1a$.cortex.agent.v1.PolicyCheckResponseB\x7f\n\x16\x61i.cortex.cap.agent.v1P\x01Z+github.com/coretexos/cap/go/cortex/agent/v1\xaa\x02\x0f\x43ortex.Agent.V1\xca\x02\x0f\x43ortex\\Agent\\V1\xea\x02\x11\x43ortex::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,12 +33,16 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'cortex.agent.v1.safety_pb2'
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\026ai.cortex.cap.agent.v1P\001Z+github.com/coretexos/cap/go/cortex/agent/v1\252\002\017Cortex.Agent.V1\312\002\017Cortex\\Agent\\V1\352\002\021Cortex::Agent::V1'
-  _globals['_DECISIONTYPE']._serialized_start=337
-  _globals['_DECISIONTYPE']._serialized_end=492
+  _globals['_POLICYCHECKREQUEST_LABELSENTRY']._loaded_options = None
+  _globals['_POLICYCHECKREQUEST_LABELSENTRY']._serialized_options = b'8\001'
+  _globals['_DECISIONTYPE']._serialized_start=531
+  _globals['_DECISIONTYPE']._serialized_end=686
   _globals['_POLICYCHECKREQUEST']._serialized_start=77
-  _globals['_POLICYCHECKREQUEST']._serialized_end=216
-  _globals['_POLICYCHECKRESPONSE']._serialized_start=218
-  _globals['_POLICYCHECKRESPONSE']._serialized_end=334
-  _globals['_SAFETYKERNEL']._serialized_start=494
-  _globals['_SAFETYKERNEL']._serialized_end=592
+  _globals['_POLICYCHECKREQUEST']._serialized_end=410
+  _globals['_POLICYCHECKREQUEST_LABELSENTRY']._serialized_start=365
+  _globals['_POLICYCHECKREQUEST_LABELSENTRY']._serialized_end=410
+  _globals['_POLICYCHECKRESPONSE']._serialized_start=412
+  _globals['_POLICYCHECKRESPONSE']._serialized_end=528
+  _globals['_SAFETYKERNEL']._serialized_start=688
+  _globals['_SAFETYKERNEL']._serialized_end=786
 # @@protoc_insertion_point(module_scope)

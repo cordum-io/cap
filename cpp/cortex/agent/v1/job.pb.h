@@ -51,12 +51,21 @@ extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table
 namespace cortex {
 namespace agent {
 namespace v1 {
+class Budget;
+struct BudgetDefaultTypeInternal;
+extern BudgetDefaultTypeInternal _Budget_default_instance_;
+class ContextHints;
+struct ContextHintsDefaultTypeInternal;
+extern ContextHintsDefaultTypeInternal _ContextHints_default_instance_;
 class JobRequest;
 struct JobRequestDefaultTypeInternal;
 extern JobRequestDefaultTypeInternal _JobRequest_default_instance_;
 class JobRequest_EnvEntry_DoNotUse;
 struct JobRequest_EnvEntry_DoNotUseDefaultTypeInternal;
 extern JobRequest_EnvEntry_DoNotUseDefaultTypeInternal _JobRequest_EnvEntry_DoNotUse_default_instance_;
+class JobRequest_LabelsEntry_DoNotUse;
+struct JobRequest_LabelsEntry_DoNotUseDefaultTypeInternal;
+extern JobRequest_LabelsEntry_DoNotUseDefaultTypeInternal _JobRequest_LabelsEntry_DoNotUse_default_instance_;
 class JobResult;
 struct JobResultDefaultTypeInternal;
 extern JobResultDefaultTypeInternal _JobResult_default_instance_;
@@ -64,8 +73,11 @@ extern JobResultDefaultTypeInternal _JobResult_default_instance_;
 }  // namespace agent
 }  // namespace cortex
 PROTOBUF_NAMESPACE_OPEN
+template<> ::cortex::agent::v1::Budget* Arena::CreateMaybeMessage<::cortex::agent::v1::Budget>(Arena*);
+template<> ::cortex::agent::v1::ContextHints* Arena::CreateMaybeMessage<::cortex::agent::v1::ContextHints>(Arena*);
 template<> ::cortex::agent::v1::JobRequest* Arena::CreateMaybeMessage<::cortex::agent::v1::JobRequest>(Arena*);
 template<> ::cortex::agent::v1::JobRequest_EnvEntry_DoNotUse* Arena::CreateMaybeMessage<::cortex::agent::v1::JobRequest_EnvEntry_DoNotUse>(Arena*);
+template<> ::cortex::agent::v1::JobRequest_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::cortex::agent::v1::JobRequest_LabelsEntry_DoNotUse>(Arena*);
 template<> ::cortex::agent::v1::JobResult* Arena::CreateMaybeMessage<::cortex::agent::v1::JobResult>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace cortex {
@@ -134,6 +146,383 @@ inline bool JobStatus_Parse(
 }
 // ===================================================================
 
+class ContextHints final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cortex.agent.v1.ContextHints) */ {
+ public:
+  inline ContextHints() : ContextHints(nullptr) {}
+  ~ContextHints() override;
+  explicit PROTOBUF_CONSTEXPR ContextHints(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ContextHints(const ContextHints& from);
+  ContextHints(ContextHints&& from) noexcept
+    : ContextHints() {
+    *this = ::std::move(from);
+  }
+
+  inline ContextHints& operator=(const ContextHints& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ContextHints& operator=(ContextHints&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ContextHints& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ContextHints* internal_default_instance() {
+    return reinterpret_cast<const ContextHints*>(
+               &_ContextHints_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    0;
+
+  friend void swap(ContextHints& a, ContextHints& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ContextHints* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ContextHints* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ContextHints* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ContextHints>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ContextHints& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ContextHints& from) {
+    ContextHints::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ContextHints* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "cortex.agent.v1.ContextHints";
+  }
+  protected:
+  explicit ContextHints(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kTagsFieldNumber = 4,
+    kMaxInputTokensFieldNumber = 1,
+    kAllowSummarizationFieldNumber = 2,
+    kAllowRetrievalFieldNumber = 3,
+  };
+  // repeated string tags = 4;
+  int tags_size() const;
+  private:
+  int _internal_tags_size() const;
+  public:
+  void clear_tags();
+  const std::string& tags(int index) const;
+  std::string* mutable_tags(int index);
+  void set_tags(int index, const std::string& value);
+  void set_tags(int index, std::string&& value);
+  void set_tags(int index, const char* value);
+  void set_tags(int index, const char* value, size_t size);
+  std::string* add_tags();
+  void add_tags(const std::string& value);
+  void add_tags(std::string&& value);
+  void add_tags(const char* value);
+  void add_tags(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& tags() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_tags();
+  private:
+  const std::string& _internal_tags(int index) const;
+  std::string* _internal_add_tags();
+  public:
+
+  // int32 max_input_tokens = 1;
+  void clear_max_input_tokens();
+  int32_t max_input_tokens() const;
+  void set_max_input_tokens(int32_t value);
+  private:
+  int32_t _internal_max_input_tokens() const;
+  void _internal_set_max_input_tokens(int32_t value);
+  public:
+
+  // bool allow_summarization = 2;
+  void clear_allow_summarization();
+  bool allow_summarization() const;
+  void set_allow_summarization(bool value);
+  private:
+  bool _internal_allow_summarization() const;
+  void _internal_set_allow_summarization(bool value);
+  public:
+
+  // bool allow_retrieval = 3;
+  void clear_allow_retrieval();
+  bool allow_retrieval() const;
+  void set_allow_retrieval(bool value);
+  private:
+  bool _internal_allow_retrieval() const;
+  void _internal_set_allow_retrieval(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:cortex.agent.v1.ContextHints)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> tags_;
+    int32_t max_input_tokens_;
+    bool allow_summarization_;
+    bool allow_retrieval_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_cortex_2fagent_2fv1_2fjob_2eproto;
+};
+// -------------------------------------------------------------------
+
+class Budget final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cortex.agent.v1.Budget) */ {
+ public:
+  inline Budget() : Budget(nullptr) {}
+  ~Budget() override;
+  explicit PROTOBUF_CONSTEXPR Budget(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Budget(const Budget& from);
+  Budget(Budget&& from) noexcept
+    : Budget() {
+    *this = ::std::move(from);
+  }
+
+  inline Budget& operator=(const Budget& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Budget& operator=(Budget&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Budget& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Budget* internal_default_instance() {
+    return reinterpret_cast<const Budget*>(
+               &_Budget_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(Budget& a, Budget& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Budget* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Budget* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Budget* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Budget>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Budget& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const Budget& from) {
+    Budget::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Budget* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "cortex.agent.v1.Budget";
+  }
+  protected:
+  explicit Budget(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kMaxInputTokensFieldNumber = 1,
+    kMaxOutputTokensFieldNumber = 2,
+    kMaxTotalTokensFieldNumber = 3,
+    kDeadlineMsFieldNumber = 4,
+  };
+  // int64 max_input_tokens = 1;
+  void clear_max_input_tokens();
+  int64_t max_input_tokens() const;
+  void set_max_input_tokens(int64_t value);
+  private:
+  int64_t _internal_max_input_tokens() const;
+  void _internal_set_max_input_tokens(int64_t value);
+  public:
+
+  // int64 max_output_tokens = 2;
+  void clear_max_output_tokens();
+  int64_t max_output_tokens() const;
+  void set_max_output_tokens(int64_t value);
+  private:
+  int64_t _internal_max_output_tokens() const;
+  void _internal_set_max_output_tokens(int64_t value);
+  public:
+
+  // int64 max_total_tokens = 3;
+  void clear_max_total_tokens();
+  int64_t max_total_tokens() const;
+  void set_max_total_tokens(int64_t value);
+  private:
+  int64_t _internal_max_total_tokens() const;
+  void _internal_set_max_total_tokens(int64_t value);
+  public:
+
+  // int64 deadline_ms = 4;
+  void clear_deadline_ms();
+  int64_t deadline_ms() const;
+  void set_deadline_ms(int64_t value);
+  private:
+  int64_t _internal_deadline_ms() const;
+  void _internal_set_deadline_ms(int64_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:cortex.agent.v1.Budget)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int64_t max_input_tokens_;
+    int64_t max_output_tokens_;
+    int64_t max_total_tokens_;
+    int64_t deadline_ms_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_cortex_2fagent_2fv1_2fjob_2eproto;
+};
+// -------------------------------------------------------------------
+
 class JobRequest_EnvEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<JobRequest_EnvEntry_DoNotUse, 
     std::string, std::string,
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
@@ -154,6 +543,34 @@ public:
  }
   static bool ValidateValue(std::string* s) {
     return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cortex.agent.v1.JobRequest.EnvEntry.value");
+ }
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  friend struct ::TableStruct_cortex_2fagent_2fv1_2fjob_2eproto;
+};
+
+// -------------------------------------------------------------------
+
+class JobRequest_LabelsEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<JobRequest_LabelsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<JobRequest_LabelsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> SuperType;
+  JobRequest_LabelsEntry_DoNotUse();
+  explicit PROTOBUF_CONSTEXPR JobRequest_LabelsEntry_DoNotUse(
+      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit JobRequest_LabelsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const JobRequest_LabelsEntry_DoNotUse& other);
+  static const JobRequest_LabelsEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const JobRequest_LabelsEntry_DoNotUse*>(&_JobRequest_LabelsEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cortex.agent.v1.JobRequest.LabelsEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cortex.agent.v1.JobRequest.LabelsEntry.value");
  }
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
   ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
@@ -210,7 +627,7 @@ class JobRequest final :
                &_JobRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    4;
 
   friend void swap(JobRequest& a, JobRequest& b) {
     a.Swap(&b);
@@ -287,12 +704,18 @@ class JobRequest final :
 
   enum : int {
     kEnvFieldNumber = 6,
+    kLabelsFieldNumber = 15,
     kJobIdFieldNumber = 1,
     kTopicFieldNumber = 2,
     kContextPtrFieldNumber = 4,
     kAdapterIdFieldNumber = 5,
     kParentJobIdFieldNumber = 7,
     kWorkflowIdFieldNumber = 8,
+    kMemoryIdFieldNumber = 10,
+    kTenantIdFieldNumber = 13,
+    kPrincipalIdFieldNumber = 14,
+    kContextHintsFieldNumber = 11,
+    kBudgetFieldNumber = 12,
     kPriorityFieldNumber = 3,
     kStepIndexFieldNumber = 9,
   };
@@ -312,6 +735,23 @@ class JobRequest final :
       env() const;
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_env();
+
+  // map<string, string> labels = 15;
+  int labels_size() const;
+  private:
+  int _internal_labels_size() const;
+  public:
+  void clear_labels();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_labels() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_labels();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      labels() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_labels();
 
   // string job_id = 1;
   void clear_job_id();
@@ -397,6 +837,84 @@ class JobRequest final :
   std::string* _internal_mutable_workflow_id();
   public:
 
+  // string memory_id = 10;
+  void clear_memory_id();
+  const std::string& memory_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_memory_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_memory_id();
+  PROTOBUF_NODISCARD std::string* release_memory_id();
+  void set_allocated_memory_id(std::string* memory_id);
+  private:
+  const std::string& _internal_memory_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_memory_id(const std::string& value);
+  std::string* _internal_mutable_memory_id();
+  public:
+
+  // string tenant_id = 13;
+  void clear_tenant_id();
+  const std::string& tenant_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_tenant_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_tenant_id();
+  PROTOBUF_NODISCARD std::string* release_tenant_id();
+  void set_allocated_tenant_id(std::string* tenant_id);
+  private:
+  const std::string& _internal_tenant_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_tenant_id(const std::string& value);
+  std::string* _internal_mutable_tenant_id();
+  public:
+
+  // string principal_id = 14;
+  void clear_principal_id();
+  const std::string& principal_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_principal_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_principal_id();
+  PROTOBUF_NODISCARD std::string* release_principal_id();
+  void set_allocated_principal_id(std::string* principal_id);
+  private:
+  const std::string& _internal_principal_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_principal_id(const std::string& value);
+  std::string* _internal_mutable_principal_id();
+  public:
+
+  // .cortex.agent.v1.ContextHints context_hints = 11;
+  bool has_context_hints() const;
+  private:
+  bool _internal_has_context_hints() const;
+  public:
+  void clear_context_hints();
+  const ::cortex::agent::v1::ContextHints& context_hints() const;
+  PROTOBUF_NODISCARD ::cortex::agent::v1::ContextHints* release_context_hints();
+  ::cortex::agent::v1::ContextHints* mutable_context_hints();
+  void set_allocated_context_hints(::cortex::agent::v1::ContextHints* context_hints);
+  private:
+  const ::cortex::agent::v1::ContextHints& _internal_context_hints() const;
+  ::cortex::agent::v1::ContextHints* _internal_mutable_context_hints();
+  public:
+  void unsafe_arena_set_allocated_context_hints(
+      ::cortex::agent::v1::ContextHints* context_hints);
+  ::cortex::agent::v1::ContextHints* unsafe_arena_release_context_hints();
+
+  // .cortex.agent.v1.Budget budget = 12;
+  bool has_budget() const;
+  private:
+  bool _internal_has_budget() const;
+  public:
+  void clear_budget();
+  const ::cortex::agent::v1::Budget& budget() const;
+  PROTOBUF_NODISCARD ::cortex::agent::v1::Budget* release_budget();
+  ::cortex::agent::v1::Budget* mutable_budget();
+  void set_allocated_budget(::cortex::agent::v1::Budget* budget);
+  private:
+  const ::cortex::agent::v1::Budget& _internal_budget() const;
+  ::cortex::agent::v1::Budget* _internal_mutable_budget();
+  public:
+  void unsafe_arena_set_allocated_budget(
+      ::cortex::agent::v1::Budget* budget);
+  ::cortex::agent::v1::Budget* unsafe_arena_release_budget();
+
   // .cortex.agent.v1.JobPriority priority = 3;
   void clear_priority();
   ::cortex::agent::v1::JobPriority priority() const;
@@ -428,12 +946,22 @@ class JobRequest final :
         std::string, std::string,
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> env_;
+    ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+        JobRequest_LabelsEntry_DoNotUse,
+        std::string, std::string,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> labels_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr job_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr topic_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr context_ptr_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr adapter_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr parent_job_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr workflow_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr memory_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr tenant_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr principal_id_;
+    ::cortex::agent::v1::ContextHints* context_hints_;
+    ::cortex::agent::v1::Budget* budget_;
     int priority_;
     int32_t step_index_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -491,7 +1019,7 @@ class JobResult final :
                &_JobResult_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    5;
 
   friend void swap(JobResult& a, JobResult& b) {
     a.Swap(&b);
@@ -689,6 +1217,231 @@ class JobResult final :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// ContextHints
+
+// int32 max_input_tokens = 1;
+inline void ContextHints::clear_max_input_tokens() {
+  _impl_.max_input_tokens_ = 0;
+}
+inline int32_t ContextHints::_internal_max_input_tokens() const {
+  return _impl_.max_input_tokens_;
+}
+inline int32_t ContextHints::max_input_tokens() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.ContextHints.max_input_tokens)
+  return _internal_max_input_tokens();
+}
+inline void ContextHints::_internal_set_max_input_tokens(int32_t value) {
+  
+  _impl_.max_input_tokens_ = value;
+}
+inline void ContextHints::set_max_input_tokens(int32_t value) {
+  _internal_set_max_input_tokens(value);
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.ContextHints.max_input_tokens)
+}
+
+// bool allow_summarization = 2;
+inline void ContextHints::clear_allow_summarization() {
+  _impl_.allow_summarization_ = false;
+}
+inline bool ContextHints::_internal_allow_summarization() const {
+  return _impl_.allow_summarization_;
+}
+inline bool ContextHints::allow_summarization() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.ContextHints.allow_summarization)
+  return _internal_allow_summarization();
+}
+inline void ContextHints::_internal_set_allow_summarization(bool value) {
+  
+  _impl_.allow_summarization_ = value;
+}
+inline void ContextHints::set_allow_summarization(bool value) {
+  _internal_set_allow_summarization(value);
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.ContextHints.allow_summarization)
+}
+
+// bool allow_retrieval = 3;
+inline void ContextHints::clear_allow_retrieval() {
+  _impl_.allow_retrieval_ = false;
+}
+inline bool ContextHints::_internal_allow_retrieval() const {
+  return _impl_.allow_retrieval_;
+}
+inline bool ContextHints::allow_retrieval() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.ContextHints.allow_retrieval)
+  return _internal_allow_retrieval();
+}
+inline void ContextHints::_internal_set_allow_retrieval(bool value) {
+  
+  _impl_.allow_retrieval_ = value;
+}
+inline void ContextHints::set_allow_retrieval(bool value) {
+  _internal_set_allow_retrieval(value);
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.ContextHints.allow_retrieval)
+}
+
+// repeated string tags = 4;
+inline int ContextHints::_internal_tags_size() const {
+  return _impl_.tags_.size();
+}
+inline int ContextHints::tags_size() const {
+  return _internal_tags_size();
+}
+inline void ContextHints::clear_tags() {
+  _impl_.tags_.Clear();
+}
+inline std::string* ContextHints::add_tags() {
+  std::string* _s = _internal_add_tags();
+  // @@protoc_insertion_point(field_add_mutable:cortex.agent.v1.ContextHints.tags)
+  return _s;
+}
+inline const std::string& ContextHints::_internal_tags(int index) const {
+  return _impl_.tags_.Get(index);
+}
+inline const std::string& ContextHints::tags(int index) const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.ContextHints.tags)
+  return _internal_tags(index);
+}
+inline std::string* ContextHints::mutable_tags(int index) {
+  // @@protoc_insertion_point(field_mutable:cortex.agent.v1.ContextHints.tags)
+  return _impl_.tags_.Mutable(index);
+}
+inline void ContextHints::set_tags(int index, const std::string& value) {
+  _impl_.tags_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.ContextHints.tags)
+}
+inline void ContextHints::set_tags(int index, std::string&& value) {
+  _impl_.tags_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.ContextHints.tags)
+}
+inline void ContextHints::set_tags(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.tags_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:cortex.agent.v1.ContextHints.tags)
+}
+inline void ContextHints::set_tags(int index, const char* value, size_t size) {
+  _impl_.tags_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:cortex.agent.v1.ContextHints.tags)
+}
+inline std::string* ContextHints::_internal_add_tags() {
+  return _impl_.tags_.Add();
+}
+inline void ContextHints::add_tags(const std::string& value) {
+  _impl_.tags_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:cortex.agent.v1.ContextHints.tags)
+}
+inline void ContextHints::add_tags(std::string&& value) {
+  _impl_.tags_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:cortex.agent.v1.ContextHints.tags)
+}
+inline void ContextHints::add_tags(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.tags_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:cortex.agent.v1.ContextHints.tags)
+}
+inline void ContextHints::add_tags(const char* value, size_t size) {
+  _impl_.tags_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:cortex.agent.v1.ContextHints.tags)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+ContextHints::tags() const {
+  // @@protoc_insertion_point(field_list:cortex.agent.v1.ContextHints.tags)
+  return _impl_.tags_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+ContextHints::mutable_tags() {
+  // @@protoc_insertion_point(field_mutable_list:cortex.agent.v1.ContextHints.tags)
+  return &_impl_.tags_;
+}
+
+// -------------------------------------------------------------------
+
+// Budget
+
+// int64 max_input_tokens = 1;
+inline void Budget::clear_max_input_tokens() {
+  _impl_.max_input_tokens_ = int64_t{0};
+}
+inline int64_t Budget::_internal_max_input_tokens() const {
+  return _impl_.max_input_tokens_;
+}
+inline int64_t Budget::max_input_tokens() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.Budget.max_input_tokens)
+  return _internal_max_input_tokens();
+}
+inline void Budget::_internal_set_max_input_tokens(int64_t value) {
+  
+  _impl_.max_input_tokens_ = value;
+}
+inline void Budget::set_max_input_tokens(int64_t value) {
+  _internal_set_max_input_tokens(value);
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.Budget.max_input_tokens)
+}
+
+// int64 max_output_tokens = 2;
+inline void Budget::clear_max_output_tokens() {
+  _impl_.max_output_tokens_ = int64_t{0};
+}
+inline int64_t Budget::_internal_max_output_tokens() const {
+  return _impl_.max_output_tokens_;
+}
+inline int64_t Budget::max_output_tokens() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.Budget.max_output_tokens)
+  return _internal_max_output_tokens();
+}
+inline void Budget::_internal_set_max_output_tokens(int64_t value) {
+  
+  _impl_.max_output_tokens_ = value;
+}
+inline void Budget::set_max_output_tokens(int64_t value) {
+  _internal_set_max_output_tokens(value);
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.Budget.max_output_tokens)
+}
+
+// int64 max_total_tokens = 3;
+inline void Budget::clear_max_total_tokens() {
+  _impl_.max_total_tokens_ = int64_t{0};
+}
+inline int64_t Budget::_internal_max_total_tokens() const {
+  return _impl_.max_total_tokens_;
+}
+inline int64_t Budget::max_total_tokens() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.Budget.max_total_tokens)
+  return _internal_max_total_tokens();
+}
+inline void Budget::_internal_set_max_total_tokens(int64_t value) {
+  
+  _impl_.max_total_tokens_ = value;
+}
+inline void Budget::set_max_total_tokens(int64_t value) {
+  _internal_set_max_total_tokens(value);
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.Budget.max_total_tokens)
+}
+
+// int64 deadline_ms = 4;
+inline void Budget::clear_deadline_ms() {
+  _impl_.deadline_ms_ = int64_t{0};
+}
+inline int64_t Budget::_internal_deadline_ms() const {
+  return _impl_.deadline_ms_;
+}
+inline int64_t Budget::deadline_ms() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.Budget.deadline_ms)
+  return _internal_deadline_ms();
+}
+inline void Budget::_internal_set_deadline_ms(int64_t value) {
+  
+  _impl_.deadline_ms_ = value;
+}
+inline void Budget::set_deadline_ms(int64_t value) {
+  _internal_set_deadline_ms(value);
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.Budget.deadline_ms)
+}
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // JobRequest
@@ -1062,6 +1815,365 @@ inline void JobRequest::set_step_index(int32_t value) {
   // @@protoc_insertion_point(field_set:cortex.agent.v1.JobRequest.step_index)
 }
 
+// string memory_id = 10;
+inline void JobRequest::clear_memory_id() {
+  _impl_.memory_id_.ClearToEmpty();
+}
+inline const std::string& JobRequest::memory_id() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.JobRequest.memory_id)
+  return _internal_memory_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void JobRequest::set_memory_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.memory_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.JobRequest.memory_id)
+}
+inline std::string* JobRequest::mutable_memory_id() {
+  std::string* _s = _internal_mutable_memory_id();
+  // @@protoc_insertion_point(field_mutable:cortex.agent.v1.JobRequest.memory_id)
+  return _s;
+}
+inline const std::string& JobRequest::_internal_memory_id() const {
+  return _impl_.memory_id_.Get();
+}
+inline void JobRequest::_internal_set_memory_id(const std::string& value) {
+  
+  _impl_.memory_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* JobRequest::_internal_mutable_memory_id() {
+  
+  return _impl_.memory_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* JobRequest::release_memory_id() {
+  // @@protoc_insertion_point(field_release:cortex.agent.v1.JobRequest.memory_id)
+  return _impl_.memory_id_.Release();
+}
+inline void JobRequest::set_allocated_memory_id(std::string* memory_id) {
+  if (memory_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.memory_id_.SetAllocated(memory_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.memory_id_.IsDefault()) {
+    _impl_.memory_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cortex.agent.v1.JobRequest.memory_id)
+}
+
+// .cortex.agent.v1.ContextHints context_hints = 11;
+inline bool JobRequest::_internal_has_context_hints() const {
+  return this != internal_default_instance() && _impl_.context_hints_ != nullptr;
+}
+inline bool JobRequest::has_context_hints() const {
+  return _internal_has_context_hints();
+}
+inline void JobRequest::clear_context_hints() {
+  if (GetArenaForAllocation() == nullptr && _impl_.context_hints_ != nullptr) {
+    delete _impl_.context_hints_;
+  }
+  _impl_.context_hints_ = nullptr;
+}
+inline const ::cortex::agent::v1::ContextHints& JobRequest::_internal_context_hints() const {
+  const ::cortex::agent::v1::ContextHints* p = _impl_.context_hints_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cortex::agent::v1::ContextHints&>(
+      ::cortex::agent::v1::_ContextHints_default_instance_);
+}
+inline const ::cortex::agent::v1::ContextHints& JobRequest::context_hints() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.JobRequest.context_hints)
+  return _internal_context_hints();
+}
+inline void JobRequest::unsafe_arena_set_allocated_context_hints(
+    ::cortex::agent::v1::ContextHints* context_hints) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.context_hints_);
+  }
+  _impl_.context_hints_ = context_hints;
+  if (context_hints) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cortex.agent.v1.JobRequest.context_hints)
+}
+inline ::cortex::agent::v1::ContextHints* JobRequest::release_context_hints() {
+  
+  ::cortex::agent::v1::ContextHints* temp = _impl_.context_hints_;
+  _impl_.context_hints_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cortex::agent::v1::ContextHints* JobRequest::unsafe_arena_release_context_hints() {
+  // @@protoc_insertion_point(field_release:cortex.agent.v1.JobRequest.context_hints)
+  
+  ::cortex::agent::v1::ContextHints* temp = _impl_.context_hints_;
+  _impl_.context_hints_ = nullptr;
+  return temp;
+}
+inline ::cortex::agent::v1::ContextHints* JobRequest::_internal_mutable_context_hints() {
+  
+  if (_impl_.context_hints_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cortex::agent::v1::ContextHints>(GetArenaForAllocation());
+    _impl_.context_hints_ = p;
+  }
+  return _impl_.context_hints_;
+}
+inline ::cortex::agent::v1::ContextHints* JobRequest::mutable_context_hints() {
+  ::cortex::agent::v1::ContextHints* _msg = _internal_mutable_context_hints();
+  // @@protoc_insertion_point(field_mutable:cortex.agent.v1.JobRequest.context_hints)
+  return _msg;
+}
+inline void JobRequest::set_allocated_context_hints(::cortex::agent::v1::ContextHints* context_hints) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.context_hints_;
+  }
+  if (context_hints) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(context_hints);
+    if (message_arena != submessage_arena) {
+      context_hints = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, context_hints, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.context_hints_ = context_hints;
+  // @@protoc_insertion_point(field_set_allocated:cortex.agent.v1.JobRequest.context_hints)
+}
+
+// .cortex.agent.v1.Budget budget = 12;
+inline bool JobRequest::_internal_has_budget() const {
+  return this != internal_default_instance() && _impl_.budget_ != nullptr;
+}
+inline bool JobRequest::has_budget() const {
+  return _internal_has_budget();
+}
+inline void JobRequest::clear_budget() {
+  if (GetArenaForAllocation() == nullptr && _impl_.budget_ != nullptr) {
+    delete _impl_.budget_;
+  }
+  _impl_.budget_ = nullptr;
+}
+inline const ::cortex::agent::v1::Budget& JobRequest::_internal_budget() const {
+  const ::cortex::agent::v1::Budget* p = _impl_.budget_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cortex::agent::v1::Budget&>(
+      ::cortex::agent::v1::_Budget_default_instance_);
+}
+inline const ::cortex::agent::v1::Budget& JobRequest::budget() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.JobRequest.budget)
+  return _internal_budget();
+}
+inline void JobRequest::unsafe_arena_set_allocated_budget(
+    ::cortex::agent::v1::Budget* budget) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.budget_);
+  }
+  _impl_.budget_ = budget;
+  if (budget) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cortex.agent.v1.JobRequest.budget)
+}
+inline ::cortex::agent::v1::Budget* JobRequest::release_budget() {
+  
+  ::cortex::agent::v1::Budget* temp = _impl_.budget_;
+  _impl_.budget_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cortex::agent::v1::Budget* JobRequest::unsafe_arena_release_budget() {
+  // @@protoc_insertion_point(field_release:cortex.agent.v1.JobRequest.budget)
+  
+  ::cortex::agent::v1::Budget* temp = _impl_.budget_;
+  _impl_.budget_ = nullptr;
+  return temp;
+}
+inline ::cortex::agent::v1::Budget* JobRequest::_internal_mutable_budget() {
+  
+  if (_impl_.budget_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cortex::agent::v1::Budget>(GetArenaForAllocation());
+    _impl_.budget_ = p;
+  }
+  return _impl_.budget_;
+}
+inline ::cortex::agent::v1::Budget* JobRequest::mutable_budget() {
+  ::cortex::agent::v1::Budget* _msg = _internal_mutable_budget();
+  // @@protoc_insertion_point(field_mutable:cortex.agent.v1.JobRequest.budget)
+  return _msg;
+}
+inline void JobRequest::set_allocated_budget(::cortex::agent::v1::Budget* budget) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.budget_;
+  }
+  if (budget) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(budget);
+    if (message_arena != submessage_arena) {
+      budget = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, budget, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.budget_ = budget;
+  // @@protoc_insertion_point(field_set_allocated:cortex.agent.v1.JobRequest.budget)
+}
+
+// string tenant_id = 13;
+inline void JobRequest::clear_tenant_id() {
+  _impl_.tenant_id_.ClearToEmpty();
+}
+inline const std::string& JobRequest::tenant_id() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.JobRequest.tenant_id)
+  return _internal_tenant_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void JobRequest::set_tenant_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.tenant_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.JobRequest.tenant_id)
+}
+inline std::string* JobRequest::mutable_tenant_id() {
+  std::string* _s = _internal_mutable_tenant_id();
+  // @@protoc_insertion_point(field_mutable:cortex.agent.v1.JobRequest.tenant_id)
+  return _s;
+}
+inline const std::string& JobRequest::_internal_tenant_id() const {
+  return _impl_.tenant_id_.Get();
+}
+inline void JobRequest::_internal_set_tenant_id(const std::string& value) {
+  
+  _impl_.tenant_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* JobRequest::_internal_mutable_tenant_id() {
+  
+  return _impl_.tenant_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* JobRequest::release_tenant_id() {
+  // @@protoc_insertion_point(field_release:cortex.agent.v1.JobRequest.tenant_id)
+  return _impl_.tenant_id_.Release();
+}
+inline void JobRequest::set_allocated_tenant_id(std::string* tenant_id) {
+  if (tenant_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.tenant_id_.SetAllocated(tenant_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.tenant_id_.IsDefault()) {
+    _impl_.tenant_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cortex.agent.v1.JobRequest.tenant_id)
+}
+
+// string principal_id = 14;
+inline void JobRequest::clear_principal_id() {
+  _impl_.principal_id_.ClearToEmpty();
+}
+inline const std::string& JobRequest::principal_id() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.JobRequest.principal_id)
+  return _internal_principal_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void JobRequest::set_principal_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.principal_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.JobRequest.principal_id)
+}
+inline std::string* JobRequest::mutable_principal_id() {
+  std::string* _s = _internal_mutable_principal_id();
+  // @@protoc_insertion_point(field_mutable:cortex.agent.v1.JobRequest.principal_id)
+  return _s;
+}
+inline const std::string& JobRequest::_internal_principal_id() const {
+  return _impl_.principal_id_.Get();
+}
+inline void JobRequest::_internal_set_principal_id(const std::string& value) {
+  
+  _impl_.principal_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* JobRequest::_internal_mutable_principal_id() {
+  
+  return _impl_.principal_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* JobRequest::release_principal_id() {
+  // @@protoc_insertion_point(field_release:cortex.agent.v1.JobRequest.principal_id)
+  return _impl_.principal_id_.Release();
+}
+inline void JobRequest::set_allocated_principal_id(std::string* principal_id) {
+  if (principal_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.principal_id_.SetAllocated(principal_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.principal_id_.IsDefault()) {
+    _impl_.principal_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cortex.agent.v1.JobRequest.principal_id)
+}
+
+// map<string, string> labels = 15;
+inline int JobRequest::_internal_labels_size() const {
+  return _impl_.labels_.size();
+}
+inline int JobRequest::labels_size() const {
+  return _internal_labels_size();
+}
+inline void JobRequest::clear_labels() {
+  _impl_.labels_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+JobRequest::_internal_labels() const {
+  return _impl_.labels_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+JobRequest::labels() const {
+  // @@protoc_insertion_point(field_map:cortex.agent.v1.JobRequest.labels)
+  return _internal_labels();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+JobRequest::_internal_mutable_labels() {
+  return _impl_.labels_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+JobRequest::mutable_labels() {
+  // @@protoc_insertion_point(field_mutable_map:cortex.agent.v1.JobRequest.labels)
+  return _internal_mutable_labels();
+}
+
 // -------------------------------------------------------------------
 
 // JobResult
@@ -1359,6 +2471,12 @@ inline void JobResult::set_allocated_error_message(std::string* error_message) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -1,6 +1,13 @@
 import asyncio
+import sys
+import os
 import unittest
 from typing import Callable, Awaitable, Dict
+
+# Avoid loading duplicate generated stubs from both /python and sdk/python/cap/pb.
+sys.path = [p for p in sys.path if not p.rstrip("/").endswith("python")]
+# Ensure generated modules under sdk/python/cap/pb are discoverable for `cortex.agent.v1.*`.
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "cap", "pb")))
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes

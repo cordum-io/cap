@@ -1,0 +1,17 @@
+{
+  "trace_id": "trace-hb-001",
+  "sender_id": "worker-code-1",
+  "created_at": "2025-01-10T12:00:05Z",
+  "protocol_version": 1,
+  "heartbeat": {
+    "worker_id": "worker-code-1",
+    "region": "us-east-1a",
+    "type": "cpu-tools",
+    "cpu_load": 24.5,
+    "gpu_utilization": 0,
+    "active_jobs": 1,
+    "capabilities": ["python", "git", "browser"],
+    "pool": "job.code.llm",
+    "max_parallel_jobs": 4
+  }
+}

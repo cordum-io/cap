@@ -9,8 +9,17 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROTO_DIR="$ROOT_DIR/proto"
-OUT_GO="$ROOT_DIR/generated/go"
+OUT_GO="$ROOT_DIR/generated/go/gen"
 OUT_PY="$ROOT_DIR/generated/python"
+
+# Prefer a working python; fall back to python3 if python is missing.
+PYTHON_BIN="${PYTHON_BIN:-python}"
+if ! command -v "$PYTHON_BIN" >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+  PYTHON_BIN="python3"
+fi
+
+# Ensure protoc plugins installed via `go install` are on PATH.
+export PATH="$(go env GOPATH)/bin:$PATH"
 
 mkdir -p "$OUT_GO" "$OUT_PY"
 
@@ -22,7 +31,7 @@ protoc \
   $(find "$PROTO_DIR" -name '*.proto')
 
 echo "Generating Python stubs..."
-python -m grpc_tools.protoc \
+"$PYTHON_BIN" -m grpc_tools.protoc \
   -I"$PROTO_DIR" \
   --python_out="$OUT_PY" \
   --grpc_python_out="$OUT_PY" \

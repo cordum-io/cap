@@ -13,7 +13,7 @@ Run:
 ./tools/make_protos.sh
 ```
 Outputs:
-- Go stubs under `generated/go`
-- Python stubs under `generated/python`
+- Go stubs under `/go`
+- Python stubs under `/python`
 
 Adjust flags/paths as needed for other languages or build systems.

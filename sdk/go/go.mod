@@ -21,4 +21,4 @@ require (
 )
 
 // Use locally generated CAP protobuf stubs.
-replace github.com/coretexos/cap => ../../generated/go
+replace github.com/coretexos/cap => ../..

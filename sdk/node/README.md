@@ -45,6 +45,29 @@ Node/TS SDK with NATS helpers. Uses `protobufjs` to load CAP proto definitions a
 - `src/client.ts` — submission helper.
 - `src/sample-worker.ts` — minimal echo worker example.
 
+## Runtime (High-Level SDK)
+The runtime hides NATS/Redis plumbing and gives you typed handlers.
+
+```ts
+import { z } from "zod";
+import { Agent } from "./runtime";
+
+const Input = z.object({ prompt: z.string() });
+const Output = z.object({ summary: z.string() });
+
+const agent = new Agent({ retries: 2 });
+
+agent.job("job.summarize", Input, async (_ctx, data) => {
+  return { summary: data.prompt.slice(0, 140) };
+}, { outputSchema: Output });
+
+agent.run().catch(console.error);
+```
+
+### Environment
+- `NATS_URL` (default `nats://127.0.0.1:4222`)
+- `REDIS_URL` (default `redis://127.0.0.1:6379/0`)
+
 ## Notes
 - Subjects: `sys.job.submit`, `job.<pool>`, `sys.job.result`, `sys.heartbeat`.
 - Protocol version: `1`.

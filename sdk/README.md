@@ -7,6 +7,8 @@ This folder contains production-ready starter SDKs for CAP. Each SDK is bus-agno
 - `python/` — Python SDK with asyncio NATS helpers.
 - `node/` — Node/TypeScript SDK using NATS and protobufjs loaders.
 - `cpp/` — C++ SDK with a small bus interface and helper wrappers.
+  
+High-level runtime layers (typed handlers + Redis pointer hydration) live alongside each SDK under `sdk/go/runtime`, `sdk/python/cap/runtime.py`, and `sdk/node/src/runtime.ts`.
 
 ## Examples
 - `examples/simple-echo/` contains Go/Python/Node client+worker pairs aligned with these SDKs.

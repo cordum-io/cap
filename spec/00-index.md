@@ -8,17 +8,18 @@ This folder contains the normative specification for the Cordum Agent Protocol (
 - Implementations are compliant when they honor message shapes, state machine rules, and safety hooks defined here.
 
 ## Conformance Suite
-Tags: `conformance`, `fixtures`, `testing`.
+Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 - Binary fixtures live in `spec/conformance/fixtures`.
 - SDK tests load fixtures to validate wire compatibility across languages.
+- Fixtures are signed deterministically to keep bytes stable across Go patch releases.
 
 ## Versioning
 - `protocol_version` in `BusPacket` is used for wire negotiation. Current wire version: `1` (schema 1.0.0).
 - Protobuf evolution is append-only: add new fields with new numbers; do not delete or reuse.
-- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.18`) for reproducibility.
+- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.19`) for reproducibility.
 - Protocol vs SDK:
   - Protocol wire schema: 1.0.0 (stable).
-  - Repository/SDK: 2.0.18 (may add helpers, docs, and generated stubs without wire breaks).
+  - Repository/SDK: 2.0.19 (may add helpers, docs, and generated stubs without wire breaks).
 
 ## Table of Contents
 - [01 Overview](01-overview.md)

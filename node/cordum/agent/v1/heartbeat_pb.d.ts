@@ -35,6 +35,15 @@ export class Heartbeat extends jspb.Message {
 
   getLabelsMap(): jspb.Map<string, string>;
   clearLabelsMap(): void;
+  getMemoryLoad(): number;
+  setMemoryLoad(value: number): void;
+
+  getProgressPct(): number;
+  setProgressPct(value: number): void;
+
+  getLastMemo(): string;
+  setLastMemo(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Heartbeat.AsObject;
   static toObject(includeInstance: boolean, msg: Heartbeat): Heartbeat.AsObject;
@@ -57,6 +66,9 @@ export namespace Heartbeat {
     pool: string,
     maxParallelJobs: number,
     labelsMap: Array<[string, string]>,
+    memoryLoad: number,
+    progressPct: number,
+    lastMemo: string,
   }
 }
 

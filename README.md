@@ -9,7 +9,7 @@
 
 ## Status
 - Protocol (wire): CAP 1.0.0 — Stable; append-only changes only.
-- Implementation / SDK: cap v2.0.9 (tagged releases in this repo).
+- Implementation / SDK: cap v2.0.15 (tagged releases in this repo).
 - Transport profile: NATS-first; other buses experimental.
 - Reference implementation: Cordum.
 
@@ -17,7 +17,7 @@
 | Component | Version | Notes |
 | --- | --- | --- |
 | Protocol wire schema | 1.0.0 | Append-only evolution; never renumber fields. |
-| Repo / SDKs | 2.0.9 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
+| Repo / SDKs | 2.0.15 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
 | `protocol_version` field | 1 | Used in `BusPacket` for negotiation. |
 
 ## MCP != CAP
@@ -69,6 +69,8 @@ sequenceDiagram
 - **Jobs**: `JobRequest` (submit) + `JobResult` (complete), with workflow metadata (`workflow_id`, `parent_job_id`, `step_index`).
 - **Pointers**: `context_ptr`, `result_ptr`, `redacted_context_ptr` keep the bus free of blobs.
 - **Heartbeats**: worker liveness, load, pool membership, and capacity.
+- **Checkpoint heartbeats**: optional progress checkpoints (`progress_pct`, `last_memo`) for long tasks.
+- **Compensation**: optional inverse actions on `JobRequest` to support durable rollback.
 - **Safety Kernel**: allow/deny/human/throttle hook invoked before dispatch.
 - **State machine**: `PENDING -> SCHEDULED -> DISPATCHED -> RUNNING -> {SUCCEEDED|FAILED|TIMEOUT|DENIED|CANCELLED}`.
 - **Workflows**: orchestrators fan out child jobs and publish a parent result without changing the core job shape.

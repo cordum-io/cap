@@ -87,6 +87,52 @@ struct JobMetadataDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 JobMetadataDefaultTypeInternal _JobMetadata_default_instance_;
+PROTOBUF_CONSTEXPR Compensation_EnvEntry_DoNotUse::Compensation_EnvEntry_DoNotUse(
+    ::_pbi::ConstantInitialized) {}
+struct Compensation_EnvEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR Compensation_EnvEntry_DoNotUseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~Compensation_EnvEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    Compensation_EnvEntry_DoNotUse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Compensation_EnvEntry_DoNotUseDefaultTypeInternal _Compensation_EnvEntry_DoNotUse_default_instance_;
+PROTOBUF_CONSTEXPR Compensation_LabelsEntry_DoNotUse::Compensation_LabelsEntry_DoNotUse(
+    ::_pbi::ConstantInitialized) {}
+struct Compensation_LabelsEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR Compensation_LabelsEntry_DoNotUseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~Compensation_LabelsEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    Compensation_LabelsEntry_DoNotUse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Compensation_LabelsEntry_DoNotUseDefaultTypeInternal _Compensation_LabelsEntry_DoNotUse_default_instance_;
+PROTOBUF_CONSTEXPR Compensation::Compensation(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.env_)*/{::_pbi::ConstantInitialized()}
+  , /*decltype(_impl_.labels_)*/{::_pbi::ConstantInitialized()}
+  , /*decltype(_impl_.topic_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.context_ptr_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.adapter_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.memory_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.tenant_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.principal_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.context_hints_)*/nullptr
+  , /*decltype(_impl_.budget_)*/nullptr
+  , /*decltype(_impl_.meta_)*/nullptr
+  , /*decltype(_impl_.priority_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct CompensationDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR CompensationDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~CompensationDefaultTypeInternal() {}
+  union {
+    Compensation _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 CompensationDefaultTypeInternal _Compensation_default_instance_;
 PROTOBUF_CONSTEXPR JobRequest_EnvEntry_DoNotUse::JobRequest_EnvEntry_DoNotUse(
     ::_pbi::ConstantInitialized) {}
 struct JobRequest_EnvEntry_DoNotUseDefaultTypeInternal {
@@ -125,6 +171,7 @@ PROTOBUF_CONSTEXPR JobRequest::JobRequest(
   , /*decltype(_impl_.context_hints_)*/nullptr
   , /*decltype(_impl_.budget_)*/nullptr
   , /*decltype(_impl_.meta_)*/nullptr
+  , /*decltype(_impl_.compensation_)*/nullptr
   , /*decltype(_impl_.priority_)*/0
   , /*decltype(_impl_.step_index_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
@@ -194,7 +241,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 }  // namespace v1
 }  // namespace agent
 }  // namespace cordum
-static ::_pb::Metadata file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[10];
+static ::_pb::Metadata file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[13];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_cordum_2fagent_2fv1_2fjob_2eproto[3];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_cordum_2fagent_2fv1_2fjob_2eproto = nullptr;
 
@@ -244,6 +291,44 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fjob_2eproto::offsets[] PROTOBUF
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::JobMetadata, _impl_.requires_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::JobMetadata, _impl_.pack_id_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::JobMetadata, _impl_.labels_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation_EnvEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation_EnvEntry_DoNotUse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation_EnvEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation_EnvEntry_DoNotUse, value_),
+  0,
+  1,
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse, value_),
+  0,
+  1,
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.topic_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.context_ptr_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.priority_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.adapter_id_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.env_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.memory_id_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.context_hints_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.budget_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.tenant_id_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.principal_id_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.labels_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Compensation, _impl_.meta_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::JobRequest_EnvEntry_DoNotUse, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::JobRequest_EnvEntry_DoNotUse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -286,6 +371,7 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fjob_2eproto::offsets[] PROTOBUF
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::JobRequest, _impl_.principal_id_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::JobRequest, _impl_.labels_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::JobRequest, _impl_.meta_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::JobRequest, _impl_.compensation_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::JobResult, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -328,12 +414,15 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 10, -1, -1, sizeof(::cordum::agent::v1::Budget)},
   { 20, 28, -1, sizeof(::cordum::agent::v1::JobMetadata_LabelsEntry_DoNotUse)},
   { 30, -1, -1, sizeof(::cordum::agent::v1::JobMetadata)},
-  { 45, 53, -1, sizeof(::cordum::agent::v1::JobRequest_EnvEntry_DoNotUse)},
-  { 55, 63, -1, sizeof(::cordum::agent::v1::JobRequest_LabelsEntry_DoNotUse)},
-  { 65, -1, -1, sizeof(::cordum::agent::v1::JobRequest)},
-  { 87, -1, -1, sizeof(::cordum::agent::v1::JobResult)},
-  { 101, -1, -1, sizeof(::cordum::agent::v1::JobProgress)},
-  { 114, -1, -1, sizeof(::cordum::agent::v1::JobCancel)},
+  { 45, 53, -1, sizeof(::cordum::agent::v1::Compensation_EnvEntry_DoNotUse)},
+  { 55, 63, -1, sizeof(::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse)},
+  { 65, -1, -1, sizeof(::cordum::agent::v1::Compensation)},
+  { 83, 91, -1, sizeof(::cordum::agent::v1::JobRequest_EnvEntry_DoNotUse)},
+  { 93, 101, -1, sizeof(::cordum::agent::v1::JobRequest_LabelsEntry_DoNotUse)},
+  { 103, -1, -1, sizeof(::cordum::agent::v1::JobRequest)},
+  { 126, -1, -1, sizeof(::cordum::agent::v1::JobResult)},
+  { 140, -1, -1, sizeof(::cordum::agent::v1::JobProgress)},
+  { 153, -1, -1, sizeof(::cordum::agent::v1::JobCancel)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -341,6 +430,9 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::cordum::agent::v1::_Budget_default_instance_._instance,
   &::cordum::agent::v1::_JobMetadata_LabelsEntry_DoNotUse_default_instance_._instance,
   &::cordum::agent::v1::_JobMetadata_default_instance_._instance,
+  &::cordum::agent::v1::_Compensation_EnvEntry_DoNotUse_default_instance_._instance,
+  &::cordum::agent::v1::_Compensation_LabelsEntry_DoNotUse_default_instance_._instance,
+  &::cordum::agent::v1::_Compensation_default_instance_._instance,
   &::cordum::agent::v1::_JobRequest_EnvEntry_DoNotUse_default_instance_._instance,
   &::cordum::agent::v1::_JobRequest_LabelsEntry_DoNotUse_default_instance_._instance,
   &::cordum::agent::v1::_JobRequest_default_instance_._instance,
@@ -364,54 +456,68 @@ const char descriptor_table_protodef_cordum_2fagent_2fv1_2fjob_2eproto[] PROTOBU
   "s\030\007 \003(\t\022\017\n\007pack_id\030\010 \001(\t\0228\n\006labels\030\t \003(\013"
   "2(.cordum.agent.v1.JobMetadata.LabelsEnt"
   "ry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030"
-  "\002 \001(\t:\0028\001\"\322\004\n\nJobRequest\022\016\n\006job_id\030\001 \001(\t"
-  "\022\r\n\005topic\030\002 \001(\t\022.\n\010priority\030\003 \001(\0162\034.cord"
-  "um.agent.v1.JobPriority\022\023\n\013context_ptr\030\004"
-  " \001(\t\022\022\n\nadapter_id\030\005 \001(\t\0221\n\003env\030\006 \003(\0132$."
-  "cordum.agent.v1.JobRequest.EnvEntry\022\025\n\rp"
-  "arent_job_id\030\007 \001(\t\022\023\n\013workflow_id\030\010 \001(\t\022"
-  "\022\n\nstep_index\030\t \001(\005\022\021\n\tmemory_id\030\n \001(\t\0224"
-  "\n\rcontext_hints\030\013 \001(\0132\035.cordum.agent.v1."
-  "ContextHints\022\'\n\006budget\030\014 \001(\0132\027.cordum.ag"
-  "ent.v1.Budget\022\021\n\ttenant_id\030\r \001(\t\022\024\n\014prin"
-  "cipal_id\030\016 \001(\t\0227\n\006labels\030\017 \003(\0132\'.cordum."
-  "agent.v1.JobRequest.LabelsEntry\022*\n\004meta\030"
-  "\020 \001(\0132\034.cordum.agent.v1.JobMetadata\032*\n\010E"
-  "nvEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\032"
-  "-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001"
-  "(\t:\0028\001\"\306\001\n\tJobResult\022\016\n\006job_id\030\001 \001(\t\022*\n\006"
-  "status\030\002 \001(\0162\032.cordum.agent.v1.JobStatus"
-  "\022\022\n\nresult_ptr\030\003 \001(\t\022\021\n\tworker_id\030\004 \001(\t\022"
-  "\024\n\014execution_ms\030\005 \001(\003\022\022\n\nerror_code\030\006 \001("
-  "\t\022\025\n\rerror_message\030\007 \001(\t\022\025\n\rartifact_ptr"
-  "s\030\010 \003(\t\"\247\001\n\013JobProgress\022\016\n\006job_id\030\001 \001(\t\022"
-  "\017\n\007step_id\030\002 \001(\t\022\017\n\007percent\030\003 \001(\005\022\017\n\007mes"
-  "sage\030\004 \001(\t\022\022\n\nresult_ptr\030\005 \001(\t\022\025\n\rartifa"
-  "ct_ptrs\030\006 \003(\t\022*\n\006status\030\007 \001(\0162\032.cordum.a"
-  "gent.v1.JobStatus\"A\n\tJobCancel\022\016\n\006job_id"
-  "\030\001 \001(\t\022\016\n\006reason\030\002 \001(\t\022\024\n\014requested_by\030\003"
-  " \001(\t*|\n\013JobPriority\022\034\n\030JOB_PRIORITY_UNSP"
-  "ECIFIED\020\000\022\034\n\030JOB_PRIORITY_INTERACTIVE\020\001\022"
-  "\026\n\022JOB_PRIORITY_BATCH\020\002\022\031\n\025JOB_PRIORITY_"
-  "CRITICAL\020\003*\206\002\n\tJobStatus\022\032\n\026JOB_STATUS_U"
-  "NSPECIFIED\020\000\022\026\n\022JOB_STATUS_PENDING\020\001\022\030\n\024"
-  "JOB_STATUS_SCHEDULED\020\002\022\031\n\025JOB_STATUS_DIS"
-  "PATCHED\020\003\022\026\n\022JOB_STATUS_RUNNING\020\004\022\030\n\024JOB"
-  "_STATUS_SUCCEEDED\020\005\022\025\n\021JOB_STATUS_FAILED"
-  "\020\006\022\030\n\024JOB_STATUS_CANCELLED\020\007\022\025\n\021JOB_STAT"
-  "US_DENIED\020\010\022\026\n\022JOB_STATUS_TIMEOUT\020\t*U\n\tA"
-  "ctorType\022\032\n\026ACTOR_TYPE_UNSPECIFIED\020\000\022\024\n\020"
-  "ACTOR_TYPE_HUMAN\020\001\022\026\n\022ACTOR_TYPE_SERVICE"
-  "\020\002B\177\n\026io.cordum.cap.agent.v1P\001Z+github.c"
-  "om/cordum-io/cap/v2/cordum/agent/v1\252\002\017Co"
-  "rdum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum"
-  "::Agent::V1b\006proto3"
+  "\002 \001(\t:\0028\001\"\210\004\n\014Compensation\022\r\n\005topic\030\001 \001("
+  "\t\022\023\n\013context_ptr\030\002 \001(\t\022.\n\010priority\030\003 \001(\016"
+  "2\034.cordum.agent.v1.JobPriority\022\022\n\nadapte"
+  "r_id\030\004 \001(\t\0223\n\003env\030\005 \003(\0132&.cordum.agent.v"
+  "1.Compensation.EnvEntry\022\021\n\tmemory_id\030\006 \001"
+  "(\t\0224\n\rcontext_hints\030\007 \001(\0132\035.cordum.agent"
+  ".v1.ContextHints\022\'\n\006budget\030\010 \001(\0132\027.cordu"
+  "m.agent.v1.Budget\022\021\n\ttenant_id\030\t \001(\t\022\024\n\014"
+  "principal_id\030\n \001(\t\0229\n\006labels\030\013 \003(\0132).cor"
+  "dum.agent.v1.Compensation.LabelsEntry\022*\n"
+  "\004meta\030\014 \001(\0132\034.cordum.agent.v1.JobMetadat"
+  "a\032*\n\010EnvEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001("
+  "\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005val"
+  "ue\030\002 \001(\t:\0028\001\"\207\005\n\nJobRequest\022\016\n\006job_id\030\001 "
+  "\001(\t\022\r\n\005topic\030\002 \001(\t\022.\n\010priority\030\003 \001(\0162\034.c"
+  "ordum.agent.v1.JobPriority\022\023\n\013context_pt"
+  "r\030\004 \001(\t\022\022\n\nadapter_id\030\005 \001(\t\0221\n\003env\030\006 \003(\013"
+  "2$.cordum.agent.v1.JobRequest.EnvEntry\022\025"
+  "\n\rparent_job_id\030\007 \001(\t\022\023\n\013workflow_id\030\010 \001"
+  "(\t\022\022\n\nstep_index\030\t \001(\005\022\021\n\tmemory_id\030\n \001("
+  "\t\0224\n\rcontext_hints\030\013 \001(\0132\035.cordum.agent."
+  "v1.ContextHints\022\'\n\006budget\030\014 \001(\0132\027.cordum"
+  ".agent.v1.Budget\022\021\n\ttenant_id\030\r \001(\t\022\024\n\014p"
+  "rincipal_id\030\016 \001(\t\0227\n\006labels\030\017 \003(\0132\'.cord"
+  "um.agent.v1.JobRequest.LabelsEntry\022*\n\004me"
+  "ta\030\020 \001(\0132\034.cordum.agent.v1.JobMetadata\0223"
+  "\n\014compensation\030\021 \001(\0132\035.cordum.agent.v1.C"
+  "ompensation\032*\n\010EnvEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005"
+  "value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 "
+  "\001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\306\001\n\tJobResult\022\016\n\006"
+  "job_id\030\001 \001(\t\022*\n\006status\030\002 \001(\0162\032.cordum.ag"
+  "ent.v1.JobStatus\022\022\n\nresult_ptr\030\003 \001(\t\022\021\n\t"
+  "worker_id\030\004 \001(\t\022\024\n\014execution_ms\030\005 \001(\003\022\022\n"
+  "\nerror_code\030\006 \001(\t\022\025\n\rerror_message\030\007 \001(\t"
+  "\022\025\n\rartifact_ptrs\030\010 \003(\t\"\247\001\n\013JobProgress\022"
+  "\016\n\006job_id\030\001 \001(\t\022\017\n\007step_id\030\002 \001(\t\022\017\n\007perc"
+  "ent\030\003 \001(\005\022\017\n\007message\030\004 \001(\t\022\022\n\nresult_ptr"
+  "\030\005 \001(\t\022\025\n\rartifact_ptrs\030\006 \003(\t\022*\n\006status\030"
+  "\007 \001(\0162\032.cordum.agent.v1.JobStatus\"A\n\tJob"
+  "Cancel\022\016\n\006job_id\030\001 \001(\t\022\016\n\006reason\030\002 \001(\t\022\024"
+  "\n\014requested_by\030\003 \001(\t*|\n\013JobPriority\022\034\n\030J"
+  "OB_PRIORITY_UNSPECIFIED\020\000\022\034\n\030JOB_PRIORIT"
+  "Y_INTERACTIVE\020\001\022\026\n\022JOB_PRIORITY_BATCH\020\002\022"
+  "\031\n\025JOB_PRIORITY_CRITICAL\020\003*\206\002\n\tJobStatus"
+  "\022\032\n\026JOB_STATUS_UNSPECIFIED\020\000\022\026\n\022JOB_STAT"
+  "US_PENDING\020\001\022\030\n\024JOB_STATUS_SCHEDULED\020\002\022\031"
+  "\n\025JOB_STATUS_DISPATCHED\020\003\022\026\n\022JOB_STATUS_"
+  "RUNNING\020\004\022\030\n\024JOB_STATUS_SUCCEEDED\020\005\022\025\n\021J"
+  "OB_STATUS_FAILED\020\006\022\030\n\024JOB_STATUS_CANCELL"
+  "ED\020\007\022\025\n\021JOB_STATUS_DENIED\020\010\022\026\n\022JOB_STATU"
+  "S_TIMEOUT\020\t*U\n\tActorType\022\032\n\026ACTOR_TYPE_U"
+  "NSPECIFIED\020\000\022\024\n\020ACTOR_TYPE_HUMAN\020\001\022\026\n\022AC"
+  "TOR_TYPE_SERVICE\020\002B\177\n\026io.cordum.cap.agen"
+  "t.v1P\001Z+github.com/cordum-io/cap/v2/cord"
+  "um/agent/v1\252\002\017Cordum.Agent.V1\312\002\017cordum\\A"
+  "gent\\V1\352\002\021Cordum::Agent::V1b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto = {
-    false, false, 2219, descriptor_table_protodef_cordum_2fagent_2fv1_2fjob_2eproto,
+    false, false, 2795, descriptor_table_protodef_cordum_2fagent_2fv1_2fjob_2eproto,
     "cordum/agent/v1/job.proto",
-    &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once, nullptr, 0, 10,
+    &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once, nullptr, 0, 13,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fjob_2eproto::offsets,
     file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto, file_level_enum_descriptors_cordum_2fagent_2fv1_2fjob_2eproto,
     file_level_service_descriptors_cordum_2fagent_2fv1_2fjob_2eproto,
@@ -1607,6 +1713,774 @@ void JobMetadata::InternalSwap(JobMetadata* other) {
 
 // ===================================================================
 
+Compensation_EnvEntry_DoNotUse::Compensation_EnvEntry_DoNotUse() {}
+Compensation_EnvEntry_DoNotUse::Compensation_EnvEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+    : SuperType(arena) {}
+void Compensation_EnvEntry_DoNotUse::MergeFrom(const Compensation_EnvEntry_DoNotUse& other) {
+  MergeFromInternal(other);
+}
+::PROTOBUF_NAMESPACE_ID::Metadata Compensation_EnvEntry_DoNotUse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once,
+      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[4]);
+}
+
+// ===================================================================
+
+Compensation_LabelsEntry_DoNotUse::Compensation_LabelsEntry_DoNotUse() {}
+Compensation_LabelsEntry_DoNotUse::Compensation_LabelsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+    : SuperType(arena) {}
+void Compensation_LabelsEntry_DoNotUse::MergeFrom(const Compensation_LabelsEntry_DoNotUse& other) {
+  MergeFromInternal(other);
+}
+::PROTOBUF_NAMESPACE_ID::Metadata Compensation_LabelsEntry_DoNotUse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once,
+      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[5]);
+}
+
+// ===================================================================
+
+class Compensation::_Internal {
+ public:
+  static const ::cordum::agent::v1::ContextHints& context_hints(const Compensation* msg);
+  static const ::cordum::agent::v1::Budget& budget(const Compensation* msg);
+  static const ::cordum::agent::v1::JobMetadata& meta(const Compensation* msg);
+};
+
+const ::cordum::agent::v1::ContextHints&
+Compensation::_Internal::context_hints(const Compensation* msg) {
+  return *msg->_impl_.context_hints_;
+}
+const ::cordum::agent::v1::Budget&
+Compensation::_Internal::budget(const Compensation* msg) {
+  return *msg->_impl_.budget_;
+}
+const ::cordum::agent::v1::JobMetadata&
+Compensation::_Internal::meta(const Compensation* msg) {
+  return *msg->_impl_.meta_;
+}
+Compensation::Compensation(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  if (arena != nullptr && !is_message_owned) {
+    arena->OwnCustomDestructor(this, &Compensation::ArenaDtor);
+  }
+  // @@protoc_insertion_point(arena_constructor:cordum.agent.v1.Compensation)
+}
+Compensation::Compensation(const Compensation& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  Compensation* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      /*decltype(_impl_.env_)*/{}
+    , /*decltype(_impl_.labels_)*/{}
+    , decltype(_impl_.topic_){}
+    , decltype(_impl_.context_ptr_){}
+    , decltype(_impl_.adapter_id_){}
+    , decltype(_impl_.memory_id_){}
+    , decltype(_impl_.tenant_id_){}
+    , decltype(_impl_.principal_id_){}
+    , decltype(_impl_.context_hints_){nullptr}
+    , decltype(_impl_.budget_){nullptr}
+    , decltype(_impl_.meta_){nullptr}
+    , decltype(_impl_.priority_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.env_.MergeFrom(from._impl_.env_);
+  _this->_impl_.labels_.MergeFrom(from._impl_.labels_);
+  _impl_.topic_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.topic_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_topic().empty()) {
+    _this->_impl_.topic_.Set(from._internal_topic(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.context_ptr_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.context_ptr_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_context_ptr().empty()) {
+    _this->_impl_.context_ptr_.Set(from._internal_context_ptr(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.adapter_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.adapter_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_adapter_id().empty()) {
+    _this->_impl_.adapter_id_.Set(from._internal_adapter_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.memory_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.memory_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_memory_id().empty()) {
+    _this->_impl_.memory_id_.Set(from._internal_memory_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.tenant_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.tenant_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_tenant_id().empty()) {
+    _this->_impl_.tenant_id_.Set(from._internal_tenant_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.principal_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.principal_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_principal_id().empty()) {
+    _this->_impl_.principal_id_.Set(from._internal_principal_id(), 
+      _this->GetArenaForAllocation());
+  }
+  if (from._internal_has_context_hints()) {
+    _this->_impl_.context_hints_ = new ::cordum::agent::v1::ContextHints(*from._impl_.context_hints_);
+  }
+  if (from._internal_has_budget()) {
+    _this->_impl_.budget_ = new ::cordum::agent::v1::Budget(*from._impl_.budget_);
+  }
+  if (from._internal_has_meta()) {
+    _this->_impl_.meta_ = new ::cordum::agent::v1::JobMetadata(*from._impl_.meta_);
+  }
+  _this->_impl_.priority_ = from._impl_.priority_;
+  // @@protoc_insertion_point(copy_constructor:cordum.agent.v1.Compensation)
+}
+
+inline void Compensation::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      /*decltype(_impl_.env_)*/{::_pbi::ArenaInitialized(), arena}
+    , /*decltype(_impl_.labels_)*/{::_pbi::ArenaInitialized(), arena}
+    , decltype(_impl_.topic_){}
+    , decltype(_impl_.context_ptr_){}
+    , decltype(_impl_.adapter_id_){}
+    , decltype(_impl_.memory_id_){}
+    , decltype(_impl_.tenant_id_){}
+    , decltype(_impl_.principal_id_){}
+    , decltype(_impl_.context_hints_){nullptr}
+    , decltype(_impl_.budget_){nullptr}
+    , decltype(_impl_.meta_){nullptr}
+    , decltype(_impl_.priority_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.topic_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.topic_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.context_ptr_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.context_ptr_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.adapter_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.adapter_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.memory_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.memory_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.tenant_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.tenant_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.principal_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.principal_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+Compensation::~Compensation() {
+  // @@protoc_insertion_point(destructor:cordum.agent.v1.Compensation)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    ArenaDtor(this);
+    return;
+  }
+  SharedDtor();
+}
+
+inline void Compensation::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.env_.Destruct();
+  _impl_.env_.~MapField();
+  _impl_.labels_.Destruct();
+  _impl_.labels_.~MapField();
+  _impl_.topic_.Destroy();
+  _impl_.context_ptr_.Destroy();
+  _impl_.adapter_id_.Destroy();
+  _impl_.memory_id_.Destroy();
+  _impl_.tenant_id_.Destroy();
+  _impl_.principal_id_.Destroy();
+  if (this != internal_default_instance()) delete _impl_.context_hints_;
+  if (this != internal_default_instance()) delete _impl_.budget_;
+  if (this != internal_default_instance()) delete _impl_.meta_;
+}
+
+void Compensation::ArenaDtor(void* object) {
+  Compensation* _this = reinterpret_cast< Compensation* >(object);
+  _this->_impl_.env_.Destruct();
+  _this->_impl_.labels_.Destruct();
+}
+void Compensation::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void Compensation::Clear() {
+// @@protoc_insertion_point(message_clear_start:cordum.agent.v1.Compensation)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.env_.Clear();
+  _impl_.labels_.Clear();
+  _impl_.topic_.ClearToEmpty();
+  _impl_.context_ptr_.ClearToEmpty();
+  _impl_.adapter_id_.ClearToEmpty();
+  _impl_.memory_id_.ClearToEmpty();
+  _impl_.tenant_id_.ClearToEmpty();
+  _impl_.principal_id_.ClearToEmpty();
+  if (GetArenaForAllocation() == nullptr && _impl_.context_hints_ != nullptr) {
+    delete _impl_.context_hints_;
+  }
+  _impl_.context_hints_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.budget_ != nullptr) {
+    delete _impl_.budget_;
+  }
+  _impl_.budget_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.meta_ != nullptr) {
+    delete _impl_.meta_;
+  }
+  _impl_.meta_ = nullptr;
+  _impl_.priority_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* Compensation::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string topic = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_topic();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.Compensation.topic"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string context_ptr = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_context_ptr();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.Compensation.context_ptr"));
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.JobPriority priority = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_priority(static_cast<::cordum::agent::v1::JobPriority>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // string adapter_id = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_adapter_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.Compensation.adapter_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // map<string, string> env = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(&_impl_.env_, ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<42>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // string memory_id = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          auto str = _internal_mutable_memory_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.Compensation.memory_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.ContextHints context_hints = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
+          ptr = ctx->ParseMessage(_internal_mutable_context_hints(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.Budget budget = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+          ptr = ctx->ParseMessage(_internal_mutable_budget(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string tenant_id = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
+          auto str = _internal_mutable_tenant_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.Compensation.tenant_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string principal_id = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 82)) {
+          auto str = _internal_mutable_principal_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.Compensation.principal_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // map<string, string> labels = 11;
+      case 11:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(&_impl_.labels_, ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<90>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.JobMetadata meta = 12;
+      case 12:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 98)) {
+          ptr = ctx->ParseMessage(_internal_mutable_meta(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* Compensation::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:cordum.agent.v1.Compensation)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string topic = 1;
+  if (!this->_internal_topic().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_topic().data(), static_cast<int>(this->_internal_topic().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.Compensation.topic");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_topic(), target);
+  }
+
+  // string context_ptr = 2;
+  if (!this->_internal_context_ptr().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_context_ptr().data(), static_cast<int>(this->_internal_context_ptr().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.Compensation.context_ptr");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_context_ptr(), target);
+  }
+
+  // .cordum.agent.v1.JobPriority priority = 3;
+  if (this->_internal_priority() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+      3, this->_internal_priority(), target);
+  }
+
+  // string adapter_id = 4;
+  if (!this->_internal_adapter_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_adapter_id().data(), static_cast<int>(this->_internal_adapter_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.Compensation.adapter_id");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_adapter_id(), target);
+  }
+
+  // map<string, string> env = 5;
+  if (!this->_internal_env().empty()) {
+    using MapType = ::_pb::Map<std::string, std::string>;
+    using WireHelper = Compensation_EnvEntry_DoNotUse::Funcs;
+    const auto& map_field = this->_internal_env();
+    auto check_utf8 = [](const MapType::value_type& entry) {
+      (void)entry;
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.first.data(), static_cast<int>(entry.first.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "cordum.agent.v1.Compensation.EnvEntry.key");
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.second.data(), static_cast<int>(entry.second.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "cordum.agent.v1.Compensation.EnvEntry.value");
+    };
+
+    if (stream->IsSerializationDeterministic() && map_field.size() > 1) {
+      for (const auto& entry : ::_pbi::MapSorterPtr<MapType>(map_field)) {
+        target = WireHelper::InternalSerialize(5, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    } else {
+      for (const auto& entry : map_field) {
+        target = WireHelper::InternalSerialize(5, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    }
+  }
+
+  // string memory_id = 6;
+  if (!this->_internal_memory_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_memory_id().data(), static_cast<int>(this->_internal_memory_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.Compensation.memory_id");
+    target = stream->WriteStringMaybeAliased(
+        6, this->_internal_memory_id(), target);
+  }
+
+  // .cordum.agent.v1.ContextHints context_hints = 7;
+  if (this->_internal_has_context_hints()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(7, _Internal::context_hints(this),
+        _Internal::context_hints(this).GetCachedSize(), target, stream);
+  }
+
+  // .cordum.agent.v1.Budget budget = 8;
+  if (this->_internal_has_budget()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(8, _Internal::budget(this),
+        _Internal::budget(this).GetCachedSize(), target, stream);
+  }
+
+  // string tenant_id = 9;
+  if (!this->_internal_tenant_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_tenant_id().data(), static_cast<int>(this->_internal_tenant_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.Compensation.tenant_id");
+    target = stream->WriteStringMaybeAliased(
+        9, this->_internal_tenant_id(), target);
+  }
+
+  // string principal_id = 10;
+  if (!this->_internal_principal_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_principal_id().data(), static_cast<int>(this->_internal_principal_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.Compensation.principal_id");
+    target = stream->WriteStringMaybeAliased(
+        10, this->_internal_principal_id(), target);
+  }
+
+  // map<string, string> labels = 11;
+  if (!this->_internal_labels().empty()) {
+    using MapType = ::_pb::Map<std::string, std::string>;
+    using WireHelper = Compensation_LabelsEntry_DoNotUse::Funcs;
+    const auto& map_field = this->_internal_labels();
+    auto check_utf8 = [](const MapType::value_type& entry) {
+      (void)entry;
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.first.data(), static_cast<int>(entry.first.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "cordum.agent.v1.Compensation.LabelsEntry.key");
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.second.data(), static_cast<int>(entry.second.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "cordum.agent.v1.Compensation.LabelsEntry.value");
+    };
+
+    if (stream->IsSerializationDeterministic() && map_field.size() > 1) {
+      for (const auto& entry : ::_pbi::MapSorterPtr<MapType>(map_field)) {
+        target = WireHelper::InternalSerialize(11, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    } else {
+      for (const auto& entry : map_field) {
+        target = WireHelper::InternalSerialize(11, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    }
+  }
+
+  // .cordum.agent.v1.JobMetadata meta = 12;
+  if (this->_internal_has_meta()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(12, _Internal::meta(this),
+        _Internal::meta(this).GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:cordum.agent.v1.Compensation)
+  return target;
+}
+
+size_t Compensation::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:cordum.agent.v1.Compensation)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // map<string, string> env = 5;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_env_size());
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
+      it = this->_internal_env().begin();
+      it != this->_internal_env().end(); ++it) {
+    total_size += Compensation_EnvEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
+  }
+
+  // map<string, string> labels = 11;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_labels_size());
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
+      it = this->_internal_labels().begin();
+      it != this->_internal_labels().end(); ++it) {
+    total_size += Compensation_LabelsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
+  }
+
+  // string topic = 1;
+  if (!this->_internal_topic().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_topic());
+  }
+
+  // string context_ptr = 2;
+  if (!this->_internal_context_ptr().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_context_ptr());
+  }
+
+  // string adapter_id = 4;
+  if (!this->_internal_adapter_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_adapter_id());
+  }
+
+  // string memory_id = 6;
+  if (!this->_internal_memory_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_memory_id());
+  }
+
+  // string tenant_id = 9;
+  if (!this->_internal_tenant_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_tenant_id());
+  }
+
+  // string principal_id = 10;
+  if (!this->_internal_principal_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_principal_id());
+  }
+
+  // .cordum.agent.v1.ContextHints context_hints = 7;
+  if (this->_internal_has_context_hints()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.context_hints_);
+  }
+
+  // .cordum.agent.v1.Budget budget = 8;
+  if (this->_internal_has_budget()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.budget_);
+  }
+
+  // .cordum.agent.v1.JobMetadata meta = 12;
+  if (this->_internal_has_meta()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.meta_);
+  }
+
+  // .cordum.agent.v1.JobPriority priority = 3;
+  if (this->_internal_priority() != 0) {
+    total_size += 1 +
+      ::_pbi::WireFormatLite::EnumSize(this->_internal_priority());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData Compensation::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    Compensation::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*Compensation::GetClassData() const { return &_class_data_; }
+
+
+void Compensation::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<Compensation*>(&to_msg);
+  auto& from = static_cast<const Compensation&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:cordum.agent.v1.Compensation)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.env_.MergeFrom(from._impl_.env_);
+  _this->_impl_.labels_.MergeFrom(from._impl_.labels_);
+  if (!from._internal_topic().empty()) {
+    _this->_internal_set_topic(from._internal_topic());
+  }
+  if (!from._internal_context_ptr().empty()) {
+    _this->_internal_set_context_ptr(from._internal_context_ptr());
+  }
+  if (!from._internal_adapter_id().empty()) {
+    _this->_internal_set_adapter_id(from._internal_adapter_id());
+  }
+  if (!from._internal_memory_id().empty()) {
+    _this->_internal_set_memory_id(from._internal_memory_id());
+  }
+  if (!from._internal_tenant_id().empty()) {
+    _this->_internal_set_tenant_id(from._internal_tenant_id());
+  }
+  if (!from._internal_principal_id().empty()) {
+    _this->_internal_set_principal_id(from._internal_principal_id());
+  }
+  if (from._internal_has_context_hints()) {
+    _this->_internal_mutable_context_hints()->::cordum::agent::v1::ContextHints::MergeFrom(
+        from._internal_context_hints());
+  }
+  if (from._internal_has_budget()) {
+    _this->_internal_mutable_budget()->::cordum::agent::v1::Budget::MergeFrom(
+        from._internal_budget());
+  }
+  if (from._internal_has_meta()) {
+    _this->_internal_mutable_meta()->::cordum::agent::v1::JobMetadata::MergeFrom(
+        from._internal_meta());
+  }
+  if (from._internal_priority() != 0) {
+    _this->_internal_set_priority(from._internal_priority());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void Compensation::CopyFrom(const Compensation& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:cordum.agent.v1.Compensation)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Compensation::IsInitialized() const {
+  return true;
+}
+
+void Compensation::InternalSwap(Compensation* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.env_.InternalSwap(&other->_impl_.env_);
+  _impl_.labels_.InternalSwap(&other->_impl_.labels_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.topic_, lhs_arena,
+      &other->_impl_.topic_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.context_ptr_, lhs_arena,
+      &other->_impl_.context_ptr_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.adapter_id_, lhs_arena,
+      &other->_impl_.adapter_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.memory_id_, lhs_arena,
+      &other->_impl_.memory_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.tenant_id_, lhs_arena,
+      &other->_impl_.tenant_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.principal_id_, lhs_arena,
+      &other->_impl_.principal_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(Compensation, _impl_.priority_)
+      + sizeof(Compensation::_impl_.priority_)
+      - PROTOBUF_FIELD_OFFSET(Compensation, _impl_.context_hints_)>(
+          reinterpret_cast<char*>(&_impl_.context_hints_),
+          reinterpret_cast<char*>(&other->_impl_.context_hints_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata Compensation::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once,
+      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[6]);
+}
+
+// ===================================================================
+
 JobRequest_EnvEntry_DoNotUse::JobRequest_EnvEntry_DoNotUse() {}
 JobRequest_EnvEntry_DoNotUse::JobRequest_EnvEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
     : SuperType(arena) {}
@@ -1616,7 +2490,7 @@ void JobRequest_EnvEntry_DoNotUse::MergeFrom(const JobRequest_EnvEntry_DoNotUse&
 ::PROTOBUF_NAMESPACE_ID::Metadata JobRequest_EnvEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once,
-      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[4]);
+      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[7]);
 }
 
 // ===================================================================
@@ -1630,7 +2504,7 @@ void JobRequest_LabelsEntry_DoNotUse::MergeFrom(const JobRequest_LabelsEntry_DoN
 ::PROTOBUF_NAMESPACE_ID::Metadata JobRequest_LabelsEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once,
-      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[5]);
+      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[8]);
 }
 
 // ===================================================================
@@ -1640,6 +2514,7 @@ class JobRequest::_Internal {
   static const ::cordum::agent::v1::ContextHints& context_hints(const JobRequest* msg);
   static const ::cordum::agent::v1::Budget& budget(const JobRequest* msg);
   static const ::cordum::agent::v1::JobMetadata& meta(const JobRequest* msg);
+  static const ::cordum::agent::v1::Compensation& compensation(const JobRequest* msg);
 };
 
 const ::cordum::agent::v1::ContextHints&
@@ -1653,6 +2528,10 @@ JobRequest::_Internal::budget(const JobRequest* msg) {
 const ::cordum::agent::v1::JobMetadata&
 JobRequest::_Internal::meta(const JobRequest* msg) {
   return *msg->_impl_.meta_;
+}
+const ::cordum::agent::v1::Compensation&
+JobRequest::_Internal::compensation(const JobRequest* msg) {
+  return *msg->_impl_.compensation_;
 }
 JobRequest::JobRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
@@ -1681,6 +2560,7 @@ JobRequest::JobRequest(const JobRequest& from)
     , decltype(_impl_.context_hints_){nullptr}
     , decltype(_impl_.budget_){nullptr}
     , decltype(_impl_.meta_){nullptr}
+    , decltype(_impl_.compensation_){nullptr}
     , decltype(_impl_.priority_){}
     , decltype(_impl_.step_index_){}
     , /*decltype(_impl_._cached_size_)*/{}};
@@ -1769,6 +2649,9 @@ JobRequest::JobRequest(const JobRequest& from)
   if (from._internal_has_meta()) {
     _this->_impl_.meta_ = new ::cordum::agent::v1::JobMetadata(*from._impl_.meta_);
   }
+  if (from._internal_has_compensation()) {
+    _this->_impl_.compensation_ = new ::cordum::agent::v1::Compensation(*from._impl_.compensation_);
+  }
   ::memcpy(&_impl_.priority_, &from._impl_.priority_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.step_index_) -
     reinterpret_cast<char*>(&_impl_.priority_)) + sizeof(_impl_.step_index_));
@@ -1794,6 +2677,7 @@ inline void JobRequest::SharedCtor(
     , decltype(_impl_.context_hints_){nullptr}
     , decltype(_impl_.budget_){nullptr}
     , decltype(_impl_.meta_){nullptr}
+    , decltype(_impl_.compensation_){nullptr}
     , decltype(_impl_.priority_){0}
     , decltype(_impl_.step_index_){0}
     , /*decltype(_impl_._cached_size_)*/{}
@@ -1864,6 +2748,7 @@ inline void JobRequest::SharedDtor() {
   if (this != internal_default_instance()) delete _impl_.context_hints_;
   if (this != internal_default_instance()) delete _impl_.budget_;
   if (this != internal_default_instance()) delete _impl_.meta_;
+  if (this != internal_default_instance()) delete _impl_.compensation_;
 }
 
 void JobRequest::ArenaDtor(void* object) {
@@ -1904,6 +2789,10 @@ void JobRequest::Clear() {
     delete _impl_.meta_;
   }
   _impl_.meta_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.compensation_ != nullptr) {
+    delete _impl_.compensation_;
+  }
+  _impl_.compensation_ = nullptr;
   ::memset(&_impl_.priority_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.step_index_) -
       reinterpret_cast<char*>(&_impl_.priority_)) + sizeof(_impl_.step_index_));
@@ -2069,6 +2958,14 @@ const char* JobRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ct
       case 16:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 130)) {
           ptr = ctx->ParseMessage(_internal_mutable_meta(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.Compensation compensation = 17;
+      case 17:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 138)) {
+          ptr = ctx->ParseMessage(_internal_mutable_compensation(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -2286,6 +3183,13 @@ uint8_t* JobRequest::_InternalSerialize(
         _Internal::meta(this).GetCachedSize(), target, stream);
   }
 
+  // .cordum.agent.v1.Compensation compensation = 17;
+  if (this->_internal_has_compensation()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(17, _Internal::compensation(this),
+        _Internal::compensation(this).GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -2404,6 +3308,13 @@ size_t JobRequest::ByteSizeLong() const {
         *_impl_.meta_);
   }
 
+  // .cordum.agent.v1.Compensation compensation = 17;
+  if (this->_internal_has_compensation()) {
+    total_size += 2 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.compensation_);
+  }
+
   // .cordum.agent.v1.JobPriority priority = 3;
   if (this->_internal_priority() != 0) {
     total_size += 1 +
@@ -2473,6 +3384,10 @@ void JobRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PRO
   if (from._internal_has_meta()) {
     _this->_internal_mutable_meta()->::cordum::agent::v1::JobMetadata::MergeFrom(
         from._internal_meta());
+  }
+  if (from._internal_has_compensation()) {
+    _this->_internal_mutable_compensation()->::cordum::agent::v1::Compensation::MergeFrom(
+        from._internal_compensation());
   }
   if (from._internal_priority() != 0) {
     _this->_internal_set_priority(from._internal_priority());
@@ -2548,7 +3463,7 @@ void JobRequest::InternalSwap(JobRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata JobRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once,
-      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[6]);
+      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[9]);
 }
 
 // ===================================================================
@@ -3053,7 +3968,7 @@ void JobResult::InternalSwap(JobResult* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata JobResult::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once,
-      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[7]);
+      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[10]);
 }
 
 // ===================================================================
@@ -3508,7 +4423,7 @@ void JobProgress::InternalSwap(JobProgress* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata JobProgress::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once,
-      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[8]);
+      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[11]);
 }
 
 // ===================================================================
@@ -3811,7 +4726,7 @@ void JobCancel::InternalSwap(JobCancel* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata JobCancel::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once,
-      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[9]);
+      file_level_metadata_cordum_2fagent_2fv1_2fjob_2eproto[12]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -3834,6 +4749,18 @@ Arena::CreateMaybeMessage< ::cordum::agent::v1::JobMetadata_LabelsEntry_DoNotUse
 template<> PROTOBUF_NOINLINE ::cordum::agent::v1::JobMetadata*
 Arena::CreateMaybeMessage< ::cordum::agent::v1::JobMetadata >(Arena* arena) {
   return Arena::CreateMessageInternal< ::cordum::agent::v1::JobMetadata >(arena);
+}
+template<> PROTOBUF_NOINLINE ::cordum::agent::v1::Compensation_EnvEntry_DoNotUse*
+Arena::CreateMaybeMessage< ::cordum::agent::v1::Compensation_EnvEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::cordum::agent::v1::Compensation_EnvEntry_DoNotUse >(arena);
+}
+template<> PROTOBUF_NOINLINE ::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse*
+Arena::CreateMaybeMessage< ::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse >(arena);
+}
+template<> PROTOBUF_NOINLINE ::cordum::agent::v1::Compensation*
+Arena::CreateMaybeMessage< ::cordum::agent::v1::Compensation >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::cordum::agent::v1::Compensation >(arena);
 }
 template<> PROTOBUF_NOINLINE ::cordum::agent::v1::JobRequest_EnvEntry_DoNotUse*
 Arena::CreateMaybeMessage< ::cordum::agent::v1::JobRequest_EnvEntry_DoNotUse >(Arena* arena) {

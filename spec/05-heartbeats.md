@@ -12,12 +12,16 @@ Heartbeats advertise worker liveness, capacity, and pool membership so scheduler
 - `pool`: pool/subject this worker consumes (e.g., `job.code.llm`).
 - `max_parallel_jobs`: advertised concurrency limit.
 - `labels`: optional placement/routing metadata (e.g., `region`, `compliance`, `runtime`).
+- `progress_pct`: optional task-level progress checkpoint (0-100).
+- `last_memo`: optional short string/hash identifying the last successful internal step.
+- Tags: `checkpoint-heartbeat`, `progress`.
 
 ## Emission Rules
 - Default interval SHOULD be 2-5 seconds; set lower for latency-sensitive pools.
 - Heartbeats SHOULD be sent even when idle so schedulers can detect zero-load pools.
 - Workers SHOULD stop heartbeats immediately before planned shutdown to allow drain.
 - Heartbeats SHOULD be published to `sys.heartbeat` without queue groups so all schedulers/controllers see them.
+- When emitting progress, workers SHOULD keep `last_memo` short and stable (e.g., step IDs or hashes).
 
 ## Scheduler Behavior
 - Treat absent heartbeats as worker loss after a grace window (e.g., 3x interval).

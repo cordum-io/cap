@@ -1,7 +1,14 @@
 import { Root, loadSync } from "protobufjs";
+import fs from "fs";
 import path from "path";
 
-const PROTO_BASE_DIR = path.resolve(__dirname, "..", "..", "..", "proto");
+const PROTO_DIR_CANDIDATES = [
+  path.resolve(__dirname, "..", "..", "..", "proto"),
+  path.resolve(__dirname, "..", "..", "..", "..", "proto"),
+];
+const PROTO_BASE_DIR =
+  PROTO_DIR_CANDIDATES.find((candidate) => fs.existsSync(candidate)) ??
+  PROTO_DIR_CANDIDATES[0];
 const PROTOS = [
   "alert.proto",
   "buspacket.proto",

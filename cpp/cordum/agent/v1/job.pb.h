@@ -54,6 +54,15 @@ namespace v1 {
 class Budget;
 struct BudgetDefaultTypeInternal;
 extern BudgetDefaultTypeInternal _Budget_default_instance_;
+class Compensation;
+struct CompensationDefaultTypeInternal;
+extern CompensationDefaultTypeInternal _Compensation_default_instance_;
+class Compensation_EnvEntry_DoNotUse;
+struct Compensation_EnvEntry_DoNotUseDefaultTypeInternal;
+extern Compensation_EnvEntry_DoNotUseDefaultTypeInternal _Compensation_EnvEntry_DoNotUse_default_instance_;
+class Compensation_LabelsEntry_DoNotUse;
+struct Compensation_LabelsEntry_DoNotUseDefaultTypeInternal;
+extern Compensation_LabelsEntry_DoNotUseDefaultTypeInternal _Compensation_LabelsEntry_DoNotUse_default_instance_;
 class ContextHints;
 struct ContextHintsDefaultTypeInternal;
 extern ContextHintsDefaultTypeInternal _ContextHints_default_instance_;
@@ -86,6 +95,9 @@ extern JobResultDefaultTypeInternal _JobResult_default_instance_;
 }  // namespace cordum
 PROTOBUF_NAMESPACE_OPEN
 template<> ::cordum::agent::v1::Budget* Arena::CreateMaybeMessage<::cordum::agent::v1::Budget>(Arena*);
+template<> ::cordum::agent::v1::Compensation* Arena::CreateMaybeMessage<::cordum::agent::v1::Compensation>(Arena*);
+template<> ::cordum::agent::v1::Compensation_EnvEntry_DoNotUse* Arena::CreateMaybeMessage<::cordum::agent::v1::Compensation_EnvEntry_DoNotUse>(Arena*);
+template<> ::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse>(Arena*);
 template<> ::cordum::agent::v1::ContextHints* Arena::CreateMaybeMessage<::cordum::agent::v1::ContextHints>(Arena*);
 template<> ::cordum::agent::v1::JobCancel* Arena::CreateMaybeMessage<::cordum::agent::v1::JobCancel>(Arena*);
 template<> ::cordum::agent::v1::JobMetadata* Arena::CreateMaybeMessage<::cordum::agent::v1::JobMetadata>(Arena*);
@@ -899,6 +911,415 @@ class JobMetadata final :
 };
 // -------------------------------------------------------------------
 
+class Compensation_EnvEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<Compensation_EnvEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<Compensation_EnvEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> SuperType;
+  Compensation_EnvEntry_DoNotUse();
+  explicit PROTOBUF_CONSTEXPR Compensation_EnvEntry_DoNotUse(
+      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit Compensation_EnvEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const Compensation_EnvEntry_DoNotUse& other);
+  static const Compensation_EnvEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const Compensation_EnvEntry_DoNotUse*>(&_Compensation_EnvEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cordum.agent.v1.Compensation.EnvEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cordum.agent.v1.Compensation.EnvEntry.value");
+ }
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  friend struct ::TableStruct_cordum_2fagent_2fv1_2fjob_2eproto;
+};
+
+// -------------------------------------------------------------------
+
+class Compensation_LabelsEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<Compensation_LabelsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<Compensation_LabelsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> SuperType;
+  Compensation_LabelsEntry_DoNotUse();
+  explicit PROTOBUF_CONSTEXPR Compensation_LabelsEntry_DoNotUse(
+      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit Compensation_LabelsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const Compensation_LabelsEntry_DoNotUse& other);
+  static const Compensation_LabelsEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const Compensation_LabelsEntry_DoNotUse*>(&_Compensation_LabelsEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cordum.agent.v1.Compensation.LabelsEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cordum.agent.v1.Compensation.LabelsEntry.value");
+ }
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  friend struct ::TableStruct_cordum_2fagent_2fv1_2fjob_2eproto;
+};
+
+// -------------------------------------------------------------------
+
+class Compensation final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cordum.agent.v1.Compensation) */ {
+ public:
+  inline Compensation() : Compensation(nullptr) {}
+  ~Compensation() override;
+  explicit PROTOBUF_CONSTEXPR Compensation(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Compensation(const Compensation& from);
+  Compensation(Compensation&& from) noexcept
+    : Compensation() {
+    *this = ::std::move(from);
+  }
+
+  inline Compensation& operator=(const Compensation& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Compensation& operator=(Compensation&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const Compensation& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Compensation* internal_default_instance() {
+    return reinterpret_cast<const Compensation*>(
+               &_Compensation_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    6;
+
+  friend void swap(Compensation& a, Compensation& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Compensation* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Compensation* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  Compensation* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<Compensation>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const Compensation& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const Compensation& from) {
+    Compensation::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Compensation* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "cordum.agent.v1.Compensation";
+  }
+  protected:
+  explicit Compensation(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kEnvFieldNumber = 5,
+    kLabelsFieldNumber = 11,
+    kTopicFieldNumber = 1,
+    kContextPtrFieldNumber = 2,
+    kAdapterIdFieldNumber = 4,
+    kMemoryIdFieldNumber = 6,
+    kTenantIdFieldNumber = 9,
+    kPrincipalIdFieldNumber = 10,
+    kContextHintsFieldNumber = 7,
+    kBudgetFieldNumber = 8,
+    kMetaFieldNumber = 12,
+    kPriorityFieldNumber = 3,
+  };
+  // map<string, string> env = 5;
+  int env_size() const;
+  private:
+  int _internal_env_size() const;
+  public:
+  void clear_env();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_env() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_env();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      env() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_env();
+
+  // map<string, string> labels = 11;
+  int labels_size() const;
+  private:
+  int _internal_labels_size() const;
+  public:
+  void clear_labels();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_labels() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_labels();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      labels() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_labels();
+
+  // string topic = 1;
+  void clear_topic();
+  const std::string& topic() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_topic(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_topic();
+  PROTOBUF_NODISCARD std::string* release_topic();
+  void set_allocated_topic(std::string* topic);
+  private:
+  const std::string& _internal_topic() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_topic(const std::string& value);
+  std::string* _internal_mutable_topic();
+  public:
+
+  // string context_ptr = 2;
+  void clear_context_ptr();
+  const std::string& context_ptr() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_context_ptr(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_context_ptr();
+  PROTOBUF_NODISCARD std::string* release_context_ptr();
+  void set_allocated_context_ptr(std::string* context_ptr);
+  private:
+  const std::string& _internal_context_ptr() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_context_ptr(const std::string& value);
+  std::string* _internal_mutable_context_ptr();
+  public:
+
+  // string adapter_id = 4;
+  void clear_adapter_id();
+  const std::string& adapter_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_adapter_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_adapter_id();
+  PROTOBUF_NODISCARD std::string* release_adapter_id();
+  void set_allocated_adapter_id(std::string* adapter_id);
+  private:
+  const std::string& _internal_adapter_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_adapter_id(const std::string& value);
+  std::string* _internal_mutable_adapter_id();
+  public:
+
+  // string memory_id = 6;
+  void clear_memory_id();
+  const std::string& memory_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_memory_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_memory_id();
+  PROTOBUF_NODISCARD std::string* release_memory_id();
+  void set_allocated_memory_id(std::string* memory_id);
+  private:
+  const std::string& _internal_memory_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_memory_id(const std::string& value);
+  std::string* _internal_mutable_memory_id();
+  public:
+
+  // string tenant_id = 9;
+  void clear_tenant_id();
+  const std::string& tenant_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_tenant_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_tenant_id();
+  PROTOBUF_NODISCARD std::string* release_tenant_id();
+  void set_allocated_tenant_id(std::string* tenant_id);
+  private:
+  const std::string& _internal_tenant_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_tenant_id(const std::string& value);
+  std::string* _internal_mutable_tenant_id();
+  public:
+
+  // string principal_id = 10;
+  void clear_principal_id();
+  const std::string& principal_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_principal_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_principal_id();
+  PROTOBUF_NODISCARD std::string* release_principal_id();
+  void set_allocated_principal_id(std::string* principal_id);
+  private:
+  const std::string& _internal_principal_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_principal_id(const std::string& value);
+  std::string* _internal_mutable_principal_id();
+  public:
+
+  // .cordum.agent.v1.ContextHints context_hints = 7;
+  bool has_context_hints() const;
+  private:
+  bool _internal_has_context_hints() const;
+  public:
+  void clear_context_hints();
+  const ::cordum::agent::v1::ContextHints& context_hints() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::ContextHints* release_context_hints();
+  ::cordum::agent::v1::ContextHints* mutable_context_hints();
+  void set_allocated_context_hints(::cordum::agent::v1::ContextHints* context_hints);
+  private:
+  const ::cordum::agent::v1::ContextHints& _internal_context_hints() const;
+  ::cordum::agent::v1::ContextHints* _internal_mutable_context_hints();
+  public:
+  void unsafe_arena_set_allocated_context_hints(
+      ::cordum::agent::v1::ContextHints* context_hints);
+  ::cordum::agent::v1::ContextHints* unsafe_arena_release_context_hints();
+
+  // .cordum.agent.v1.Budget budget = 8;
+  bool has_budget() const;
+  private:
+  bool _internal_has_budget() const;
+  public:
+  void clear_budget();
+  const ::cordum::agent::v1::Budget& budget() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::Budget* release_budget();
+  ::cordum::agent::v1::Budget* mutable_budget();
+  void set_allocated_budget(::cordum::agent::v1::Budget* budget);
+  private:
+  const ::cordum::agent::v1::Budget& _internal_budget() const;
+  ::cordum::agent::v1::Budget* _internal_mutable_budget();
+  public:
+  void unsafe_arena_set_allocated_budget(
+      ::cordum::agent::v1::Budget* budget);
+  ::cordum::agent::v1::Budget* unsafe_arena_release_budget();
+
+  // .cordum.agent.v1.JobMetadata meta = 12;
+  bool has_meta() const;
+  private:
+  bool _internal_has_meta() const;
+  public:
+  void clear_meta();
+  const ::cordum::agent::v1::JobMetadata& meta() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::JobMetadata* release_meta();
+  ::cordum::agent::v1::JobMetadata* mutable_meta();
+  void set_allocated_meta(::cordum::agent::v1::JobMetadata* meta);
+  private:
+  const ::cordum::agent::v1::JobMetadata& _internal_meta() const;
+  ::cordum::agent::v1::JobMetadata* _internal_mutable_meta();
+  public:
+  void unsafe_arena_set_allocated_meta(
+      ::cordum::agent::v1::JobMetadata* meta);
+  ::cordum::agent::v1::JobMetadata* unsafe_arena_release_meta();
+
+  // .cordum.agent.v1.JobPriority priority = 3;
+  void clear_priority();
+  ::cordum::agent::v1::JobPriority priority() const;
+  void set_priority(::cordum::agent::v1::JobPriority value);
+  private:
+  ::cordum::agent::v1::JobPriority _internal_priority() const;
+  void _internal_set_priority(::cordum::agent::v1::JobPriority value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:cordum.agent.v1.Compensation)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+        Compensation_EnvEntry_DoNotUse,
+        std::string, std::string,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> env_;
+    ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+        Compensation_LabelsEntry_DoNotUse,
+        std::string, std::string,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> labels_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr topic_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr context_ptr_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr adapter_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr memory_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr tenant_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr principal_id_;
+    ::cordum::agent::v1::ContextHints* context_hints_;
+    ::cordum::agent::v1::Budget* budget_;
+    ::cordum::agent::v1::JobMetadata* meta_;
+    int priority_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_cordum_2fagent_2fv1_2fjob_2eproto;
+};
+// -------------------------------------------------------------------
+
 class JobRequest_EnvEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<JobRequest_EnvEntry_DoNotUse, 
     std::string, std::string,
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
@@ -1003,7 +1424,7 @@ class JobRequest final :
                &_JobRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    9;
 
   friend void swap(JobRequest& a, JobRequest& b) {
     a.Swap(&b);
@@ -1093,6 +1514,7 @@ class JobRequest final :
     kContextHintsFieldNumber = 11,
     kBudgetFieldNumber = 12,
     kMetaFieldNumber = 16,
+    kCompensationFieldNumber = 17,
     kPriorityFieldNumber = 3,
     kStepIndexFieldNumber = 9,
   };
@@ -1310,6 +1732,24 @@ class JobRequest final :
       ::cordum::agent::v1::JobMetadata* meta);
   ::cordum::agent::v1::JobMetadata* unsafe_arena_release_meta();
 
+  // .cordum.agent.v1.Compensation compensation = 17;
+  bool has_compensation() const;
+  private:
+  bool _internal_has_compensation() const;
+  public:
+  void clear_compensation();
+  const ::cordum::agent::v1::Compensation& compensation() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::Compensation* release_compensation();
+  ::cordum::agent::v1::Compensation* mutable_compensation();
+  void set_allocated_compensation(::cordum::agent::v1::Compensation* compensation);
+  private:
+  const ::cordum::agent::v1::Compensation& _internal_compensation() const;
+  ::cordum::agent::v1::Compensation* _internal_mutable_compensation();
+  public:
+  void unsafe_arena_set_allocated_compensation(
+      ::cordum::agent::v1::Compensation* compensation);
+  ::cordum::agent::v1::Compensation* unsafe_arena_release_compensation();
+
   // .cordum.agent.v1.JobPriority priority = 3;
   void clear_priority();
   ::cordum::agent::v1::JobPriority priority() const;
@@ -1358,6 +1798,7 @@ class JobRequest final :
     ::cordum::agent::v1::ContextHints* context_hints_;
     ::cordum::agent::v1::Budget* budget_;
     ::cordum::agent::v1::JobMetadata* meta_;
+    ::cordum::agent::v1::Compensation* compensation_;
     int priority_;
     int32_t step_index_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -1415,7 +1856,7 @@ class JobResult final :
                &_JobResult_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    10;
 
   friend void swap(JobResult& a, JobResult& b) {
     a.Swap(&b);
@@ -1680,7 +2121,7 @@ class JobProgress final :
                &_JobProgress_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    11;
 
   friend void swap(JobProgress& a, JobProgress& b) {
     a.Swap(&b);
@@ -1929,7 +2370,7 @@ class JobCancel final :
                &_JobCancel_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    12;
 
   friend void swap(JobCancel& a, JobCancel& b) {
     a.Swap(&b);
@@ -2747,6 +3188,662 @@ inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
 JobMetadata::mutable_labels() {
   // @@protoc_insertion_point(field_mutable_map:cordum.agent.v1.JobMetadata.labels)
   return _internal_mutable_labels();
+}
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// Compensation
+
+// string topic = 1;
+inline void Compensation::clear_topic() {
+  _impl_.topic_.ClearToEmpty();
+}
+inline const std::string& Compensation::topic() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.topic)
+  return _internal_topic();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Compensation::set_topic(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.topic_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Compensation.topic)
+}
+inline std::string* Compensation::mutable_topic() {
+  std::string* _s = _internal_mutable_topic();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.topic)
+  return _s;
+}
+inline const std::string& Compensation::_internal_topic() const {
+  return _impl_.topic_.Get();
+}
+inline void Compensation::_internal_set_topic(const std::string& value) {
+  
+  _impl_.topic_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Compensation::_internal_mutable_topic() {
+  
+  return _impl_.topic_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Compensation::release_topic() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.topic)
+  return _impl_.topic_.Release();
+}
+inline void Compensation::set_allocated_topic(std::string* topic) {
+  if (topic != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.topic_.SetAllocated(topic, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.topic_.IsDefault()) {
+    _impl_.topic_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.topic)
+}
+
+// string context_ptr = 2;
+inline void Compensation::clear_context_ptr() {
+  _impl_.context_ptr_.ClearToEmpty();
+}
+inline const std::string& Compensation::context_ptr() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.context_ptr)
+  return _internal_context_ptr();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Compensation::set_context_ptr(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.context_ptr_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Compensation.context_ptr)
+}
+inline std::string* Compensation::mutable_context_ptr() {
+  std::string* _s = _internal_mutable_context_ptr();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.context_ptr)
+  return _s;
+}
+inline const std::string& Compensation::_internal_context_ptr() const {
+  return _impl_.context_ptr_.Get();
+}
+inline void Compensation::_internal_set_context_ptr(const std::string& value) {
+  
+  _impl_.context_ptr_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Compensation::_internal_mutable_context_ptr() {
+  
+  return _impl_.context_ptr_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Compensation::release_context_ptr() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.context_ptr)
+  return _impl_.context_ptr_.Release();
+}
+inline void Compensation::set_allocated_context_ptr(std::string* context_ptr) {
+  if (context_ptr != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.context_ptr_.SetAllocated(context_ptr, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.context_ptr_.IsDefault()) {
+    _impl_.context_ptr_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.context_ptr)
+}
+
+// .cordum.agent.v1.JobPriority priority = 3;
+inline void Compensation::clear_priority() {
+  _impl_.priority_ = 0;
+}
+inline ::cordum::agent::v1::JobPriority Compensation::_internal_priority() const {
+  return static_cast< ::cordum::agent::v1::JobPriority >(_impl_.priority_);
+}
+inline ::cordum::agent::v1::JobPriority Compensation::priority() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.priority)
+  return _internal_priority();
+}
+inline void Compensation::_internal_set_priority(::cordum::agent::v1::JobPriority value) {
+  
+  _impl_.priority_ = value;
+}
+inline void Compensation::set_priority(::cordum::agent::v1::JobPriority value) {
+  _internal_set_priority(value);
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Compensation.priority)
+}
+
+// string adapter_id = 4;
+inline void Compensation::clear_adapter_id() {
+  _impl_.adapter_id_.ClearToEmpty();
+}
+inline const std::string& Compensation::adapter_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.adapter_id)
+  return _internal_adapter_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Compensation::set_adapter_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.adapter_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Compensation.adapter_id)
+}
+inline std::string* Compensation::mutable_adapter_id() {
+  std::string* _s = _internal_mutable_adapter_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.adapter_id)
+  return _s;
+}
+inline const std::string& Compensation::_internal_adapter_id() const {
+  return _impl_.adapter_id_.Get();
+}
+inline void Compensation::_internal_set_adapter_id(const std::string& value) {
+  
+  _impl_.adapter_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Compensation::_internal_mutable_adapter_id() {
+  
+  return _impl_.adapter_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Compensation::release_adapter_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.adapter_id)
+  return _impl_.adapter_id_.Release();
+}
+inline void Compensation::set_allocated_adapter_id(std::string* adapter_id) {
+  if (adapter_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.adapter_id_.SetAllocated(adapter_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.adapter_id_.IsDefault()) {
+    _impl_.adapter_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.adapter_id)
+}
+
+// map<string, string> env = 5;
+inline int Compensation::_internal_env_size() const {
+  return _impl_.env_.size();
+}
+inline int Compensation::env_size() const {
+  return _internal_env_size();
+}
+inline void Compensation::clear_env() {
+  _impl_.env_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+Compensation::_internal_env() const {
+  return _impl_.env_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+Compensation::env() const {
+  // @@protoc_insertion_point(field_map:cordum.agent.v1.Compensation.env)
+  return _internal_env();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+Compensation::_internal_mutable_env() {
+  return _impl_.env_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+Compensation::mutable_env() {
+  // @@protoc_insertion_point(field_mutable_map:cordum.agent.v1.Compensation.env)
+  return _internal_mutable_env();
+}
+
+// string memory_id = 6;
+inline void Compensation::clear_memory_id() {
+  _impl_.memory_id_.ClearToEmpty();
+}
+inline const std::string& Compensation::memory_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.memory_id)
+  return _internal_memory_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Compensation::set_memory_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.memory_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Compensation.memory_id)
+}
+inline std::string* Compensation::mutable_memory_id() {
+  std::string* _s = _internal_mutable_memory_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.memory_id)
+  return _s;
+}
+inline const std::string& Compensation::_internal_memory_id() const {
+  return _impl_.memory_id_.Get();
+}
+inline void Compensation::_internal_set_memory_id(const std::string& value) {
+  
+  _impl_.memory_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Compensation::_internal_mutable_memory_id() {
+  
+  return _impl_.memory_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Compensation::release_memory_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.memory_id)
+  return _impl_.memory_id_.Release();
+}
+inline void Compensation::set_allocated_memory_id(std::string* memory_id) {
+  if (memory_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.memory_id_.SetAllocated(memory_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.memory_id_.IsDefault()) {
+    _impl_.memory_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.memory_id)
+}
+
+// .cordum.agent.v1.ContextHints context_hints = 7;
+inline bool Compensation::_internal_has_context_hints() const {
+  return this != internal_default_instance() && _impl_.context_hints_ != nullptr;
+}
+inline bool Compensation::has_context_hints() const {
+  return _internal_has_context_hints();
+}
+inline void Compensation::clear_context_hints() {
+  if (GetArenaForAllocation() == nullptr && _impl_.context_hints_ != nullptr) {
+    delete _impl_.context_hints_;
+  }
+  _impl_.context_hints_ = nullptr;
+}
+inline const ::cordum::agent::v1::ContextHints& Compensation::_internal_context_hints() const {
+  const ::cordum::agent::v1::ContextHints* p = _impl_.context_hints_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::ContextHints&>(
+      ::cordum::agent::v1::_ContextHints_default_instance_);
+}
+inline const ::cordum::agent::v1::ContextHints& Compensation::context_hints() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.context_hints)
+  return _internal_context_hints();
+}
+inline void Compensation::unsafe_arena_set_allocated_context_hints(
+    ::cordum::agent::v1::ContextHints* context_hints) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.context_hints_);
+  }
+  _impl_.context_hints_ = context_hints;
+  if (context_hints) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.Compensation.context_hints)
+}
+inline ::cordum::agent::v1::ContextHints* Compensation::release_context_hints() {
+  
+  ::cordum::agent::v1::ContextHints* temp = _impl_.context_hints_;
+  _impl_.context_hints_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::ContextHints* Compensation::unsafe_arena_release_context_hints() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.context_hints)
+  
+  ::cordum::agent::v1::ContextHints* temp = _impl_.context_hints_;
+  _impl_.context_hints_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::ContextHints* Compensation::_internal_mutable_context_hints() {
+  
+  if (_impl_.context_hints_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::ContextHints>(GetArenaForAllocation());
+    _impl_.context_hints_ = p;
+  }
+  return _impl_.context_hints_;
+}
+inline ::cordum::agent::v1::ContextHints* Compensation::mutable_context_hints() {
+  ::cordum::agent::v1::ContextHints* _msg = _internal_mutable_context_hints();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.context_hints)
+  return _msg;
+}
+inline void Compensation::set_allocated_context_hints(::cordum::agent::v1::ContextHints* context_hints) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.context_hints_;
+  }
+  if (context_hints) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(context_hints);
+    if (message_arena != submessage_arena) {
+      context_hints = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, context_hints, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.context_hints_ = context_hints;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.context_hints)
+}
+
+// .cordum.agent.v1.Budget budget = 8;
+inline bool Compensation::_internal_has_budget() const {
+  return this != internal_default_instance() && _impl_.budget_ != nullptr;
+}
+inline bool Compensation::has_budget() const {
+  return _internal_has_budget();
+}
+inline void Compensation::clear_budget() {
+  if (GetArenaForAllocation() == nullptr && _impl_.budget_ != nullptr) {
+    delete _impl_.budget_;
+  }
+  _impl_.budget_ = nullptr;
+}
+inline const ::cordum::agent::v1::Budget& Compensation::_internal_budget() const {
+  const ::cordum::agent::v1::Budget* p = _impl_.budget_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::Budget&>(
+      ::cordum::agent::v1::_Budget_default_instance_);
+}
+inline const ::cordum::agent::v1::Budget& Compensation::budget() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.budget)
+  return _internal_budget();
+}
+inline void Compensation::unsafe_arena_set_allocated_budget(
+    ::cordum::agent::v1::Budget* budget) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.budget_);
+  }
+  _impl_.budget_ = budget;
+  if (budget) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.Compensation.budget)
+}
+inline ::cordum::agent::v1::Budget* Compensation::release_budget() {
+  
+  ::cordum::agent::v1::Budget* temp = _impl_.budget_;
+  _impl_.budget_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::Budget* Compensation::unsafe_arena_release_budget() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.budget)
+  
+  ::cordum::agent::v1::Budget* temp = _impl_.budget_;
+  _impl_.budget_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::Budget* Compensation::_internal_mutable_budget() {
+  
+  if (_impl_.budget_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::Budget>(GetArenaForAllocation());
+    _impl_.budget_ = p;
+  }
+  return _impl_.budget_;
+}
+inline ::cordum::agent::v1::Budget* Compensation::mutable_budget() {
+  ::cordum::agent::v1::Budget* _msg = _internal_mutable_budget();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.budget)
+  return _msg;
+}
+inline void Compensation::set_allocated_budget(::cordum::agent::v1::Budget* budget) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.budget_;
+  }
+  if (budget) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(budget);
+    if (message_arena != submessage_arena) {
+      budget = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, budget, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.budget_ = budget;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.budget)
+}
+
+// string tenant_id = 9;
+inline void Compensation::clear_tenant_id() {
+  _impl_.tenant_id_.ClearToEmpty();
+}
+inline const std::string& Compensation::tenant_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.tenant_id)
+  return _internal_tenant_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Compensation::set_tenant_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.tenant_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Compensation.tenant_id)
+}
+inline std::string* Compensation::mutable_tenant_id() {
+  std::string* _s = _internal_mutable_tenant_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.tenant_id)
+  return _s;
+}
+inline const std::string& Compensation::_internal_tenant_id() const {
+  return _impl_.tenant_id_.Get();
+}
+inline void Compensation::_internal_set_tenant_id(const std::string& value) {
+  
+  _impl_.tenant_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Compensation::_internal_mutable_tenant_id() {
+  
+  return _impl_.tenant_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Compensation::release_tenant_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.tenant_id)
+  return _impl_.tenant_id_.Release();
+}
+inline void Compensation::set_allocated_tenant_id(std::string* tenant_id) {
+  if (tenant_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.tenant_id_.SetAllocated(tenant_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.tenant_id_.IsDefault()) {
+    _impl_.tenant_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.tenant_id)
+}
+
+// string principal_id = 10;
+inline void Compensation::clear_principal_id() {
+  _impl_.principal_id_.ClearToEmpty();
+}
+inline const std::string& Compensation::principal_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.principal_id)
+  return _internal_principal_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Compensation::set_principal_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.principal_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Compensation.principal_id)
+}
+inline std::string* Compensation::mutable_principal_id() {
+  std::string* _s = _internal_mutable_principal_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.principal_id)
+  return _s;
+}
+inline const std::string& Compensation::_internal_principal_id() const {
+  return _impl_.principal_id_.Get();
+}
+inline void Compensation::_internal_set_principal_id(const std::string& value) {
+  
+  _impl_.principal_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Compensation::_internal_mutable_principal_id() {
+  
+  return _impl_.principal_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Compensation::release_principal_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.principal_id)
+  return _impl_.principal_id_.Release();
+}
+inline void Compensation::set_allocated_principal_id(std::string* principal_id) {
+  if (principal_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.principal_id_.SetAllocated(principal_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.principal_id_.IsDefault()) {
+    _impl_.principal_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.principal_id)
+}
+
+// map<string, string> labels = 11;
+inline int Compensation::_internal_labels_size() const {
+  return _impl_.labels_.size();
+}
+inline int Compensation::labels_size() const {
+  return _internal_labels_size();
+}
+inline void Compensation::clear_labels() {
+  _impl_.labels_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+Compensation::_internal_labels() const {
+  return _impl_.labels_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+Compensation::labels() const {
+  // @@protoc_insertion_point(field_map:cordum.agent.v1.Compensation.labels)
+  return _internal_labels();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+Compensation::_internal_mutable_labels() {
+  return _impl_.labels_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+Compensation::mutable_labels() {
+  // @@protoc_insertion_point(field_mutable_map:cordum.agent.v1.Compensation.labels)
+  return _internal_mutable_labels();
+}
+
+// .cordum.agent.v1.JobMetadata meta = 12;
+inline bool Compensation::_internal_has_meta() const {
+  return this != internal_default_instance() && _impl_.meta_ != nullptr;
+}
+inline bool Compensation::has_meta() const {
+  return _internal_has_meta();
+}
+inline void Compensation::clear_meta() {
+  if (GetArenaForAllocation() == nullptr && _impl_.meta_ != nullptr) {
+    delete _impl_.meta_;
+  }
+  _impl_.meta_ = nullptr;
+}
+inline const ::cordum::agent::v1::JobMetadata& Compensation::_internal_meta() const {
+  const ::cordum::agent::v1::JobMetadata* p = _impl_.meta_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::JobMetadata&>(
+      ::cordum::agent::v1::_JobMetadata_default_instance_);
+}
+inline const ::cordum::agent::v1::JobMetadata& Compensation::meta() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.meta)
+  return _internal_meta();
+}
+inline void Compensation::unsafe_arena_set_allocated_meta(
+    ::cordum::agent::v1::JobMetadata* meta) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.meta_);
+  }
+  _impl_.meta_ = meta;
+  if (meta) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.Compensation.meta)
+}
+inline ::cordum::agent::v1::JobMetadata* Compensation::release_meta() {
+  
+  ::cordum::agent::v1::JobMetadata* temp = _impl_.meta_;
+  _impl_.meta_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::JobMetadata* Compensation::unsafe_arena_release_meta() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.meta)
+  
+  ::cordum::agent::v1::JobMetadata* temp = _impl_.meta_;
+  _impl_.meta_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::JobMetadata* Compensation::_internal_mutable_meta() {
+  
+  if (_impl_.meta_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::JobMetadata>(GetArenaForAllocation());
+    _impl_.meta_ = p;
+  }
+  return _impl_.meta_;
+}
+inline ::cordum::agent::v1::JobMetadata* Compensation::mutable_meta() {
+  ::cordum::agent::v1::JobMetadata* _msg = _internal_mutable_meta();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.meta)
+  return _msg;
+}
+inline void Compensation::set_allocated_meta(::cordum::agent::v1::JobMetadata* meta) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.meta_;
+  }
+  if (meta) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(meta);
+    if (message_arena != submessage_arena) {
+      meta = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, meta, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.meta_ = meta;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.meta)
 }
 
 // -------------------------------------------------------------------
@@ -3573,6 +4670,96 @@ inline void JobRequest::set_allocated_meta(::cordum::agent::v1::JobMetadata* met
   }
   _impl_.meta_ = meta;
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.meta)
+}
+
+// .cordum.agent.v1.Compensation compensation = 17;
+inline bool JobRequest::_internal_has_compensation() const {
+  return this != internal_default_instance() && _impl_.compensation_ != nullptr;
+}
+inline bool JobRequest::has_compensation() const {
+  return _internal_has_compensation();
+}
+inline void JobRequest::clear_compensation() {
+  if (GetArenaForAllocation() == nullptr && _impl_.compensation_ != nullptr) {
+    delete _impl_.compensation_;
+  }
+  _impl_.compensation_ = nullptr;
+}
+inline const ::cordum::agent::v1::Compensation& JobRequest::_internal_compensation() const {
+  const ::cordum::agent::v1::Compensation* p = _impl_.compensation_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::Compensation&>(
+      ::cordum::agent::v1::_Compensation_default_instance_);
+}
+inline const ::cordum::agent::v1::Compensation& JobRequest::compensation() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobRequest.compensation)
+  return _internal_compensation();
+}
+inline void JobRequest::unsafe_arena_set_allocated_compensation(
+    ::cordum::agent::v1::Compensation* compensation) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.compensation_);
+  }
+  _impl_.compensation_ = compensation;
+  if (compensation) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobRequest.compensation)
+}
+inline ::cordum::agent::v1::Compensation* JobRequest::release_compensation() {
+  
+  ::cordum::agent::v1::Compensation* temp = _impl_.compensation_;
+  _impl_.compensation_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::Compensation* JobRequest::unsafe_arena_release_compensation() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobRequest.compensation)
+  
+  ::cordum::agent::v1::Compensation* temp = _impl_.compensation_;
+  _impl_.compensation_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::Compensation* JobRequest::_internal_mutable_compensation() {
+  
+  if (_impl_.compensation_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::Compensation>(GetArenaForAllocation());
+    _impl_.compensation_ = p;
+  }
+  return _impl_.compensation_;
+}
+inline ::cordum::agent::v1::Compensation* JobRequest::mutable_compensation() {
+  ::cordum::agent::v1::Compensation* _msg = _internal_mutable_compensation();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobRequest.compensation)
+  return _msg;
+}
+inline void JobRequest::set_allocated_compensation(::cordum::agent::v1::Compensation* compensation) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.compensation_;
+  }
+  if (compensation) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(compensation);
+    if (message_arena != submessage_arena) {
+      compensation = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, compensation, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.compensation_ = compensation;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.compensation)
 }
 
 // -------------------------------------------------------------------
@@ -4420,6 +5607,12 @@ inline void JobCancel::set_allocated_requested_by(std::string* requested_by) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

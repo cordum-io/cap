@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ordum/agent/v1/heartbeat.proto\x12\x0f\x63ordum.agent.v1\"\xa2\x02\n\tHeartbeat\x12\x11\n\tworker_id\x18\x01 \x01(\t\x12\x0e\n\x06region\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x10\n\x08\x63pu_load\x18\x04 \x01(\x02\x12\x17\n\x0fgpu_utilization\x18\x05 \x01(\x02\x12\x13\n\x0b\x61\x63tive_jobs\x18\x06 \x01(\x05\x12\x14\n\x0c\x63\x61pabilities\x18\x07 \x03(\t\x12\x0c\n\x04pool\x18\x0b \x01(\t\x12\x19\n\x11max_parallel_jobs\x18\x0c \x01(\x05\x12\x36\n\x06labels\x18\r \x03(\x0b\x32&.cordum.agent.v1.Heartbeat.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x7f\n\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0f\x43ordum.Agent.V1\xca\x02\x0f\x63ordum\\Agent\\V1\xea\x02\x11\x43ordum::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ordum/agent/v1/heartbeat.proto\x12\x0f\x63ordum.agent.v1\"\xe0\x02\n\tHeartbeat\x12\x11\n\tworker_id\x18\x01 \x01(\t\x12\x0e\n\x06region\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x10\n\x08\x63pu_load\x18\x04 \x01(\x02\x12\x17\n\x0fgpu_utilization\x18\x05 \x01(\x02\x12\x13\n\x0b\x61\x63tive_jobs\x18\x06 \x01(\x05\x12\x14\n\x0c\x63\x61pabilities\x18\x07 \x03(\t\x12\x0c\n\x04pool\x18\x0b \x01(\t\x12\x19\n\x11max_parallel_jobs\x18\x0c \x01(\x05\x12\x36\n\x06labels\x18\r \x03(\x0b\x32&.cordum.agent.v1.Heartbeat.LabelsEntry\x12\x13\n\x0bmemory_load\x18\x0e \x01(\x02\x12\x14\n\x0cprogress_pct\x18\x0f \x01(\x05\x12\x11\n\tlast_memo\x18\x10 \x01(\t\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x7f\n\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0f\x43ordum.Agent.V1\xca\x02\x0f\x63ordum\\Agent\\V1\xea\x02\x11\x43ordum::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -35,7 +35,7 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_HEARTBEAT_LABELSENTRY']._loaded_options = None
   _globals['_HEARTBEAT_LABELSENTRY']._serialized_options = b'8\001'
   _globals['_HEARTBEAT']._serialized_start=53
-  _globals['_HEARTBEAT']._serialized_end=343
-  _globals['_HEARTBEAT_LABELSENTRY']._serialized_start=298
-  _globals['_HEARTBEAT_LABELSENTRY']._serialized_end=343
+  _globals['_HEARTBEAT']._serialized_end=405
+  _globals['_HEARTBEAT_LABELSENTRY']._serialized_start=360
+  _globals['_HEARTBEAT_LABELSENTRY']._serialized_end=405
 # @@protoc_insertion_point(module_scope)

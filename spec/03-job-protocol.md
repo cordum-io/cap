@@ -15,6 +15,7 @@ CAP jobs are the core unit of work. Gateways submit `JobRequest` packets, worker
 - `tenant_id`, `principal_id`: multi-tenant identities for policy/audit.
 - `labels`: arbitrary routing/placement metadata (environment, project, compliance flags).
 - `meta`: structured identity/capability metadata (tenant_id, actor_id, actor_type, idempotency_key, capability, risk_tags, requires, pack_id, labels).
+- `compensation`: optional inverse action template used for rollback; omitted fields SHOULD inherit from the parent job.
 - `parent_job_id`, `workflow_id`, `step_index`: optional workflow metadata for orchestrators.
 
 ## JobResult Semantics
@@ -62,10 +63,18 @@ sequenceDiagram
 2. Worker publishes `BusPacket{JobResult}` to `sys.job.result` (and MAY also emit to `job.<pool>.result` for observability).
 3. Scheduler validates correlation, updates state, and notifies external clients as needed.
 
+## Compensation and Rollback
+- `JobRequest.compensation` describes an inverse action that can be dispatched if a workflow rolls back.
+- Orchestrators MAY log the compensation template after a successful job and dispatch compensations in reverse order on rollback.
+- `compensation.context_ptr` SHOULD point to the compensation input; keep payloads off the bus.
+- `compensation.meta.idempotency_key` SHOULD be set for durable re-entry and de-duplication.
+- Tags: `compensation`, `rollback`, `saga`.
+
 ## Idempotency and Retries
 - Re-delivery of the same `job_id` MUST be tolerated; consumers should deduplicate via `job_id`.
 - Retries SHOULD reuse the same `job_id` only if the worker behavior is idempotent; otherwise emit a new `job_id` and link via `parent_job_id`.
 - JobResults for already-terminal jobs SHOULD be logged and ignored unless policy allows overrides.
+- `meta.idempotency_key` MAY be used by workers/orchestrators as a stable de-duplication key across retries and re-entry.
 
 ## Tracing and Relationships
 - `trace_id` in `BusPacket` MUST remain stable across an entire workflow tree; orchestrators SHOULD reuse the parent `trace_id` when fanning out.

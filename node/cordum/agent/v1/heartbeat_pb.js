@@ -91,7 +91,10 @@ proto.cordum.agent.v1.Heartbeat.toObject = function(includeInstance, msg) {
     capabilitiesList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f,
     pool: jspb.Message.getFieldWithDefault(msg, 11, ""),
     maxParallelJobs: jspb.Message.getFieldWithDefault(msg, 12, 0),
-    labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : []
+    labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
+    memoryLoad: jspb.Message.getFloatingPointFieldWithDefault(msg, 14, 0.0),
+    progressPct: jspb.Message.getFieldWithDefault(msg, 15, 0),
+    lastMemo: jspb.Message.getFieldWithDefault(msg, 16, "")
   };
 
   if (includeInstance) {
@@ -169,6 +172,18 @@ proto.cordum.agent.v1.Heartbeat.deserializeBinaryFromReader = function(msg, read
       reader.readMessage(value, function(message, reader) {
         jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
          });
+      break;
+    case 14:
+      var value = /** @type {number} */ (reader.readFloat());
+      msg.setMemoryLoad(value);
+      break;
+    case 15:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setProgressPct(value);
+      break;
+    case 16:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setLastMemo(value);
       break;
     default:
       reader.skipField();
@@ -265,6 +280,27 @@ proto.cordum.agent.v1.Heartbeat.serializeBinaryToWriter = function(message, writ
   f = message.getLabelsMap(true);
   if (f && f.getLength() > 0) {
     f.serializeBinary(13, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getMemoryLoad();
+  if (f !== 0.0) {
+    writer.writeFloat(
+      14,
+      f
+    );
+  }
+  f = message.getProgressPct();
+  if (f !== 0) {
+    writer.writeInt32(
+      15,
+      f
+    );
+  }
+  f = message.getLastMemo();
+  if (f.length > 0) {
+    writer.writeString(
+      16,
+      f
+    );
   }
 };
 
@@ -470,6 +506,60 @@ proto.cordum.agent.v1.Heartbeat.prototype.getLabelsMap = function(opt_noLazyCrea
 proto.cordum.agent.v1.Heartbeat.prototype.clearLabelsMap = function() {
   this.getLabelsMap().clear();
   return this;};
+
+
+/**
+ * optional float memory_load = 14;
+ * @return {number}
+ */
+proto.cordum.agent.v1.Heartbeat.prototype.getMemoryLoad = function() {
+  return /** @type {number} */ (jspb.Message.getFloatingPointFieldWithDefault(this, 14, 0.0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.cordum.agent.v1.Heartbeat} returns this
+ */
+proto.cordum.agent.v1.Heartbeat.prototype.setMemoryLoad = function(value) {
+  return jspb.Message.setProto3FloatField(this, 14, value);
+};
+
+
+/**
+ * optional int32 progress_pct = 15;
+ * @return {number}
+ */
+proto.cordum.agent.v1.Heartbeat.prototype.getProgressPct = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 15, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.cordum.agent.v1.Heartbeat} returns this
+ */
+proto.cordum.agent.v1.Heartbeat.prototype.setProgressPct = function(value) {
+  return jspb.Message.setProto3IntField(this, 15, value);
+};
+
+
+/**
+ * optional string last_memo = 16;
+ * @return {string}
+ */
+proto.cordum.agent.v1.Heartbeat.prototype.getLastMemo = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 16, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.cordum.agent.v1.Heartbeat} returns this
+ */
+proto.cordum.agent.v1.Heartbeat.prototype.setLastMemo = function(value) {
+  return jspb.Message.setProto3StringField(this, 16, value);
+};
 
 
 goog.object.extend(exports, proto.cordum.agent.v1);

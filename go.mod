@@ -1,4 +1,4 @@
-module github.com/cortex-agent-protocol/go
+module github.com/coretexos/cap
 
 go 1.21
 

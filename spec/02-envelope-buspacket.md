@@ -9,7 +9,7 @@ All CAP traffic is wrapped in a `BusPacket`. The envelope provides tracing, send
 - `protocol_version`: CAP wire version. Consumers MAY reject packets with unsupported versions.
 - `payload`: exactly one of `JobRequest`, `JobResult`, `Heartbeat`, or `SystemAlert`.
 
-## Canonical Proto (see `proto/cortex/agent/v1/buspacket.proto`)
+## Canonical Proto (see `proto/coretex/agent/v1/buspacket.proto`)
 ```proto
 message BusPacket {
   string trace_id = 1;

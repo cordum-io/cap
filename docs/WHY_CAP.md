@@ -1,6 +1,6 @@
 # Why CAP?
 
-In the rapidly evolving landscape of AI and autonomous agents, the need for a standardized, robust, and scalable communication protocol is more critical than ever. The Cortex Agent Protocol (CAP) was born out of this necessity, providing a solution to the challenges of building and orchestrating complex multi-agent systems.
+In the rapidly evolving landscape of AI and autonomous agents, the need for a standardized, robust, and scalable communication protocol is more critical than ever. The coretex Agent Protocol (CAP) was born out of this necessity, providing a solution to the challenges of building and orchestrating complex multi-agent systems.
 
 ## The Problem with Monolithic Agents
 

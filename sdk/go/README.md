@@ -45,5 +45,5 @@ go w.Start()
 ```
 
 ## Notes
-- The protobuf `go_package` is `github.com/coretexos/cap/go/cortex/agent/v1`; the replace in `go.mod` points to `../..`.
+- The protobuf `go_package` is `github.com/coretexos/cap/go/coretex/agent/v1`; the replace in `go.mod` points to `../..`.
 - Swap the NATS adapter if you prefer another bus; only `bus/` needs to change.

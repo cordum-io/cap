@@ -14,10 +14,10 @@ set(CPP_STUB_DIR "${CMAKE_SOURCE_DIR}/../../cpp")
 find_package(Protobuf REQUIRED)
 
 file(GLOB CAP_PROTO_SRCS
-  "${CPP_STUB_DIR}/cortex/agent/v1/*.pb.cc"
+  "${CPP_STUB_DIR}/coretex/agent/v1/*.pb.cc"
 )
 file(GLOB CAP_PROTO_HDRS
-  "${CPP_STUB_DIR}/cortex/agent/v1/*.pb.h"
+  "${CPP_STUB_DIR}/coretex/agent/v1/*.pb.h"
 )
 
 add_library(cap_cpp

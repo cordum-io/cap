@@ -13,7 +13,7 @@
 - **Vendor-neutral**: any bus, any language, Apache-2.0.
 
 ## Social Proof (placeholder)
-- “CortexOS: official CAP reference implementation.”
+- “coretexOS: official CAP reference implementation.”
 - Logos section for early adopters (to fill as they join).
 
 ## How It Works (Mermaid)
@@ -33,7 +33,7 @@ flowchart LR
 - **Is this MCP?** No. MCP is single-model tool calls; CAP is cluster control-plane.
 - **Do I need NATS?** No, any pub/sub with subjects + competing consumers works. NATS is recommended.
 - **How do I keep data secure?** Use pointers with ACLs/signed URLs; bus carries only envelopes.
-- **Is there a reference implementation?** Yes: CortexOS.
+- **Is there a reference implementation?** Yes: coretexOS.
 
 ## Footer
 - Links: Spec, Protos, Examples, GitHub, Contributing, License (Apache-2.0).

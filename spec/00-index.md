@@ -1,6 +1,6 @@
-# Cortex Agent Protocol - Specification Index
+# coretex Agent Protocol - Specification Index
 
-This folder contains the normative specification for the Cortex Agent Protocol (CAP). The protobuf definitions in `proto/` are the canonical wire format; the prose here defines semantics, expectations, and recommended behaviors.
+This folder contains the normative specification for the coretex Agent Protocol (CAP). The protobuf definitions in `proto/` are the canonical wire format; the prose here defines semantics, expectations, and recommended behaviors.
 
 ## Conformance
 - RFC 2119 keywords (MUST, SHOULD, MAY, etc.) are normative.

@@ -55,7 +55,7 @@ if [ "${CAP_RUN_JS:-1}" = "1" ]; then
       $(find "$PROTO_DIR" -name '*.proto')
   elif command -v pbjs >/dev/null 2>&1; then
     echo "Generating Node JS stubs (pbjs)..."
-    pbjs -p "$PROTO_DIR" -t static-module -w commonjs -r cortex.agent.v1 -o "$OUT_JS/cap_pb.js" $(find "$PROTO_DIR" -name '*.proto')
+    pbjs -p "$PROTO_DIR" -t static-module -w commonjs -r coretex.agent.v1 -o "$OUT_JS/cap_pb.js" $(find "$PROTO_DIR" -name '*.proto')
   else
     echo "No JS generator found; skipping Node JS stubs (install protoc-gen-js or pbjs)"
   fi

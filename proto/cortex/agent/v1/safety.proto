@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package cortex.agent.v1;
+package coretex.agent.v1;
 
-option go_package = "github.com/coretexos/cap/v2/go/cortex/agent/v1";
-option java_package = "ai.cortex.cap.agent.v1";
+option go_package = "github.com/coretexos/cap/v2/go/coretex/agent/v1";
+option java_package = "ai.coretex.cap.agent.v1";
 option java_multiple_files = true;
-option csharp_namespace = "Cortex.Agent.V1";
-option php_namespace = "Cortex\\Agent\\V1";
-option ruby_package = "Cortex::Agent::V1";
+option csharp_namespace = "coretex.Agent.V1";
+option php_namespace = "coretex\\Agent\\V1";
+option ruby_package = "coretex::Agent::V1";
 
-import "cortex/agent/v1/job.proto";
+import "coretex/agent/v1/job.proto";
 
 // DecisionType enumerates policy outcomes from the SafetyKernel.
 enum DecisionType {

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.33.0
 // 	protoc        v3.21.12
-// source: cortex/agent/v1/safety.proto
+// source: coretex/agent/v1/safety.proto
 
 package v1
 
@@ -60,11 +60,11 @@ func (x DecisionType) String() string {
 }
 
 func (DecisionType) Descriptor() protoreflect.EnumDescriptor {
-	return file_cortex_agent_v1_safety_proto_enumTypes[0].Descriptor()
+	return file_coretex_agent_v1_safety_proto_enumTypes[0].Descriptor()
 }
 
 func (DecisionType) Type() protoreflect.EnumType {
-	return &file_cortex_agent_v1_safety_proto_enumTypes[0]
+	return &file_coretex_agent_v1_safety_proto_enumTypes[0]
 }
 
 func (x DecisionType) Number() protoreflect.EnumNumber {
@@ -73,7 +73,7 @@ func (x DecisionType) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use DecisionType.Descriptor instead.
 func (DecisionType) EnumDescriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_safety_proto_rawDescGZIP(), []int{0}
+	return file_coretex_agent_v1_safety_proto_rawDescGZIP(), []int{0}
 }
 
 // PolicyCheckRequest carries job metadata to the SafetyKernel.
@@ -85,14 +85,14 @@ type PolicyCheckRequest struct {
 	JobId         string      `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
 	Topic         string      `protobuf:"bytes,2,opt,name=topic,proto3" json:"topic,omitempty"`
 	Tenant        string      `protobuf:"bytes,3,opt,name=tenant,proto3" json:"tenant,omitempty"`
-	Priority      JobPriority `protobuf:"varint,4,opt,name=priority,proto3,enum=cortex.agent.v1.JobPriority" json:"priority,omitempty"`
+	Priority      JobPriority `protobuf:"varint,4,opt,name=priority,proto3,enum=coretex.agent.v1.JobPriority" json:"priority,omitempty"`
 	EstimatedCost float64     `protobuf:"fixed64,5,opt,name=estimated_cost,json=estimatedCost,proto3" json:"estimated_cost,omitempty"`
 }
 
 func (x *PolicyCheckRequest) Reset() {
 	*x = PolicyCheckRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cortex_agent_v1_safety_proto_msgTypes[0]
+		mi := &file_coretex_agent_v1_safety_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -105,7 +105,7 @@ func (x *PolicyCheckRequest) String() string {
 func (*PolicyCheckRequest) ProtoMessage() {}
 
 func (x *PolicyCheckRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cortex_agent_v1_safety_proto_msgTypes[0]
+	mi := &file_coretex_agent_v1_safety_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -118,7 +118,7 @@ func (x *PolicyCheckRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyCheckRequest.ProtoReflect.Descriptor instead.
 func (*PolicyCheckRequest) Descriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_safety_proto_rawDescGZIP(), []int{0}
+	return file_coretex_agent_v1_safety_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *PolicyCheckRequest) GetJobId() string {
@@ -162,7 +162,7 @@ type PolicyCheckResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Decision           DecisionType `protobuf:"varint,1,opt,name=decision,proto3,enum=cortex.agent.v1.DecisionType" json:"decision,omitempty"`
+	Decision           DecisionType `protobuf:"varint,1,opt,name=decision,proto3,enum=coretex.agent.v1.DecisionType" json:"decision,omitempty"`
 	Reason             string       `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
 	RedactedContextPtr string       `protobuf:"bytes,3,opt,name=redacted_context_ptr,json=redactedContextPtr,proto3" json:"redacted_context_ptr,omitempty"` // optional pointer to sanitized context
 }
@@ -170,7 +170,7 @@ type PolicyCheckResponse struct {
 func (x *PolicyCheckResponse) Reset() {
 	*x = PolicyCheckResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cortex_agent_v1_safety_proto_msgTypes[1]
+		mi := &file_coretex_agent_v1_safety_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -183,7 +183,7 @@ func (x *PolicyCheckResponse) String() string {
 func (*PolicyCheckResponse) ProtoMessage() {}
 
 func (x *PolicyCheckResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_cortex_agent_v1_safety_proto_msgTypes[1]
+	mi := &file_coretex_agent_v1_safety_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -196,7 +196,7 @@ func (x *PolicyCheckResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PolicyCheckResponse.ProtoReflect.Descriptor instead.
 func (*PolicyCheckResponse) Descriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_safety_proto_rawDescGZIP(), []int{1}
+	return file_coretex_agent_v1_safety_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *PolicyCheckResponse) GetDecision() DecisionType {
@@ -220,9 +220,9 @@ func (x *PolicyCheckResponse) GetRedactedContextPtr() string {
 	return ""
 }
 
-var File_cortex_agent_v1_safety_proto protoreflect.FileDescriptor
+var File_coretex_agent_v1_safety_proto protoreflect.FileDescriptor
 
-var file_cortex_agent_v1_safety_proto_rawDesc = []byte{
+var file_coretex_agent_v1_safety_proto_rawDesc = []byte{
 	0x0a, 0x1c, 0x63, 0x6f, 0x72, 0x74, 0x65, 0x78, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x76,
 	0x31, 0x2f, 0x73, 0x61, 0x66, 0x65, 0x74, 0x79, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0f,
 	0x63, 0x6f, 0x72, 0x74, 0x65, 0x78, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x76, 0x31, 0x1a,
@@ -277,30 +277,30 @@ var file_cortex_agent_v1_safety_proto_rawDesc = []byte{
 }
 
 var (
-	file_cortex_agent_v1_safety_proto_rawDescOnce sync.Once
-	file_cortex_agent_v1_safety_proto_rawDescData = file_cortex_agent_v1_safety_proto_rawDesc
+	file_coretex_agent_v1_safety_proto_rawDescOnce sync.Once
+	file_coretex_agent_v1_safety_proto_rawDescData = file_coretex_agent_v1_safety_proto_rawDesc
 )
 
-func file_cortex_agent_v1_safety_proto_rawDescGZIP() []byte {
-	file_cortex_agent_v1_safety_proto_rawDescOnce.Do(func() {
-		file_cortex_agent_v1_safety_proto_rawDescData = protoimpl.X.CompressGZIP(file_cortex_agent_v1_safety_proto_rawDescData)
+func file_coretex_agent_v1_safety_proto_rawDescGZIP() []byte {
+	file_coretex_agent_v1_safety_proto_rawDescOnce.Do(func() {
+		file_coretex_agent_v1_safety_proto_rawDescData = protoimpl.X.CompressGZIP(file_coretex_agent_v1_safety_proto_rawDescData)
 	})
-	return file_cortex_agent_v1_safety_proto_rawDescData
+	return file_coretex_agent_v1_safety_proto_rawDescData
 }
 
-var file_cortex_agent_v1_safety_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_cortex_agent_v1_safety_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_cortex_agent_v1_safety_proto_goTypes = []interface{}{
-	(DecisionType)(0),           // 0: cortex.agent.v1.DecisionType
-	(*PolicyCheckRequest)(nil),  // 1: cortex.agent.v1.PolicyCheckRequest
-	(*PolicyCheckResponse)(nil), // 2: cortex.agent.v1.PolicyCheckResponse
-	(JobPriority)(0),            // 3: cortex.agent.v1.JobPriority
+var file_coretex_agent_v1_safety_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_coretex_agent_v1_safety_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_coretex_agent_v1_safety_proto_goTypes = []interface{}{
+	(DecisionType)(0),           // 0: coretex.agent.v1.DecisionType
+	(*PolicyCheckRequest)(nil),  // 1: coretex.agent.v1.PolicyCheckRequest
+	(*PolicyCheckResponse)(nil), // 2: coretex.agent.v1.PolicyCheckResponse
+	(JobPriority)(0),            // 3: coretex.agent.v1.JobPriority
 }
-var file_cortex_agent_v1_safety_proto_depIdxs = []int32{
-	3, // 0: cortex.agent.v1.PolicyCheckRequest.priority:type_name -> cortex.agent.v1.JobPriority
-	0, // 1: cortex.agent.v1.PolicyCheckResponse.decision:type_name -> cortex.agent.v1.DecisionType
-	1, // 2: cortex.agent.v1.SafetyKernel.Check:input_type -> cortex.agent.v1.PolicyCheckRequest
-	2, // 3: cortex.agent.v1.SafetyKernel.Check:output_type -> cortex.agent.v1.PolicyCheckResponse
+var file_coretex_agent_v1_safety_proto_depIdxs = []int32{
+	3, // 0: coretex.agent.v1.PolicyCheckRequest.priority:type_name -> coretex.agent.v1.JobPriority
+	0, // 1: coretex.agent.v1.PolicyCheckResponse.decision:type_name -> coretex.agent.v1.DecisionType
+	1, // 2: coretex.agent.v1.SafetyKernel.Check:input_type -> coretex.agent.v1.PolicyCheckRequest
+	2, // 3: coretex.agent.v1.SafetyKernel.Check:output_type -> coretex.agent.v1.PolicyCheckResponse
 	3, // [3:4] is the sub-list for method output_type
 	2, // [2:3] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -308,14 +308,14 @@ var file_cortex_agent_v1_safety_proto_depIdxs = []int32{
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_cortex_agent_v1_safety_proto_init() }
-func file_cortex_agent_v1_safety_proto_init() {
-	if File_cortex_agent_v1_safety_proto != nil {
+func init() { file_coretex_agent_v1_safety_proto_init() }
+func file_coretex_agent_v1_safety_proto_init() {
+	if File_coretex_agent_v1_safety_proto != nil {
 		return
 	}
-	file_cortex_agent_v1_job_proto_init()
+	file_coretex_agent_v1_job_proto_init()
 	if !protoimpl.UnsafeEnabled {
-		file_cortex_agent_v1_safety_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_coretex_agent_v1_safety_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PolicyCheckRequest); i {
 			case 0:
 				return &v.state
@@ -327,7 +327,7 @@ func file_cortex_agent_v1_safety_proto_init() {
 				return nil
 			}
 		}
-		file_cortex_agent_v1_safety_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_coretex_agent_v1_safety_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PolicyCheckResponse); i {
 			case 0:
 				return &v.state
@@ -344,19 +344,19 @@ func file_cortex_agent_v1_safety_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_cortex_agent_v1_safety_proto_rawDesc,
+			RawDescriptor: file_coretex_agent_v1_safety_proto_rawDesc,
 			NumEnums:      1,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_cortex_agent_v1_safety_proto_goTypes,
-		DependencyIndexes: file_cortex_agent_v1_safety_proto_depIdxs,
-		EnumInfos:         file_cortex_agent_v1_safety_proto_enumTypes,
-		MessageInfos:      file_cortex_agent_v1_safety_proto_msgTypes,
+		GoTypes:           file_coretex_agent_v1_safety_proto_goTypes,
+		DependencyIndexes: file_coretex_agent_v1_safety_proto_depIdxs,
+		EnumInfos:         file_coretex_agent_v1_safety_proto_enumTypes,
+		MessageInfos:      file_coretex_agent_v1_safety_proto_msgTypes,
 	}.Build()
-	File_cortex_agent_v1_safety_proto = out.File
-	file_cortex_agent_v1_safety_proto_rawDesc = nil
-	file_cortex_agent_v1_safety_proto_goTypes = nil
-	file_cortex_agent_v1_safety_proto_depIdxs = nil
+	File_coretex_agent_v1_safety_proto = out.File
+	file_coretex_agent_v1_safety_proto_rawDesc = nil
+	file_coretex_agent_v1_safety_proto_goTypes = nil
+	file_coretex_agent_v1_safety_proto_depIdxs = nil
 }

@@ -5,11 +5,11 @@
 namespace cap {
 
 bool Client::Submit(const std::string& trace_id,
-                    const cortex::agent::v1::JobRequest& req,
+                    const coretex::agent::v1::JobRequest& req,
                     int32_t protocol_version) {
   if (!bus_) return false;
 
-  cortex::agent::v1::BusPacket packet;
+  coretex::agent::v1::BusPacket packet;
   packet.set_trace_id(trace_id);
   packet.set_sender_id(sender_id_);
   packet.mutable_created_at()->CopyFrom(google::protobuf::util::TimeUtil::GetCurrentTime());

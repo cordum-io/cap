@@ -1,6 +1,6 @@
 # CAP C++ Protobuf Stubs
 
-Pre-generated C++ sources/headers for CAP messages (`cpp/cortex/agent/v1/*.pb.{h,cc}`).
+Pre-generated C++ sources/headers for CAP messages (`cpp/coretex/agent/v1/*.pb.{h,cc}`).
 Built via:
 
 ```bash

@@ -33,7 +33,7 @@ import (
 	"log"
 
 	"github.com/coretexos/cap/sdk/go/client"
-	agentv1 "github.com/coretexos/cap/go/cortex/agent/v1"
+	agentv1 "github.com/coretexos/cap/go/coretex/agent/v1"
 	"github.com/nats-io/nats.go"
 )
 
@@ -102,7 +102,7 @@ import (
 	"log"
 
 	"github.com/coretexos/cap/sdk/go/worker"
-	agentv1 "github.com/coretexos/cap/go/cortex/agent/v1"
+	agentv1 "github.com/coretexos/cap/go/coretex/agent/v1"
 	"github.com/nats-io/nats.go"
 )
 

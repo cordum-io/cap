@@ -4,7 +4,7 @@
 #include "cap/bus_interface.h"
 #include "cap/client.h"
 #include "cap/worker.h"
-#include "cortex/agent/v1/job.pb.h"
+#include "coretex/agent/v1/job.pb.h"
 
 // Dummy in-process bus for demonstration (not production).
 class InMemoryBus : public cap::BusClient {
@@ -34,17 +34,17 @@ int main() {
   InMemoryBus bus;
 
   cap::Worker worker(&bus, "job.echo", "worker-echo-1",
-                     [](const cortex::agent::v1::JobRequest& req) {
-                       auto res = std::make_unique<cortex::agent::v1::JobResult>();
+                     [](const coretex::agent::v1::JobRequest& req) {
+                       auto res = std::make_unique<coretex::agent::v1::JobResult>();
                        res->set_job_id(req.job_id());
-                       res->set_status(cortex::agent::v1::JOB_STATUS_SUCCEEDED);
+                       res->set_status(coretex::agent::v1::JOB_STATUS_SUCCEEDED);
                        res->set_result_ptr("redis://res/" + req.job_id());
                        return res;
                      });
   worker.Start();
 
   cap::Client client(&bus, "gateway-1");
-  cortex::agent::v1::JobRequest req;
+  coretex::agent::v1::JobRequest req;
   req.set_job_id("job-1");
   req.set_topic("job.echo");
   req.set_context_ptr("redis://ctx/job-1");

@@ -12,7 +12,8 @@ export namespace coretex.agent.v1 {
         DECISION_TYPE_ALLOW = 1,
         DECISION_TYPE_DENY = 2,
         DECISION_TYPE_REQUIRE_HUMAN = 3,
-        DECISION_TYPE_THROTTLE = 4
+        DECISION_TYPE_THROTTLE = 4,
+        DECISION_TYPE_ALLOW_WITH_CONSTRAINTS = 5
     }
     export class PolicyCheckRequest extends pb_1.Message {
         #one_of_decls: number[][] = [];
@@ -27,6 +28,7 @@ export namespace coretex.agent.v1 {
             labels?: Map<string, string>;
             memory_id?: string;
             effective_config?: Uint8Array;
+            meta?: dependency_1.coretex.agent.v1.JobMetadata;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -60,6 +62,9 @@ export namespace coretex.agent.v1 {
                 }
                 if ("effective_config" in data && data.effective_config != undefined) {
                     this.effective_config = data.effective_config;
+                }
+                if ("meta" in data && data.meta != undefined) {
+                    this.meta = data.meta;
                 }
             }
             if (!this.labels)
@@ -128,6 +133,15 @@ export namespace coretex.agent.v1 {
         set effective_config(value: Uint8Array) {
             pb_1.Message.setField(this, 10, value);
         }
+        get meta() {
+            return pb_1.Message.getWrapperField(this, dependency_1.coretex.agent.v1.JobMetadata, 11) as dependency_1.coretex.agent.v1.JobMetadata;
+        }
+        set meta(value: dependency_1.coretex.agent.v1.JobMetadata) {
+            pb_1.Message.setWrapperField(this, 11, value);
+        }
+        get has_meta() {
+            return pb_1.Message.getField(this, 11) != null;
+        }
         static fromObject(data: {
             job_id?: string;
             topic?: string;
@@ -141,6 +155,7 @@ export namespace coretex.agent.v1 {
             };
             memory_id?: string;
             effective_config?: Uint8Array;
+            meta?: ReturnType<typeof dependency_1.coretex.agent.v1.JobMetadata.prototype.toObject>;
         }): PolicyCheckRequest {
             const message = new PolicyCheckRequest({});
             if (data.job_id != null) {
@@ -173,6 +188,9 @@ export namespace coretex.agent.v1 {
             if (data.effective_config != null) {
                 message.effective_config = data.effective_config;
             }
+            if (data.meta != null) {
+                message.meta = dependency_1.coretex.agent.v1.JobMetadata.fromObject(data.meta);
+            }
             return message;
         }
         toObject() {
@@ -189,6 +207,7 @@ export namespace coretex.agent.v1 {
                 };
                 memory_id?: string;
                 effective_config?: Uint8Array;
+                meta?: ReturnType<typeof dependency_1.coretex.agent.v1.JobMetadata.prototype.toObject>;
             } = {};
             if (this.job_id != null) {
                 data.job_id = this.job_id;
@@ -220,6 +239,9 @@ export namespace coretex.agent.v1 {
             if (this.effective_config != null) {
                 data.effective_config = this.effective_config;
             }
+            if (this.meta != null) {
+                data.meta = this.meta.toObject();
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -250,6 +272,8 @@ export namespace coretex.agent.v1 {
                 writer.writeString(9, this.memory_id);
             if (this.effective_config.length)
                 writer.writeBytes(10, this.effective_config);
+            if (this.has_meta)
+                writer.writeMessage(11, this.meta, () => this.meta.serialize(writer));
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -289,6 +313,9 @@ export namespace coretex.agent.v1 {
                     case 10:
                         message.effective_config = reader.readBytes();
                         break;
+                    case 11:
+                        reader.readMessage(message.meta, () => message.meta = dependency_1.coretex.agent.v1.JobMetadata.deserialize(reader));
+                        break;
                     default: reader.skipField();
                 }
             }
@@ -307,6 +334,7 @@ export namespace coretex.agent.v1 {
             max_runtime_ms?: number;
             max_retries?: number;
             max_artifact_bytes?: number;
+            max_concurrent_jobs?: number;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -319,6 +347,9 @@ export namespace coretex.agent.v1 {
                 }
                 if ("max_artifact_bytes" in data && data.max_artifact_bytes != undefined) {
                     this.max_artifact_bytes = data.max_artifact_bytes;
+                }
+                if ("max_concurrent_jobs" in data && data.max_concurrent_jobs != undefined) {
+                    this.max_concurrent_jobs = data.max_concurrent_jobs;
                 }
             }
         }
@@ -340,10 +371,17 @@ export namespace coretex.agent.v1 {
         set max_artifact_bytes(value: number) {
             pb_1.Message.setField(this, 3, value);
         }
+        get max_concurrent_jobs() {
+            return pb_1.Message.getFieldWithDefault(this, 4, 0) as number;
+        }
+        set max_concurrent_jobs(value: number) {
+            pb_1.Message.setField(this, 4, value);
+        }
         static fromObject(data: {
             max_runtime_ms?: number;
             max_retries?: number;
             max_artifact_bytes?: number;
+            max_concurrent_jobs?: number;
         }): BudgetConstraints {
             const message = new BudgetConstraints({});
             if (data.max_runtime_ms != null) {
@@ -355,6 +393,9 @@ export namespace coretex.agent.v1 {
             if (data.max_artifact_bytes != null) {
                 message.max_artifact_bytes = data.max_artifact_bytes;
             }
+            if (data.max_concurrent_jobs != null) {
+                message.max_concurrent_jobs = data.max_concurrent_jobs;
+            }
             return message;
         }
         toObject() {
@@ -362,6 +403,7 @@ export namespace coretex.agent.v1 {
                 max_runtime_ms?: number;
                 max_retries?: number;
                 max_artifact_bytes?: number;
+                max_concurrent_jobs?: number;
             } = {};
             if (this.max_runtime_ms != null) {
                 data.max_runtime_ms = this.max_runtime_ms;
@@ -371,6 +413,9 @@ export namespace coretex.agent.v1 {
             }
             if (this.max_artifact_bytes != null) {
                 data.max_artifact_bytes = this.max_artifact_bytes;
+            }
+            if (this.max_concurrent_jobs != null) {
+                data.max_concurrent_jobs = this.max_concurrent_jobs;
             }
             return data;
         }
@@ -384,6 +429,8 @@ export namespace coretex.agent.v1 {
                 writer.writeInt32(2, this.max_retries);
             if (this.max_artifact_bytes != 0)
                 writer.writeInt64(3, this.max_artifact_bytes);
+            if (this.max_concurrent_jobs != 0)
+                writer.writeInt32(4, this.max_concurrent_jobs);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -401,6 +448,9 @@ export namespace coretex.agent.v1 {
                         break;
                     case 3:
                         message.max_artifact_bytes = reader.readInt64();
+                        break;
+                    case 4:
+                        message.max_concurrent_jobs = reader.readInt32();
                         break;
                     default: reader.skipField();
                 }
@@ -760,6 +810,7 @@ export namespace coretex.agent.v1 {
             sandbox?: SandboxProfile;
             toolchain?: ToolchainConstraints;
             diff?: DiffConstraints;
+            redaction_level?: string;
         }) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -775,6 +826,9 @@ export namespace coretex.agent.v1 {
                 }
                 if ("diff" in data && data.diff != undefined) {
                     this.diff = data.diff;
+                }
+                if ("redaction_level" in data && data.redaction_level != undefined) {
+                    this.redaction_level = data.redaction_level;
                 }
             }
         }
@@ -814,11 +868,18 @@ export namespace coretex.agent.v1 {
         get has_diff() {
             return pb_1.Message.getField(this, 4) != null;
         }
+        get redaction_level() {
+            return pb_1.Message.getFieldWithDefault(this, 5, "") as string;
+        }
+        set redaction_level(value: string) {
+            pb_1.Message.setField(this, 5, value);
+        }
         static fromObject(data: {
             budgets?: ReturnType<typeof BudgetConstraints.prototype.toObject>;
             sandbox?: ReturnType<typeof SandboxProfile.prototype.toObject>;
             toolchain?: ReturnType<typeof ToolchainConstraints.prototype.toObject>;
             diff?: ReturnType<typeof DiffConstraints.prototype.toObject>;
+            redaction_level?: string;
         }): PolicyConstraints {
             const message = new PolicyConstraints({});
             if (data.budgets != null) {
@@ -833,6 +894,9 @@ export namespace coretex.agent.v1 {
             if (data.diff != null) {
                 message.diff = DiffConstraints.fromObject(data.diff);
             }
+            if (data.redaction_level != null) {
+                message.redaction_level = data.redaction_level;
+            }
             return message;
         }
         toObject() {
@@ -841,6 +905,7 @@ export namespace coretex.agent.v1 {
                 sandbox?: ReturnType<typeof SandboxProfile.prototype.toObject>;
                 toolchain?: ReturnType<typeof ToolchainConstraints.prototype.toObject>;
                 diff?: ReturnType<typeof DiffConstraints.prototype.toObject>;
+                redaction_level?: string;
             } = {};
             if (this.budgets != null) {
                 data.budgets = this.budgets.toObject();
@@ -853,6 +918,9 @@ export namespace coretex.agent.v1 {
             }
             if (this.diff != null) {
                 data.diff = this.diff.toObject();
+            }
+            if (this.redaction_level != null) {
+                data.redaction_level = this.redaction_level;
             }
             return data;
         }
@@ -868,6 +936,8 @@ export namespace coretex.agent.v1 {
                 writer.writeMessage(3, this.toolchain, () => this.toolchain.serialize(writer));
             if (this.has_diff)
                 writer.writeMessage(4, this.diff, () => this.diff.serialize(writer));
+            if (this.redaction_level.length)
+                writer.writeString(5, this.redaction_level);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -888,6 +958,9 @@ export namespace coretex.agent.v1 {
                         break;
                     case 4:
                         reader.readMessage(message.diff, () => message.diff = DiffConstraints.deserialize(reader));
+                        break;
+                    case 5:
+                        message.redaction_level = reader.readString();
                         break;
                     default: reader.skipField();
                 }

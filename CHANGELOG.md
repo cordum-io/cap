@@ -2,6 +2,10 @@
 
 # Changelog
 
+## v2.0.7 — 2026-01-03
+- Added policy budget constraint `max_concurrent_jobs`.
+- Confirmed CAP bus payloads include `JobProgress` and `JobCancel` for worker control events.
+
 ## v2.0.6 — 2026-01-03
 - Added `JobRequest.meta` for structured pack-ready identity/capability metadata.
 - SafetyKernel: expanded PolicyCheckResponse with policy snapshots, rule IDs, and structured constraints; added Evaluate/Explain/Simulate/ListSnapshots RPCs.

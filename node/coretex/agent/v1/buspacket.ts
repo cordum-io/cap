@@ -10,7 +10,7 @@ import * as dependency_4 from "./alert";
 import * as pb_1 from "google-protobuf";
 export namespace coretex.agent.v1 {
     export class BusPacket extends pb_1.Message {
-        #one_of_decls: number[][] = [[10, 11, 12, 13]];
+        #one_of_decls: number[][] = [[10, 11, 12, 13, 15, 16]];
         constructor(data?: any[] | ({
             trace_id?: string;
             sender_id?: string;
@@ -22,21 +22,43 @@ export namespace coretex.agent.v1 {
             job_result?: never;
             heartbeat?: never;
             alert?: never;
+            job_progress?: never;
+            job_cancel?: never;
         } | {
             job_request?: never;
             job_result?: dependency_2.coretex.agent.v1.JobResult;
             heartbeat?: never;
             alert?: never;
+            job_progress?: never;
+            job_cancel?: never;
         } | {
             job_request?: never;
             job_result?: never;
             heartbeat?: dependency_3.coretex.agent.v1.Heartbeat;
             alert?: never;
+            job_progress?: never;
+            job_cancel?: never;
         } | {
             job_request?: never;
             job_result?: never;
             heartbeat?: never;
             alert?: dependency_4.coretex.agent.v1.SystemAlert;
+            job_progress?: never;
+            job_cancel?: never;
+        } | {
+            job_request?: never;
+            job_result?: never;
+            heartbeat?: never;
+            alert?: never;
+            job_progress?: dependency_2.coretex.agent.v1.JobProgress;
+            job_cancel?: never;
+        } | {
+            job_request?: never;
+            job_result?: never;
+            heartbeat?: never;
+            alert?: never;
+            job_progress?: never;
+            job_cancel?: dependency_2.coretex.agent.v1.JobCancel;
         })))) {
             super();
             pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
@@ -64,6 +86,12 @@ export namespace coretex.agent.v1 {
                 }
                 if ("alert" in data && data.alert != undefined) {
                     this.alert = data.alert;
+                }
+                if ("job_progress" in data && data.job_progress != undefined) {
+                    this.job_progress = data.job_progress;
+                }
+                if ("job_cancel" in data && data.job_cancel != undefined) {
+                    this.job_cancel = data.job_cancel;
                 }
                 if ("signature" in data && data.signature != undefined) {
                     this.signature = data.signature;
@@ -133,6 +161,24 @@ export namespace coretex.agent.v1 {
         get has_alert() {
             return pb_1.Message.getField(this, 13) != null;
         }
+        get job_progress() {
+            return pb_1.Message.getWrapperField(this, dependency_2.coretex.agent.v1.JobProgress, 15) as dependency_2.coretex.agent.v1.JobProgress;
+        }
+        set job_progress(value: dependency_2.coretex.agent.v1.JobProgress) {
+            pb_1.Message.setOneofWrapperField(this, 15, this.#one_of_decls[0], value);
+        }
+        get has_job_progress() {
+            return pb_1.Message.getField(this, 15) != null;
+        }
+        get job_cancel() {
+            return pb_1.Message.getWrapperField(this, dependency_2.coretex.agent.v1.JobCancel, 16) as dependency_2.coretex.agent.v1.JobCancel;
+        }
+        set job_cancel(value: dependency_2.coretex.agent.v1.JobCancel) {
+            pb_1.Message.setOneofWrapperField(this, 16, this.#one_of_decls[0], value);
+        }
+        get has_job_cancel() {
+            return pb_1.Message.getField(this, 16) != null;
+        }
         get signature() {
             return pb_1.Message.getFieldWithDefault(this, 14, new Uint8Array(0)) as Uint8Array;
         }
@@ -141,15 +187,17 @@ export namespace coretex.agent.v1 {
         }
         get payload() {
             const cases: {
-                [index: number]: "none" | "job_request" | "job_result" | "heartbeat" | "alert";
+                [index: number]: "none" | "job_request" | "job_result" | "heartbeat" | "alert" | "job_progress" | "job_cancel";
             } = {
                 0: "none",
                 10: "job_request",
                 11: "job_result",
                 12: "heartbeat",
-                13: "alert"
+                13: "alert",
+                15: "job_progress",
+                16: "job_cancel"
             };
-            return cases[pb_1.Message.computeOneofCase(this, [10, 11, 12, 13])];
+            return cases[pb_1.Message.computeOneofCase(this, [10, 11, 12, 13, 15, 16])];
         }
         static fromObject(data: {
             trace_id?: string;
@@ -160,6 +208,8 @@ export namespace coretex.agent.v1 {
             job_result?: ReturnType<typeof dependency_2.coretex.agent.v1.JobResult.prototype.toObject>;
             heartbeat?: ReturnType<typeof dependency_3.coretex.agent.v1.Heartbeat.prototype.toObject>;
             alert?: ReturnType<typeof dependency_4.coretex.agent.v1.SystemAlert.prototype.toObject>;
+            job_progress?: ReturnType<typeof dependency_2.coretex.agent.v1.JobProgress.prototype.toObject>;
+            job_cancel?: ReturnType<typeof dependency_2.coretex.agent.v1.JobCancel.prototype.toObject>;
             signature?: Uint8Array;
         }): BusPacket {
             const message = new BusPacket({});
@@ -187,6 +237,12 @@ export namespace coretex.agent.v1 {
             if (data.alert != null) {
                 message.alert = dependency_4.coretex.agent.v1.SystemAlert.fromObject(data.alert);
             }
+            if (data.job_progress != null) {
+                message.job_progress = dependency_2.coretex.agent.v1.JobProgress.fromObject(data.job_progress);
+            }
+            if (data.job_cancel != null) {
+                message.job_cancel = dependency_2.coretex.agent.v1.JobCancel.fromObject(data.job_cancel);
+            }
             if (data.signature != null) {
                 message.signature = data.signature;
             }
@@ -202,6 +258,8 @@ export namespace coretex.agent.v1 {
                 job_result?: ReturnType<typeof dependency_2.coretex.agent.v1.JobResult.prototype.toObject>;
                 heartbeat?: ReturnType<typeof dependency_3.coretex.agent.v1.Heartbeat.prototype.toObject>;
                 alert?: ReturnType<typeof dependency_4.coretex.agent.v1.SystemAlert.prototype.toObject>;
+                job_progress?: ReturnType<typeof dependency_2.coretex.agent.v1.JobProgress.prototype.toObject>;
+                job_cancel?: ReturnType<typeof dependency_2.coretex.agent.v1.JobCancel.prototype.toObject>;
                 signature?: Uint8Array;
             } = {};
             if (this.trace_id != null) {
@@ -228,6 +286,12 @@ export namespace coretex.agent.v1 {
             if (this.alert != null) {
                 data.alert = this.alert.toObject();
             }
+            if (this.job_progress != null) {
+                data.job_progress = this.job_progress.toObject();
+            }
+            if (this.job_cancel != null) {
+                data.job_cancel = this.job_cancel.toObject();
+            }
             if (this.signature != null) {
                 data.signature = this.signature;
             }
@@ -253,6 +317,10 @@ export namespace coretex.agent.v1 {
                 writer.writeMessage(12, this.heartbeat, () => this.heartbeat.serialize(writer));
             if (this.has_alert)
                 writer.writeMessage(13, this.alert, () => this.alert.serialize(writer));
+            if (this.has_job_progress)
+                writer.writeMessage(15, this.job_progress, () => this.job_progress.serialize(writer));
+            if (this.has_job_cancel)
+                writer.writeMessage(16, this.job_cancel, () => this.job_cancel.serialize(writer));
             if (this.signature.length)
                 writer.writeBytes(14, this.signature);
             if (!w)
@@ -287,6 +355,12 @@ export namespace coretex.agent.v1 {
                         break;
                     case 13:
                         reader.readMessage(message.alert, () => message.alert = dependency_4.coretex.agent.v1.SystemAlert.deserialize(reader));
+                        break;
+                    case 15:
+                        reader.readMessage(message.job_progress, () => message.job_progress = dependency_2.coretex.agent.v1.JobProgress.deserialize(reader));
+                        break;
+                    case 16:
+                        reader.readMessage(message.job_cancel, () => message.job_cancel = dependency_2.coretex.agent.v1.JobCancel.deserialize(reader));
                         break;
                     case 14:
                         message.signature = reader.readBytes();

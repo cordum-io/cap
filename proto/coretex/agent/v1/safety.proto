@@ -18,6 +18,7 @@ enum DecisionType {
     DECISION_TYPE_DENY = 2;
     DECISION_TYPE_REQUIRE_HUMAN = 3;
     DECISION_TYPE_THROTTLE = 4;
+    DECISION_TYPE_ALLOW_WITH_CONSTRAINTS = 5;
 }
 
 // PolicyCheckRequest carries job metadata to the SafetyKernel.
@@ -32,6 +33,7 @@ message PolicyCheckRequest {
     map<string, string> labels = 8;
     string memory_id = 9;
     bytes effective_config = 10; // marshaled EffectiveConfig for policy context
+    JobMetadata meta = 11;       // structured identity/capability metadata
 }
 
 // BudgetConstraints capture execution caps enforced by policy.
@@ -39,6 +41,7 @@ message BudgetConstraints {
     int64 max_runtime_ms = 1;
     int32 max_retries = 2;
     int64 max_artifact_bytes = 3;
+    int32 max_concurrent_jobs = 4;
 }
 
 // SandboxProfile describes runtime isolation and access boundaries.
@@ -68,6 +71,7 @@ message PolicyConstraints {
     SandboxProfile sandbox = 2;
     ToolchainConstraints toolchain = 3;
     DiffConstraints diff = 4;
+    string redaction_level = 5;
 }
 
 // PolicyCheckResponse conveys the decision and optional redaction pointer.

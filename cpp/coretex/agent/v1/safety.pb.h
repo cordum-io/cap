@@ -108,12 +108,13 @@ enum DecisionType : int {
   DECISION_TYPE_DENY = 2,
   DECISION_TYPE_REQUIRE_HUMAN = 3,
   DECISION_TYPE_THROTTLE = 4,
+  DECISION_TYPE_ALLOW_WITH_CONSTRAINTS = 5,
   DecisionType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   DecisionType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool DecisionType_IsValid(int value);
 constexpr DecisionType DecisionType_MIN = DECISION_TYPE_UNSPECIFIED;
-constexpr DecisionType DecisionType_MAX = DECISION_TYPE_THROTTLE;
+constexpr DecisionType DecisionType_MAX = DECISION_TYPE_ALLOW_WITH_CONSTRAINTS;
 constexpr int DecisionType_ARRAYSIZE = DecisionType_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* DecisionType_descriptor();
@@ -292,6 +293,7 @@ class PolicyCheckRequest final :
     kMemoryIdFieldNumber = 9,
     kEffectiveConfigFieldNumber = 10,
     kBudgetFieldNumber = 6,
+    kMetaFieldNumber = 11,
     kEstimatedCostFieldNumber = 5,
     kPriorityFieldNumber = 4,
   };
@@ -414,6 +416,24 @@ class PolicyCheckRequest final :
       ::coretex::agent::v1::Budget* budget);
   ::coretex::agent::v1::Budget* unsafe_arena_release_budget();
 
+  // .coretex.agent.v1.JobMetadata meta = 11;
+  bool has_meta() const;
+  private:
+  bool _internal_has_meta() const;
+  public:
+  void clear_meta();
+  const ::coretex::agent::v1::JobMetadata& meta() const;
+  PROTOBUF_NODISCARD ::coretex::agent::v1::JobMetadata* release_meta();
+  ::coretex::agent::v1::JobMetadata* mutable_meta();
+  void set_allocated_meta(::coretex::agent::v1::JobMetadata* meta);
+  private:
+  const ::coretex::agent::v1::JobMetadata& _internal_meta() const;
+  ::coretex::agent::v1::JobMetadata* _internal_mutable_meta();
+  public:
+  void unsafe_arena_set_allocated_meta(
+      ::coretex::agent::v1::JobMetadata* meta);
+  ::coretex::agent::v1::JobMetadata* unsafe_arena_release_meta();
+
   // double estimated_cost = 5;
   void clear_estimated_cost();
   double estimated_cost() const;
@@ -452,6 +472,7 @@ class PolicyCheckRequest final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr memory_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr effective_config_;
     ::coretex::agent::v1::Budget* budget_;
+    ::coretex::agent::v1::JobMetadata* meta_;
     double estimated_cost_;
     int priority_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -585,6 +606,7 @@ class BudgetConstraints final :
     kMaxRuntimeMsFieldNumber = 1,
     kMaxArtifactBytesFieldNumber = 3,
     kMaxRetriesFieldNumber = 2,
+    kMaxConcurrentJobsFieldNumber = 4,
   };
   // int64 max_runtime_ms = 1;
   void clear_max_runtime_ms();
@@ -613,6 +635,15 @@ class BudgetConstraints final :
   void _internal_set_max_retries(int32_t value);
   public:
 
+  // int32 max_concurrent_jobs = 4;
+  void clear_max_concurrent_jobs();
+  int32_t max_concurrent_jobs() const;
+  void set_max_concurrent_jobs(int32_t value);
+  private:
+  int32_t _internal_max_concurrent_jobs() const;
+  void _internal_set_max_concurrent_jobs(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:coretex.agent.v1.BudgetConstraints)
  private:
   class _Internal;
@@ -624,6 +655,7 @@ class BudgetConstraints final :
     int64_t max_runtime_ms_;
     int64_t max_artifact_bytes_;
     int32_t max_retries_;
+    int32_t max_concurrent_jobs_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1352,11 +1384,26 @@ class PolicyConstraints final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kRedactionLevelFieldNumber = 5,
     kBudgetsFieldNumber = 1,
     kSandboxFieldNumber = 2,
     kToolchainFieldNumber = 3,
     kDiffFieldNumber = 4,
   };
+  // string redaction_level = 5;
+  void clear_redaction_level();
+  const std::string& redaction_level() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_redaction_level(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_redaction_level();
+  PROTOBUF_NODISCARD std::string* release_redaction_level();
+  void set_allocated_redaction_level(std::string* redaction_level);
+  private:
+  const std::string& _internal_redaction_level() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_redaction_level(const std::string& value);
+  std::string* _internal_mutable_redaction_level();
+  public:
+
   // .coretex.agent.v1.BudgetConstraints budgets = 1;
   bool has_budgets() const;
   private:
@@ -1437,6 +1484,7 @@ class PolicyConstraints final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr redaction_level_;
     ::coretex::agent::v1::BudgetConstraints* budgets_;
     ::coretex::agent::v1::SandboxProfile* sandbox_;
     ::coretex::agent::v1::ToolchainConstraints* toolchain_;
@@ -2453,6 +2501,91 @@ inline void PolicyCheckRequest::set_allocated_effective_config(std::string* effe
   // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyCheckRequest.effective_config)
 }
 
+// .coretex.agent.v1.JobMetadata meta = 11;
+inline bool PolicyCheckRequest::_internal_has_meta() const {
+  return this != internal_default_instance() && _impl_.meta_ != nullptr;
+}
+inline bool PolicyCheckRequest::has_meta() const {
+  return _internal_has_meta();
+}
+inline const ::coretex::agent::v1::JobMetadata& PolicyCheckRequest::_internal_meta() const {
+  const ::coretex::agent::v1::JobMetadata* p = _impl_.meta_;
+  return p != nullptr ? *p : reinterpret_cast<const ::coretex::agent::v1::JobMetadata&>(
+      ::coretex::agent::v1::_JobMetadata_default_instance_);
+}
+inline const ::coretex::agent::v1::JobMetadata& PolicyCheckRequest::meta() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyCheckRequest.meta)
+  return _internal_meta();
+}
+inline void PolicyCheckRequest::unsafe_arena_set_allocated_meta(
+    ::coretex::agent::v1::JobMetadata* meta) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.meta_);
+  }
+  _impl_.meta_ = meta;
+  if (meta) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:coretex.agent.v1.PolicyCheckRequest.meta)
+}
+inline ::coretex::agent::v1::JobMetadata* PolicyCheckRequest::release_meta() {
+  
+  ::coretex::agent::v1::JobMetadata* temp = _impl_.meta_;
+  _impl_.meta_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::coretex::agent::v1::JobMetadata* PolicyCheckRequest::unsafe_arena_release_meta() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyCheckRequest.meta)
+  
+  ::coretex::agent::v1::JobMetadata* temp = _impl_.meta_;
+  _impl_.meta_ = nullptr;
+  return temp;
+}
+inline ::coretex::agent::v1::JobMetadata* PolicyCheckRequest::_internal_mutable_meta() {
+  
+  if (_impl_.meta_ == nullptr) {
+    auto* p = CreateMaybeMessage<::coretex::agent::v1::JobMetadata>(GetArenaForAllocation());
+    _impl_.meta_ = p;
+  }
+  return _impl_.meta_;
+}
+inline ::coretex::agent::v1::JobMetadata* PolicyCheckRequest::mutable_meta() {
+  ::coretex::agent::v1::JobMetadata* _msg = _internal_mutable_meta();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyCheckRequest.meta)
+  return _msg;
+}
+inline void PolicyCheckRequest::set_allocated_meta(::coretex::agent::v1::JobMetadata* meta) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.meta_);
+  }
+  if (meta) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(meta));
+    if (message_arena != submessage_arena) {
+      meta = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, meta, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.meta_ = meta;
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyCheckRequest.meta)
+}
+
 // -------------------------------------------------------------------
 
 // BudgetConstraints
@@ -2515,6 +2648,26 @@ inline void BudgetConstraints::_internal_set_max_artifact_bytes(int64_t value) {
 inline void BudgetConstraints::set_max_artifact_bytes(int64_t value) {
   _internal_set_max_artifact_bytes(value);
   // @@protoc_insertion_point(field_set:coretex.agent.v1.BudgetConstraints.max_artifact_bytes)
+}
+
+// int32 max_concurrent_jobs = 4;
+inline void BudgetConstraints::clear_max_concurrent_jobs() {
+  _impl_.max_concurrent_jobs_ = 0;
+}
+inline int32_t BudgetConstraints::_internal_max_concurrent_jobs() const {
+  return _impl_.max_concurrent_jobs_;
+}
+inline int32_t BudgetConstraints::max_concurrent_jobs() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.BudgetConstraints.max_concurrent_jobs)
+  return _internal_max_concurrent_jobs();
+}
+inline void BudgetConstraints::_internal_set_max_concurrent_jobs(int32_t value) {
+  
+  _impl_.max_concurrent_jobs_ = value;
+}
+inline void BudgetConstraints::set_max_concurrent_jobs(int32_t value) {
+  _internal_set_max_concurrent_jobs(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.BudgetConstraints.max_concurrent_jobs)
 }
 
 // -------------------------------------------------------------------
@@ -3401,6 +3554,56 @@ inline void PolicyConstraints::set_allocated_diff(::coretex::agent::v1::DiffCons
   }
   _impl_.diff_ = diff;
   // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyConstraints.diff)
+}
+
+// string redaction_level = 5;
+inline void PolicyConstraints::clear_redaction_level() {
+  _impl_.redaction_level_.ClearToEmpty();
+}
+inline const std::string& PolicyConstraints::redaction_level() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyConstraints.redaction_level)
+  return _internal_redaction_level();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyConstraints::set_redaction_level(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.redaction_level_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.PolicyConstraints.redaction_level)
+}
+inline std::string* PolicyConstraints::mutable_redaction_level() {
+  std::string* _s = _internal_mutable_redaction_level();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyConstraints.redaction_level)
+  return _s;
+}
+inline const std::string& PolicyConstraints::_internal_redaction_level() const {
+  return _impl_.redaction_level_.Get();
+}
+inline void PolicyConstraints::_internal_set_redaction_level(const std::string& value) {
+  
+  _impl_.redaction_level_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyConstraints::_internal_mutable_redaction_level() {
+  
+  return _impl_.redaction_level_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyConstraints::release_redaction_level() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyConstraints.redaction_level)
+  return _impl_.redaction_level_.Release();
+}
+inline void PolicyConstraints::set_allocated_redaction_level(std::string* redaction_level) {
+  if (redaction_level != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.redaction_level_.SetAllocated(redaction_level, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.redaction_level_.IsDefault()) {
+    _impl_.redaction_level_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyConstraints.redaction_level)
 }
 
 // -------------------------------------------------------------------

@@ -61,7 +61,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.coretex.agent.v1.BusPacket.oneofGroups_ = [[10,11,12,13]];
+proto.coretex.agent.v1.BusPacket.oneofGroups_ = [[10,11,12,13,15,16]];
 
 /**
  * @enum {number}
@@ -71,7 +71,9 @@ proto.coretex.agent.v1.BusPacket.PayloadCase = {
   JOB_REQUEST: 10,
   JOB_RESULT: 11,
   HEARTBEAT: 12,
-  ALERT: 13
+  ALERT: 13,
+  JOB_PROGRESS: 15,
+  JOB_CANCEL: 16
 };
 
 /**
@@ -120,6 +122,8 @@ proto.coretex.agent.v1.BusPacket.toObject = function(includeInstance, msg) {
     jobResult: (f = msg.getJobResult()) && coretex_agent_v1_job_pb.JobResult.toObject(includeInstance, f),
     heartbeat: (f = msg.getHeartbeat()) && coretex_agent_v1_heartbeat_pb.Heartbeat.toObject(includeInstance, f),
     alert: (f = msg.getAlert()) && coretex_agent_v1_alert_pb.SystemAlert.toObject(includeInstance, f),
+    jobProgress: (f = msg.getJobProgress()) && coretex_agent_v1_job_pb.JobProgress.toObject(includeInstance, f),
+    jobCancel: (f = msg.getJobCancel()) && coretex_agent_v1_job_pb.JobCancel.toObject(includeInstance, f),
     signature: msg.getSignature_asB64()
   };
 
@@ -193,6 +197,16 @@ proto.coretex.agent.v1.BusPacket.deserializeBinaryFromReader = function(msg, rea
       var value = new coretex_agent_v1_alert_pb.SystemAlert;
       reader.readMessage(value,coretex_agent_v1_alert_pb.SystemAlert.deserializeBinaryFromReader);
       msg.setAlert(value);
+      break;
+    case 15:
+      var value = new coretex_agent_v1_job_pb.JobProgress;
+      reader.readMessage(value,coretex_agent_v1_job_pb.JobProgress.deserializeBinaryFromReader);
+      msg.setJobProgress(value);
+      break;
+    case 16:
+      var value = new coretex_agent_v1_job_pb.JobCancel;
+      reader.readMessage(value,coretex_agent_v1_job_pb.JobCancel.deserializeBinaryFromReader);
+      msg.setJobCancel(value);
       break;
     case 14:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
@@ -286,6 +300,22 @@ proto.coretex.agent.v1.BusPacket.serializeBinaryToWriter = function(message, wri
       13,
       f,
       coretex_agent_v1_alert_pb.SystemAlert.serializeBinaryToWriter
+    );
+  }
+  f = message.getJobProgress();
+  if (f != null) {
+    writer.writeMessage(
+      15,
+      f,
+      coretex_agent_v1_job_pb.JobProgress.serializeBinaryToWriter
+    );
+  }
+  f = message.getJobCancel();
+  if (f != null) {
+    writer.writeMessage(
+      16,
+      f,
+      coretex_agent_v1_job_pb.JobCancel.serializeBinaryToWriter
     );
   }
   f = message.getSignature_asU8();
@@ -534,6 +564,80 @@ proto.coretex.agent.v1.BusPacket.prototype.clearAlert = function() {
  */
 proto.coretex.agent.v1.BusPacket.prototype.hasAlert = function() {
   return jspb.Message.getField(this, 13) != null;
+};
+
+
+/**
+ * optional JobProgress job_progress = 15;
+ * @return {?proto.coretex.agent.v1.JobProgress}
+ */
+proto.coretex.agent.v1.BusPacket.prototype.getJobProgress = function() {
+  return /** @type{?proto.coretex.agent.v1.JobProgress} */ (
+    jspb.Message.getWrapperField(this, coretex_agent_v1_job_pb.JobProgress, 15));
+};
+
+
+/**
+ * @param {?proto.coretex.agent.v1.JobProgress|undefined} value
+ * @return {!proto.coretex.agent.v1.BusPacket} returns this
+*/
+proto.coretex.agent.v1.BusPacket.prototype.setJobProgress = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 15, proto.coretex.agent.v1.BusPacket.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.coretex.agent.v1.BusPacket} returns this
+ */
+proto.coretex.agent.v1.BusPacket.prototype.clearJobProgress = function() {
+  return this.setJobProgress(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.coretex.agent.v1.BusPacket.prototype.hasJobProgress = function() {
+  return jspb.Message.getField(this, 15) != null;
+};
+
+
+/**
+ * optional JobCancel job_cancel = 16;
+ * @return {?proto.coretex.agent.v1.JobCancel}
+ */
+proto.coretex.agent.v1.BusPacket.prototype.getJobCancel = function() {
+  return /** @type{?proto.coretex.agent.v1.JobCancel} */ (
+    jspb.Message.getWrapperField(this, coretex_agent_v1_job_pb.JobCancel, 16));
+};
+
+
+/**
+ * @param {?proto.coretex.agent.v1.JobCancel|undefined} value
+ * @return {!proto.coretex.agent.v1.BusPacket} returns this
+*/
+proto.coretex.agent.v1.BusPacket.prototype.setJobCancel = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 16, proto.coretex.agent.v1.BusPacket.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.coretex.agent.v1.BusPacket} returns this
+ */
+proto.coretex.agent.v1.BusPacket.prototype.clearJobCancel = function() {
+  return this.setJobCancel(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.coretex.agent.v1.BusPacket.prototype.hasJobCancel = function() {
+  return jspb.Message.getField(this, 16) != null;
 };
 
 

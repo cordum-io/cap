@@ -263,7 +263,8 @@ proto.coretex.agent.v1.PolicyCheckRequest.toObject = function(includeInstance, m
     principalId: jspb.Message.getFieldWithDefault(msg, 7, ""),
     labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
     memoryId: jspb.Message.getFieldWithDefault(msg, 9, ""),
-    effectiveConfig: msg.getEffectiveConfig_asB64()
+    effectiveConfig: msg.getEffectiveConfig_asB64(),
+    meta: (f = msg.getMeta()) && coretex_agent_v1_job_pb.JobMetadata.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -342,6 +343,11 @@ proto.coretex.agent.v1.PolicyCheckRequest.deserializeBinaryFromReader = function
     case 10:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.setEffectiveConfig(value);
+      break;
+    case 11:
+      var value = new coretex_agent_v1_job_pb.JobMetadata;
+      reader.readMessage(value,coretex_agent_v1_job_pb.JobMetadata.deserializeBinaryFromReader);
+      msg.setMeta(value);
       break;
     default:
       reader.skipField();
@@ -438,6 +444,14 @@ proto.coretex.agent.v1.PolicyCheckRequest.serializeBinaryToWriter = function(mes
     writer.writeBytes(
       10,
       f
+    );
+  }
+  f = message.getMeta();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      coretex_agent_v1_job_pb.JobMetadata.serializeBinaryToWriter
     );
   }
 };
@@ -670,6 +684,43 @@ proto.coretex.agent.v1.PolicyCheckRequest.prototype.setEffectiveConfig = functio
 };
 
 
+/**
+ * optional JobMetadata meta = 11;
+ * @return {?proto.coretex.agent.v1.JobMetadata}
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.getMeta = function() {
+  return /** @type{?proto.coretex.agent.v1.JobMetadata} */ (
+    jspb.Message.getWrapperField(this, coretex_agent_v1_job_pb.JobMetadata, 11));
+};
+
+
+/**
+ * @param {?proto.coretex.agent.v1.JobMetadata|undefined} value
+ * @return {!proto.coretex.agent.v1.PolicyCheckRequest} returns this
+*/
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.setMeta = function(value) {
+  return jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.coretex.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.clearMeta = function() {
+  return this.setMeta(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.hasMeta = function() {
+  return jspb.Message.getField(this, 11) != null;
+};
+
+
 
 
 
@@ -704,7 +755,8 @@ proto.coretex.agent.v1.BudgetConstraints.toObject = function(includeInstance, ms
   var f, obj = {
     maxRuntimeMs: jspb.Message.getFieldWithDefault(msg, 1, 0),
     maxRetries: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    maxArtifactBytes: jspb.Message.getFieldWithDefault(msg, 3, 0)
+    maxArtifactBytes: jspb.Message.getFieldWithDefault(msg, 3, 0),
+    maxConcurrentJobs: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -753,6 +805,10 @@ proto.coretex.agent.v1.BudgetConstraints.deserializeBinaryFromReader = function(
       var value = /** @type {number} */ (reader.readInt64());
       msg.setMaxArtifactBytes(value);
       break;
+    case 4:
+      var value = /** @type {number} */ (reader.readInt32());
+      msg.setMaxConcurrentJobs(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -800,6 +856,13 @@ proto.coretex.agent.v1.BudgetConstraints.serializeBinaryToWriter = function(mess
   if (f !== 0) {
     writer.writeInt64(
       3,
+      f
+    );
+  }
+  f = message.getMaxConcurrentJobs();
+  if (f !== 0) {
+    writer.writeInt32(
+      4,
       f
     );
   }
@@ -857,6 +920,24 @@ proto.coretex.agent.v1.BudgetConstraints.prototype.getMaxArtifactBytes = functio
  */
 proto.coretex.agent.v1.BudgetConstraints.prototype.setMaxArtifactBytes = function(value) {
   return jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
+/**
+ * optional int32 max_concurrent_jobs = 4;
+ * @return {number}
+ */
+proto.coretex.agent.v1.BudgetConstraints.prototype.getMaxConcurrentJobs = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.coretex.agent.v1.BudgetConstraints} returns this
+ */
+proto.coretex.agent.v1.BudgetConstraints.prototype.setMaxConcurrentJobs = function(value) {
+  return jspb.Message.setProto3IntField(this, 4, value);
 };
 
 
@@ -1600,7 +1681,8 @@ proto.coretex.agent.v1.PolicyConstraints.toObject = function(includeInstance, ms
     budgets: (f = msg.getBudgets()) && proto.coretex.agent.v1.BudgetConstraints.toObject(includeInstance, f),
     sandbox: (f = msg.getSandbox()) && proto.coretex.agent.v1.SandboxProfile.toObject(includeInstance, f),
     toolchain: (f = msg.getToolchain()) && proto.coretex.agent.v1.ToolchainConstraints.toObject(includeInstance, f),
-    diff: (f = msg.getDiff()) && proto.coretex.agent.v1.DiffConstraints.toObject(includeInstance, f)
+    diff: (f = msg.getDiff()) && proto.coretex.agent.v1.DiffConstraints.toObject(includeInstance, f),
+    redactionLevel: jspb.Message.getFieldWithDefault(msg, 5, "")
   };
 
   if (includeInstance) {
@@ -1656,6 +1738,10 @@ proto.coretex.agent.v1.PolicyConstraints.deserializeBinaryFromReader = function(
       var value = new proto.coretex.agent.v1.DiffConstraints;
       reader.readMessage(value,proto.coretex.agent.v1.DiffConstraints.deserializeBinaryFromReader);
       msg.setDiff(value);
+      break;
+    case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setRedactionLevel(value);
       break;
     default:
       reader.skipField();
@@ -1716,6 +1802,13 @@ proto.coretex.agent.v1.PolicyConstraints.serializeBinaryToWriter = function(mess
       4,
       f,
       proto.coretex.agent.v1.DiffConstraints.serializeBinaryToWriter
+    );
+  }
+  f = message.getRedactionLevel();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
     );
   }
 };
@@ -1866,6 +1959,24 @@ proto.coretex.agent.v1.PolicyConstraints.prototype.clearDiff = function() {
  */
 proto.coretex.agent.v1.PolicyConstraints.prototype.hasDiff = function() {
   return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional string redaction_level = 5;
+ * @return {string}
+ */
+proto.coretex.agent.v1.PolicyConstraints.prototype.getRedactionLevel = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.coretex.agent.v1.PolicyConstraints} returns this
+ */
+proto.coretex.agent.v1.PolicyConstraints.prototype.setRedactionLevel = function(value) {
+  return jspb.Message.setProto3StringField(this, 5, value);
 };
 
 
@@ -2495,7 +2606,8 @@ proto.coretex.agent.v1.DecisionType = {
   DECISION_TYPE_ALLOW: 1,
   DECISION_TYPE_DENY: 2,
   DECISION_TYPE_REQUIRE_HUMAN: 3,
-  DECISION_TYPE_THROTTLE: 4
+  DECISION_TYPE_THROTTLE: 4,
+  DECISION_TYPE_ALLOW_WITH_CONSTRAINTS: 5
 };
 
 goog.object.extend(exports, proto.coretex.agent.v1);

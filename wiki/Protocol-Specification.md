@@ -117,6 +117,7 @@ All CAP traffic is wrapped in a `BusPacket`. The envelope provides tracing, send
 - `created_at`: timestamp of emission.
 - `protocol_version`: CAP wire version. Consumers MAY reject packets with unsupported versions.
 - `payload`: exactly one of `JobRequest`, `JobResult`, `Heartbeat`, or `SystemAlert`.
+- `signature` (optional but recommended): digital signature of the serialized `BusPacket` for authenticity and integrity.
 
 ## Canonical Proto (see `proto/coretex/agent/v1/buspacket.proto`)
 ```proto
@@ -132,6 +133,8 @@ message BusPacket {
     Heartbeat heartbeat = 12;
     SystemAlert alert = 13;
   }
+
+  bytes signature = 14; // digital signature of the serialized BusPacket
 }
 ```
 
@@ -148,6 +151,7 @@ message BusPacket {
 - Producers SHOULD set `protocol_version = 1` until a new major is defined.
 - Consumers SHOULD treat unknown fields as optional and ignore them.
 - Bus-level metadata (headers) MAY be used for auth or routing, but message-level fields remain canonical.
+- When signatures are enabled, verify the signature with the field cleared before trusting the packet.
 # Job Protocol
 
 CAP jobs are the core unit of work. Gateways submit `JobRequest` packets, workers emit `JobResult`, and schedulers move jobs through the state machine.
@@ -296,6 +300,7 @@ Heartbeats advertise worker liveness, capacity, and pool membership so scheduler
 - `capabilities`: freeform skills/tools supported (e.g., `python`, `browser`, `embedding`).
 - `pool`: pool/subject this worker consumes (e.g., `job.code.llm`).
 - `max_parallel_jobs`: advertised concurrency limit.
+- `labels`: optional placement/routing metadata (e.g., `region`, `compliance`, `runtime`).
 
 ## Emission Rules
 - Default interval SHOULD be 2-5 seconds; set lower for latency-sensitive pools.
@@ -314,7 +319,7 @@ CAP makes safety a first-class control-plane hook via the Safety Kernel.
 
 ## Decision Model
 - Outcomes: `ALLOW`, `DENY`, `REQUIRE_HUMAN`, `THROTTLE`.
-- Inputs: `job_id`, `topic`, `tenant`, `principal_id`, `priority`, `budget`, optional `estimated_cost`, `labels`, and `memory_id`.
+- Inputs: `job_id`, `topic`, `tenant`, `principal_id`, `priority`, `budget`, optional `estimated_cost`, `labels`, `memory_id`, and optional `effective_config` (marshaled EffectiveConfig).
 - Outputs: decision, human-readable `reason`, and optional `redacted_context_ptr`.
 
 ## Canonical Service (see `proto/coretex/agent/v1/safety.proto`)
@@ -526,7 +531,7 @@ While transport-level encryption (TLS) protects data in transit on the bus, the 
 
 To prevent message spoofing and tampering, all `BusPacket` envelopes SHOULD be digitally signed.
 
-- **Mechanism:** The `BusPacket` proto can be extended to include a `signature` field. The sender would serialize the `BusPacket` (without the signature field), sign the serialized data with its private key, and then add the signature to the `signature` field. The receiver would verify the signature using the sender's public key.
+- **Mechanism:** `BusPacket` includes a `signature` field. The sender serializes the packet with `signature` cleared, signs the serialized data with its private key, and then sets the `signature` field. The receiver clears the field, recomputes the hash, and verifies the signature using the sender's public key.
 
 ```proto
 message BusPacket {
@@ -553,11 +558,9 @@ message BusPacket {
 The Safety Kernel is a critical component for policy enforcement. To enable more sophisticated policies, the `PolicyCheckRequest` should include as much context as possible.
 
 - **Recommended `PolicyCheckRequest` Fields:**
-  - `job_id`, `topic`, `tenant`, `priority`, `adapter_id`, `estimated_cost`
-  - `user_id`, `client_ip`
-  - A hash of the `context_ptr` data, to allow the Safety Kernel to check for known malicious inputs without having access to the raw data.
-  - `env` metadata.
-  - `effective_config` (marshaled EffectiveConfig for the resolved context).
+  - `job_id`, `topic`, `tenant`, `principal_id`, `priority`, `estimated_cost`
+  - `budget`, `labels`, `memory_id`
+  - `effective_config` (marshaled EffectiveConfig for the resolved context)
 
 ## Input Validation
 

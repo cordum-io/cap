@@ -45,9 +45,8 @@ Before you begin, you will need to have the following installed:
         cd sdk/python
         python3 -m venv .venv
         source .venv/bin/activate
-        pip install -r requirements.txt
+        pip install -e .
         ```
-        *(Note: You will need to create a `requirements.txt` file)*
 
     *   **Node.js:**
 
@@ -72,16 +71,12 @@ The `simple-echo` example demonstrates a simple worker that echoes back the job 
 
 2.  **Run the Go worker:**
 
-    *(You will need to create a `main.go` file for the worker under `examples/simple-echo/go-worker`)*
-
     ```bash
     cd examples/simple-echo/go-worker
     go run .
     ```
 
 3.  **Submit a job using the Go client:**
-
-    *(You will need to create a `main.go` file for the client under `examples/simple-echo/go-client`)*
 
     ```bash
     cd examples/simple-echo/go-client

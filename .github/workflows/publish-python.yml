@@ -109,7 +109,8 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Note: packages_dir is relative to REPO ROOT, not working-directory
-          packages_dir: sdk/python/dist
+          # Note: packages-dir is relative to REPO ROOT, not working-directory
+          packages-dir: sdk/python/dist
+          skip-existing: true
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}

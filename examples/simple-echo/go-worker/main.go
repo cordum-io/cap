@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"log"
 
-	"github.com/coretexos/cap/sdk/go/worker"
 	agentv1 "github.com/coretexos/cap/go/coretex/agent/v1"
+	"github.com/coretexos/cap/sdk/go/worker"
 	"github.com/nats-io/nats.go"
 )
 
@@ -23,11 +26,17 @@ func main() {
 	}
 	defer nc.Close()
 
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	w := &worker.Worker{
 		NATS:       nc,
 		Subject:    "job.echo",
 		Handler:    myHandler,
 		SenderID:   "my-worker",
+		PrivateKey: priv, // sign JobResult envelopes
 	}
 
 	if err := w.Start(); err != nil {

@@ -16,6 +16,9 @@ package main
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"log"
 
 	"github.com/coretexos/cap/sdk/go/worker"
@@ -37,11 +40,17 @@ func main() {
 	}
 	defer nc.Close()
 
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	w := &worker.Worker{
 		NATS:       nc,
 		Subject:    "job.echo",
 		Handler:    myHandler,
 		SenderID:   "my-worker",
+		PrivateKey: priv, // signs outgoing JobResult envelopes
 	}
 
 	if err := w.Start(); err != nil {
@@ -63,6 +72,9 @@ package main
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"log"
 
 	"github.com/coretexos/cap/sdk/go/client"
@@ -77,12 +89,17 @@ func main() {
 	}
 	defer nc.Close()
 
+	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	req := &agentv1.JobRequest{
 		JobId: "my-echo-job",
 		Topic: "job.echo",
 	}
 
-	if err := client.Submit(context.Background(), nc, req, "my-trace-id", "my-client", nil); err != nil {
+	if err := client.Submit(context.Background(), nc, req, "my-trace-id", "my-client", priv); err != nil {
 		log.Fatal(err)
 	}
 

@@ -3,7 +3,7 @@ name: Publish Python SDK to PyPI
 on:
   workflow_dispatch:
   release:
-    types: [published, released, prereleased]
+    types: [published]
   push:
     tags:
       - "v*"
@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
+      id-token: write # Required for OIDC (if you switch to it later)
     defaults:
       run:
         shell: bash
@@ -45,43 +45,55 @@ jobs:
         env:
           VERSION: ${{ github.ref_name }}
           PYTHON_BIN: python
+        # FIX: The heredoc (<<'PY') content must be flush left to avoid IndentationError
         run: |
           if [[ -z "${VERSION}" ]]; then
             echo "VERSION not set from tag"; exit 1
           fi
-          VERSION="${VERSION#v}"
+          
           "$PYTHON_BIN" - <<'PY'
-  import os
-  import tomllib
-  from pathlib import Path
+          import os
+          import tomllib
+          from pathlib import Path
 
-  version = os.environ["VERSION"].lstrip("v")
-  path = Path("pyproject.toml")
-  data = tomllib.loads(path.read_text())
-  if "project" not in data:
-      raise SystemExit("No [project] section in pyproject.toml")
-  out_lines = []
-  in_project = False
-  for line in path.read_text().splitlines():
-      if line.strip().startswith("[project]"):
-          in_project = True
-          out_lines.append(line)
-          continue
-      if in_project and line.startswith("[") and line.strip() != "[project.urls]":
+          # Strip 'v' prefix if present
+          version = os.environ["VERSION"].lstrip("v")
+          path = Path("pyproject.toml")
+          
+          # Verify TOML is valid
+          data = tomllib.loads(path.read_text())
+          if "project" not in data:
+              raise SystemExit("No [project] section in pyproject.toml")
+
+          out_lines = []
           in_project = False
-      if in_project and line.strip().startswith("version"):
-          out_lines.append(f'version = "{version}"')
-      else:
-          out_lines.append(line)
-  path.write_text("\n".join(out_lines) + "\n")
-  print(f"Set version to {version}")
-PY
+          
+          # Naive replacement to preserve comments/formatting
+          for line in path.read_text().splitlines():
+              if line.strip().startswith("[project]"):
+                  in_project = True
+                  out_lines.append(line)
+                  continue
+              if in_project and line.startswith("[") and line.strip() != "[project.urls]":
+                  in_project = False
+              
+              # Replace version line
+              if in_project and line.strip().startswith("version"):
+                  out_lines.append(f'version = "{version}"')
+              else:
+                  out_lines.append(line)
+          
+          path.write_text("\n".join(out_lines) + "\n")
+          print(f"Set version to {version}")
+          PY
 
       - name: Generate Python stubs
         env:
           PYTHON_BIN: python
         run: |
           mkdir -p cap/pb
+          touch cap/pb/__init__.py  # FIX: Ensure package is importable
+          
           "$PYTHON_BIN" -m grpc_tools.protoc \
             -I../../proto \
             --python_out=./cap/pb \
@@ -97,6 +109,7 @@ PY
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          # Note: packages_dir is relative to REPO ROOT, not working-directory
+          packages_dir: sdk/python/dist
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
-          packages_dir: sdk/python/dist

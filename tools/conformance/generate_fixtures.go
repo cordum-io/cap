@@ -5,10 +5,10 @@ import (
 	"crypto/elliptic"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/binary"
 	"encoding/pem"
 	"fmt"
 	"math/big"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,23 +20,33 @@ import (
 )
 
 type detReader struct {
-	r *rand.Rand
+	seed    [32]byte
+	counter uint64
 }
 
 func (d *detReader) Read(p []byte) (int, error) {
-	for i := range p {
-		p[i] = byte(d.r.Intn(256))
+	buf := make([]byte, 0, len(p))
+	for len(buf) < len(p) {
+		block := sha256.New()
+		block.Write(d.seed[:])
+		var ctrBytes [8]byte
+		binary.LittleEndian.PutUint64(ctrBytes[:], d.counter)
+		block.Write(ctrBytes[:])
+		sum := block.Sum(nil)
+		need := len(p) - len(buf)
+		if need > len(sum) {
+			need = len(sum)
+		}
+		buf = append(buf, sum[:need]...)
+		d.counter++
 	}
+	copy(p, buf[:len(p)])
 	return len(p), nil
 }
 
 func seededReader(name string) *detReader {
 	sum := sha256.Sum256([]byte(name))
-	seed := int64(0)
-	for i := 0; i < 8; i++ {
-		seed = (seed << 8) | int64(sum[i])
-	}
-	return &detReader{r: rand.New(rand.NewSource(seed))}
+	return &detReader{seed: sum}
 }
 
 func testPrivateKey() *ecdsa.PrivateKey {

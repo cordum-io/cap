@@ -26,9 +26,21 @@ jobs:
           go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
-      - name: Generate Go stubs
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python protoc plugin
         run: |
-          CAP_RUN_PY=0 bash ./tools/make_protos.sh
+          python -m pip install --upgrade pip
+          python -m pip install grpcio-tools
+
+      - name: Generate Go stubs
+        env:
+          CAP_RUN_PY: 1
+        run: |
+          bash ./tools/make_protos.sh
           ls -la gen/go || ls -la generated/go || true
 
       - name: Go test (generated)

@@ -4,6 +4,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Semver version to publish (e.g., 2.0.9)"
+        required: true
+        type: string
 
 jobs:
   publish:
@@ -26,12 +31,15 @@ jobs:
 
       - name: Set version from tag
         env:
-          VERSION: ${{ github.ref_name }}
+          VERSION: ${{ github.event.inputs.version || github.ref_name }}
         run: |
           if [[ -z "${VERSION}" ]]; then
             echo "VERSION not set from tag"; exit 1
           fi
           VERSION="${VERSION#v}"
+          if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
+            echo "VERSION must be semver (got: ${VERSION})"; exit 1
+          fi
           npm version "$VERSION" --no-git-tag-version
 
       - name: Install dependencies

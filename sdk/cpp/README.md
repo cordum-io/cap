@@ -8,7 +8,7 @@ Minimal C++17 SDK for CAP with helpers to encode/decode BusPackets and wire work
 - Protobuf compiler and C++ runtime (`protoc`, `libprotobuf-dev`)
 
 ## Build & Generate Protos
-From the repo root:
+Pre-generated protobuf C++ stubs live in `/cpp`. To regenerate (or build from source) run from repo root:
 ```bash
 cmake -S sdk/cpp -B sdk/cpp/build -DPROTO_ROOT=../../proto
 cmake --build sdk/cpp/build

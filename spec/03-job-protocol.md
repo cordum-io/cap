@@ -19,6 +19,32 @@ CAP jobs are the core unit of work. Gateways submit `JobRequest` packets, worker
 - `execution_ms`: elapsed processing time measured by the worker.
 - `error_code` / `error_message`: optional diagnostics for failures or denials.
 
+## Job Lifecycle Diagram
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Gateway
+    participant MemoryFabric
+    participant Bus
+    participant Scheduler
+    participant Worker
+
+    Client->>Gateway: Submit Job
+    Gateway->>MemoryFabric: Write context
+    Gateway->>Bus: Publish JobRequest
+    Bus->>Scheduler: Consume JobRequest
+    Scheduler->>Bus: Dispatch Job
+    Bus->>Worker: Consume Job
+    Worker->>MemoryFabric: Read context
+    Note right of Worker: Execute Job
+    Worker->>MemoryFabric: Write result
+    Worker->>Bus: Publish JobResult
+    Bus->>Scheduler: Consume JobResult
+    Scheduler->>Client: Notify Job Completion (optional)
+    Client->>MemoryFabric: Read result
+```
+
 ## Submission Flow
 1. Client writes input to external memory and obtains `context_ptr`.
 2. Gateway validates, populates `job_id`, and publishes `BusPacket{JobRequest}` to `sys.job.submit`.

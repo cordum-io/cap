@@ -27,6 +27,44 @@
 - **Memory Fabric**: external storage for context/result pointers (Redis, object storage, DB).
 - **Bus**: pub/sub fabric carrying `BusPacket` envelopes.
 
+## Architecture Diagram
+
+```mermaid
+graph TD
+    subgraph "External"
+        Client
+    end
+
+    subgraph "CAP System"
+        Gateway
+        Bus
+        Scheduler
+        WorkerPool[Worker Pool]
+        Orchestrator
+        SafetyKernel[Safety Kernel]
+        MemoryFabric[Memory Fabric]
+    end
+
+    Client -- "1. Submit Job (with context)" --> Gateway
+    Gateway -- "2. Write context to Memory Fabric" --> MemoryFabric
+    Gateway -- "3. Publish JobRequest" --> Bus
+    Bus -- "4. Forward JobRequest" --> Scheduler
+    Scheduler -- "5. Call Safety Kernel" --> SafetyKernel
+    SafetyKernel -- "6. Return Decision" --> Scheduler
+    Scheduler -- "7. Dispatch Job" --> Bus
+    Bus -- "8. Forward Job to Worker" --> WorkerPool
+    WorkerPool -- "9. Read context" --> MemoryFabric
+    WorkerPool -- "10. Execute Job" --> WorkerPool
+    WorkerPool -- "11. Write result" --> MemoryFabric
+    WorkerPool -- "12. Publish JobResult" --> Bus
+    Bus -- "13. Forward JobResult" --> Scheduler
+    Scheduler -- "14. Update Job State" --> Scheduler
+    Client -- "15. Read Result" --> MemoryFabric
+
+    Orchestrator -- "Spawns child jobs" --> Bus
+    Bus -- "Routes child jobs" --> Scheduler
+```
+
 ## Core Abstractions
 - **BusPacket**: envelope carrying trace metadata and one payload (`JobRequest`, `JobResult`, `Heartbeat`, `SystemAlert`).
 - **JobRequest / JobResult**: submission and completion messages for a schedulable unit of work.

@@ -6,6 +6,9 @@ async function main() {
   await startWorker({
     nc,
     subject: "job.echo",
+    senderId: "worker-echo-node",
+    publicKeyMap: {}, // Dummy for now
+    privateKey: "", // Dummy for now
     handler: async (req) => {
       return {
         job_id: req.job_id,

@@ -23,3 +23,5 @@ This folder contains the normative specification for the Cortex Agent Protocol (
 - [08 Workflows](08-workflows.md)
 - [09 Transport Profile](09-transport-profile.md)
 - [10 Security and Observability](10-security-observability.md)
+- [11 Security Best Practices](11-security-best-practices.md)
+- [12 Glossary](12-glossary.md)

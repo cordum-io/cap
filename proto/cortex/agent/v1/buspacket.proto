@@ -27,4 +27,5 @@ message BusPacket {
         Heartbeat heartbeat = 12;
         SystemAlert alert = 13;
     }
+    bytes signature = 14;                   // digital signature of the serialized BusPacket
 }

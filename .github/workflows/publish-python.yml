@@ -1,12 +1,12 @@
 name: Publish Python SDK to PyPI
 
 on:
+  workflow_dispatch:
   release:
     types: [published, released, prereleased]
   push:
     tags:
       - "v*"
-  workflow_dispatch:
 
 jobs:
   build-and-publish:

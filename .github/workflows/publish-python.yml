@@ -2,7 +2,10 @@ name: Publish Python SDK to PyPI
 
 on:
   release:
-    types: [published]
+    types: [published, released, prereleased]
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -32,7 +35,7 @@ jobs:
 
       - name: Install build deps
         env:
-          PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
+          PYTHON_BIN: python
         run: |
           "$PYTHON_BIN" -m pip install --upgrade pip
           "$PYTHON_BIN" -m pip install build grpcio-tools
@@ -41,7 +44,7 @@ jobs:
       - name: Set version from tag
         env:
           VERSION: ${{ github.ref_name }}
-          PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
+          PYTHON_BIN: python
         run: |
           if [[ -z "${VERSION}" ]]; then
             echo "VERSION not set from tag"; exit 1
@@ -76,7 +79,7 @@ PY
 
       - name: Generate Python stubs
         env:
-          PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
+          PYTHON_BIN: python
         run: |
           mkdir -p cap/pb
           "$PYTHON_BIN" -m grpc_tools.protoc \
@@ -87,7 +90,7 @@ PY
 
       - name: Build package
         env:
-          PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
+          PYTHON_BIN: python
         run: |
           "$PYTHON_BIN" -m build
 

@@ -7,6 +7,11 @@
 - Works with any pub/sub that supports subjects and competing consumers (NATS by default, Kafka acceptable).
 - Compatible with workers, orchestrators, gateways, schedulers, and external clients in mixed deployments.
 
+## Status
+- Protocol: CAP v0.1.0 — Draft (breaking changes still possible).
+- Transport profile: NATS-first; other buses experimental.
+- Reference implementation: CortexOS.
+
 ## MCP != CAP
 - MCP = single-model tool protocol.
 - CAP = distributed multi-agent execution protocol (scheduler + pools + safety + state machine).

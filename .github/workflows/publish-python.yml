@@ -1,0 +1,55 @@
+name: Publish Python SDK to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        shell: bash
+        working-directory: sdk/python
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+
+      - name: Install build deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install build grpcio-tools
+
+      - name: Generate Python stubs
+        run: |
+          mkdir -p cap/pb
+          python -m grpc_tools.protoc \
+            -I../../proto \
+            --python_out=./cap/pb \
+            --grpc_python_out=./cap/pb \
+            ../../proto/cortex/agent/v1/*.proto
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: sdk/python/dist

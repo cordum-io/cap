@@ -18,14 +18,14 @@ from cortex.agent.v1 import heartbeat_pb2 as cortex_dot_agent_dot_v1_dot_heartbe
 from cortex.agent.v1 import alert_pb2 as cortex_dot_agent_dot_v1_dot_alert__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ortex/agent/v1/buspacket.proto\x12\x0f\x63ortex.agent.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19\x63ortex/agent/v1/job.proto\x1a\x1f\x63ortex/agent/v1/heartbeat.proto\x1a\x1b\x63ortex/agent/v1/alert.proto\"\xcb\x02\n\tBusPacket\x12\x10\n\x08trace_id\x18\x01 \x01(\t\x12\x11\n\tsender_id\x18\x02 \x01(\t\x12.\n\ncreated_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x18\n\x10protocol_version\x18\x04 \x01(\x05\x12\x32\n\x0bjob_request\x18\n \x01(\x0b\x32\x1b.cortex.agent.v1.JobRequestH\x00\x12\x30\n\njob_result\x18\x0b \x01(\x0b\x32\x1a.cortex.agent.v1.JobResultH\x00\x12/\n\theartbeat\x18\x0c \x01(\x0b\x32\x1a.cortex.agent.v1.HeartbeatH\x00\x12-\n\x05\x61lert\x18\r \x01(\x0b\x32\x1c.cortex.agent.v1.SystemAlertH\x00\x42\t\n\x07payloadB\x8b\x01\n\x16\x61i.cortex.cap.agent.v1P\x01Z7github.com/cortex-agent-protocol/go/gen/cortex/agent/v1\xaa\x02\x0f\x43ortex.Agent.V1\xca\x02\x0f\x43ortex\\Agent\\V1\xea\x02\x11\x43ortex::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ortex/agent/v1/buspacket.proto\x12\x0f\x63ortex.agent.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19\x63ortex/agent/v1/job.proto\x1a\x1f\x63ortex/agent/v1/heartbeat.proto\x1a\x1b\x63ortex/agent/v1/alert.proto\"\xcb\x02\n\tBusPacket\x12\x10\n\x08trace_id\x18\x01 \x01(\t\x12\x11\n\tsender_id\x18\x02 \x01(\t\x12.\n\ncreated_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x18\n\x10protocol_version\x18\x04 \x01(\x05\x12\x32\n\x0bjob_request\x18\n \x01(\x0b\x32\x1b.cortex.agent.v1.JobRequestH\x00\x12\x30\n\njob_result\x18\x0b \x01(\x0b\x32\x1a.cortex.agent.v1.JobResultH\x00\x12/\n\theartbeat\x18\x0c \x01(\x0b\x32\x1a.cortex.agent.v1.HeartbeatH\x00\x12-\n\x05\x61lert\x18\r \x01(\x0b\x32\x1c.cortex.agent.v1.SystemAlertH\x00\x42\t\n\x07payloadB|\n\x16\x61i.cortex.cap.agent.v1P\x01Z(github.com/coretexos/cap/cortex/agent/v1\xaa\x02\x0f\x43ortex.Agent.V1\xca\x02\x0f\x43ortex\\Agent\\V1\xea\x02\x11\x43ortex::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'cortex.agent.v1.buspacket_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['DESCRIPTOR']._options = None
-  _globals['DESCRIPTOR']._serialized_options = b'\n\026ai.cortex.cap.agent.v1P\001Z7github.com/cortex-agent-protocol/go/gen/cortex/agent/v1\252\002\017Cortex.Agent.V1\312\002\017Cortex\\Agent\\V1\352\002\021Cortex::Agent::V1'
+  _globals['DESCRIPTOR']._serialized_options = b'\n\026ai.cortex.cap.agent.v1P\001Z(github.com/coretexos/cap/cortex/agent/v1\252\002\017Cortex.Agent.V1\312\002\017Cortex\\Agent\\V1\352\002\021Cortex::Agent::V1'
   _globals['_BUSPACKET']._serialized_start=175
   _globals['_BUSPACKET']._serialized_end=506
 # @@protoc_insertion_point(module_scope)

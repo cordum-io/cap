@@ -9,7 +9,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROTO_DIR="$ROOT_DIR/proto"
-OUT_GO="$ROOT_DIR/generated/go/gen"
+OUT_GO="$ROOT_DIR/generated/go"
 OUT_PY="$ROOT_DIR/generated/python"
 
 # Prefer a working python; fall back to python3 if python is missing.

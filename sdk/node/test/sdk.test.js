@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("../src/client");
 const worker_1 = require("../src/worker");
 const protos_1 = require("../src/protos");
+const codec_1 = require("../src/codec");
 const crypto = __importStar(require("crypto"));
 // Mock NatsConnection
 class MockNatsConnection {
@@ -152,8 +153,7 @@ describe("CAP SDK E2E Test", () => {
         const resultPacket = BusPacket.decode(workerPublishedMsg.data);
         expect(resultPacket.signature).toBeDefined();
         const receivedSignature = resultPacket.signature;
-        resultPacket.signature = Buffer.from([]); // Clear signature for verification
-        const unsignedData = BusPacket.encode(resultPacket).finish();
+        const unsignedData = (0, codec_1.encodeUnsignedForSignature)(BusPacket, resultPacket);
         const verify = crypto.createVerify("sha256");
         verify.update(unsignedData);
         expect(verify.verify(workerPublicKey, receivedSignature)).toBe(true);

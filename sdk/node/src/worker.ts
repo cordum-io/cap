@@ -1,5 +1,6 @@
 import { NatsConnection, Subscription } from "nats";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
+import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import * as crypto from "crypto";
 
 type Handler = (jobRequest: any) => Promise<any>;
@@ -32,8 +33,7 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
         }
 
         const receivedSignature = packet.signature;
-        packet.signature = Buffer.from([]); // Clear signature for verification
-        const unsignedData = BusPacket.encode(packet).finish();
+        const unsignedData = encodeUnsignedForSignature(BusPacket, packet);
 
         const verify = crypto.createVerify("sha256");
         verify.update(unsignedData);
@@ -83,16 +83,13 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
 
       // Signing outgoing packet
       if (cfg.privateKey) {
-        const unsignedOut: any = BusPacket.fromObject(out.toJSON());
-        unsignedOut.signature = Buffer.from([]);
-        const unsignedOutData = BusPacket.encode(unsignedOut).finish();
-
+        const unsignedOutData = encodeUnsignedForSignature(BusPacket, out);
         const sign = crypto.createSign("sha256");
         sign.update(unsignedOutData);
         out.signature = sign.sign(cfg.privateKey);
       }
 
-      const data = BusPacket.encode(out).finish();
+      const data = encodeDeterministic(BusPacket, out);
       await cfg.nc.publish(SUBJECT_RESULT, data);
     } catch (err) {
       // log and continue

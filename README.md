@@ -9,7 +9,7 @@
 
 ## Status
 - Protocol (wire): CAP 1.0.0 — Stable; append-only changes only.
-- Implementation / SDK: cap v2.0.16 (tagged releases in this repo).
+- Implementation / SDK: cap v2.0.17 (tagged releases in this repo).
 - Transport profile: NATS-first; other buses experimental.
 - Reference implementation: Cordum.
 
@@ -17,7 +17,7 @@
 | Component | Version | Notes |
 | --- | --- | --- |
 | Protocol wire schema | 1.0.0 | Append-only evolution; never renumber fields. |
-| Repo / SDKs | 2.0.16 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
+| Repo / SDKs | 2.0.17 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
 | `protocol_version` field | 1 | Used in `BusPacket` for negotiation. |
 
 ## MCP != CAP
@@ -143,6 +143,7 @@ func main() {
 
 ## Repo Map
 - `spec/` - normative spec: envelopes, jobs, pointers, heartbeats, safety, state, workflows, transport, security.
+- `spec/conformance/` - binary fixtures for cross-SDK conformance tests.
 - `proto/` - protobuf contracts (copy/paste ready).
 - `examples/` - JSON and sequence flows for common scenarios.
 - `tools/` - helper scripts for proto generation (optional).

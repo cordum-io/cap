@@ -2,6 +2,7 @@ import { NatsConnection, Msg, Subscription } from "nats";
 import { submitJob } from "../src/client";
 import { startWorker } from "../src/worker";
 import { loadRoot } from "../src/protos";
+import { encodeUnsignedForSignature } from "../src/codec";
 import * as crypto from "crypto";
 import Long from "long";
 import assert from "node:assert";
@@ -113,9 +114,7 @@ describe("CAP SDK E2E Test", () => {
     assert.ok(resultPacket.signature);
 
     const receivedSignature = resultPacket.signature;
-    resultPacket.signature = Buffer.from([]); // Clear signature for verification
-
-    const unsignedData = BusPacket.encode(resultPacket).finish();
+    const unsignedData = encodeUnsignedForSignature(BusPacket, resultPacket);
     const verify = crypto.createVerify("sha256");
     verify.update(unsignedData);
     assert.strictEqual(verify.verify(workerPublicKey, receivedSignature), true);

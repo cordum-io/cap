@@ -70,14 +70,14 @@ const char descriptor_table_protodef_coretex_2fagent_2fv1_2falert_2eproto[] PROT
   "\n\034coretex/agent/v1/alert.proto\022\020coretex."
   "agent.v1\"N\n\013SystemAlert\022\r\n\005level\030\001 \001(\t\022\017"
   "\n\007message\030\002 \001(\t\022\021\n\tcomponent\030\003 \001(\t\022\014\n\004co"
-  "de\030\004 \001(\tB\207\001\n\027ai.coretex.cap.agent.v1P\001Z/"
-  "github.com/coretexos/cap/v2/go/coretex/a"
-  "gent/v1\252\002\020coretex.Agent.V1\312\002\020coretex\\Age"
-  "nt\\V1\352\002\022coretex::Agent::V1b\006proto3"
+  "de\030\004 \001(\tB\204\001\n\027ai.coretex.cap.agent.v1P\001Z,"
+  "github.com/coretexos/cap/v2/coretex/agen"
+  "t/v1\252\002\020coretex.Agent.V1\312\002\020coretex\\Agent\\"
+  "V1\352\002\022coretex::Agent::V1b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_coretex_2fagent_2fv1_2falert_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coretex_2fagent_2fv1_2falert_2eproto = {
-    false, false, 274, descriptor_table_protodef_coretex_2fagent_2fv1_2falert_2eproto,
+    false, false, 271, descriptor_table_protodef_coretex_2fagent_2fv1_2falert_2eproto,
     "coretex/agent/v1/alert.proto",
     &descriptor_table_coretex_2fagent_2fv1_2falert_2eproto_once, nullptr, 0, 1,
     schemas, file_default_instances, TableStruct_coretex_2fagent_2fv1_2falert_2eproto::offsets,

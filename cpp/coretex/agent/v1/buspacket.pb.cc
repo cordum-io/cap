@@ -89,10 +89,10 @@ const char descriptor_table_protodef_coretex_2fagent_2fv1_2fbuspacket_2eproto[] 
   "sultH\000\0220\n\theartbeat\030\014 \001(\0132\033.coretex.agen"
   "t.v1.HeartbeatH\000\022.\n\005alert\030\r \001(\0132\035.corete"
   "x.agent.v1.SystemAlertH\000\022\021\n\tsignature\030\016 "
-  "\001(\014B\t\n\007payloadB\207\001\n\027ai.coretex.cap.agent."
-  "v1P\001Z/github.com/coretexos/cap/v2/go/cor"
-  "etex/agent/v1\252\002\020coretex.Agent.V1\312\002\020coret"
-  "ex\\Agent\\V1\352\002\022coretex::Agent::V1b\006proto3"
+  "\001(\014B\t\n\007payloadB\204\001\n\027ai.coretex.cap.agent."
+  "v1P\001Z,github.com/coretexos/cap/v2/corete"
+  "x/agent/v1\252\002\020coretex.Agent.V1\312\002\020coretex\\"
+  "Agent\\V1\352\002\022coretex::Agent::V1b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_deps[4] = {
   &::descriptor_table_coretex_2fagent_2fv1_2falert_2eproto,
@@ -102,7 +102,7 @@ static const ::_pbi::DescriptorTable* const descriptor_table_coretex_2fagent_2fv
 };
 static ::_pbi::once_flag descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto = {
-    false, false, 680, descriptor_table_protodef_coretex_2fagent_2fv1_2fbuspacket_2eproto,
+    false, false, 677, descriptor_table_protodef_coretex_2fagent_2fv1_2fbuspacket_2eproto,
     "coretex/agent/v1/buspacket.proto",
     &descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_once, descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_deps, 4, 1,
     schemas, file_default_instances, TableStruct_coretex_2fagent_2fv1_2fbuspacket_2eproto::offsets,

@@ -14,6 +14,7 @@ CAP jobs are the core unit of work. Gateways submit `JobRequest` packets, worker
 - `env`: key/value metadata (locale, sandbox flags, etc.).
 - `tenant_id`, `principal_id`: multi-tenant identities for policy/audit.
 - `labels`: arbitrary routing/placement metadata (environment, project, compliance flags).
+- `meta`: structured identity/capability metadata (tenant_id, actor_id, actor_type, idempotency_key, capability, risk_tags, requires, pack_id, labels).
 - `parent_job_id`, `workflow_id`, `step_index`: optional workflow metadata for orchestrators.
 
 ## JobResult Semantics

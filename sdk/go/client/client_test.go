@@ -8,7 +8,7 @@ import (
 	"crypto/sha256"
 	"testing"
 
-	agentv1 "github.com/coretexos/cap/v2/go/coretex/agent/v1"
+	agentv1 "github.com/coretexos/cap/v2/coretex/agent/v1"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 )

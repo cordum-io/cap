@@ -56,11 +56,92 @@ struct PolicyCheckRequestDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PolicyCheckRequestDefaultTypeInternal _PolicyCheckRequest_default_instance_;
+PROTOBUF_CONSTEXPR BudgetConstraints::BudgetConstraints(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.max_runtime_ms_)*/int64_t{0}
+  , /*decltype(_impl_.max_artifact_bytes_)*/int64_t{0}
+  , /*decltype(_impl_.max_retries_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct BudgetConstraintsDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR BudgetConstraintsDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~BudgetConstraintsDefaultTypeInternal() {}
+  union {
+    BudgetConstraints _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 BudgetConstraintsDefaultTypeInternal _BudgetConstraints_default_instance_;
+PROTOBUF_CONSTEXPR SandboxProfile::SandboxProfile(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.network_allowlist_)*/{}
+  , /*decltype(_impl_.fs_read_only_)*/{}
+  , /*decltype(_impl_.fs_read_write_)*/{}
+  , /*decltype(_impl_.isolated_)*/false
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct SandboxProfileDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SandboxProfileDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SandboxProfileDefaultTypeInternal() {}
+  union {
+    SandboxProfile _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SandboxProfileDefaultTypeInternal _SandboxProfile_default_instance_;
+PROTOBUF_CONSTEXPR ToolchainConstraints::ToolchainConstraints(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.allowed_tools_)*/{}
+  , /*decltype(_impl_.allowed_commands_)*/{}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ToolchainConstraintsDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ToolchainConstraintsDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ToolchainConstraintsDefaultTypeInternal() {}
+  union {
+    ToolchainConstraints _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ToolchainConstraintsDefaultTypeInternal _ToolchainConstraints_default_instance_;
+PROTOBUF_CONSTEXPR DiffConstraints::DiffConstraints(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.deny_path_globs_)*/{}
+  , /*decltype(_impl_.max_files_)*/0
+  , /*decltype(_impl_.max_lines_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct DiffConstraintsDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR DiffConstraintsDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~DiffConstraintsDefaultTypeInternal() {}
+  union {
+    DiffConstraints _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 DiffConstraintsDefaultTypeInternal _DiffConstraints_default_instance_;
+PROTOBUF_CONSTEXPR PolicyConstraints::PolicyConstraints(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.budgets_)*/nullptr
+  , /*decltype(_impl_.sandbox_)*/nullptr
+  , /*decltype(_impl_.toolchain_)*/nullptr
+  , /*decltype(_impl_.diff_)*/nullptr
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct PolicyConstraintsDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PolicyConstraintsDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PolicyConstraintsDefaultTypeInternal() {}
+  union {
+    PolicyConstraints _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PolicyConstraintsDefaultTypeInternal _PolicyConstraints_default_instance_;
 PROTOBUF_CONSTEXPR PolicyCheckResponse::PolicyCheckResponse(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.reason_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.redacted_context_ptr_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.policy_snapshot_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.rule_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.approval_ref_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.constraints_)*/nullptr
   , /*decltype(_impl_.decision_)*/0
+  , /*decltype(_impl_.approval_required_)*/false
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct PolicyCheckResponseDefaultTypeInternal {
   PROTOBUF_CONSTEXPR PolicyCheckResponseDefaultTypeInternal()
@@ -71,10 +152,34 @@ struct PolicyCheckResponseDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PolicyCheckResponseDefaultTypeInternal _PolicyCheckResponse_default_instance_;
+PROTOBUF_CONSTEXPR ListSnapshotsRequest::ListSnapshotsRequest(
+    ::_pbi::ConstantInitialized) {}
+struct ListSnapshotsRequestDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ListSnapshotsRequestDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ListSnapshotsRequestDefaultTypeInternal() {}
+  union {
+    ListSnapshotsRequest _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ListSnapshotsRequestDefaultTypeInternal _ListSnapshotsRequest_default_instance_;
+PROTOBUF_CONSTEXPR ListSnapshotsResponse::ListSnapshotsResponse(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.snapshots_)*/{}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct ListSnapshotsResponseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR ListSnapshotsResponseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~ListSnapshotsResponseDefaultTypeInternal() {}
+  union {
+    ListSnapshotsResponse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 ListSnapshotsResponseDefaultTypeInternal _ListSnapshotsResponse_default_instance_;
 }  // namespace v1
 }  // namespace agent
 }  // namespace coretex
-static ::_pb::Metadata file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[3];
+static ::_pb::Metadata file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[10];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_coretex_2fagent_2fv1_2fsafety_2eproto[1];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_coretex_2fagent_2fv1_2fsafety_2eproto = nullptr;
 
@@ -106,6 +211,52 @@ const uint32_t TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto::offsets[] PROT
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckRequest, _impl_.memory_id_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckRequest, _impl_.effective_config_),
   ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::BudgetConstraints, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::BudgetConstraints, _impl_.max_runtime_ms_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::BudgetConstraints, _impl_.max_retries_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::BudgetConstraints, _impl_.max_artifact_bytes_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::SandboxProfile, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::SandboxProfile, _impl_.isolated_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::SandboxProfile, _impl_.network_allowlist_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::SandboxProfile, _impl_.fs_read_only_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::SandboxProfile, _impl_.fs_read_write_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::ToolchainConstraints, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::ToolchainConstraints, _impl_.allowed_tools_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::ToolchainConstraints, _impl_.allowed_commands_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::DiffConstraints, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::DiffConstraints, _impl_.max_files_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::DiffConstraints, _impl_.max_lines_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::DiffConstraints, _impl_.deny_path_globs_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyConstraints, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyConstraints, _impl_.budgets_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyConstraints, _impl_.sandbox_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyConstraints, _impl_.toolchain_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyConstraints, _impl_.diff_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckResponse, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -114,17 +265,49 @@ const uint32_t TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto::offsets[] PROT
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckResponse, _impl_.decision_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckResponse, _impl_.reason_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckResponse, _impl_.redacted_context_ptr_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckResponse, _impl_.policy_snapshot_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckResponse, _impl_.rule_id_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckResponse, _impl_.constraints_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckResponse, _impl_.approval_required_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckResponse, _impl_.approval_ref_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::ListSnapshotsRequest, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::ListSnapshotsResponse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::ListSnapshotsResponse, _impl_.snapshots_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, 8, -1, sizeof(::coretex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse)},
   { 10, -1, -1, sizeof(::coretex::agent::v1::PolicyCheckRequest)},
-  { 26, -1, -1, sizeof(::coretex::agent::v1::PolicyCheckResponse)},
+  { 26, -1, -1, sizeof(::coretex::agent::v1::BudgetConstraints)},
+  { 35, -1, -1, sizeof(::coretex::agent::v1::SandboxProfile)},
+  { 45, -1, -1, sizeof(::coretex::agent::v1::ToolchainConstraints)},
+  { 53, -1, -1, sizeof(::coretex::agent::v1::DiffConstraints)},
+  { 62, -1, -1, sizeof(::coretex::agent::v1::PolicyConstraints)},
+  { 72, -1, -1, sizeof(::coretex::agent::v1::PolicyCheckResponse)},
+  { 86, -1, -1, sizeof(::coretex::agent::v1::ListSnapshotsRequest)},
+  { 92, -1, -1, sizeof(::coretex::agent::v1::ListSnapshotsResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
   &::coretex::agent::v1::_PolicyCheckRequest_LabelsEntry_DoNotUse_default_instance_._instance,
   &::coretex::agent::v1::_PolicyCheckRequest_default_instance_._instance,
+  &::coretex::agent::v1::_BudgetConstraints_default_instance_._instance,
+  &::coretex::agent::v1::_SandboxProfile_default_instance_._instance,
+  &::coretex::agent::v1::_ToolchainConstraints_default_instance_._instance,
+  &::coretex::agent::v1::_DiffConstraints_default_instance_._instance,
+  &::coretex::agent::v1::_PolicyConstraints_default_instance_._instance,
   &::coretex::agent::v1::_PolicyCheckResponse_default_instance_._instance,
+  &::coretex::agent::v1::_ListSnapshotsRequest_default_instance_._instance,
+  &::coretex::agent::v1::_ListSnapshotsResponse_default_instance_._instance,
 };
 
 const char descriptor_table_protodef_coretex_2fagent_2fv1_2fsafety_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
@@ -139,29 +322,58 @@ const char descriptor_table_protodef_coretex_2fagent_2fv1_2fsafety_2eproto[] PRO
   "PolicyCheckRequest.LabelsEntry\022\021\n\tmemory"
   "_id\030\t \001(\t\022\030\n\020effective_config\030\n \001(\014\032-\n\013L"
   "abelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\002"
-  "8\001\"u\n\023PolicyCheckResponse\0220\n\010decision\030\001 "
-  "\001(\0162\036.coretex.agent.v1.DecisionType\022\016\n\006r"
-  "eason\030\002 \001(\t\022\034\n\024redacted_context_ptr\030\003 \001("
-  "\t*\233\001\n\014DecisionType\022\035\n\031DECISION_TYPE_UNSP"
-  "ECIFIED\020\000\022\027\n\023DECISION_TYPE_ALLOW\020\001\022\026\n\022DE"
-  "CISION_TYPE_DENY\020\002\022\037\n\033DECISION_TYPE_REQU"
-  "IRE_HUMAN\020\003\022\032\n\026DECISION_TYPE_THROTTLE\020\0042"
-  "d\n\014SafetyKernel\022T\n\005Check\022$.coretex.agent"
-  ".v1.PolicyCheckRequest\032%.coretex.agent.v"
-  "1.PolicyCheckResponseB\207\001\n\027ai.coretex.cap"
-  ".agent.v1P\001Z/github.com/coretexos/cap/v2"
-  "/go/coretex/agent/v1\252\002\020coretex.Agent.V1\312"
-  "\002\020coretex\\Agent\\V1\352\002\022coretex::Agent::V1b"
-  "\006proto3"
+  "8\001\"\\\n\021BudgetConstraints\022\026\n\016max_runtime_m"
+  "s\030\001 \001(\003\022\023\n\013max_retries\030\002 \001(\005\022\032\n\022max_arti"
+  "fact_bytes\030\003 \001(\003\"j\n\016SandboxProfile\022\020\n\010is"
+  "olated\030\001 \001(\010\022\031\n\021network_allowlist\030\002 \003(\t\022"
+  "\024\n\014fs_read_only\030\003 \003(\t\022\025\n\rfs_read_write\030\004"
+  " \003(\t\"G\n\024ToolchainConstraints\022\025\n\rallowed_"
+  "tools\030\001 \003(\t\022\030\n\020allowed_commands\030\002 \003(\t\"P\n"
+  "\017DiffConstraints\022\021\n\tmax_files\030\001 \001(\005\022\021\n\tm"
+  "ax_lines\030\002 \001(\005\022\027\n\017deny_path_globs\030\003 \003(\t\""
+  "\350\001\n\021PolicyConstraints\0224\n\007budgets\030\001 \001(\0132#"
+  ".coretex.agent.v1.BudgetConstraints\0221\n\007s"
+  "andbox\030\002 \001(\0132 .coretex.agent.v1.SandboxP"
+  "rofile\0229\n\ttoolchain\030\003 \001(\0132&.coretex.agen"
+  "t.v1.ToolchainConstraints\022/\n\004diff\030\004 \001(\0132"
+  "!.coretex.agent.v1.DiffConstraints\"\212\002\n\023P"
+  "olicyCheckResponse\0220\n\010decision\030\001 \001(\0162\036.c"
+  "oretex.agent.v1.DecisionType\022\016\n\006reason\030\002"
+  " \001(\t\022\034\n\024redacted_context_ptr\030\003 \001(\t\022\027\n\017po"
+  "licy_snapshot\030\004 \001(\t\022\017\n\007rule_id\030\005 \001(\t\0228\n\013"
+  "constraints\030\006 \001(\0132#.coretex.agent.v1.Pol"
+  "icyConstraints\022\031\n\021approval_required\030\007 \001("
+  "\010\022\024\n\014approval_ref\030\010 \001(\t\"\026\n\024ListSnapshots"
+  "Request\"*\n\025ListSnapshotsResponse\022\021\n\tsnap"
+  "shots\030\001 \003(\t*\233\001\n\014DecisionType\022\035\n\031DECISION"
+  "_TYPE_UNSPECIFIED\020\000\022\027\n\023DECISION_TYPE_ALL"
+  "OW\020\001\022\026\n\022DECISION_TYPE_DENY\020\002\022\037\n\033DECISION"
+  "_TYPE_REQUIRE_HUMAN\020\003\022\032\n\026DECISION_TYPE_T"
+  "HROTTLE\020\0042\320\003\n\014SafetyKernel\022T\n\005Check\022$.co"
+  "retex.agent.v1.PolicyCheckRequest\032%.core"
+  "tex.agent.v1.PolicyCheckResponse\022W\n\010Eval"
+  "uate\022$.coretex.agent.v1.PolicyCheckReque"
+  "st\032%.coretex.agent.v1.PolicyCheckRespons"
+  "e\022V\n\007Explain\022$.coretex.agent.v1.PolicyCh"
+  "eckRequest\032%.coretex.agent.v1.PolicyChec"
+  "kResponse\022W\n\010Simulate\022$.coretex.agent.v1"
+  ".PolicyCheckRequest\032%.coretex.agent.v1.P"
+  "olicyCheckResponse\022`\n\rListSnapshots\022&.co"
+  "retex.agent.v1.ListSnapshotsRequest\032\'.co"
+  "retex.agent.v1.ListSnapshotsResponseB\204\001\n"
+  "\027ai.coretex.cap.agent.v1P\001Z,github.com/c"
+  "oretexos/cap/v2/coretex/agent/v1\252\002\020coret"
+  "ex.Agent.V1\312\002\020coretex\\Agent\\V1\352\002\022coretex"
+  "::Agent::V1b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_deps[1] = {
   &::descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto = {
-    false, false, 967, descriptor_table_protodef_coretex_2fagent_2fv1_2fsafety_2eproto,
+    false, false, 2139, descriptor_table_protodef_coretex_2fagent_2fv1_2fsafety_2eproto,
     "coretex/agent/v1/safety.proto",
-    &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once, descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_deps, 1, 3,
+    &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once, descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_deps, 1, 10,
     schemas, file_default_instances, TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto::offsets,
     file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto, file_level_enum_descriptors_coretex_2fagent_2fv1_2fsafety_2eproto,
     file_level_service_descriptors_coretex_2fagent_2fv1_2fsafety_2eproto,
@@ -847,10 +1059,1345 @@ void PolicyCheckRequest::InternalSwap(PolicyCheckRequest* other) {
 
 // ===================================================================
 
-class PolicyCheckResponse::_Internal {
+class BudgetConstraints::_Internal {
  public:
 };
 
+BudgetConstraints::BudgetConstraints(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coretex.agent.v1.BudgetConstraints)
+}
+BudgetConstraints::BudgetConstraints(const BudgetConstraints& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  BudgetConstraints* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.max_runtime_ms_){}
+    , decltype(_impl_.max_artifact_bytes_){}
+    , decltype(_impl_.max_retries_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.max_runtime_ms_, &from._impl_.max_runtime_ms_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.max_retries_) -
+    reinterpret_cast<char*>(&_impl_.max_runtime_ms_)) + sizeof(_impl_.max_retries_));
+  // @@protoc_insertion_point(copy_constructor:coretex.agent.v1.BudgetConstraints)
+}
+
+inline void BudgetConstraints::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.max_runtime_ms_){int64_t{0}}
+    , decltype(_impl_.max_artifact_bytes_){int64_t{0}}
+    , decltype(_impl_.max_retries_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+BudgetConstraints::~BudgetConstraints() {
+  // @@protoc_insertion_point(destructor:coretex.agent.v1.BudgetConstraints)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void BudgetConstraints::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+}
+
+void BudgetConstraints::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void BudgetConstraints::Clear() {
+// @@protoc_insertion_point(message_clear_start:coretex.agent.v1.BudgetConstraints)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  ::memset(&_impl_.max_runtime_ms_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.max_retries_) -
+      reinterpret_cast<char*>(&_impl_.max_runtime_ms_)) + sizeof(_impl_.max_retries_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* BudgetConstraints::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int64 max_runtime_ms = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.max_runtime_ms_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 max_retries = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.max_retries_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int64 max_artifact_bytes = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.max_artifact_bytes_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* BudgetConstraints::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coretex.agent.v1.BudgetConstraints)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int64 max_runtime_ms = 1;
+  if (this->_internal_max_runtime_ms() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt64ToArray(1, this->_internal_max_runtime_ms(), target);
+  }
+
+  // int32 max_retries = 2;
+  if (this->_internal_max_retries() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_max_retries(), target);
+  }
+
+  // int64 max_artifact_bytes = 3;
+  if (this->_internal_max_artifact_bytes() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt64ToArray(3, this->_internal_max_artifact_bytes(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coretex.agent.v1.BudgetConstraints)
+  return target;
+}
+
+size_t BudgetConstraints::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coretex.agent.v1.BudgetConstraints)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // int64 max_runtime_ms = 1;
+  if (this->_internal_max_runtime_ms() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_max_runtime_ms());
+  }
+
+  // int64 max_artifact_bytes = 3;
+  if (this->_internal_max_artifact_bytes() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_max_artifact_bytes());
+  }
+
+  // int32 max_retries = 2;
+  if (this->_internal_max_retries() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_max_retries());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData BudgetConstraints::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    BudgetConstraints::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*BudgetConstraints::GetClassData() const { return &_class_data_; }
+
+
+void BudgetConstraints::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<BudgetConstraints*>(&to_msg);
+  auto& from = static_cast<const BudgetConstraints&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coretex.agent.v1.BudgetConstraints)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_max_runtime_ms() != 0) {
+    _this->_internal_set_max_runtime_ms(from._internal_max_runtime_ms());
+  }
+  if (from._internal_max_artifact_bytes() != 0) {
+    _this->_internal_set_max_artifact_bytes(from._internal_max_artifact_bytes());
+  }
+  if (from._internal_max_retries() != 0) {
+    _this->_internal_set_max_retries(from._internal_max_retries());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void BudgetConstraints::CopyFrom(const BudgetConstraints& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coretex.agent.v1.BudgetConstraints)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool BudgetConstraints::IsInitialized() const {
+  return true;
+}
+
+void BudgetConstraints::InternalSwap(BudgetConstraints* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(BudgetConstraints, _impl_.max_retries_)
+      + sizeof(BudgetConstraints::_impl_.max_retries_)
+      - PROTOBUF_FIELD_OFFSET(BudgetConstraints, _impl_.max_runtime_ms_)>(
+          reinterpret_cast<char*>(&_impl_.max_runtime_ms_),
+          reinterpret_cast<char*>(&other->_impl_.max_runtime_ms_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata BudgetConstraints::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once,
+      file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[2]);
+}
+
+// ===================================================================
+
+class SandboxProfile::_Internal {
+ public:
+};
+
+SandboxProfile::SandboxProfile(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coretex.agent.v1.SandboxProfile)
+}
+SandboxProfile::SandboxProfile(const SandboxProfile& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  SandboxProfile* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.network_allowlist_){from._impl_.network_allowlist_}
+    , decltype(_impl_.fs_read_only_){from._impl_.fs_read_only_}
+    , decltype(_impl_.fs_read_write_){from._impl_.fs_read_write_}
+    , decltype(_impl_.isolated_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.isolated_ = from._impl_.isolated_;
+  // @@protoc_insertion_point(copy_constructor:coretex.agent.v1.SandboxProfile)
+}
+
+inline void SandboxProfile::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.network_allowlist_){arena}
+    , decltype(_impl_.fs_read_only_){arena}
+    , decltype(_impl_.fs_read_write_){arena}
+    , decltype(_impl_.isolated_){false}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+SandboxProfile::~SandboxProfile() {
+  // @@protoc_insertion_point(destructor:coretex.agent.v1.SandboxProfile)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void SandboxProfile::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.network_allowlist_.~RepeatedPtrField();
+  _impl_.fs_read_only_.~RepeatedPtrField();
+  _impl_.fs_read_write_.~RepeatedPtrField();
+}
+
+void SandboxProfile::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void SandboxProfile::Clear() {
+// @@protoc_insertion_point(message_clear_start:coretex.agent.v1.SandboxProfile)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.network_allowlist_.Clear();
+  _impl_.fs_read_only_.Clear();
+  _impl_.fs_read_write_.Clear();
+  _impl_.isolated_ = false;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* SandboxProfile::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // bool isolated = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.isolated_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string network_allowlist = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_network_allowlist();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.SandboxProfile.network_allowlist"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string fs_read_only = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_fs_read_only();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.SandboxProfile.fs_read_only"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<26>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string fs_read_write = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_fs_read_write();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.SandboxProfile.fs_read_write"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<34>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* SandboxProfile::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coretex.agent.v1.SandboxProfile)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // bool isolated = 1;
+  if (this->_internal_isolated() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(1, this->_internal_isolated(), target);
+  }
+
+  // repeated string network_allowlist = 2;
+  for (int i = 0, n = this->_internal_network_allowlist_size(); i < n; i++) {
+    const auto& s = this->_internal_network_allowlist(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.SandboxProfile.network_allowlist");
+    target = stream->WriteString(2, s, target);
+  }
+
+  // repeated string fs_read_only = 3;
+  for (int i = 0, n = this->_internal_fs_read_only_size(); i < n; i++) {
+    const auto& s = this->_internal_fs_read_only(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.SandboxProfile.fs_read_only");
+    target = stream->WriteString(3, s, target);
+  }
+
+  // repeated string fs_read_write = 4;
+  for (int i = 0, n = this->_internal_fs_read_write_size(); i < n; i++) {
+    const auto& s = this->_internal_fs_read_write(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.SandboxProfile.fs_read_write");
+    target = stream->WriteString(4, s, target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coretex.agent.v1.SandboxProfile)
+  return target;
+}
+
+size_t SandboxProfile::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coretex.agent.v1.SandboxProfile)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated string network_allowlist = 2;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.network_allowlist_.size());
+  for (int i = 0, n = _impl_.network_allowlist_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.network_allowlist_.Get(i));
+  }
+
+  // repeated string fs_read_only = 3;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.fs_read_only_.size());
+  for (int i = 0, n = _impl_.fs_read_only_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.fs_read_only_.Get(i));
+  }
+
+  // repeated string fs_read_write = 4;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.fs_read_write_.size());
+  for (int i = 0, n = _impl_.fs_read_write_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.fs_read_write_.Get(i));
+  }
+
+  // bool isolated = 1;
+  if (this->_internal_isolated() != 0) {
+    total_size += 1 + 1;
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData SandboxProfile::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    SandboxProfile::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*SandboxProfile::GetClassData() const { return &_class_data_; }
+
+
+void SandboxProfile::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<SandboxProfile*>(&to_msg);
+  auto& from = static_cast<const SandboxProfile&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coretex.agent.v1.SandboxProfile)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.network_allowlist_.MergeFrom(from._impl_.network_allowlist_);
+  _this->_impl_.fs_read_only_.MergeFrom(from._impl_.fs_read_only_);
+  _this->_impl_.fs_read_write_.MergeFrom(from._impl_.fs_read_write_);
+  if (from._internal_isolated() != 0) {
+    _this->_internal_set_isolated(from._internal_isolated());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void SandboxProfile::CopyFrom(const SandboxProfile& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coretex.agent.v1.SandboxProfile)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool SandboxProfile::IsInitialized() const {
+  return true;
+}
+
+void SandboxProfile::InternalSwap(SandboxProfile* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.network_allowlist_.InternalSwap(&other->_impl_.network_allowlist_);
+  _impl_.fs_read_only_.InternalSwap(&other->_impl_.fs_read_only_);
+  _impl_.fs_read_write_.InternalSwap(&other->_impl_.fs_read_write_);
+  swap(_impl_.isolated_, other->_impl_.isolated_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata SandboxProfile::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once,
+      file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[3]);
+}
+
+// ===================================================================
+
+class ToolchainConstraints::_Internal {
+ public:
+};
+
+ToolchainConstraints::ToolchainConstraints(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coretex.agent.v1.ToolchainConstraints)
+}
+ToolchainConstraints::ToolchainConstraints(const ToolchainConstraints& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ToolchainConstraints* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.allowed_tools_){from._impl_.allowed_tools_}
+    , decltype(_impl_.allowed_commands_){from._impl_.allowed_commands_}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:coretex.agent.v1.ToolchainConstraints)
+}
+
+inline void ToolchainConstraints::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.allowed_tools_){arena}
+    , decltype(_impl_.allowed_commands_){arena}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ToolchainConstraints::~ToolchainConstraints() {
+  // @@protoc_insertion_point(destructor:coretex.agent.v1.ToolchainConstraints)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ToolchainConstraints::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.allowed_tools_.~RepeatedPtrField();
+  _impl_.allowed_commands_.~RepeatedPtrField();
+}
+
+void ToolchainConstraints::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ToolchainConstraints::Clear() {
+// @@protoc_insertion_point(message_clear_start:coretex.agent.v1.ToolchainConstraints)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.allowed_tools_.Clear();
+  _impl_.allowed_commands_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ToolchainConstraints::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // repeated string allowed_tools = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_allowed_tools();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.ToolchainConstraints.allowed_tools"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string allowed_commands = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_allowed_commands();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.ToolchainConstraints.allowed_commands"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ToolchainConstraints::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coretex.agent.v1.ToolchainConstraints)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated string allowed_tools = 1;
+  for (int i = 0, n = this->_internal_allowed_tools_size(); i < n; i++) {
+    const auto& s = this->_internal_allowed_tools(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.ToolchainConstraints.allowed_tools");
+    target = stream->WriteString(1, s, target);
+  }
+
+  // repeated string allowed_commands = 2;
+  for (int i = 0, n = this->_internal_allowed_commands_size(); i < n; i++) {
+    const auto& s = this->_internal_allowed_commands(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.ToolchainConstraints.allowed_commands");
+    target = stream->WriteString(2, s, target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coretex.agent.v1.ToolchainConstraints)
+  return target;
+}
+
+size_t ToolchainConstraints::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coretex.agent.v1.ToolchainConstraints)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated string allowed_tools = 1;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.allowed_tools_.size());
+  for (int i = 0, n = _impl_.allowed_tools_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.allowed_tools_.Get(i));
+  }
+
+  // repeated string allowed_commands = 2;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.allowed_commands_.size());
+  for (int i = 0, n = _impl_.allowed_commands_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.allowed_commands_.Get(i));
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ToolchainConstraints::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ToolchainConstraints::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ToolchainConstraints::GetClassData() const { return &_class_data_; }
+
+
+void ToolchainConstraints::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ToolchainConstraints*>(&to_msg);
+  auto& from = static_cast<const ToolchainConstraints&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coretex.agent.v1.ToolchainConstraints)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.allowed_tools_.MergeFrom(from._impl_.allowed_tools_);
+  _this->_impl_.allowed_commands_.MergeFrom(from._impl_.allowed_commands_);
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ToolchainConstraints::CopyFrom(const ToolchainConstraints& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coretex.agent.v1.ToolchainConstraints)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ToolchainConstraints::IsInitialized() const {
+  return true;
+}
+
+void ToolchainConstraints::InternalSwap(ToolchainConstraints* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.allowed_tools_.InternalSwap(&other->_impl_.allowed_tools_);
+  _impl_.allowed_commands_.InternalSwap(&other->_impl_.allowed_commands_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ToolchainConstraints::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once,
+      file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[4]);
+}
+
+// ===================================================================
+
+class DiffConstraints::_Internal {
+ public:
+};
+
+DiffConstraints::DiffConstraints(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coretex.agent.v1.DiffConstraints)
+}
+DiffConstraints::DiffConstraints(const DiffConstraints& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  DiffConstraints* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.deny_path_globs_){from._impl_.deny_path_globs_}
+    , decltype(_impl_.max_files_){}
+    , decltype(_impl_.max_lines_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::memcpy(&_impl_.max_files_, &from._impl_.max_files_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.max_lines_) -
+    reinterpret_cast<char*>(&_impl_.max_files_)) + sizeof(_impl_.max_lines_));
+  // @@protoc_insertion_point(copy_constructor:coretex.agent.v1.DiffConstraints)
+}
+
+inline void DiffConstraints::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.deny_path_globs_){arena}
+    , decltype(_impl_.max_files_){0}
+    , decltype(_impl_.max_lines_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+DiffConstraints::~DiffConstraints() {
+  // @@protoc_insertion_point(destructor:coretex.agent.v1.DiffConstraints)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void DiffConstraints::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.deny_path_globs_.~RepeatedPtrField();
+}
+
+void DiffConstraints::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void DiffConstraints::Clear() {
+// @@protoc_insertion_point(message_clear_start:coretex.agent.v1.DiffConstraints)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.deny_path_globs_.Clear();
+  ::memset(&_impl_.max_files_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.max_lines_) -
+      reinterpret_cast<char*>(&_impl_.max_files_)) + sizeof(_impl_.max_lines_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* DiffConstraints::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // int32 max_files = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
+          _impl_.max_files_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 max_lines = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
+          _impl_.max_lines_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string deny_path_globs = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_deny_path_globs();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.DiffConstraints.deny_path_globs"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<26>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* DiffConstraints::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coretex.agent.v1.DiffConstraints)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // int32 max_files = 1;
+  if (this->_internal_max_files() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_max_files(), target);
+  }
+
+  // int32 max_lines = 2;
+  if (this->_internal_max_lines() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_max_lines(), target);
+  }
+
+  // repeated string deny_path_globs = 3;
+  for (int i = 0, n = this->_internal_deny_path_globs_size(); i < n; i++) {
+    const auto& s = this->_internal_deny_path_globs(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.DiffConstraints.deny_path_globs");
+    target = stream->WriteString(3, s, target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coretex.agent.v1.DiffConstraints)
+  return target;
+}
+
+size_t DiffConstraints::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coretex.agent.v1.DiffConstraints)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated string deny_path_globs = 3;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.deny_path_globs_.size());
+  for (int i = 0, n = _impl_.deny_path_globs_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.deny_path_globs_.Get(i));
+  }
+
+  // int32 max_files = 1;
+  if (this->_internal_max_files() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_max_files());
+  }
+
+  // int32 max_lines = 2;
+  if (this->_internal_max_lines() != 0) {
+    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_max_lines());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData DiffConstraints::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    DiffConstraints::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*DiffConstraints::GetClassData() const { return &_class_data_; }
+
+
+void DiffConstraints::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<DiffConstraints*>(&to_msg);
+  auto& from = static_cast<const DiffConstraints&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coretex.agent.v1.DiffConstraints)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.deny_path_globs_.MergeFrom(from._impl_.deny_path_globs_);
+  if (from._internal_max_files() != 0) {
+    _this->_internal_set_max_files(from._internal_max_files());
+  }
+  if (from._internal_max_lines() != 0) {
+    _this->_internal_set_max_lines(from._internal_max_lines());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void DiffConstraints::CopyFrom(const DiffConstraints& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coretex.agent.v1.DiffConstraints)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool DiffConstraints::IsInitialized() const {
+  return true;
+}
+
+void DiffConstraints::InternalSwap(DiffConstraints* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.deny_path_globs_.InternalSwap(&other->_impl_.deny_path_globs_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(DiffConstraints, _impl_.max_lines_)
+      + sizeof(DiffConstraints::_impl_.max_lines_)
+      - PROTOBUF_FIELD_OFFSET(DiffConstraints, _impl_.max_files_)>(
+          reinterpret_cast<char*>(&_impl_.max_files_),
+          reinterpret_cast<char*>(&other->_impl_.max_files_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata DiffConstraints::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once,
+      file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[5]);
+}
+
+// ===================================================================
+
+class PolicyConstraints::_Internal {
+ public:
+  static const ::coretex::agent::v1::BudgetConstraints& budgets(const PolicyConstraints* msg);
+  static const ::coretex::agent::v1::SandboxProfile& sandbox(const PolicyConstraints* msg);
+  static const ::coretex::agent::v1::ToolchainConstraints& toolchain(const PolicyConstraints* msg);
+  static const ::coretex::agent::v1::DiffConstraints& diff(const PolicyConstraints* msg);
+};
+
+const ::coretex::agent::v1::BudgetConstraints&
+PolicyConstraints::_Internal::budgets(const PolicyConstraints* msg) {
+  return *msg->_impl_.budgets_;
+}
+const ::coretex::agent::v1::SandboxProfile&
+PolicyConstraints::_Internal::sandbox(const PolicyConstraints* msg) {
+  return *msg->_impl_.sandbox_;
+}
+const ::coretex::agent::v1::ToolchainConstraints&
+PolicyConstraints::_Internal::toolchain(const PolicyConstraints* msg) {
+  return *msg->_impl_.toolchain_;
+}
+const ::coretex::agent::v1::DiffConstraints&
+PolicyConstraints::_Internal::diff(const PolicyConstraints* msg) {
+  return *msg->_impl_.diff_;
+}
+PolicyConstraints::PolicyConstraints(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coretex.agent.v1.PolicyConstraints)
+}
+PolicyConstraints::PolicyConstraints(const PolicyConstraints& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  PolicyConstraints* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.budgets_){nullptr}
+    , decltype(_impl_.sandbox_){nullptr}
+    , decltype(_impl_.toolchain_){nullptr}
+    , decltype(_impl_.diff_){nullptr}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  if (from._internal_has_budgets()) {
+    _this->_impl_.budgets_ = new ::coretex::agent::v1::BudgetConstraints(*from._impl_.budgets_);
+  }
+  if (from._internal_has_sandbox()) {
+    _this->_impl_.sandbox_ = new ::coretex::agent::v1::SandboxProfile(*from._impl_.sandbox_);
+  }
+  if (from._internal_has_toolchain()) {
+    _this->_impl_.toolchain_ = new ::coretex::agent::v1::ToolchainConstraints(*from._impl_.toolchain_);
+  }
+  if (from._internal_has_diff()) {
+    _this->_impl_.diff_ = new ::coretex::agent::v1::DiffConstraints(*from._impl_.diff_);
+  }
+  // @@protoc_insertion_point(copy_constructor:coretex.agent.v1.PolicyConstraints)
+}
+
+inline void PolicyConstraints::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.budgets_){nullptr}
+    , decltype(_impl_.sandbox_){nullptr}
+    , decltype(_impl_.toolchain_){nullptr}
+    , decltype(_impl_.diff_){nullptr}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+PolicyConstraints::~PolicyConstraints() {
+  // @@protoc_insertion_point(destructor:coretex.agent.v1.PolicyConstraints)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void PolicyConstraints::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  if (this != internal_default_instance()) delete _impl_.budgets_;
+  if (this != internal_default_instance()) delete _impl_.sandbox_;
+  if (this != internal_default_instance()) delete _impl_.toolchain_;
+  if (this != internal_default_instance()) delete _impl_.diff_;
+}
+
+void PolicyConstraints::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void PolicyConstraints::Clear() {
+// @@protoc_insertion_point(message_clear_start:coretex.agent.v1.PolicyConstraints)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  if (GetArenaForAllocation() == nullptr && _impl_.budgets_ != nullptr) {
+    delete _impl_.budgets_;
+  }
+  _impl_.budgets_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.sandbox_ != nullptr) {
+    delete _impl_.sandbox_;
+  }
+  _impl_.sandbox_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.toolchain_ != nullptr) {
+    delete _impl_.toolchain_;
+  }
+  _impl_.toolchain_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.diff_ != nullptr) {
+    delete _impl_.diff_;
+  }
+  _impl_.diff_ = nullptr;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* PolicyConstraints::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // .coretex.agent.v1.BudgetConstraints budgets = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          ptr = ctx->ParseMessage(_internal_mutable_budgets(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .coretex.agent.v1.SandboxProfile sandbox = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          ptr = ctx->ParseMessage(_internal_mutable_sandbox(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .coretex.agent.v1.ToolchainConstraints toolchain = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          ptr = ctx->ParseMessage(_internal_mutable_toolchain(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .coretex.agent.v1.DiffConstraints diff = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          ptr = ctx->ParseMessage(_internal_mutable_diff(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* PolicyConstraints::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coretex.agent.v1.PolicyConstraints)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // .coretex.agent.v1.BudgetConstraints budgets = 1;
+  if (this->_internal_has_budgets()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(1, _Internal::budgets(this),
+        _Internal::budgets(this).GetCachedSize(), target, stream);
+  }
+
+  // .coretex.agent.v1.SandboxProfile sandbox = 2;
+  if (this->_internal_has_sandbox()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(2, _Internal::sandbox(this),
+        _Internal::sandbox(this).GetCachedSize(), target, stream);
+  }
+
+  // .coretex.agent.v1.ToolchainConstraints toolchain = 3;
+  if (this->_internal_has_toolchain()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(3, _Internal::toolchain(this),
+        _Internal::toolchain(this).GetCachedSize(), target, stream);
+  }
+
+  // .coretex.agent.v1.DiffConstraints diff = 4;
+  if (this->_internal_has_diff()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(4, _Internal::diff(this),
+        _Internal::diff(this).GetCachedSize(), target, stream);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coretex.agent.v1.PolicyConstraints)
+  return target;
+}
+
+size_t PolicyConstraints::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coretex.agent.v1.PolicyConstraints)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // .coretex.agent.v1.BudgetConstraints budgets = 1;
+  if (this->_internal_has_budgets()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.budgets_);
+  }
+
+  // .coretex.agent.v1.SandboxProfile sandbox = 2;
+  if (this->_internal_has_sandbox()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.sandbox_);
+  }
+
+  // .coretex.agent.v1.ToolchainConstraints toolchain = 3;
+  if (this->_internal_has_toolchain()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.toolchain_);
+  }
+
+  // .coretex.agent.v1.DiffConstraints diff = 4;
+  if (this->_internal_has_diff()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.diff_);
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData PolicyConstraints::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    PolicyConstraints::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*PolicyConstraints::GetClassData() const { return &_class_data_; }
+
+
+void PolicyConstraints::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<PolicyConstraints*>(&to_msg);
+  auto& from = static_cast<const PolicyConstraints&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coretex.agent.v1.PolicyConstraints)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_has_budgets()) {
+    _this->_internal_mutable_budgets()->::coretex::agent::v1::BudgetConstraints::MergeFrom(
+        from._internal_budgets());
+  }
+  if (from._internal_has_sandbox()) {
+    _this->_internal_mutable_sandbox()->::coretex::agent::v1::SandboxProfile::MergeFrom(
+        from._internal_sandbox());
+  }
+  if (from._internal_has_toolchain()) {
+    _this->_internal_mutable_toolchain()->::coretex::agent::v1::ToolchainConstraints::MergeFrom(
+        from._internal_toolchain());
+  }
+  if (from._internal_has_diff()) {
+    _this->_internal_mutable_diff()->::coretex::agent::v1::DiffConstraints::MergeFrom(
+        from._internal_diff());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void PolicyConstraints::CopyFrom(const PolicyConstraints& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coretex.agent.v1.PolicyConstraints)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool PolicyConstraints::IsInitialized() const {
+  return true;
+}
+
+void PolicyConstraints::InternalSwap(PolicyConstraints* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(PolicyConstraints, _impl_.diff_)
+      + sizeof(PolicyConstraints::_impl_.diff_)
+      - PROTOBUF_FIELD_OFFSET(PolicyConstraints, _impl_.budgets_)>(
+          reinterpret_cast<char*>(&_impl_.budgets_),
+          reinterpret_cast<char*>(&other->_impl_.budgets_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata PolicyConstraints::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once,
+      file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[6]);
+}
+
+// ===================================================================
+
+class PolicyCheckResponse::_Internal {
+ public:
+  static const ::coretex::agent::v1::PolicyConstraints& constraints(const PolicyCheckResponse* msg);
+};
+
+const ::coretex::agent::v1::PolicyConstraints&
+PolicyCheckResponse::_Internal::constraints(const PolicyCheckResponse* msg) {
+  return *msg->_impl_.constraints_;
+}
 PolicyCheckResponse::PolicyCheckResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
@@ -863,7 +2410,12 @@ PolicyCheckResponse::PolicyCheckResponse(const PolicyCheckResponse& from)
   new (&_impl_) Impl_{
       decltype(_impl_.reason_){}
     , decltype(_impl_.redacted_context_ptr_){}
+    , decltype(_impl_.policy_snapshot_){}
+    , decltype(_impl_.rule_id_){}
+    , decltype(_impl_.approval_ref_){}
+    , decltype(_impl_.constraints_){nullptr}
     , decltype(_impl_.decision_){}
+    , decltype(_impl_.approval_required_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -883,7 +2435,36 @@ PolicyCheckResponse::PolicyCheckResponse(const PolicyCheckResponse& from)
     _this->_impl_.redacted_context_ptr_.Set(from._internal_redacted_context_ptr(), 
       _this->GetArenaForAllocation());
   }
-  _this->_impl_.decision_ = from._impl_.decision_;
+  _impl_.policy_snapshot_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.policy_snapshot_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_policy_snapshot().empty()) {
+    _this->_impl_.policy_snapshot_.Set(from._internal_policy_snapshot(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.rule_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.rule_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_rule_id().empty()) {
+    _this->_impl_.rule_id_.Set(from._internal_rule_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.approval_ref_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.approval_ref_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_approval_ref().empty()) {
+    _this->_impl_.approval_ref_.Set(from._internal_approval_ref(), 
+      _this->GetArenaForAllocation());
+  }
+  if (from._internal_has_constraints()) {
+    _this->_impl_.constraints_ = new ::coretex::agent::v1::PolicyConstraints(*from._impl_.constraints_);
+  }
+  ::memcpy(&_impl_.decision_, &from._impl_.decision_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.approval_required_) -
+    reinterpret_cast<char*>(&_impl_.decision_)) + sizeof(_impl_.approval_required_));
   // @@protoc_insertion_point(copy_constructor:coretex.agent.v1.PolicyCheckResponse)
 }
 
@@ -894,7 +2475,12 @@ inline void PolicyCheckResponse::SharedCtor(
   new (&_impl_) Impl_{
       decltype(_impl_.reason_){}
     , decltype(_impl_.redacted_context_ptr_){}
+    , decltype(_impl_.policy_snapshot_){}
+    , decltype(_impl_.rule_id_){}
+    , decltype(_impl_.approval_ref_){}
+    , decltype(_impl_.constraints_){nullptr}
     , decltype(_impl_.decision_){0}
+    , decltype(_impl_.approval_required_){false}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.reason_.InitDefault();
@@ -904,6 +2490,18 @@ inline void PolicyCheckResponse::SharedCtor(
   _impl_.redacted_context_ptr_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.redacted_context_ptr_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.policy_snapshot_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.policy_snapshot_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.rule_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.rule_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.approval_ref_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.approval_ref_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
@@ -920,6 +2518,10 @@ inline void PolicyCheckResponse::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.reason_.Destroy();
   _impl_.redacted_context_ptr_.Destroy();
+  _impl_.policy_snapshot_.Destroy();
+  _impl_.rule_id_.Destroy();
+  _impl_.approval_ref_.Destroy();
+  if (this != internal_default_instance()) delete _impl_.constraints_;
 }
 
 void PolicyCheckResponse::SetCachedSize(int size) const {
@@ -934,7 +2536,16 @@ void PolicyCheckResponse::Clear() {
 
   _impl_.reason_.ClearToEmpty();
   _impl_.redacted_context_ptr_.ClearToEmpty();
-  _impl_.decision_ = 0;
+  _impl_.policy_snapshot_.ClearToEmpty();
+  _impl_.rule_id_.ClearToEmpty();
+  _impl_.approval_ref_.ClearToEmpty();
+  if (GetArenaForAllocation() == nullptr && _impl_.constraints_ != nullptr) {
+    delete _impl_.constraints_;
+  }
+  _impl_.constraints_ = nullptr;
+  ::memset(&_impl_.decision_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.approval_required_) -
+      reinterpret_cast<char*>(&_impl_.decision_)) + sizeof(_impl_.approval_required_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -970,6 +2581,52 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.PolicyCheckResponse.redacted_context_ptr"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string policy_snapshot = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_policy_snapshot();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.PolicyCheckResponse.policy_snapshot"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string rule_id = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_rule_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.PolicyCheckResponse.rule_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // .coretex.agent.v1.PolicyConstraints constraints = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          ptr = ctx->ParseMessage(_internal_mutable_constraints(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool approval_required = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
+          _impl_.approval_required_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string approval_ref = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+          auto str = _internal_mutable_approval_ref();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.PolicyCheckResponse.approval_ref"));
         } else
           goto handle_unusual;
         continue;
@@ -1029,6 +2686,49 @@ uint8_t* PolicyCheckResponse::_InternalSerialize(
         3, this->_internal_redacted_context_ptr(), target);
   }
 
+  // string policy_snapshot = 4;
+  if (!this->_internal_policy_snapshot().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_policy_snapshot().data(), static_cast<int>(this->_internal_policy_snapshot().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.PolicyCheckResponse.policy_snapshot");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_policy_snapshot(), target);
+  }
+
+  // string rule_id = 5;
+  if (!this->_internal_rule_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_rule_id().data(), static_cast<int>(this->_internal_rule_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.PolicyCheckResponse.rule_id");
+    target = stream->WriteStringMaybeAliased(
+        5, this->_internal_rule_id(), target);
+  }
+
+  // .coretex.agent.v1.PolicyConstraints constraints = 6;
+  if (this->_internal_has_constraints()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(6, _Internal::constraints(this),
+        _Internal::constraints(this).GetCachedSize(), target, stream);
+  }
+
+  // bool approval_required = 7;
+  if (this->_internal_approval_required() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(7, this->_internal_approval_required(), target);
+  }
+
+  // string approval_ref = 8;
+  if (!this->_internal_approval_ref().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_approval_ref().data(), static_cast<int>(this->_internal_approval_ref().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.PolicyCheckResponse.approval_ref");
+    target = stream->WriteStringMaybeAliased(
+        8, this->_internal_approval_ref(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1059,10 +2759,43 @@ size_t PolicyCheckResponse::ByteSizeLong() const {
         this->_internal_redacted_context_ptr());
   }
 
+  // string policy_snapshot = 4;
+  if (!this->_internal_policy_snapshot().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_policy_snapshot());
+  }
+
+  // string rule_id = 5;
+  if (!this->_internal_rule_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_rule_id());
+  }
+
+  // string approval_ref = 8;
+  if (!this->_internal_approval_ref().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_approval_ref());
+  }
+
+  // .coretex.agent.v1.PolicyConstraints constraints = 6;
+  if (this->_internal_has_constraints()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.constraints_);
+  }
+
   // .coretex.agent.v1.DecisionType decision = 1;
   if (this->_internal_decision() != 0) {
     total_size += 1 +
       ::_pbi::WireFormatLite::EnumSize(this->_internal_decision());
+  }
+
+  // bool approval_required = 7;
+  if (this->_internal_approval_required() != 0) {
+    total_size += 1 + 1;
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
@@ -1089,8 +2822,24 @@ void PolicyCheckResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, co
   if (!from._internal_redacted_context_ptr().empty()) {
     _this->_internal_set_redacted_context_ptr(from._internal_redacted_context_ptr());
   }
+  if (!from._internal_policy_snapshot().empty()) {
+    _this->_internal_set_policy_snapshot(from._internal_policy_snapshot());
+  }
+  if (!from._internal_rule_id().empty()) {
+    _this->_internal_set_rule_id(from._internal_rule_id());
+  }
+  if (!from._internal_approval_ref().empty()) {
+    _this->_internal_set_approval_ref(from._internal_approval_ref());
+  }
+  if (from._internal_has_constraints()) {
+    _this->_internal_mutable_constraints()->::coretex::agent::v1::PolicyConstraints::MergeFrom(
+        from._internal_constraints());
+  }
   if (from._internal_decision() != 0) {
     _this->_internal_set_decision(from._internal_decision());
+  }
+  if (from._internal_approval_required() != 0) {
+    _this->_internal_set_approval_required(from._internal_approval_required());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -1119,13 +2868,260 @@ void PolicyCheckResponse::InternalSwap(PolicyCheckResponse* other) {
       &_impl_.redacted_context_ptr_, lhs_arena,
       &other->_impl_.redacted_context_ptr_, rhs_arena
   );
-  swap(_impl_.decision_, other->_impl_.decision_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.policy_snapshot_, lhs_arena,
+      &other->_impl_.policy_snapshot_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.rule_id_, lhs_arena,
+      &other->_impl_.rule_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.approval_ref_, lhs_arena,
+      &other->_impl_.approval_ref_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(PolicyCheckResponse, _impl_.approval_required_)
+      + sizeof(PolicyCheckResponse::_impl_.approval_required_)
+      - PROTOBUF_FIELD_OFFSET(PolicyCheckResponse, _impl_.constraints_)>(
+          reinterpret_cast<char*>(&_impl_.constraints_),
+          reinterpret_cast<char*>(&other->_impl_.constraints_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata PolicyCheckResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once,
-      file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[2]);
+      file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[7]);
+}
+
+// ===================================================================
+
+class ListSnapshotsRequest::_Internal {
+ public:
+};
+
+ListSnapshotsRequest::ListSnapshotsRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase(arena, is_message_owned) {
+  // @@protoc_insertion_point(arena_constructor:coretex.agent.v1.ListSnapshotsRequest)
+}
+ListSnapshotsRequest::ListSnapshotsRequest(const ListSnapshotsRequest& from)
+  : ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase() {
+  ListSnapshotsRequest* const _this = this; (void)_this;
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:coretex.agent.v1.ListSnapshotsRequest)
+}
+
+
+
+
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ListSnapshotsRequest::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl,
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl,
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ListSnapshotsRequest::GetClassData() const { return &_class_data_; }
+
+
+
+
+
+
+
+::PROTOBUF_NAMESPACE_ID::Metadata ListSnapshotsRequest::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once,
+      file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[8]);
+}
+
+// ===================================================================
+
+class ListSnapshotsResponse::_Internal {
+ public:
+};
+
+ListSnapshotsResponse::ListSnapshotsResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:coretex.agent.v1.ListSnapshotsResponse)
+}
+ListSnapshotsResponse::ListSnapshotsResponse(const ListSnapshotsResponse& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  ListSnapshotsResponse* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.snapshots_){from._impl_.snapshots_}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:coretex.agent.v1.ListSnapshotsResponse)
+}
+
+inline void ListSnapshotsResponse::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.snapshots_){arena}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+}
+
+ListSnapshotsResponse::~ListSnapshotsResponse() {
+  // @@protoc_insertion_point(destructor:coretex.agent.v1.ListSnapshotsResponse)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void ListSnapshotsResponse::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.snapshots_.~RepeatedPtrField();
+}
+
+void ListSnapshotsResponse::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void ListSnapshotsResponse::Clear() {
+// @@protoc_insertion_point(message_clear_start:coretex.agent.v1.ListSnapshotsResponse)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.snapshots_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* ListSnapshotsResponse::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // repeated string snapshots = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_snapshots();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.ListSnapshotsResponse.snapshots"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* ListSnapshotsResponse::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coretex.agent.v1.ListSnapshotsResponse)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated string snapshots = 1;
+  for (int i = 0, n = this->_internal_snapshots_size(); i < n; i++) {
+    const auto& s = this->_internal_snapshots(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.ListSnapshotsResponse.snapshots");
+    target = stream->WriteString(1, s, target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coretex.agent.v1.ListSnapshotsResponse)
+  return target;
+}
+
+size_t ListSnapshotsResponse::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coretex.agent.v1.ListSnapshotsResponse)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated string snapshots = 1;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.snapshots_.size());
+  for (int i = 0, n = _impl_.snapshots_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.snapshots_.Get(i));
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData ListSnapshotsResponse::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    ListSnapshotsResponse::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ListSnapshotsResponse::GetClassData() const { return &_class_data_; }
+
+
+void ListSnapshotsResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<ListSnapshotsResponse*>(&to_msg);
+  auto& from = static_cast<const ListSnapshotsResponse&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coretex.agent.v1.ListSnapshotsResponse)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.snapshots_.MergeFrom(from._impl_.snapshots_);
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void ListSnapshotsResponse::CopyFrom(const ListSnapshotsResponse& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coretex.agent.v1.ListSnapshotsResponse)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ListSnapshotsResponse::IsInitialized() const {
+  return true;
+}
+
+void ListSnapshotsResponse::InternalSwap(ListSnapshotsResponse* other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.snapshots_.InternalSwap(&other->_impl_.snapshots_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata ListSnapshotsResponse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once,
+      file_level_metadata_coretex_2fagent_2fv1_2fsafety_2eproto[9]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -1141,9 +3137,37 @@ template<> PROTOBUF_NOINLINE ::coretex::agent::v1::PolicyCheckRequest*
 Arena::CreateMaybeMessage< ::coretex::agent::v1::PolicyCheckRequest >(Arena* arena) {
   return Arena::CreateMessageInternal< ::coretex::agent::v1::PolicyCheckRequest >(arena);
 }
+template<> PROTOBUF_NOINLINE ::coretex::agent::v1::BudgetConstraints*
+Arena::CreateMaybeMessage< ::coretex::agent::v1::BudgetConstraints >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coretex::agent::v1::BudgetConstraints >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coretex::agent::v1::SandboxProfile*
+Arena::CreateMaybeMessage< ::coretex::agent::v1::SandboxProfile >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coretex::agent::v1::SandboxProfile >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coretex::agent::v1::ToolchainConstraints*
+Arena::CreateMaybeMessage< ::coretex::agent::v1::ToolchainConstraints >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coretex::agent::v1::ToolchainConstraints >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coretex::agent::v1::DiffConstraints*
+Arena::CreateMaybeMessage< ::coretex::agent::v1::DiffConstraints >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coretex::agent::v1::DiffConstraints >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coretex::agent::v1::PolicyConstraints*
+Arena::CreateMaybeMessage< ::coretex::agent::v1::PolicyConstraints >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coretex::agent::v1::PolicyConstraints >(arena);
+}
 template<> PROTOBUF_NOINLINE ::coretex::agent::v1::PolicyCheckResponse*
 Arena::CreateMaybeMessage< ::coretex::agent::v1::PolicyCheckResponse >(Arena* arena) {
   return Arena::CreateMessageInternal< ::coretex::agent::v1::PolicyCheckResponse >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coretex::agent::v1::ListSnapshotsRequest*
+Arena::CreateMaybeMessage< ::coretex::agent::v1::ListSnapshotsRequest >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coretex::agent::v1::ListSnapshotsRequest >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coretex::agent::v1::ListSnapshotsResponse*
+Arena::CreateMaybeMessage< ::coretex::agent::v1::ListSnapshotsResponse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coretex::agent::v1::ListSnapshotsResponse >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

@@ -51,55 +51,55 @@ jobs:
           fi
           
           "$PYTHON_BIN" - <<'PY'
-import os
-import re
-import tomllib
-from pathlib import Path
-from packaging.version import InvalidVersion, Version
+          import os
+          import re
+          import tomllib
+          from pathlib import Path
+          from packaging.version import InvalidVersion, Version
 
-raw_version = os.environ.get("VERSION", "").strip()
-if not raw_version:
-    raise SystemExit("VERSION not set from tag or input")
+          raw_version = os.environ.get("VERSION", "").strip()
+          if not raw_version:
+              raise SystemExit("VERSION not set from tag or input")
 
-# Strip 'v' prefix if present, then ensure PEP 440 compatibility.
-candidate = raw_version.lstrip("v")
-try:
-    version = str(Version(candidate))
-except InvalidVersion:
-    # Fallback: turn branch names (e.g. "main") into a local version.
-    sanitized = re.sub(r"[^0-9A-Za-z]+", ".", raw_version.lower()).strip(".")
-    if not sanitized:
-        raise SystemExit(f"Cannot derive PEP 440 version from {raw_version!r}")
-    version = f"0.0.0+{sanitized}"
-    print(f"Using fallback PEP 440 version: {version}")
+          # Strip 'v' prefix if present, then ensure PEP 440 compatibility.
+          candidate = raw_version.lstrip("v")
+          try:
+              version = str(Version(candidate))
+          except InvalidVersion:
+              # Fallback: turn branch names (e.g. "main") into a local version.
+              sanitized = re.sub(r"[^0-9A-Za-z]+", ".", raw_version.lower()).strip(".")
+              if not sanitized:
+                  raise SystemExit(f"Cannot derive PEP 440 version from {raw_version!r}")
+              version = f"0.0.0+{sanitized}"
+              print(f"Using fallback PEP 440 version: {version}")
 
-path = Path("pyproject.toml")
+          path = Path("pyproject.toml")
 
-# Verify TOML is valid
-data = tomllib.loads(path.read_text())
-if "project" not in data:
-    raise SystemExit("No [project] section in pyproject.toml")
+          # Verify TOML is valid
+          data = tomllib.loads(path.read_text())
+          if "project" not in data:
+              raise SystemExit("No [project] section in pyproject.toml")
 
-out_lines = []
-in_project = False
+          out_lines = []
+          in_project = False
 
-# Naive replacement to preserve comments/formatting
-for line in path.read_text().splitlines():
-    if line.strip().startswith("[project]"):
-        in_project = True
-        out_lines.append(line)
-        continue
-    if in_project and line.startswith("[") and line.strip() != "[project.urls]":
-        in_project = False
+          # Naive replacement to preserve comments/formatting
+          for line in path.read_text().splitlines():
+              if line.strip().startswith("[project]"):
+                  in_project = True
+                  out_lines.append(line)
+                  continue
+              if in_project and line.startswith("[") and line.strip() != "[project.urls]":
+                  in_project = False
 
-    # Replace version line
-    if in_project and line.strip().startswith("version"):
-        out_lines.append(f'version = "{version}"')
-    else:
-        out_lines.append(line)
+              # Replace version line
+              if in_project and line.strip().startswith("version"):
+                  out_lines.append(f'version = "{version}"')
+              else:
+                  out_lines.append(line)
 
-path.write_text("\n".join(out_lines) + "\n")
-print(f"Set version to {version}")
+          path.write_text("\n".join(out_lines) + "\n")
+          print(f"Set version to {version}")
           PY
 
       - name: Generate Python stubs

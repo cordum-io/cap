@@ -35,11 +35,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install grpcio-tools
+          python -m grpc_tools.protoc --version
 
       - name: Generate Go stubs
         env:
           CAP_RUN_PY: 1
+          PYTHON_BIN: python
         run: |
+          "$PYTHON_BIN" -m pip install grpcio-tools
           bash ./tools/make_protos.sh
           ls -la gen/go || ls -la generated/go || true
 

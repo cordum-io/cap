@@ -31,7 +31,8 @@ protoc \
   --go-grpc_out="$OUT_GO" --go-grpc_opt=paths=source_relative \
   $(find "$PROTO_DIR" -name '*.proto')
 
-if [ "${CAP_SKIP_PY:-0}" != "1" ]; then
+# Default: skip Python stubs unless explicitly enabled.
+if [ "${CAP_RUN_PY:-0}" = "1" ]; then
   echo "Generating Python stubs..."
   if "$PYTHON_BIN" - <<'PY' >/dev/null 2>&1
 import importlib.util, sys
@@ -44,10 +45,10 @@ PY
       --grpc_python_out="$OUT_PY" \
       $(find "$PROTO_DIR" -name '*.proto')
   else
-    echo "grpc_tools not found; skipping Python stubs (install with: pip install grpcio-tools) or set CAP_SKIP_PY=1"
+    echo "grpc_tools not found; skipping Python stubs (install with: pip install grpcio-tools) or set CAP_RUN_PY=0"
   fi
 else
-  echo "CAP_SKIP_PY=1 set; skipping Python stubs"
+  echo "CAP_RUN_PY not set to 1; skipping Python stubs"
 fi
 
 echo "Done. Artifacts are in $OUT_GO and $OUT_PY"

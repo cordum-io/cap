@@ -28,7 +28,7 @@ jobs:
 
       - name: Generate Go stubs
         run: |
-          CAP_SKIP_PY=1 bash ./tools/make_protos.sh
+          CAP_RUN_PY=0 bash ./tools/make_protos.sh
           ls -la gen/go || ls -la generated/go || true
 
       - name: Go test (generated)

@@ -43,18 +43,19 @@ jobs:
       - name: Generate Go stubs
         env:
           CAP_RUN_PY: 1
+          CAP_OUT_GO: generated/go
           PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
         run: |
           "$PYTHON_BIN" -m pip install grpcio-tools
           bash ./tools/make_protos.sh
-          ls -la gen/go || ls -la generated/go || true
+          ls -la generated/go || ls -la gen/go || true
 
       - name: Go test (generated)
         run: |
-          if [ -d gen/go ]; then
-            go test ./gen/go/...
-          elif [ -d generated/go ]; then
+          if [ -d generated/go ]; then
             go test ./generated/go/...
+          elif [ -d gen/go ]; then
+            go test ./gen/go/...
           else
             echo "No generated Go stubs found" && exit 1
           fi

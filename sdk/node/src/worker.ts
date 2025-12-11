@@ -19,18 +19,18 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
   (async () => {
     for await (const msg of sub) {
       try {
-        const packet = BusPacket.decode(msg.data);
-        const jr = packet["job_request"];
+        const packet = BusPacket.decode(msg.data) as Record<string, any>;
+        const jr = packet.job_request;
         if (!jr) continue;
         const resObj = await cfg.handler(jr);
         const jrMsg = JobResult.fromObject(resObj);
         const out = BusPacket.fromObject({
-          trace_id: packet["trace_id"],
+          trace_id: packet.trace_id,
           sender_id: cfg.nc.info?.client_id?.toString() ?? "cap-worker",
           protocol_version: DEFAULT_PROTOCOL_VERSION,
           created_at: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
           job_result: jrMsg,
-        });
+        }) as any;
         const data = BusPacket.encode(out).finish();
         await cfg.nc.publish(SUBJECT_RESULT, data);
       } catch (err) {

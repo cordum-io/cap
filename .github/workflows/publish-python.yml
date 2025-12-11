@@ -51,31 +51,31 @@ jobs:
           fi
           VERSION="${VERSION#v}"
           "$PYTHON_BIN" - <<'PY'
-          import os
-          import tomllib
-          from pathlib import Path
+  import os
+  import tomllib
+  from pathlib import Path
 
-          version = os.environ["VERSION"].lstrip("v")
-          path = Path("pyproject.toml")
-          data = tomllib.loads(path.read_text())
-          if "project" not in data:
-              raise SystemExit("No [project] section in pyproject.toml")
-          out_lines = []
+  version = os.environ["VERSION"].lstrip("v")
+  path = Path("pyproject.toml")
+  data = tomllib.loads(path.read_text())
+  if "project" not in data:
+      raise SystemExit("No [project] section in pyproject.toml")
+  out_lines = []
+  in_project = False
+  for line in path.read_text().splitlines():
+      if line.strip().startswith("[project]"):
+          in_project = True
+          out_lines.append(line)
+          continue
+      if in_project and line.startswith("[") and line.strip() != "[project.urls]"):
           in_project = False
-          for line in path.read_text().splitlines():
-              if line.strip().startswith("[project]"):
-                  in_project = True
-                  out_lines.append(line)
-                  continue
-              if in_project and line.startswith("[") and line.strip() != "[project.urls]"):
-                  in_project = False
-              if in_project and line.strip().startswith("version"):
-                  out_lines.append(f'version = "{version}"')
-              else:
-                  out_lines.append(line)
-          path.write_text("\n".join(out_lines) + "\n")
-          print(f"Set version to {version}")
-          PY
+      if in_project and line.strip().startswith("version"):
+          out_lines.append(f'version = "{version}"')
+      else:
+          out_lines.append(line)
+  path.write_text("\n".join(out_lines) + "\n")
+  print(f"Set version to {version}")
+PY
 
       - name: Generate Python stubs
         env:

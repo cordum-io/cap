@@ -67,7 +67,7 @@ jobs:
           in_project = True
           out_lines.append(line)
           continue
-      if in_project and line.startswith("[") and line.strip() != "[project.urls]"):
+      if in_project and line.startswith("[") and line.strip() != "[project.urls]":
           in_project = False
       if in_project and line.strip().startswith("version"):
           out_lines.append(f'version = "{version}"')

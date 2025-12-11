@@ -27,20 +27,23 @@ jobs:
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
       - name: Set up Python
+        id: setup-python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install Python protoc plugin
+        env:
+          PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install grpcio-tools
-          python -m grpc_tools.protoc --version
+          "$PYTHON_BIN" -m pip install --upgrade pip
+          "$PYTHON_BIN" -m pip install grpcio-tools
+          "$PYTHON_BIN" -m grpc_tools.protoc --version
 
       - name: Generate Go stubs
         env:
           CAP_RUN_PY: 1
-          PYTHON_BIN: python
+          PYTHON_BIN: ${{ env.pythonLocation }}/bin/python
         run: |
           "$PYTHON_BIN" -m pip install grpcio-tools
           bash ./tools/make_protos.sh

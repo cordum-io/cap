@@ -79,6 +79,7 @@ Canonical protobuf definitions live under `proto/cortex/agent/v1/`:
 - `proto/` - protobuf contracts (copy/paste ready).
 - `examples/` - JSON and sequence flows for common scenarios.
 - `tools/` - helper scripts for proto generation (optional).
+- `sdk/` - starter SDKs for Go, Python, and Node/TS with NATS helpers.
 
 ## Compatibility and Contributing
 - Wire evolution is append-only: never renumber or repurpose existing protobuf fields.

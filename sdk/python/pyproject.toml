@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/cortex-agent-protocol"
+Homepage = "https://github.com/coretexos/cap"
 
 [tool.setuptools.packages.find]
 where = ["."]

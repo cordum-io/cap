@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cortex-agent-protocol/sdk/go"
-	agentv1 "github.com/cortex-agent-protocol/go/gen/cortex/agent/v1"
+	"github.com/coretexos/cap/sdk/go"
+	agentv1 "github.com/coretexos/cap/cortex/agent/v1"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"

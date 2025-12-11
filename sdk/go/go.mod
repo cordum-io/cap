@@ -1,9 +1,9 @@
-module github.com/cortex-agent-protocol/sdk/go
+module github.com/coretexos/cap/sdk/go
 
 go 1.21
 
 require (
-	github.com/cortex-agent-protocol/go v0.0.0-00010101000000-000000000000
+	github.com/coretexos/cap v0.0.0-00010101000000-000000000000
 	github.com/nats-io/nats.go v1.31.0
 	google.golang.org/protobuf v1.33.0
 )
@@ -21,4 +21,4 @@ require (
 )
 
 // Use locally generated CAP protobuf stubs.
-replace github.com/cortex-agent-protocol/go => ../../generated/go
+replace github.com/coretexos/cap => ../../generated/go

@@ -14,14 +14,14 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1b\x63ortex/agent/v1/alert.proto\x12\x0f\x63ortex.agent.v1\"N\n\x0bSystemAlert\x12\r\n\x05level\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x11\n\tcomponent\x18\x03 \x01(\t\x12\x0c\n\x04\x63ode\x18\x04 \x01(\tB\x8b\x01\n\x16\x61i.cortex.cap.agent.v1P\x01Z7github.com/cortex-agent-protocol/go/gen/cortex/agent/v1\xaa\x02\x0f\x43ortex.Agent.V1\xca\x02\x0f\x43ortex\\Agent\\V1\xea\x02\x11\x43ortex::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1b\x63ortex/agent/v1/alert.proto\x12\x0f\x63ortex.agent.v1\"N\n\x0bSystemAlert\x12\r\n\x05level\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x11\n\tcomponent\x18\x03 \x01(\t\x12\x0c\n\x04\x63ode\x18\x04 \x01(\tB|\n\x16\x61i.cortex.cap.agent.v1P\x01Z(github.com/coretexos/cap/cortex/agent/v1\xaa\x02\x0f\x43ortex.Agent.V1\xca\x02\x0f\x43ortex\\Agent\\V1\xea\x02\x11\x43ortex::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'cortex.agent.v1.alert_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['DESCRIPTOR']._options = None
-  _globals['DESCRIPTOR']._serialized_options = b'\n\026ai.cortex.cap.agent.v1P\001Z7github.com/cortex-agent-protocol/go/gen/cortex/agent/v1\252\002\017Cortex.Agent.V1\312\002\017Cortex\\Agent\\V1\352\002\021Cortex::Agent::V1'
+  _globals['DESCRIPTOR']._serialized_options = b'\n\026ai.cortex.cap.agent.v1P\001Z(github.com/coretexos/cap/cortex/agent/v1\252\002\017Cortex.Agent.V1\312\002\017Cortex\\Agent\\V1\352\002\021Cortex::Agent::V1'
   _globals['_SYSTEMALERT']._serialized_start=48
   _globals['_SYSTEMALERT']._serialized_end=126
 # @@protoc_insertion_point(module_scope)

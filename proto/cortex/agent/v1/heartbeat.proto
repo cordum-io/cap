@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package cortex.agent.v1;
+
+option go_package = "github.com/cortex-agent-protocol/go/gen/cortex/agent/v1";
+
+// Heartbeat advertises worker liveness and load to schedulers.
+message Heartbeat {
+    string worker_id = 1;           // unique worker identifier
+    string region = 2;              // region/zone/cluster hint
+    string type = 3;                // capability class (cpu, gpu, cpu-tools)
+    float cpu_load = 4;             // 0-100
+    float gpu_utilization = 5;      // 0-100
+    int32 active_jobs = 6;          // current in-flight jobs
+    repeated string capabilities = 7; // freeform skill descriptors
+    // field numbers 8-10 are reserved to allow future extensions
+    string pool = 11;               // pool name (often tied to job subject)
+    int32 max_parallel_jobs = 12;   // advertised concurrency limit
+}

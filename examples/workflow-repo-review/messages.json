@@ -1,0 +1,61 @@
+{
+  "parent_job_request": {
+    "trace_id": "trace-repo-001",
+    "sender_id": "gateway-1",
+    "created_at": "2025-01-10T12:00:00Z",
+    "protocol_version": 1,
+    "job_request": {
+      "job_id": "job-parent-001",
+      "topic": "job.workflow.repo.review",
+      "priority": "JOB_PRIORITY_INTERACTIVE",
+      "context_ptr": "redis://ctx/job-parent-001",
+      "env": {
+        "tenant": "acme",
+        "repo_url": "https://example.com/org/repo.git"
+      },
+      "workflow_id": "repo-review-001",
+      "step_index": 0
+    }
+  },
+  "child_job_request": {
+    "trace_id": "trace-repo-001",
+    "sender_id": "orchestrator-1",
+    "created_at": "2025-01-10T12:00:05Z",
+    "protocol_version": 1,
+    "job_request": {
+      "job_id": "job-scan-001",
+      "topic": "job.repo.scan",
+      "priority": "JOB_PRIORITY_BATCH",
+      "context_ptr": "redis://ctx/job-parent-001",
+      "parent_job_id": "job-parent-001",
+      "workflow_id": "repo-review-001",
+      "step_index": 1
+    }
+  },
+  "child_job_result": {
+    "trace_id": "trace-repo-001",
+    "sender_id": "worker-scan-1",
+    "created_at": "2025-01-10T12:00:08Z",
+    "protocol_version": 1,
+    "job_result": {
+      "job_id": "job-scan-001",
+      "status": "JOB_STATUS_SUCCEEDED",
+      "result_ptr": "redis://res/job-scan-001",
+      "worker_id": "worker-scan-1",
+      "execution_ms": 2500
+    }
+  },
+  "parent_job_result": {
+    "trace_id": "trace-repo-001",
+    "sender_id": "orchestrator-1",
+    "created_at": "2025-01-10T12:01:00Z",
+    "protocol_version": 1,
+    "job_result": {
+      "job_id": "job-parent-001",
+      "status": "JOB_STATUS_SUCCEEDED",
+      "result_ptr": "redis://res/job-parent-001",
+      "worker_id": "orchestrator-1",
+      "execution_ms": 60000
+    }
+  }
+}

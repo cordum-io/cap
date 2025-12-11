@@ -1,0 +1,42 @@
+name: Publish Go Module
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+
+      - name: Install protoc and plugins
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+      - name: Generate Go stubs
+        run: |
+          bash ./tools/make_protos.sh
+          ls -la gen/go || true
+
+      - name: Go test (generated)
+        run: |
+          if [ -d gen/go ]; then
+            go test ./gen/go/...
+          else
+            echo "No generated Go stubs found" && exit 1
+          fi
+
+      # Go modules are published via tags; no explicit publish step required.

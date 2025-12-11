@@ -9,8 +9,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROTO_DIR="$ROOT_DIR/proto"
-OUT_GO="$ROOT_DIR/generated/go"
-OUT_PY="$ROOT_DIR/generated/python"
+# Override output paths with env vars if desired.
+OUT_GO="${CAP_OUT_GO:-$ROOT_DIR/gen/go}"
+OUT_PY="${CAP_OUT_PY:-$ROOT_DIR/generated/python}"
 
 # Prefer a working python; fall back to python3 if python is missing.
 PYTHON_BIN="${PYTHON_BIN:-python}"
@@ -37,4 +38,4 @@ echo "Generating Python stubs..."
   --grpc_python_out="$OUT_PY" \
   $(find "$PROTO_DIR" -name '*.proto')
 
-echo "Done. Artifacts are in $ROOT_DIR/generated"
+echo "Done. Artifacts are in $OUT_GO and $OUT_PY"

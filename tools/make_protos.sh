@@ -10,7 +10,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROTO_DIR="$ROOT_DIR/proto"
 # Override output paths with env vars if desired.
-OUT_GO="${CAP_OUT_GO:-$ROOT_DIR/generated/go}"
+OUT_GO="${CAP_OUT_GO:-$ROOT_DIR}"
 OUT_PY="${CAP_OUT_PY:-$ROOT_DIR/generated/python}"
 
 # Prefer a working python; fall back to python3 if python is missing.

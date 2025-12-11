@@ -24,6 +24,16 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Set version from tag
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          if [[ -z "${VERSION}" ]]; then
+            echo "VERSION not set from tag"; exit 1
+          fi
+          VERSION="${VERSION#v}"
+          npm version "$VERSION" --no-git-tag-version
+
       - name: Install dependencies
         run: npm install
 

@@ -11,3 +11,4 @@ out/
 .vscode/
 generated/
 sdk/python/cap_sdk_python.egg-info/
+.codex/

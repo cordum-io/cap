@@ -23,11 +23,26 @@ namespace _pbi = _pb::internal;
 namespace cortex {
 namespace agent {
 namespace v1 {
+PROTOBUF_CONSTEXPR PolicyCheckRequest_LabelsEntry_DoNotUse::PolicyCheckRequest_LabelsEntry_DoNotUse(
+    ::_pbi::ConstantInitialized) {}
+struct PolicyCheckRequest_LabelsEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PolicyCheckRequest_LabelsEntry_DoNotUseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PolicyCheckRequest_LabelsEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    PolicyCheckRequest_LabelsEntry_DoNotUse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PolicyCheckRequest_LabelsEntry_DoNotUseDefaultTypeInternal _PolicyCheckRequest_LabelsEntry_DoNotUse_default_instance_;
 PROTOBUF_CONSTEXPR PolicyCheckRequest::PolicyCheckRequest(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.job_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_.labels_)*/{::_pbi::ConstantInitialized()}
+  , /*decltype(_impl_.job_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.topic_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.tenant_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.principal_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.memory_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.budget_)*/nullptr
   , /*decltype(_impl_.estimated_cost_)*/0
   , /*decltype(_impl_.priority_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
@@ -58,11 +73,21 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 }  // namespace v1
 }  // namespace agent
 }  // namespace cortex
-static ::_pb::Metadata file_level_metadata_cortex_2fagent_2fv1_2fsafety_2eproto[2];
+static ::_pb::Metadata file_level_metadata_cortex_2fagent_2fv1_2fsafety_2eproto[3];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_cortex_2fagent_2fv1_2fsafety_2eproto[1];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_cortex_2fagent_2fv1_2fsafety_2eproto = nullptr;
 
 const uint32_t TableStruct_cortex_2fagent_2fv1_2fsafety_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+  PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse, value_),
+  0,
+  1,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -74,6 +99,10 @@ const uint32_t TableStruct_cortex_2fagent_2fv1_2fsafety_2eproto::offsets[] PROTO
   PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest, _impl_.tenant_),
   PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest, _impl_.priority_),
   PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest, _impl_.estimated_cost_),
+  PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest, _impl_.budget_),
+  PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest, _impl_.principal_id_),
+  PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest, _impl_.labels_),
+  PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckRequest, _impl_.memory_id_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckResponse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -85,44 +114,51 @@ const uint32_t TableStruct_cortex_2fagent_2fv1_2fsafety_2eproto::offsets[] PROTO
   PROTOBUF_FIELD_OFFSET(::cortex::agent::v1::PolicyCheckResponse, _impl_.redacted_context_ptr_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, -1, sizeof(::cortex::agent::v1::PolicyCheckRequest)},
-  { 11, -1, -1, sizeof(::cortex::agent::v1::PolicyCheckResponse)},
+  { 0, 8, -1, sizeof(::cortex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse)},
+  { 10, -1, -1, sizeof(::cortex::agent::v1::PolicyCheckRequest)},
+  { 25, -1, -1, sizeof(::cortex::agent::v1::PolicyCheckResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
+  &::cortex::agent::v1::_PolicyCheckRequest_LabelsEntry_DoNotUse_default_instance_._instance,
   &::cortex::agent::v1::_PolicyCheckRequest_default_instance_._instance,
   &::cortex::agent::v1::_PolicyCheckResponse_default_instance_._instance,
 };
 
 const char descriptor_table_protodef_cortex_2fagent_2fv1_2fsafety_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\034cortex/agent/v1/safety.proto\022\017cortex.a"
-  "gent.v1\032\031cortex/agent/v1/job.proto\"\213\001\n\022P"
+  "gent.v1\032\031cortex/agent/v1/job.proto\"\315\002\n\022P"
   "olicyCheckRequest\022\016\n\006job_id\030\001 \001(\t\022\r\n\005top"
   "ic\030\002 \001(\t\022\016\n\006tenant\030\003 \001(\t\022.\n\010priority\030\004 \001"
   "(\0162\034.cortex.agent.v1.JobPriority\022\026\n\016esti"
-  "mated_cost\030\005 \001(\001\"t\n\023PolicyCheckResponse\022"
-  "/\n\010decision\030\001 \001(\0162\035.cortex.agent.v1.Deci"
-  "sionType\022\016\n\006reason\030\002 \001(\t\022\034\n\024redacted_con"
-  "text_ptr\030\003 \001(\t*\233\001\n\014DecisionType\022\035\n\031DECIS"
-  "ION_TYPE_UNSPECIFIED\020\000\022\027\n\023DECISION_TYPE_"
-  "ALLOW\020\001\022\026\n\022DECISION_TYPE_DENY\020\002\022\037\n\033DECIS"
-  "ION_TYPE_REQUIRE_HUMAN\020\003\022\032\n\026DECISION_TYP"
-  "E_THROTTLE\020\0042b\n\014SafetyKernel\022R\n\005Check\022#."
-  "cortex.agent.v1.PolicyCheckRequest\032$.cor"
-  "tex.agent.v1.PolicyCheckResponseB\177\n\026ai.c"
-  "ortex.cap.agent.v1P\001Z+github.com/coretex"
-  "os/cap/go/cortex/agent/v1\252\002\017Cortex.Agent"
-  ".V1\312\002\017Cortex\\Agent\\V1\352\002\021Cortex::Agent::V"
-  "1b\006proto3"
+  "mated_cost\030\005 \001(\001\022\'\n\006budget\030\006 \001(\0132\027.corte"
+  "x.agent.v1.Budget\022\024\n\014principal_id\030\007 \001(\t\022"
+  "\?\n\006labels\030\010 \003(\0132/.cortex.agent.v1.Policy"
+  "CheckRequest.LabelsEntry\022\021\n\tmemory_id\030\t "
+  "\001(\t\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value"
+  "\030\002 \001(\t:\0028\001\"t\n\023PolicyCheckResponse\022/\n\010dec"
+  "ision\030\001 \001(\0162\035.cortex.agent.v1.DecisionTy"
+  "pe\022\016\n\006reason\030\002 \001(\t\022\034\n\024redacted_context_p"
+  "tr\030\003 \001(\t*\233\001\n\014DecisionType\022\035\n\031DECISION_TY"
+  "PE_UNSPECIFIED\020\000\022\027\n\023DECISION_TYPE_ALLOW\020"
+  "\001\022\026\n\022DECISION_TYPE_DENY\020\002\022\037\n\033DECISION_TY"
+  "PE_REQUIRE_HUMAN\020\003\022\032\n\026DECISION_TYPE_THRO"
+  "TTLE\020\0042b\n\014SafetyKernel\022R\n\005Check\022#.cortex"
+  ".agent.v1.PolicyCheckRequest\032$.cortex.ag"
+  "ent.v1.PolicyCheckResponseB\177\n\026ai.cortex."
+  "cap.agent.v1P\001Z+github.com/coretexos/cap"
+  "/go/cortex/agent/v1\252\002\017Cortex.Agent.V1\312\002\017"
+  "Cortex\\Agent\\V1\352\002\021Cortex::Agent::V1b\006pro"
+  "to3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_deps[1] = {
   &::descriptor_table_cortex_2fagent_2fv1_2fjob_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto = {
-    false, false, 729, descriptor_table_protodef_cortex_2fagent_2fv1_2fsafety_2eproto,
+    false, false, 923, descriptor_table_protodef_cortex_2fagent_2fv1_2fsafety_2eproto,
     "cortex/agent/v1/safety.proto",
-    &descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_once, descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_deps, 1, 2,
+    &descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_once, descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_deps, 1, 3,
     schemas, file_default_instances, TableStruct_cortex_2fagent_2fv1_2fsafety_2eproto::offsets,
     file_level_metadata_cortex_2fagent_2fv1_2fsafety_2eproto, file_level_enum_descriptors_cortex_2fagent_2fv1_2fsafety_2eproto,
     file_level_service_descriptors_cortex_2fagent_2fv1_2fsafety_2eproto,
@@ -156,28 +192,61 @@ bool DecisionType_IsValid(int value) {
 
 // ===================================================================
 
+PolicyCheckRequest_LabelsEntry_DoNotUse::PolicyCheckRequest_LabelsEntry_DoNotUse() {}
+PolicyCheckRequest_LabelsEntry_DoNotUse::PolicyCheckRequest_LabelsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+    : SuperType(arena) {}
+void PolicyCheckRequest_LabelsEntry_DoNotUse::MergeFrom(const PolicyCheckRequest_LabelsEntry_DoNotUse& other) {
+  MergeFromInternal(other);
+}
+::PROTOBUF_NAMESPACE_ID::Metadata PolicyCheckRequest_LabelsEntry_DoNotUse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_once,
+      file_level_metadata_cortex_2fagent_2fv1_2fsafety_2eproto[0]);
+}
+
+// ===================================================================
+
 class PolicyCheckRequest::_Internal {
  public:
+  static const ::cortex::agent::v1::Budget& budget(const PolicyCheckRequest* msg);
 };
 
+const ::cortex::agent::v1::Budget&
+PolicyCheckRequest::_Internal::budget(const PolicyCheckRequest* msg) {
+  return *msg->_impl_.budget_;
+}
+void PolicyCheckRequest::clear_budget() {
+  if (GetArenaForAllocation() == nullptr && _impl_.budget_ != nullptr) {
+    delete _impl_.budget_;
+  }
+  _impl_.budget_ = nullptr;
+}
 PolicyCheckRequest::PolicyCheckRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
+  if (arena != nullptr && !is_message_owned) {
+    arena->OwnCustomDestructor(this, &PolicyCheckRequest::ArenaDtor);
+  }
   // @@protoc_insertion_point(arena_constructor:cortex.agent.v1.PolicyCheckRequest)
 }
 PolicyCheckRequest::PolicyCheckRequest(const PolicyCheckRequest& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   PolicyCheckRequest* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.job_id_){}
+      /*decltype(_impl_.labels_)*/{}
+    , decltype(_impl_.job_id_){}
     , decltype(_impl_.topic_){}
     , decltype(_impl_.tenant_){}
+    , decltype(_impl_.principal_id_){}
+    , decltype(_impl_.memory_id_){}
+    , decltype(_impl_.budget_){nullptr}
     , decltype(_impl_.estimated_cost_){}
     , decltype(_impl_.priority_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.labels_.MergeFrom(from._impl_.labels_);
   _impl_.job_id_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.job_id_.Set("", GetArenaForAllocation());
@@ -202,6 +271,25 @@ PolicyCheckRequest::PolicyCheckRequest(const PolicyCheckRequest& from)
     _this->_impl_.tenant_.Set(from._internal_tenant(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.principal_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.principal_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_principal_id().empty()) {
+    _this->_impl_.principal_id_.Set(from._internal_principal_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.memory_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.memory_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_memory_id().empty()) {
+    _this->_impl_.memory_id_.Set(from._internal_memory_id(), 
+      _this->GetArenaForAllocation());
+  }
+  if (from._internal_has_budget()) {
+    _this->_impl_.budget_ = new ::cortex::agent::v1::Budget(*from._impl_.budget_);
+  }
   ::memcpy(&_impl_.estimated_cost_, &from._impl_.estimated_cost_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.priority_) -
     reinterpret_cast<char*>(&_impl_.estimated_cost_)) + sizeof(_impl_.priority_));
@@ -213,9 +301,13 @@ inline void PolicyCheckRequest::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.job_id_){}
+      /*decltype(_impl_.labels_)*/{::_pbi::ArenaInitialized(), arena}
+    , decltype(_impl_.job_id_){}
     , decltype(_impl_.topic_){}
     , decltype(_impl_.tenant_){}
+    , decltype(_impl_.principal_id_){}
+    , decltype(_impl_.memory_id_){}
+    , decltype(_impl_.budget_){nullptr}
     , decltype(_impl_.estimated_cost_){0}
     , decltype(_impl_.priority_){0}
     , /*decltype(_impl_._cached_size_)*/{}
@@ -232,12 +324,21 @@ inline void PolicyCheckRequest::SharedCtor(
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.tenant_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.principal_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.principal_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.memory_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.memory_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 PolicyCheckRequest::~PolicyCheckRequest() {
   // @@protoc_insertion_point(destructor:cortex.agent.v1.PolicyCheckRequest)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
+    ArenaDtor(this);
     return;
   }
   SharedDtor();
@@ -245,11 +346,20 @@ PolicyCheckRequest::~PolicyCheckRequest() {
 
 inline void PolicyCheckRequest::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.labels_.Destruct();
+  _impl_.labels_.~MapField();
   _impl_.job_id_.Destroy();
   _impl_.topic_.Destroy();
   _impl_.tenant_.Destroy();
+  _impl_.principal_id_.Destroy();
+  _impl_.memory_id_.Destroy();
+  if (this != internal_default_instance()) delete _impl_.budget_;
 }
 
+void PolicyCheckRequest::ArenaDtor(void* object) {
+  PolicyCheckRequest* _this = reinterpret_cast< PolicyCheckRequest* >(object);
+  _this->_impl_.labels_.Destruct();
+}
 void PolicyCheckRequest::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
@@ -260,9 +370,16 @@ void PolicyCheckRequest::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  _impl_.labels_.Clear();
   _impl_.job_id_.ClearToEmpty();
   _impl_.topic_.ClearToEmpty();
   _impl_.tenant_.ClearToEmpty();
+  _impl_.principal_id_.ClearToEmpty();
+  _impl_.memory_id_.ClearToEmpty();
+  if (GetArenaForAllocation() == nullptr && _impl_.budget_ != nullptr) {
+    delete _impl_.budget_;
+  }
+  _impl_.budget_ = nullptr;
   ::memset(&_impl_.estimated_cost_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.priority_) -
       reinterpret_cast<char*>(&_impl_.estimated_cost_)) + sizeof(_impl_.priority_));
@@ -319,6 +436,47 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 41)) {
           _impl_.estimated_cost_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
           ptr += sizeof(double);
+        } else
+          goto handle_unusual;
+        continue;
+      // .cortex.agent.v1.Budget budget = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          ptr = ctx->ParseMessage(_internal_mutable_budget(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string principal_id = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
+          auto str = _internal_mutable_principal_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cortex.agent.v1.PolicyCheckRequest.principal_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // map<string, string> labels = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(&_impl_.labels_, ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<66>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // string memory_id = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
+          auto str = _internal_mutable_memory_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cortex.agent.v1.PolicyCheckRequest.memory_id"));
         } else
           goto handle_unusual;
         continue;
@@ -398,6 +556,63 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteDoubleToArray(5, this->_internal_estimated_cost(), target);
   }
 
+  // .cortex.agent.v1.Budget budget = 6;
+  if (this->_internal_has_budget()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(6, _Internal::budget(this),
+        _Internal::budget(this).GetCachedSize(), target, stream);
+  }
+
+  // string principal_id = 7;
+  if (!this->_internal_principal_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_principal_id().data(), static_cast<int>(this->_internal_principal_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cortex.agent.v1.PolicyCheckRequest.principal_id");
+    target = stream->WriteStringMaybeAliased(
+        7, this->_internal_principal_id(), target);
+  }
+
+  // map<string, string> labels = 8;
+  if (!this->_internal_labels().empty()) {
+    using MapType = ::_pb::Map<std::string, std::string>;
+    using WireHelper = PolicyCheckRequest_LabelsEntry_DoNotUse::Funcs;
+    const auto& map_field = this->_internal_labels();
+    auto check_utf8 = [](const MapType::value_type& entry) {
+      (void)entry;
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.first.data(), static_cast<int>(entry.first.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "cortex.agent.v1.PolicyCheckRequest.LabelsEntry.key");
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.second.data(), static_cast<int>(entry.second.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "cortex.agent.v1.PolicyCheckRequest.LabelsEntry.value");
+    };
+
+    if (stream->IsSerializationDeterministic() && map_field.size() > 1) {
+      for (const auto& entry : ::_pbi::MapSorterPtr<MapType>(map_field)) {
+        target = WireHelper::InternalSerialize(8, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    } else {
+      for (const auto& entry : map_field) {
+        target = WireHelper::InternalSerialize(8, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    }
+  }
+
+  // string memory_id = 9;
+  if (!this->_internal_memory_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_memory_id().data(), static_cast<int>(this->_internal_memory_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cortex.agent.v1.PolicyCheckRequest.memory_id");
+    target = stream->WriteStringMaybeAliased(
+        9, this->_internal_memory_id(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -413,6 +628,15 @@ size_t PolicyCheckRequest::ByteSizeLong() const {
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
+
+  // map<string, string> labels = 8;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_labels_size());
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
+      it = this->_internal_labels().begin();
+      it != this->_internal_labels().end(); ++it) {
+    total_size += PolicyCheckRequest_LabelsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
+  }
 
   // string job_id = 1;
   if (!this->_internal_job_id().empty()) {
@@ -433,6 +657,27 @@ size_t PolicyCheckRequest::ByteSizeLong() const {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_tenant());
+  }
+
+  // string principal_id = 7;
+  if (!this->_internal_principal_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_principal_id());
+  }
+
+  // string memory_id = 9;
+  if (!this->_internal_memory_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_memory_id());
+  }
+
+  // .cortex.agent.v1.Budget budget = 6;
+  if (this->_internal_has_budget()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.budget_);
   }
 
   // double estimated_cost = 5;
@@ -468,6 +713,7 @@ void PolicyCheckRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
+  _this->_impl_.labels_.MergeFrom(from._impl_.labels_);
   if (!from._internal_job_id().empty()) {
     _this->_internal_set_job_id(from._internal_job_id());
   }
@@ -476,6 +722,16 @@ void PolicyCheckRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   }
   if (!from._internal_tenant().empty()) {
     _this->_internal_set_tenant(from._internal_tenant());
+  }
+  if (!from._internal_principal_id().empty()) {
+    _this->_internal_set_principal_id(from._internal_principal_id());
+  }
+  if (!from._internal_memory_id().empty()) {
+    _this->_internal_set_memory_id(from._internal_memory_id());
+  }
+  if (from._internal_has_budget()) {
+    _this->_internal_mutable_budget()->::cortex::agent::v1::Budget::MergeFrom(
+        from._internal_budget());
   }
   static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
   double tmp_estimated_cost = from._internal_estimated_cost();
@@ -506,6 +762,7 @@ void PolicyCheckRequest::InternalSwap(PolicyCheckRequest* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.labels_.InternalSwap(&other->_impl_.labels_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.job_id_, lhs_arena,
       &other->_impl_.job_id_, rhs_arena
@@ -518,18 +775,26 @@ void PolicyCheckRequest::InternalSwap(PolicyCheckRequest* other) {
       &_impl_.tenant_, lhs_arena,
       &other->_impl_.tenant_, rhs_arena
   );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.principal_id_, lhs_arena,
+      &other->_impl_.principal_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.memory_id_, lhs_arena,
+      &other->_impl_.memory_id_, rhs_arena
+  );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(PolicyCheckRequest, _impl_.priority_)
       + sizeof(PolicyCheckRequest::_impl_.priority_)
-      - PROTOBUF_FIELD_OFFSET(PolicyCheckRequest, _impl_.estimated_cost_)>(
-          reinterpret_cast<char*>(&_impl_.estimated_cost_),
-          reinterpret_cast<char*>(&other->_impl_.estimated_cost_));
+      - PROTOBUF_FIELD_OFFSET(PolicyCheckRequest, _impl_.budget_)>(
+          reinterpret_cast<char*>(&_impl_.budget_),
+          reinterpret_cast<char*>(&other->_impl_.budget_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata PolicyCheckRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_once,
-      file_level_metadata_cortex_2fagent_2fv1_2fsafety_2eproto[0]);
+      file_level_metadata_cortex_2fagent_2fv1_2fsafety_2eproto[1]);
 }
 
 // ===================================================================
@@ -812,7 +1077,7 @@ void PolicyCheckResponse::InternalSwap(PolicyCheckResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata PolicyCheckResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_cortex_2fagent_2fv1_2fsafety_2eproto_once,
-      file_level_metadata_cortex_2fagent_2fv1_2fsafety_2eproto[1]);
+      file_level_metadata_cortex_2fagent_2fv1_2fsafety_2eproto[2]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -820,6 +1085,10 @@ void PolicyCheckResponse::InternalSwap(PolicyCheckResponse* other) {
 }  // namespace agent
 }  // namespace cortex
 PROTOBUF_NAMESPACE_OPEN
+template<> PROTOBUF_NOINLINE ::cortex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse*
+Arena::CreateMaybeMessage< ::cortex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::cortex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse >(arena);
+}
 template<> PROTOBUF_NOINLINE ::cortex::agent::v1::PolicyCheckRequest*
 Arena::CreateMaybeMessage< ::cortex::agent::v1::PolicyCheckRequest >(Arena* arena) {
   return Arena::CreateMessageInternal< ::cortex::agent::v1::PolicyCheckRequest >(arena);

@@ -8,9 +8,17 @@
 - Compatible with workers, orchestrators, gateways, schedulers, and external clients in mixed deployments.
 
 ## Status
-- Protocol: CAP v0.1.0 — Draft (breaking changes still possible).
+- Protocol (wire): CAP 1.0.0 — Stable; append-only changes only.
+- Implementation / SDK: cap v1.0.5 (tagged releases in this repo).
 - Transport profile: NATS-first; other buses experimental.
 - Reference implementation: CortexOS.
+
+### Versioning at a glance
+| Component | Version | Notes |
+| --- | --- | --- |
+| Protocol wire schema | 1.0.0 | Append-only evolution; never renumber fields. |
+| Repo / SDKs | 1.0.5 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
+| `protocol_version` field | 1 | Used in `BusPacket` for negotiation. |
 
 ## MCP != CAP
 - MCP = single-model tool protocol.
@@ -79,6 +87,30 @@ Canonical protobuf definitions live under `proto/cortex/agent/v1/`:
 - `examples/heartbeat.json` — standalone heartbeat sample.
 - `examples/README.md` — quick pointers to all flows.
 
+## Hello Worker (Go, 20 lines)
+```go
+nc, _ := nats.Connect("nats://127.0.0.1:4222")
+defer nc.Drain()
+
+_, _ = nc.QueueSubscribe("job.echo", "job.echo", func(msg *nats.Msg) {
+  var pkt agentv1.BusPacket
+  _ = proto.Unmarshal(msg.Data, &pkt)
+  req := pkt.GetJobRequest()
+  res := &agentv1.JobResult{
+    JobId:     req.GetJobId(),
+    Status:    agentv1.JobStatus_JOB_STATUS_SUCCEEDED,
+    ResultPtr: "redis://res/" + req.GetJobId(),
+    WorkerId:  "echo-1",
+  }
+  out, _ := proto.Marshal(&agentv1.BusPacket{
+    TraceId: pkt.GetTraceId(), SenderId: "echo-1", ProtocolVersion: 1,
+    Payload: &agentv1.BusPacket_JobResult{JobResult: res},
+  })
+  _ = nc.Publish("sys.job.result", out)
+})
+select {} // block
+```
+
 ## Repo Map
 - `spec/` - normative spec: envelopes, jobs, pointers, heartbeats, safety, state, workflows, transport, security.
 - `proto/` - protobuf contracts (copy/paste ready).
@@ -95,6 +127,14 @@ Canonical protobuf definitions live under `proto/cortex/agent/v1/`:
 - Wire evolution is append-only: never renumber or repurpose existing protobuf fields.
 - `protocol_version` (currently `1`) is used for negotiation; tag releases when message shapes change.
 - See `CONTRIBUTING.md` for workflow and style guidance.
+
+## CAP Conformance Checklist
+- Use `BusPacket` envelopes with stable `trace_id` across workflows and children.
+- Keep blobs off the bus: use `context_ptr`, `result_ptr`, and `redacted_context_ptr`.
+- Emit `JobRequest` with workflow links (`workflow_id`, `parent_job_id`, `step_index`) when fanning out.
+- Heartbeat on `sys.heartbeat` with pool/region and capacity.
+- Run Safety checks (allow/deny/human/throttle) before dispatch.
+- Assume at-least-once delivery; make handlers idempotent on `job_id` + pointers.
 
 ## Why CAP (and not just MCP)
 - MCP assumes a single model calling local tools; it does not cover scheduling, state reconciliation, safety hooks, or distributed pools.

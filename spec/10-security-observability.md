@@ -18,7 +18,8 @@ Security and visibility are mandatory for production deployments of CAP. For a m
 
 ## Observability
 - Metrics: emit counters for submissions, dispatches, successes, failures, denials, timeouts, and safety decisions; track latency buckets for submission->dispatch and dispatch->result.
-- Tracing: propagate `trace_id` across gateway, scheduler, worker, and orchestrator spans; include pointer URIs as attributes, not payloads.
+- Tracing: propagate a stable `trace_id` across gateway, scheduler, worker, and orchestrator spans; child jobs SHOULD reuse the parent `trace_id`.
+- Workflow topology: include `workflow_id`, `parent_job_id`, and `step_index` as attributes to reconstruct DAGs without inspecting payloads.
 - Logging: log state transitions with `job_id`, `trace_id`, `status`, `worker_id`, `pool`, `decision`, and `latency_ms`.
 - Heartbeat monitoring: alert on missing heartbeats per pool/region; track utilization trends.
 

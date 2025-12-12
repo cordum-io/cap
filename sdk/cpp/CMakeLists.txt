@@ -8,13 +8,17 @@ if(NOT DEFINED PROTO_ROOT)
   set(PROTO_ROOT "${CMAKE_SOURCE_DIR}/../../proto")
 endif()
 
+# Prefer pre-generated C++ stubs under /cpp to avoid protoc at build time.
+set(CPP_STUB_DIR "${CMAKE_SOURCE_DIR}/../../cpp")
+
 find_package(Protobuf REQUIRED)
 
-file(GLOB CAP_PROTO_FILES
-  "${PROTO_ROOT}/cortex/agent/v1/*.proto"
+file(GLOB CAP_PROTO_SRCS
+  "${CPP_STUB_DIR}/cortex/agent/v1/*.pb.cc"
 )
-
-protobuf_generate_cpp(CAP_PROTO_SRCS CAP_PROTO_HDRS ${CAP_PROTO_FILES})
+file(GLOB CAP_PROTO_HDRS
+  "${CPP_STUB_DIR}/cortex/agent/v1/*.pb.h"
+)
 
 add_library(cap_cpp
   ${CAP_PROTO_SRCS}
@@ -26,8 +30,8 @@ add_library(cap_cpp
 target_include_directories(cap_cpp
   PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CPP_STUB_DIR}
     ${PROTOBUF_INCLUDE_DIRS}
-    ${CMAKE_CURRENT_BINARY_DIR} # for generated headers
 )
 
 target_link_libraries(cap_cpp

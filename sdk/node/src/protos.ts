@@ -1,17 +1,30 @@
-import { load } from "protobufjs";
+import { Root, loadSync } from "protobufjs";
 import path from "path";
 
-// dist is at sdk/node/dist; walk up to repo root then into proto/
-const PROTO_DIR = path.resolve(__dirname, "../../../proto/cortex/agent/v1");
+const PROTO_BASE_DIR = path.resolve(__dirname, "..", "..", "..", "..", "proto");
+const PROTOS = [
+  "alert.proto",
+  "buspacket.proto",
+  "heartbeat.proto",
+  "job.proto",
+  "safety.proto",
+].map((f) => path.join(PROTO_BASE_DIR, "cortex", "agent", "v1", f));
 
-export async function loadRoot() {
-  return load([
-    path.join(PROTO_DIR, "buspacket.proto"),
-    path.join(PROTO_DIR, "job.proto"),
-    path.join(PROTO_DIR, "heartbeat.proto"),
-    path.join(PROTO_DIR, "alert.proto"),
-    path.join(PROTO_DIR, "safety.proto"),
-  ]);
+let root: Root | null = null;
+
+export async function loadRoot(): Promise<Root> {
+  if (root) {
+    return root;
+  }
+  const protoRoot = new Root();
+  protoRoot.resolvePath = (_origin, target) => {
+    if (target.startsWith("cortex/")) {
+      return path.join(PROTO_BASE_DIR, target);
+    }
+    return path.resolve(path.dirname(_origin), target);
+  };
+  root = protoRoot.loadSync(PROTOS);
+  return root;
 }
 
 export const SUBJECT_SUBMIT = "sys.job.submit";

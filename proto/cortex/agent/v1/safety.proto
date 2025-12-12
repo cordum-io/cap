@@ -27,6 +27,10 @@ message PolicyCheckRequest {
     string tenant = 3;
     JobPriority priority = 4;
     double estimated_cost = 5;
+    Budget budget = 6; // optional budget hints for the decision
+    string principal_id = 7;
+    map<string, string> labels = 8;
+    string memory_id = 9;
 }
 
 // PolicyCheckResponse conveys the decision and optional redaction pointer.

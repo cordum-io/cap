@@ -29,6 +29,9 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/map.h>  // IWYU pragma: export
+#include <google/protobuf/map_entry.h>
+#include <google/protobuf/map_field_inl.h>
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 #include "cortex/agent/v1/job.pb.h"
@@ -52,6 +55,9 @@ namespace v1 {
 class PolicyCheckRequest;
 struct PolicyCheckRequestDefaultTypeInternal;
 extern PolicyCheckRequestDefaultTypeInternal _PolicyCheckRequest_default_instance_;
+class PolicyCheckRequest_LabelsEntry_DoNotUse;
+struct PolicyCheckRequest_LabelsEntry_DoNotUseDefaultTypeInternal;
+extern PolicyCheckRequest_LabelsEntry_DoNotUseDefaultTypeInternal _PolicyCheckRequest_LabelsEntry_DoNotUse_default_instance_;
 class PolicyCheckResponse;
 struct PolicyCheckResponseDefaultTypeInternal;
 extern PolicyCheckResponseDefaultTypeInternal _PolicyCheckResponse_default_instance_;
@@ -60,6 +66,7 @@ extern PolicyCheckResponseDefaultTypeInternal _PolicyCheckResponse_default_insta
 }  // namespace cortex
 PROTOBUF_NAMESPACE_OPEN
 template<> ::cortex::agent::v1::PolicyCheckRequest* Arena::CreateMaybeMessage<::cortex::agent::v1::PolicyCheckRequest>(Arena*);
+template<> ::cortex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::cortex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse>(Arena*);
 template<> ::cortex::agent::v1::PolicyCheckResponse* Arena::CreateMaybeMessage<::cortex::agent::v1::PolicyCheckResponse>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace cortex {
@@ -95,6 +102,34 @@ inline bool DecisionType_Parse(
     DecisionType_descriptor(), name, value);
 }
 // ===================================================================
+
+class PolicyCheckRequest_LabelsEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<PolicyCheckRequest_LabelsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<PolicyCheckRequest_LabelsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> SuperType;
+  PolicyCheckRequest_LabelsEntry_DoNotUse();
+  explicit PROTOBUF_CONSTEXPR PolicyCheckRequest_LabelsEntry_DoNotUse(
+      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit PolicyCheckRequest_LabelsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const PolicyCheckRequest_LabelsEntry_DoNotUse& other);
+  static const PolicyCheckRequest_LabelsEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const PolicyCheckRequest_LabelsEntry_DoNotUse*>(&_PolicyCheckRequest_LabelsEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cortex.agent.v1.PolicyCheckRequest.LabelsEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cortex.agent.v1.PolicyCheckRequest.LabelsEntry.value");
+ }
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  friend struct ::TableStruct_cortex_2fagent_2fv1_2fsafety_2eproto;
+};
+
+// -------------------------------------------------------------------
 
 class PolicyCheckRequest final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cortex.agent.v1.PolicyCheckRequest) */ {
@@ -144,7 +179,7 @@ class PolicyCheckRequest final :
                &_PolicyCheckRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    1;
 
   friend void swap(PolicyCheckRequest& a, PolicyCheckRequest& b) {
     a.Swap(&b);
@@ -205,6 +240,8 @@ class PolicyCheckRequest final :
   protected:
   explicit PolicyCheckRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
   public:
 
   static const ClassData _class_data_;
@@ -214,15 +251,37 @@ class PolicyCheckRequest final :
 
   // nested types ----------------------------------------------------
 
+
   // accessors -------------------------------------------------------
 
   enum : int {
+    kLabelsFieldNumber = 8,
     kJobIdFieldNumber = 1,
     kTopicFieldNumber = 2,
     kTenantFieldNumber = 3,
+    kPrincipalIdFieldNumber = 7,
+    kMemoryIdFieldNumber = 9,
+    kBudgetFieldNumber = 6,
     kEstimatedCostFieldNumber = 5,
     kPriorityFieldNumber = 4,
   };
+  // map<string, string> labels = 8;
+  int labels_size() const;
+  private:
+  int _internal_labels_size() const;
+  public:
+  void clear_labels();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_labels() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_labels();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      labels() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_labels();
+
   // string job_id = 1;
   void clear_job_id();
   const std::string& job_id() const;
@@ -265,6 +324,52 @@ class PolicyCheckRequest final :
   std::string* _internal_mutable_tenant();
   public:
 
+  // string principal_id = 7;
+  void clear_principal_id();
+  const std::string& principal_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_principal_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_principal_id();
+  PROTOBUF_NODISCARD std::string* release_principal_id();
+  void set_allocated_principal_id(std::string* principal_id);
+  private:
+  const std::string& _internal_principal_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_principal_id(const std::string& value);
+  std::string* _internal_mutable_principal_id();
+  public:
+
+  // string memory_id = 9;
+  void clear_memory_id();
+  const std::string& memory_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_memory_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_memory_id();
+  PROTOBUF_NODISCARD std::string* release_memory_id();
+  void set_allocated_memory_id(std::string* memory_id);
+  private:
+  const std::string& _internal_memory_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_memory_id(const std::string& value);
+  std::string* _internal_mutable_memory_id();
+  public:
+
+  // .cortex.agent.v1.Budget budget = 6;
+  bool has_budget() const;
+  private:
+  bool _internal_has_budget() const;
+  public:
+  void clear_budget();
+  const ::cortex::agent::v1::Budget& budget() const;
+  PROTOBUF_NODISCARD ::cortex::agent::v1::Budget* release_budget();
+  ::cortex::agent::v1::Budget* mutable_budget();
+  void set_allocated_budget(::cortex::agent::v1::Budget* budget);
+  private:
+  const ::cortex::agent::v1::Budget& _internal_budget() const;
+  ::cortex::agent::v1::Budget* _internal_mutable_budget();
+  public:
+  void unsafe_arena_set_allocated_budget(
+      ::cortex::agent::v1::Budget* budget);
+  ::cortex::agent::v1::Budget* unsafe_arena_release_budget();
+
   // double estimated_cost = 5;
   void clear_estimated_cost();
   double estimated_cost() const;
@@ -291,9 +396,17 @@ class PolicyCheckRequest final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+        PolicyCheckRequest_LabelsEntry_DoNotUse,
+        std::string, std::string,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> labels_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr job_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr topic_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr tenant_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr principal_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr memory_id_;
+    ::cortex::agent::v1::Budget* budget_;
     double estimated_cost_;
     int priority_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -351,7 +464,7 @@ class PolicyCheckResponse final :
                &_PolicyCheckResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    2;
 
   friend void swap(PolicyCheckResponse& a, PolicyCheckResponse& b) {
     a.Swap(&b);
@@ -490,6 +603,8 @@ class PolicyCheckResponse final :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // PolicyCheckRequest
 
 // string job_id = 1;
@@ -682,6 +797,220 @@ inline void PolicyCheckRequest::set_estimated_cost(double value) {
   // @@protoc_insertion_point(field_set:cortex.agent.v1.PolicyCheckRequest.estimated_cost)
 }
 
+// .cortex.agent.v1.Budget budget = 6;
+inline bool PolicyCheckRequest::_internal_has_budget() const {
+  return this != internal_default_instance() && _impl_.budget_ != nullptr;
+}
+inline bool PolicyCheckRequest::has_budget() const {
+  return _internal_has_budget();
+}
+inline const ::cortex::agent::v1::Budget& PolicyCheckRequest::_internal_budget() const {
+  const ::cortex::agent::v1::Budget* p = _impl_.budget_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cortex::agent::v1::Budget&>(
+      ::cortex::agent::v1::_Budget_default_instance_);
+}
+inline const ::cortex::agent::v1::Budget& PolicyCheckRequest::budget() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.PolicyCheckRequest.budget)
+  return _internal_budget();
+}
+inline void PolicyCheckRequest::unsafe_arena_set_allocated_budget(
+    ::cortex::agent::v1::Budget* budget) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.budget_);
+  }
+  _impl_.budget_ = budget;
+  if (budget) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cortex.agent.v1.PolicyCheckRequest.budget)
+}
+inline ::cortex::agent::v1::Budget* PolicyCheckRequest::release_budget() {
+  
+  ::cortex::agent::v1::Budget* temp = _impl_.budget_;
+  _impl_.budget_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cortex::agent::v1::Budget* PolicyCheckRequest::unsafe_arena_release_budget() {
+  // @@protoc_insertion_point(field_release:cortex.agent.v1.PolicyCheckRequest.budget)
+  
+  ::cortex::agent::v1::Budget* temp = _impl_.budget_;
+  _impl_.budget_ = nullptr;
+  return temp;
+}
+inline ::cortex::agent::v1::Budget* PolicyCheckRequest::_internal_mutable_budget() {
+  
+  if (_impl_.budget_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cortex::agent::v1::Budget>(GetArenaForAllocation());
+    _impl_.budget_ = p;
+  }
+  return _impl_.budget_;
+}
+inline ::cortex::agent::v1::Budget* PolicyCheckRequest::mutable_budget() {
+  ::cortex::agent::v1::Budget* _msg = _internal_mutable_budget();
+  // @@protoc_insertion_point(field_mutable:cortex.agent.v1.PolicyCheckRequest.budget)
+  return _msg;
+}
+inline void PolicyCheckRequest::set_allocated_budget(::cortex::agent::v1::Budget* budget) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.budget_);
+  }
+  if (budget) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(budget));
+    if (message_arena != submessage_arena) {
+      budget = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, budget, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.budget_ = budget;
+  // @@protoc_insertion_point(field_set_allocated:cortex.agent.v1.PolicyCheckRequest.budget)
+}
+
+// string principal_id = 7;
+inline void PolicyCheckRequest::clear_principal_id() {
+  _impl_.principal_id_.ClearToEmpty();
+}
+inline const std::string& PolicyCheckRequest::principal_id() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.PolicyCheckRequest.principal_id)
+  return _internal_principal_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyCheckRequest::set_principal_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.principal_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.PolicyCheckRequest.principal_id)
+}
+inline std::string* PolicyCheckRequest::mutable_principal_id() {
+  std::string* _s = _internal_mutable_principal_id();
+  // @@protoc_insertion_point(field_mutable:cortex.agent.v1.PolicyCheckRequest.principal_id)
+  return _s;
+}
+inline const std::string& PolicyCheckRequest::_internal_principal_id() const {
+  return _impl_.principal_id_.Get();
+}
+inline void PolicyCheckRequest::_internal_set_principal_id(const std::string& value) {
+  
+  _impl_.principal_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyCheckRequest::_internal_mutable_principal_id() {
+  
+  return _impl_.principal_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyCheckRequest::release_principal_id() {
+  // @@protoc_insertion_point(field_release:cortex.agent.v1.PolicyCheckRequest.principal_id)
+  return _impl_.principal_id_.Release();
+}
+inline void PolicyCheckRequest::set_allocated_principal_id(std::string* principal_id) {
+  if (principal_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.principal_id_.SetAllocated(principal_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.principal_id_.IsDefault()) {
+    _impl_.principal_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cortex.agent.v1.PolicyCheckRequest.principal_id)
+}
+
+// map<string, string> labels = 8;
+inline int PolicyCheckRequest::_internal_labels_size() const {
+  return _impl_.labels_.size();
+}
+inline int PolicyCheckRequest::labels_size() const {
+  return _internal_labels_size();
+}
+inline void PolicyCheckRequest::clear_labels() {
+  _impl_.labels_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+PolicyCheckRequest::_internal_labels() const {
+  return _impl_.labels_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+PolicyCheckRequest::labels() const {
+  // @@protoc_insertion_point(field_map:cortex.agent.v1.PolicyCheckRequest.labels)
+  return _internal_labels();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+PolicyCheckRequest::_internal_mutable_labels() {
+  return _impl_.labels_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+PolicyCheckRequest::mutable_labels() {
+  // @@protoc_insertion_point(field_mutable_map:cortex.agent.v1.PolicyCheckRequest.labels)
+  return _internal_mutable_labels();
+}
+
+// string memory_id = 9;
+inline void PolicyCheckRequest::clear_memory_id() {
+  _impl_.memory_id_.ClearToEmpty();
+}
+inline const std::string& PolicyCheckRequest::memory_id() const {
+  // @@protoc_insertion_point(field_get:cortex.agent.v1.PolicyCheckRequest.memory_id)
+  return _internal_memory_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyCheckRequest::set_memory_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.memory_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cortex.agent.v1.PolicyCheckRequest.memory_id)
+}
+inline std::string* PolicyCheckRequest::mutable_memory_id() {
+  std::string* _s = _internal_mutable_memory_id();
+  // @@protoc_insertion_point(field_mutable:cortex.agent.v1.PolicyCheckRequest.memory_id)
+  return _s;
+}
+inline const std::string& PolicyCheckRequest::_internal_memory_id() const {
+  return _impl_.memory_id_.Get();
+}
+inline void PolicyCheckRequest::_internal_set_memory_id(const std::string& value) {
+  
+  _impl_.memory_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyCheckRequest::_internal_mutable_memory_id() {
+  
+  return _impl_.memory_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyCheckRequest::release_memory_id() {
+  // @@protoc_insertion_point(field_release:cortex.agent.v1.PolicyCheckRequest.memory_id)
+  return _impl_.memory_id_.Release();
+}
+inline void PolicyCheckRequest::set_allocated_memory_id(std::string* memory_id) {
+  if (memory_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.memory_id_.SetAllocated(memory_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.memory_id_.IsDefault()) {
+    _impl_.memory_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cortex.agent.v1.PolicyCheckRequest.memory_id)
+}
+
 // -------------------------------------------------------------------
 
 // PolicyCheckResponse
@@ -809,6 +1138,8 @@ inline void PolicyCheckResponse::set_allocated_redacted_context_ptr(std::string*
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 

@@ -1,6 +1,6 @@
-# Cortex Agent Protocol (CAP) v1.0 Launch Announcement
+# coretex Agent Protocol (CAP) v1.0 Launch Announcement
 
-**CortexOS announces CAP v1.0, the open protocol for distributed AI agents.**
+**coretexOS announces CAP v1.0, the open protocol for distributed AI agents.**
 
 CAP standardizes how gateways, schedulers, workers, orchestrators, and safety services exchange jobs over a bus. It makes multi-agent systems interoperable across vendors and transports.
 
@@ -11,9 +11,9 @@ CAP standardizes how gateways, schedulers, workers, orchestrators, and safety se
 
 ## What’s in v1.0
 - Normative spec in `spec/` with RFC 2119 language.
-- Canonical protobufs in `proto/cortex/agent/v1/`.
+- Canonical protobufs in `proto/coretex/agent/v1/`.
 - Examples for jobs, heartbeats, and workflows in `examples/`.
-- Reference implementation: **CortexOS** (official CAP reference).
+- Reference implementation: **coretexOS** (official CAP reference).
 - Apache-2.0 license.
 
 ## How to Get Started

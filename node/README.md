@@ -1,6 +1,6 @@
 # CAP Node JS Protobuf Stubs
 
-CommonJS protobuf stubs generated from `proto/cortex/agent/v1/*.proto`:
+CommonJS protobuf stubs generated from `proto/coretex/agent/v1/*.proto`:
 
 ```bash
 ./tools/make_protos.sh   # writes to /node by default
@@ -11,7 +11,7 @@ Artifacts:
 Use with `protobufjs` or plain `google-protobuf` runtime:
 
 ```js
-const { BusPacket } = require('./cortex/agent/v1/buspacket_pb');
+const { BusPacket } = require('./coretex/agent/v1/buspacket_pb');
 const pkt = new BusPacket();
 pkt.setTraceId('trace-1');
 ```

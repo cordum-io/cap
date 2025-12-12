@@ -25,17 +25,17 @@ cmake --build sdk/cpp/build
 ```cpp
 auto bus = std::make_unique<MyNatsBus>(); // implements cap::BusClient
 cap::Worker worker(bus.get(), "job.echo",
-  [](const cortex::agent::v1::JobRequest& req) {
-    auto res = std::make_unique<cortex::agent::v1::JobResult>();
+  [](const coretex::agent::v1::JobRequest& req) {
+    auto res = std::make_unique<coretex::agent::v1::JobResult>();
     res->set_job_id(req.job_id());
-    res->set_status(cortex::agent::v1::JOB_STATUS_SUCCEEDED);
+    res->set_status(coretex::agent::v1::JOB_STATUS_SUCCEEDED);
     res->set_result_ptr("redis://res/" + req.job_id());
     return res;
   });
 worker.Start();
 
 cap::Client client(bus.get(), "gateway-1");
-cortex::agent::v1::JobRequest req;
+coretex::agent::v1::JobRequest req;
 req.set_job_id("job-1");
 req.set_topic("job.echo");
 req.set_context_ptr("redis://ctx/job-1");

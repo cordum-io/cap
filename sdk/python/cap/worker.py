@@ -3,7 +3,7 @@ from typing import Callable, Awaitable, Dict
 
 import nats
 from google.protobuf import timestamp_pb2
-from cap.pb.cortex.agent.v1 import buspacket_pb2, job_pb2
+from cap.pb.coretex.agent.v1 import buspacket_pb2, job_pb2
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 import hashlib

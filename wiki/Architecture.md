@@ -1,6 +1,6 @@
 # CAP Architecture
 
-This document provides an overview of the Cortex Agent Protocol (CAP) system architecture.
+This document provides an overview of the coretex Agent Protocol (CAP) system architecture.
 
 ## Architecture Diagram
 

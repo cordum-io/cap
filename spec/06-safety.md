@@ -7,7 +7,7 @@ CAP makes safety a first-class control-plane hook via the Safety Kernel.
 - Inputs: `job_id`, `topic`, `tenant`, `principal_id`, `priority`, `budget`, optional `estimated_cost`, `labels`, and `memory_id`.
 - Outputs: decision, human-readable `reason`, and optional `redacted_context_ptr`.
 
-## Canonical Service (see `proto/cortex/agent/v1/safety.proto`)
+## Canonical Service (see `proto/coretex/agent/v1/safety.proto`)
 ```proto
 service SafetyKernel {
   rpc Check(PolicyCheckRequest) returns (PolicyCheckResponse);

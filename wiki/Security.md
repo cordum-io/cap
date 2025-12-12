@@ -1,6 +1,6 @@
 # Security Best Practices
 
-This document provides a comprehensive overview of security best practices for implementing and deploying the Cortex Agent Protocol (CAP). These recommendations are intended to supplement the baseline security requirements outlined in `10-security-observability.md`.
+This document provides a comprehensive overview of security best practices for implementing and deploying the coretex Agent Protocol (CAP). These recommendations are intended to supplement the baseline security requirements outlined in `10-security-observability.md`.
 
 ## Threat Model
 

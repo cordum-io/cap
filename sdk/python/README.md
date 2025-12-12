@@ -9,7 +9,7 @@ Asyncio-first SDK with NATS helpers for CAP workers and clients.
      -I../../proto \
      --python_out=./cap/pb \
      --grpc_python_out=./cap/pb \
-     ../../proto/cortex/agent/v1/*.proto
+     ../../proto/coretex/agent/v1/*.proto
    ```
    (Or run `./tools/make_protos.sh` from repo root with `CAP_RUN_PY=1` and copy `/python` into `sdk/python/cap/pb` if you want vendored stubs.)
 
@@ -22,7 +22,7 @@ Asyncio-first SDK with NATS helpers for CAP workers and clients.
    ```python
    import asyncio
    from cap import worker
-   from cap.pb.cortex.agent.v1 import job_pb2
+   from cap.pb.coretex.agent.v1 import job_pb2
 
    async def handle(req: job_pb2.JobRequest):
        return job_pb2.JobResult(

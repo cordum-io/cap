@@ -6,13 +6,13 @@ from typing import Callable, Awaitable, Dict
 
 # Avoid loading duplicate generated stubs from both /python and sdk/python/cap/pb.
 sys.path = [p for p in sys.path if not p.rstrip("/").endswith("python")]
-# Ensure generated modules under sdk/python/cap/pb are discoverable for `cortex.agent.v1.*`.
+# Ensure generated modules under sdk/python/cap/pb are discoverable for `coretex.agent.v1.*`.
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "cap", "pb")))
 
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 
-from cap.pb.cortex.agent.v1 import job_pb2
+from cap.pb.coretex.agent.v1 import job_pb2
 from cap import client
 from cap import worker
 
@@ -84,7 +84,7 @@ class TestSDK(unittest.TestCase):
             self.assertEqual(subj, worker.SUBJECT_RESULT)
 
             # Verify the signature of the result
-            from cap.pb.cortex.agent.v1 import buspacket_pb2
+            from cap.pb.coretex.agent.v1 import buspacket_pb2
             import hashlib
             result_packet = buspacket_pb2.BusPacket()
             result_packet.ParseFromString(data)

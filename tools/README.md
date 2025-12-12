@@ -14,6 +14,14 @@ Run:
 ```
 Outputs:
 - Go stubs under `/go`
-- Python stubs under `/python`
+- C++ stubs under `/cpp`
+- Node (JS) stubs under `/node` (CommonJS, binary wire)
+- Python stubs under `/python` (set `CAP_RUN_PY=1`)
+
+Env toggles:
+- `CAP_OUT_GO`, `CAP_OUT_CPP`, `CAP_OUT_JS`, `CAP_OUT_PY` to override output dirs.
+- `CAP_RUN_PY=1` to enable Python stubs.
+- `CAP_RUN_CPP=0` or `CAP_RUN_JS=0` to skip C++/Node.
+- `protoc-gen-ts` on PATH will emit TS typings alongside JS.
 
 Adjust flags/paths as needed for other languages or build systems.

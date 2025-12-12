@@ -85,7 +85,11 @@ Canonical protobuf definitions live under `proto/cortex/agent/v1/`:
 - `examples/` - JSON and sequence flows for common scenarios.
 - `tools/` - helper scripts for proto generation (optional).
 - `sdk/` - starter SDKs for Go, Python, and Node/TS with NATS helpers.
-- Go module path: `github.com/coretexos/cap` (generate stubs into `/go` via `./tools/make_protos.sh` before tagging; Python stubs land in `/python` when `CAP_RUN_PY=1`).
+- `go/` - Go protobuf stubs (module path `github.com/coretexos/cap/go/cortex/agent/v1`).
+- `python/` - Python protobuf stubs (enable with `CAP_RUN_PY=1`).
+- `cpp/` - C++ protobuf stubs (vendored headers/sources).
+- `node/` - Node JS protobuf stubs (CommonJS, binary wire format).
+- Go module path: `github.com/coretexos/cap` (generate stubs via `./tools/make_protos.sh`).
 
 ## Compatibility and Contributing
 - Wire evolution is append-only: never renumber or repurpose existing protobuf fields.

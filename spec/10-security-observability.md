@@ -1,6 +1,6 @@
 # Security and Observability
 
-Security and visibility are mandatory for production deployments of CAP.
+Security and visibility are mandatory for production deployments of CAP. For a more detailed guide to security best practices, see [11 Security Best Practices](11-security-best-practices.md).
 
 ## Authentication and Authorization
 - Bus connections MUST be authenticated (mTLS, tokens) and authorized per subject.

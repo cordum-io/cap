@@ -6,11 +6,18 @@
   "scripts": {
     "build": "tsc -p .",
     "lint": "echo \"add linter\"",
-    "sample:worker": "node dist/sample-worker.js"
+    "sample:worker": "node dist/sample-worker.js",
+    "test": "tsc -p tsconfig.json --outDir dist && mocha dist/test/sdk.test.js"
   },
   "dependencies": {
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "chai": "^6.2.1",
+    "mocha": "^11.7.5",
     "nats": "^2.16.0",
-    "protobufjs": "^7.2.5"
+    "protobufjs": "^7.2.5",
+    "ts-mocha": "^11.1.0",
+    "tsconfig-paths": "^4.2.0"
   },
   "devDependencies": {
     "typescript": "^5.4.0"

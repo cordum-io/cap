@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple helper to generate language-specific stubs into ./go and ./python (configurable via CAP_OUT_GO/CAP_OUT_PY)
+# Simple helper to generate language-specific stubs into ./go, ./python, ./cpp, and ./node
+# (configurable via CAP_OUT_GO/CAP_OUT_PY/CAP_OUT_CPP/CAP_OUT_JS)
 # Requirements:
 # - protoc
 # - protoc-gen-go, protoc-gen-go-grpc (for Go)
@@ -12,6 +13,8 @@ PROTO_DIR="$ROOT_DIR/proto"
 # Override output paths with env vars if desired.
 OUT_GO="${CAP_OUT_GO:-$ROOT_DIR/go}"
 OUT_PY="${CAP_OUT_PY:-$ROOT_DIR/python}"
+OUT_CPP="${CAP_OUT_CPP:-$ROOT_DIR/cpp}"
+OUT_JS="${CAP_OUT_JS:-$ROOT_DIR/node}"
 
 # Prefer a working python; fall back to python3 if python is missing.
 PYTHON_BIN="${PYTHON_BIN:-python}"
@@ -22,7 +25,7 @@ fi
 # Ensure protoc plugins installed via `go install` are on PATH.
 export PATH="$(go env GOPATH)/bin:$PATH"
 
-mkdir -p "$OUT_GO" "$OUT_PY"
+mkdir -p "$OUT_GO" "$OUT_PY" "$OUT_CPP" "$OUT_JS"
 
 echo "Generating Go stubs..."
 protoc \
@@ -30,6 +33,42 @@ protoc \
   --go_out="$OUT_GO" --go_opt=paths=source_relative \
   --go-grpc_out="$OUT_GO" --go-grpc_opt=paths=source_relative \
   $(find "$PROTO_DIR" -name '*.proto')
+
+# C++ (static) stubs for consumers that want vendored headers/sources.
+if [ "${CAP_RUN_CPP:-1}" = "1" ]; then
+  echo "Generating C++ stubs..."
+  protoc \
+    -I"$PROTO_DIR" \
+    --cpp_out="$OUT_CPP" \
+    $(find "$PROTO_DIR" -name '*.proto')
+else
+  echo "CAP_RUN_CPP not set to 1; skipping C++ stubs"
+fi
+
+# JavaScript stubs (CommonJS, binary wire) for Node consumers.
+if [ "${CAP_RUN_JS:-1}" = "1" ]; then
+  if command -v protoc-gen-js >/dev/null 2>&1; then
+    echo "Generating Node JS stubs..."
+    protoc \
+      -I"$PROTO_DIR" \
+      --js_out=import_style=commonjs,binary:"$OUT_JS" \
+      $(find "$PROTO_DIR" -name '*.proto')
+  else
+    echo "protoc-gen-js not found; skipping Node JS stubs (install google-protobuf/npm protoc-gen-js to enable)"
+  fi
+
+  # Generate TypeScript definitions when protoc-gen-ts is available.
+  if command -v protoc-gen-ts >/dev/null 2>&1; then
+    protoc \
+      -I"$PROTO_DIR" \
+      --ts_out="$OUT_JS" \
+      $(find "$PROTO_DIR" -name '*.proto')
+  else
+    echo "protoc-gen-ts not found; skipping TypeScript typings (install ts-proto or protoc-gen-ts to enable)"
+  fi
+else
+  echo "CAP_RUN_JS not set to 1; skipping Node JS stubs"
+fi
 
 # Default: skip Python stubs unless explicitly enabled.
 if [ "${CAP_RUN_PY:-0}" = "1" ]; then

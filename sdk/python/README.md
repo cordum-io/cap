@@ -11,7 +11,7 @@ Asyncio-first SDK with NATS helpers for CAP workers and clients.
      --grpc_python_out=./cap/pb \
      ../../proto/cortex/agent/v1/*.proto
    ```
-   (Or run `./tools/make_protos.sh` from repo root and copy `generated/python` into `sdk/python/cap/pb`.)
+   (Or run `./tools/make_protos.sh` from repo root with `CAP_RUN_PY=1` and copy `/python` into `sdk/python/cap/pb` if you want vendored stubs.)
 
 2. Install:
    ```bash

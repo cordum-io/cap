@@ -2,8 +2,12 @@ package worker
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/rand"
+	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/coretexos/cap/sdk/go"
@@ -15,11 +19,20 @@ import (
 // Handler processes a JobRequest and returns a JobResult.
 type Handler func(context.Context, *agentv1.JobRequest) (*agentv1.JobResult, error)
 
+// NATSConn is an interface that represents a NATS connection.
+type NATSConn interface {
+	Publish(subject string, data []byte) error
+	QueueSubscribe(subj, queue string, cb nats.MsgHandler) (*nats.Subscription, error)
+}
+
 // Worker subscribes to a pool subject and handles jobs.
 type Worker struct {
-	NATS    *nats.Conn
-	Subject string
-	Handler Handler
+	NATS        NATSConn
+	Subject     string
+	Handler     Handler
+	PublicKeys  map[string]*ecdsa.PublicKey
+	PrivateKey  *ecdsa.PrivateKey
+	SenderID    string
 }
 
 // Start begins consuming and handling JobRequests. It blocks until the subscription is closed.
@@ -33,13 +46,39 @@ func (w *Worker) Start() error {
 	if w.Handler == nil {
 		return errors.New("worker: handler is required")
 	}
+	if w.SenderID == "" {
+		return errors.New("worker: SenderID is required")
+	}
 	_, err := w.NATS.QueueSubscribe(w.Subject, w.Subject, func(msg *nats.Msg) {
 		ctx := context.Background()
 		var packet agentv1.BusPacket
 		if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-			// cannot decode; log and drop
+			log.Printf("worker: could not decode packet: %v", err)
 			return
 		}
+
+		// Verify the signature
+		if w.PublicKeys != nil {
+			pubKey, ok := w.PublicKeys[packet.GetSenderId()]
+			if !ok {
+				log.Printf("worker: no public key found for sender: %s", packet.GetSenderId())
+				return
+			}
+
+			signature := packet.Signature
+			packet.Signature = nil
+			unsignedData, err := proto.Marshal(&packet)
+			if err != nil {
+				log.Printf("worker: could not marshal unsigned packet for verification: %v", err)
+				return
+			}
+			hash := sha256.Sum256(unsignedData)
+			if !ecdsa.VerifyASN1(pubKey, hash[:], signature) {
+				log.Printf("worker: invalid signature for packet from sender: %s", packet.GetSenderId())
+				return
+			}
+		}
+
 		req := packet.GetJobRequest()
 		if req == nil {
 			return
@@ -57,20 +96,37 @@ func (w *Worker) Start() error {
 			res.JobId = req.GetJobId()
 		}
 		if res.WorkerId == "" {
-			res.WorkerId = w.NATS.Opts.Name
+			res.WorkerId = w.SenderID
 		}
 		if res.ExecutionMs == 0 {
 			res.ExecutionMs = 0
 		}
 		out := &agentv1.BusPacket{
 			TraceId:         packet.GetTraceId(),
-			SenderId:        w.NATS.Opts.Name,
+			SenderId:        w.SenderID,
 			ProtocolVersion: capsdk.DefaultProtocolVersion,
 			CreatedAt:       packet.CreatedAt,
 			Payload: &agentv1.BusPacket_JobResult{
 				JobResult: res,
 			},
 		}
+
+		// Sign the outgoing packet
+		if w.PrivateKey != nil {
+			unsignedData, err := proto.Marshal(out)
+			if err != nil {
+				log.Printf("worker: could not marshal outgoing packet for signing: %v", err)
+				return
+			}
+			hash := sha256.Sum256(unsignedData)
+			signature, err := ecdsa.SignASN1(rand.Reader, w.PrivateKey, hash[:])
+			if err != nil {
+				log.Printf("worker: could not sign outgoing packet: %v", err)
+				return
+			}
+			out.Signature = signature
+		}
+
 		data, mErr := proto.Marshal(out)
 		if mErr != nil {
 			return

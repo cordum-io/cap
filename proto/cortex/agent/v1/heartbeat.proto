@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package cortex.agent.v1;
 
-option go_package = "github.com/coretexos/cap/go/cortex/agent/v1";
+option go_package = "github.com/coretexos/cap/v2/go/cortex/agent/v1";
 option java_package = "ai.cortex.cap.agent.v1";
 option java_multiple_files = true;
 option csharp_namespace = "Cortex.Agent.V1";
@@ -21,4 +21,5 @@ message Heartbeat {
     // field numbers 8-10 are reserved to allow future extensions
     string pool = 11;               // pool name (often tied to job subject)
     int32 max_parallel_jobs = 12;   // advertised concurrency limit
+    map<string, string> labels = 13; // optional placement labels
 }

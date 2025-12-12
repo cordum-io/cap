@@ -1,4 +1,4 @@
-module github.com/coretexos/cap
+module github.com/coretexos/cap/v2
 
 go 1.21
 

@@ -9,8 +9,8 @@ This folder contains production-ready starter SDKs for CAP. Each SDK is bus-agno
 
 ## Proto Stubs
 Generate language stubs from `proto/` before building:
-- Go: `./tools/make_protos.sh` (outputs to `generated/go`) or run the commands in `sdk/go/README.md`.
-- Python: run `./tools/make_protos.sh` or the `grpc_tools.protoc` command in `sdk/python/README.md` to place stubs under `sdk/python/cap/pb`.
+- Go: `./tools/make_protos.sh` (outputs to `/go`) or run the commands in `sdk/go/README.md`.
+- Python: run `./tools/make_protos.sh` (set `CAP_RUN_PY=1`; outputs to `/python`) or the `grpc_tools.protoc` command in `sdk/python/README.md` to place stubs under `sdk/python/cap/pb`.
 - Node: install deps then run `npm run build` in `sdk/node` (protobufjs will load `.proto` at runtime by default; you can also precompile using `pbjs/pbts` if desired).
 
 ## Bus Choice

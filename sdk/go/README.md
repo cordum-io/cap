@@ -7,7 +7,7 @@ Go SDK with NATS helpers for workers and clients. Uses generated protobuf stubs 
    ```bash
    ./tools/make_protos.sh
    ```
-   This writes Go stubs to `generated/go`. The module uses a replace directive to point at that path.
+   This writes Go stubs to `/go`. The module uses a replace directive to point at the repo root.
 
 2. Install deps and run tests:
    ```bash
@@ -45,5 +45,5 @@ go w.Start()
 ```
 
 ## Notes
-- The protobuf `go_package` is `github.com/coretexos/cap/cortex/agent/v1`; the replace in `go.mod` points to `../../generated/go`.
+- The protobuf `go_package` is `github.com/coretexos/cap/go/cortex/agent/v1`; the replace in `go.mod` points to `../..`.
 - Swap the NATS adapter if you prefer another bus; only `bus/` needs to change.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple helper to generate language-specific stubs into ./generated
+# Simple helper to generate language-specific stubs into ./go and ./python (configurable via CAP_OUT_GO/CAP_OUT_PY)
 # Requirements:
 # - protoc
 # - protoc-gen-go, protoc-gen-go-grpc (for Go)
@@ -10,8 +10,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROTO_DIR="$ROOT_DIR/proto"
 # Override output paths with env vars if desired.
-OUT_GO="${CAP_OUT_GO:-$ROOT_DIR}"
-OUT_PY="${CAP_OUT_PY:-$ROOT_DIR/generated/python}"
+OUT_GO="${CAP_OUT_GO:-$ROOT_DIR/go}"
+OUT_PY="${CAP_OUT_PY:-$ROOT_DIR/python}"
 
 # Prefer a working python; fall back to python3 if python is missing.
 PYTHON_BIN="${PYTHON_BIN:-python}"

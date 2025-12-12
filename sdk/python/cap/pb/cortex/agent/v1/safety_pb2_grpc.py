@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from cortex.agent.v1 import safety_pb2 as cortex_dot_agent_dot_v1_dot_safety__pb2
+from coretex.agent.v1 import safety_pb2 as coretex_dot_agent_dot_v1_dot_safety__pb2
 
 GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
@@ -18,7 +18,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in cortex/agent/v1/safety_pb2_grpc.py depends on'
+        + ' but the generated code in coretex/agent/v1/safety_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -36,9 +36,9 @@ class SafetyKernelStub(object):
             channel: A grpc.Channel.
         """
         self.Check = channel.unary_unary(
-                '/cortex.agent.v1.SafetyKernel/Check',
-                request_serializer=cortex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
-                response_deserializer=cortex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
+                '/coretex.agent.v1.SafetyKernel/Check',
+                request_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
+                response_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
                 _registered_method=True)
 
 
@@ -57,14 +57,14 @@ def add_SafetyKernelServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Check': grpc.unary_unary_rpc_method_handler(
                     servicer.Check,
-                    request_deserializer=cortex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.FromString,
-                    response_serializer=cortex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.SerializeToString,
+                    request_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.FromString,
+                    response_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'cortex.agent.v1.SafetyKernel', rpc_method_handlers)
+            'coretex.agent.v1.SafetyKernel', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('cortex.agent.v1.SafetyKernel', rpc_method_handlers)
+    server.add_registered_method_handlers('coretex.agent.v1.SafetyKernel', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
@@ -86,9 +86,9 @@ class SafetyKernel(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/cortex.agent.v1.SafetyKernel/Check',
-            cortex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
-            cortex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
+            '/coretex.agent.v1.SafetyKernel/Check',
+            coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
+            coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
             options,
             channel_credentials,
             insecure,

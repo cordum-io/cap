@@ -107,7 +107,7 @@ describe("CAP SDK E2E Test", () => {
 
     // Verify worker's published message signature
     const root = await loadRoot();
-    const BusPacket = root.lookupType("cortex.agent.v1.BusPacket");
+    const BusPacket = root.lookupType("coretex.agent.v1.BusPacket");
 
     const resultPacket = BusPacket.decode(workerPublishedMsg.data) as any;
     assert.ok(resultPacket.signature);

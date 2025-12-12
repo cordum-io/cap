@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/coretexos/cap/sdk/go"
-	agentv1 "github.com/coretexos/cap/go/cortex/agent/v1"
+	agentv1 "github.com/coretexos/cap/go/coretex/agent/v1"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 )

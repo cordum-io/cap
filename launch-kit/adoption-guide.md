@@ -1,7 +1,7 @@
 # CAP Adoption Guide for Engineers
 
 ## 1) Understand the Wire
-- Read `spec/00-index.md` and `proto/cortex/agent/v1/*.proto`.
+- Read `spec/00-index.md` and `proto/coretex/agent/v1/*.proto`.
 - Note the required subjects: `sys.job.submit`, `job.<pool>`, `sys.job.result`, `sys.heartbeat`.
 
 ## 2) Stand Up the Basics

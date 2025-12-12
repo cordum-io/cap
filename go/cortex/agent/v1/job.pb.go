@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.33.0
 // 	protoc        v3.21.12
-// source: cortex/agent/v1/job.proto
+// source: coretex/agent/v1/job.proto
 
 package v1
 
@@ -57,11 +57,11 @@ func (x JobPriority) String() string {
 }
 
 func (JobPriority) Descriptor() protoreflect.EnumDescriptor {
-	return file_cortex_agent_v1_job_proto_enumTypes[0].Descriptor()
+	return file_coretex_agent_v1_job_proto_enumTypes[0].Descriptor()
 }
 
 func (JobPriority) Type() protoreflect.EnumType {
-	return &file_cortex_agent_v1_job_proto_enumTypes[0]
+	return &file_coretex_agent_v1_job_proto_enumTypes[0]
 }
 
 func (x JobPriority) Number() protoreflect.EnumNumber {
@@ -70,7 +70,7 @@ func (x JobPriority) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use JobPriority.Descriptor instead.
 func (JobPriority) EnumDescriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_job_proto_rawDescGZIP(), []int{0}
+	return file_coretex_agent_v1_job_proto_rawDescGZIP(), []int{0}
 }
 
 // JobStatus captures lifecycle states for a job.
@@ -128,11 +128,11 @@ func (x JobStatus) String() string {
 }
 
 func (JobStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_cortex_agent_v1_job_proto_enumTypes[1].Descriptor()
+	return file_coretex_agent_v1_job_proto_enumTypes[1].Descriptor()
 }
 
 func (JobStatus) Type() protoreflect.EnumType {
-	return &file_cortex_agent_v1_job_proto_enumTypes[1]
+	return &file_coretex_agent_v1_job_proto_enumTypes[1]
 }
 
 func (x JobStatus) Number() protoreflect.EnumNumber {
@@ -141,7 +141,7 @@ func (x JobStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use JobStatus.Descriptor instead.
 func (JobStatus) EnumDescriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_job_proto_rawDescGZIP(), []int{1}
+	return file_coretex_agent_v1_job_proto_rawDescGZIP(), []int{1}
 }
 
 // ContextHints describe how a worker may fetch or adapt context.
@@ -159,7 +159,7 @@ type ContextHints struct {
 func (x *ContextHints) Reset() {
 	*x = ContextHints{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cortex_agent_v1_job_proto_msgTypes[0]
+		mi := &file_coretex_agent_v1_job_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -172,7 +172,7 @@ func (x *ContextHints) String() string {
 func (*ContextHints) ProtoMessage() {}
 
 func (x *ContextHints) ProtoReflect() protoreflect.Message {
-	mi := &file_cortex_agent_v1_job_proto_msgTypes[0]
+	mi := &file_coretex_agent_v1_job_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -185,7 +185,7 @@ func (x *ContextHints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContextHints.ProtoReflect.Descriptor instead.
 func (*ContextHints) Descriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_job_proto_rawDescGZIP(), []int{0}
+	return file_coretex_agent_v1_job_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *ContextHints) GetMaxInputTokens() int32 {
@@ -231,7 +231,7 @@ type Budget struct {
 func (x *Budget) Reset() {
 	*x = Budget{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cortex_agent_v1_job_proto_msgTypes[1]
+		mi := &file_coretex_agent_v1_job_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -244,7 +244,7 @@ func (x *Budget) String() string {
 func (*Budget) ProtoMessage() {}
 
 func (x *Budget) ProtoReflect() protoreflect.Message {
-	mi := &file_cortex_agent_v1_job_proto_msgTypes[1]
+	mi := &file_coretex_agent_v1_job_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -257,7 +257,7 @@ func (x *Budget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Budget.ProtoReflect.Descriptor instead.
 func (*Budget) Descriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_job_proto_rawDescGZIP(), []int{1}
+	return file_coretex_agent_v1_job_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Budget) GetMaxInputTokens() int64 {
@@ -296,7 +296,7 @@ type JobRequest struct {
 
 	JobId        string            `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`                                                                               // globally unique job identifier
 	Topic        string            `protobuf:"bytes,2,opt,name=topic,proto3" json:"topic,omitempty"`                                                                                            // bus subject, e.g. job.chat.simple
-	Priority     JobPriority       `protobuf:"varint,3,opt,name=priority,proto3,enum=cortex.agent.v1.JobPriority" json:"priority,omitempty"`                                                    // scheduling hint
+	Priority     JobPriority       `protobuf:"varint,3,opt,name=priority,proto3,enum=coretex.agent.v1.JobPriority" json:"priority,omitempty"`                                                    // scheduling hint
 	ContextPtr   string            `protobuf:"bytes,4,opt,name=context_ptr,json=contextPtr,proto3" json:"context_ptr,omitempty"`                                                                // opaque pointer to input payload
 	AdapterId    string            `protobuf:"bytes,5,opt,name=adapter_id,json=adapterId,proto3" json:"adapter_id,omitempty"`                                                                   // optional specialization hint
 	Env          map[string]string `protobuf:"bytes,6,rep,name=env,proto3" json:"env,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`        // tenant, locale, sandbox flags, etc.
@@ -314,7 +314,7 @@ type JobRequest struct {
 func (x *JobRequest) Reset() {
 	*x = JobRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cortex_agent_v1_job_proto_msgTypes[2]
+		mi := &file_coretex_agent_v1_job_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -327,7 +327,7 @@ func (x *JobRequest) String() string {
 func (*JobRequest) ProtoMessage() {}
 
 func (x *JobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cortex_agent_v1_job_proto_msgTypes[2]
+	mi := &file_coretex_agent_v1_job_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -340,7 +340,7 @@ func (x *JobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRequest.ProtoReflect.Descriptor instead.
 func (*JobRequest) Descriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_job_proto_rawDescGZIP(), []int{2}
+	return file_coretex_agent_v1_job_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *JobRequest) GetJobId() string {
@@ -455,7 +455,7 @@ type JobResult struct {
 	unknownFields protoimpl.UnknownFields
 
 	JobId        string    `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`                      // originating job identifier
-	Status       JobStatus `protobuf:"varint,2,opt,name=status,proto3,enum=cortex.agent.v1.JobStatus" json:"status,omitempty"` // terminal or transitional state
+	Status       JobStatus `protobuf:"varint,2,opt,name=status,proto3,enum=coretex.agent.v1.JobStatus" json:"status,omitempty"` // terminal or transitional state
 	ResultPtr    string    `protobuf:"bytes,3,opt,name=result_ptr,json=resultPtr,proto3" json:"result_ptr,omitempty"`          // pointer to output payload
 	WorkerId     string    `protobuf:"bytes,4,opt,name=worker_id,json=workerId,proto3" json:"worker_id,omitempty"`             // emitting worker
 	ExecutionMs  int64     `protobuf:"varint,5,opt,name=execution_ms,json=executionMs,proto3" json:"execution_ms,omitempty"`   // elapsed processing time in milliseconds
@@ -466,7 +466,7 @@ type JobResult struct {
 func (x *JobResult) Reset() {
 	*x = JobResult{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cortex_agent_v1_job_proto_msgTypes[3]
+		mi := &file_coretex_agent_v1_job_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -479,7 +479,7 @@ func (x *JobResult) String() string {
 func (*JobResult) ProtoMessage() {}
 
 func (x *JobResult) ProtoReflect() protoreflect.Message {
-	mi := &file_cortex_agent_v1_job_proto_msgTypes[3]
+	mi := &file_coretex_agent_v1_job_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -492,7 +492,7 @@ func (x *JobResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobResult.ProtoReflect.Descriptor instead.
 func (*JobResult) Descriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_job_proto_rawDescGZIP(), []int{3}
+	return file_coretex_agent_v1_job_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *JobResult) GetJobId() string {
@@ -544,9 +544,9 @@ func (x *JobResult) GetErrorMessage() string {
 	return ""
 }
 
-var File_cortex_agent_v1_job_proto protoreflect.FileDescriptor
+var File_coretex_agent_v1_job_proto protoreflect.FileDescriptor
 
-var file_cortex_agent_v1_job_proto_rawDesc = []byte{
+var file_coretex_agent_v1_job_proto_rawDesc = []byte{
 	0x0a, 0x19, 0x63, 0x6f, 0x72, 0x74, 0x65, 0x78, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x76,
 	0x31, 0x2f, 0x6a, 0x6f, 0x62, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0f, 0x63, 0x6f, 0x72,
 	0x74, 0x65, 0x78, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x76, 0x31, 0x22, 0xa6, 0x01, 0x0a,
@@ -669,36 +669,36 @@ var file_cortex_agent_v1_job_proto_rawDesc = []byte{
 }
 
 var (
-	file_cortex_agent_v1_job_proto_rawDescOnce sync.Once
-	file_cortex_agent_v1_job_proto_rawDescData = file_cortex_agent_v1_job_proto_rawDesc
+	file_coretex_agent_v1_job_proto_rawDescOnce sync.Once
+	file_coretex_agent_v1_job_proto_rawDescData = file_coretex_agent_v1_job_proto_rawDesc
 )
 
-func file_cortex_agent_v1_job_proto_rawDescGZIP() []byte {
-	file_cortex_agent_v1_job_proto_rawDescOnce.Do(func() {
-		file_cortex_agent_v1_job_proto_rawDescData = protoimpl.X.CompressGZIP(file_cortex_agent_v1_job_proto_rawDescData)
+func file_coretex_agent_v1_job_proto_rawDescGZIP() []byte {
+	file_coretex_agent_v1_job_proto_rawDescOnce.Do(func() {
+		file_coretex_agent_v1_job_proto_rawDescData = protoimpl.X.CompressGZIP(file_coretex_agent_v1_job_proto_rawDescData)
 	})
-	return file_cortex_agent_v1_job_proto_rawDescData
+	return file_coretex_agent_v1_job_proto_rawDescData
 }
 
-var file_cortex_agent_v1_job_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_cortex_agent_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-var file_cortex_agent_v1_job_proto_goTypes = []interface{}{
-	(JobPriority)(0),     // 0: cortex.agent.v1.JobPriority
-	(JobStatus)(0),       // 1: cortex.agent.v1.JobStatus
-	(*ContextHints)(nil), // 2: cortex.agent.v1.ContextHints
-	(*Budget)(nil),       // 3: cortex.agent.v1.Budget
-	(*JobRequest)(nil),   // 4: cortex.agent.v1.JobRequest
-	(*JobResult)(nil),    // 5: cortex.agent.v1.JobResult
-	nil,                  // 6: cortex.agent.v1.JobRequest.EnvEntry
-	nil,                  // 7: cortex.agent.v1.JobRequest.LabelsEntry
+var file_coretex_agent_v1_job_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_coretex_agent_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_coretex_agent_v1_job_proto_goTypes = []interface{}{
+	(JobPriority)(0),     // 0: coretex.agent.v1.JobPriority
+	(JobStatus)(0),       // 1: coretex.agent.v1.JobStatus
+	(*ContextHints)(nil), // 2: coretex.agent.v1.ContextHints
+	(*Budget)(nil),       // 3: coretex.agent.v1.Budget
+	(*JobRequest)(nil),   // 4: coretex.agent.v1.JobRequest
+	(*JobResult)(nil),    // 5: coretex.agent.v1.JobResult
+	nil,                  // 6: coretex.agent.v1.JobRequest.EnvEntry
+	nil,                  // 7: coretex.agent.v1.JobRequest.LabelsEntry
 }
-var file_cortex_agent_v1_job_proto_depIdxs = []int32{
-	0, // 0: cortex.agent.v1.JobRequest.priority:type_name -> cortex.agent.v1.JobPriority
-	6, // 1: cortex.agent.v1.JobRequest.env:type_name -> cortex.agent.v1.JobRequest.EnvEntry
-	2, // 2: cortex.agent.v1.JobRequest.context_hints:type_name -> cortex.agent.v1.ContextHints
-	3, // 3: cortex.agent.v1.JobRequest.budget:type_name -> cortex.agent.v1.Budget
-	7, // 4: cortex.agent.v1.JobRequest.labels:type_name -> cortex.agent.v1.JobRequest.LabelsEntry
-	1, // 5: cortex.agent.v1.JobResult.status:type_name -> cortex.agent.v1.JobStatus
+var file_coretex_agent_v1_job_proto_depIdxs = []int32{
+	0, // 0: coretex.agent.v1.JobRequest.priority:type_name -> coretex.agent.v1.JobPriority
+	6, // 1: coretex.agent.v1.JobRequest.env:type_name -> coretex.agent.v1.JobRequest.EnvEntry
+	2, // 2: coretex.agent.v1.JobRequest.context_hints:type_name -> coretex.agent.v1.ContextHints
+	3, // 3: coretex.agent.v1.JobRequest.budget:type_name -> coretex.agent.v1.Budget
+	7, // 4: coretex.agent.v1.JobRequest.labels:type_name -> coretex.agent.v1.JobRequest.LabelsEntry
+	1, // 5: coretex.agent.v1.JobResult.status:type_name -> coretex.agent.v1.JobStatus
 	6, // [6:6] is the sub-list for method output_type
 	6, // [6:6] is the sub-list for method input_type
 	6, // [6:6] is the sub-list for extension type_name
@@ -706,13 +706,13 @@ var file_cortex_agent_v1_job_proto_depIdxs = []int32{
 	0, // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_cortex_agent_v1_job_proto_init() }
-func file_cortex_agent_v1_job_proto_init() {
-	if File_cortex_agent_v1_job_proto != nil {
+func init() { file_coretex_agent_v1_job_proto_init() }
+func file_coretex_agent_v1_job_proto_init() {
+	if File_coretex_agent_v1_job_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_cortex_agent_v1_job_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_coretex_agent_v1_job_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*ContextHints); i {
 			case 0:
 				return &v.state
@@ -724,7 +724,7 @@ func file_cortex_agent_v1_job_proto_init() {
 				return nil
 			}
 		}
-		file_cortex_agent_v1_job_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_coretex_agent_v1_job_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Budget); i {
 			case 0:
 				return &v.state
@@ -736,7 +736,7 @@ func file_cortex_agent_v1_job_proto_init() {
 				return nil
 			}
 		}
-		file_cortex_agent_v1_job_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_coretex_agent_v1_job_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*JobRequest); i {
 			case 0:
 				return &v.state
@@ -748,7 +748,7 @@ func file_cortex_agent_v1_job_proto_init() {
 				return nil
 			}
 		}
-		file_cortex_agent_v1_job_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+		file_coretex_agent_v1_job_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*JobResult); i {
 			case 0:
 				return &v.state
@@ -765,19 +765,19 @@ func file_cortex_agent_v1_job_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_cortex_agent_v1_job_proto_rawDesc,
+			RawDescriptor: file_coretex_agent_v1_job_proto_rawDesc,
 			NumEnums:      2,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_cortex_agent_v1_job_proto_goTypes,
-		DependencyIndexes: file_cortex_agent_v1_job_proto_depIdxs,
-		EnumInfos:         file_cortex_agent_v1_job_proto_enumTypes,
-		MessageInfos:      file_cortex_agent_v1_job_proto_msgTypes,
+		GoTypes:           file_coretex_agent_v1_job_proto_goTypes,
+		DependencyIndexes: file_coretex_agent_v1_job_proto_depIdxs,
+		EnumInfos:         file_coretex_agent_v1_job_proto_enumTypes,
+		MessageInfos:      file_coretex_agent_v1_job_proto_msgTypes,
 	}.Build()
-	File_cortex_agent_v1_job_proto = out.File
-	file_cortex_agent_v1_job_proto_rawDesc = nil
-	file_cortex_agent_v1_job_proto_goTypes = nil
-	file_cortex_agent_v1_job_proto_depIdxs = nil
+	File_coretex_agent_v1_job_proto = out.File
+	file_coretex_agent_v1_job_proto_rawDesc = nil
+	file_coretex_agent_v1_job_proto_goTypes = nil
+	file_coretex_agent_v1_job_proto_depIdxs = nil
 }

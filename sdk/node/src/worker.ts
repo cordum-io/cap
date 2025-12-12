@@ -16,8 +16,8 @@ export interface WorkerConfig {
 
 export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
   const root = await loadRoot();
-  const BusPacket = root.lookupType("cortex.agent.v1.BusPacket");
-  const JobResult = root.lookupType("cortex.agent.v1.JobResult");
+  const BusPacket = root.lookupType("coretex.agent.v1.BusPacket");
+  const JobResult = root.lookupType("coretex.agent.v1.JobResult");
 
   const onMessage = async (msg: any) => {
     try {

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.33.0
 // 	protoc        v3.21.12
-// source: cortex/agent/v1/heartbeat.proto
+// source: coretex/agent/v1/heartbeat.proto
 
 package v1
 
@@ -42,7 +42,7 @@ type Heartbeat struct {
 func (x *Heartbeat) Reset() {
 	*x = Heartbeat{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cortex_agent_v1_heartbeat_proto_msgTypes[0]
+		mi := &file_coretex_agent_v1_heartbeat_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -55,7 +55,7 @@ func (x *Heartbeat) String() string {
 func (*Heartbeat) ProtoMessage() {}
 
 func (x *Heartbeat) ProtoReflect() protoreflect.Message {
-	mi := &file_cortex_agent_v1_heartbeat_proto_msgTypes[0]
+	mi := &file_coretex_agent_v1_heartbeat_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -68,7 +68,7 @@ func (x *Heartbeat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Heartbeat.ProtoReflect.Descriptor instead.
 func (*Heartbeat) Descriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_heartbeat_proto_rawDescGZIP(), []int{0}
+	return file_coretex_agent_v1_heartbeat_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Heartbeat) GetWorkerId() string {
@@ -141,9 +141,9 @@ func (x *Heartbeat) GetLabels() map[string]string {
 	return nil
 }
 
-var File_cortex_agent_v1_heartbeat_proto protoreflect.FileDescriptor
+var File_coretex_agent_v1_heartbeat_proto protoreflect.FileDescriptor
 
-var file_cortex_agent_v1_heartbeat_proto_rawDesc = []byte{
+var file_coretex_agent_v1_heartbeat_proto_rawDesc = []byte{
 	0x0a, 0x1f, 0x63, 0x6f, 0x72, 0x74, 0x65, 0x78, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x76,
 	0x31, 0x2f, 0x68, 0x65, 0x61, 0x72, 0x74, 0x62, 0x65, 0x61, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x12, 0x0f, 0x63, 0x6f, 0x72, 0x74, 0x65, 0x78, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e,
@@ -185,24 +185,24 @@ var file_cortex_agent_v1_heartbeat_proto_rawDesc = []byte{
 }
 
 var (
-	file_cortex_agent_v1_heartbeat_proto_rawDescOnce sync.Once
-	file_cortex_agent_v1_heartbeat_proto_rawDescData = file_cortex_agent_v1_heartbeat_proto_rawDesc
+	file_coretex_agent_v1_heartbeat_proto_rawDescOnce sync.Once
+	file_coretex_agent_v1_heartbeat_proto_rawDescData = file_coretex_agent_v1_heartbeat_proto_rawDesc
 )
 
-func file_cortex_agent_v1_heartbeat_proto_rawDescGZIP() []byte {
-	file_cortex_agent_v1_heartbeat_proto_rawDescOnce.Do(func() {
-		file_cortex_agent_v1_heartbeat_proto_rawDescData = protoimpl.X.CompressGZIP(file_cortex_agent_v1_heartbeat_proto_rawDescData)
+func file_coretex_agent_v1_heartbeat_proto_rawDescGZIP() []byte {
+	file_coretex_agent_v1_heartbeat_proto_rawDescOnce.Do(func() {
+		file_coretex_agent_v1_heartbeat_proto_rawDescData = protoimpl.X.CompressGZIP(file_coretex_agent_v1_heartbeat_proto_rawDescData)
 	})
-	return file_cortex_agent_v1_heartbeat_proto_rawDescData
+	return file_coretex_agent_v1_heartbeat_proto_rawDescData
 }
 
-var file_cortex_agent_v1_heartbeat_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_cortex_agent_v1_heartbeat_proto_goTypes = []interface{}{
-	(*Heartbeat)(nil), // 0: cortex.agent.v1.Heartbeat
-	nil,               // 1: cortex.agent.v1.Heartbeat.LabelsEntry
+var file_coretex_agent_v1_heartbeat_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_coretex_agent_v1_heartbeat_proto_goTypes = []interface{}{
+	(*Heartbeat)(nil), // 0: coretex.agent.v1.Heartbeat
+	nil,               // 1: coretex.agent.v1.Heartbeat.LabelsEntry
 }
-var file_cortex_agent_v1_heartbeat_proto_depIdxs = []int32{
-	1, // 0: cortex.agent.v1.Heartbeat.labels:type_name -> cortex.agent.v1.Heartbeat.LabelsEntry
+var file_coretex_agent_v1_heartbeat_proto_depIdxs = []int32{
+	1, // 0: coretex.agent.v1.Heartbeat.labels:type_name -> coretex.agent.v1.Heartbeat.LabelsEntry
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -210,13 +210,13 @@ var file_cortex_agent_v1_heartbeat_proto_depIdxs = []int32{
 	0, // [0:1] is the sub-list for field type_name
 }
 
-func init() { file_cortex_agent_v1_heartbeat_proto_init() }
-func file_cortex_agent_v1_heartbeat_proto_init() {
-	if File_cortex_agent_v1_heartbeat_proto != nil {
+func init() { file_coretex_agent_v1_heartbeat_proto_init() }
+func file_coretex_agent_v1_heartbeat_proto_init() {
+	if File_coretex_agent_v1_heartbeat_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_cortex_agent_v1_heartbeat_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_coretex_agent_v1_heartbeat_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Heartbeat); i {
 			case 0:
 				return &v.state
@@ -233,18 +233,18 @@ func file_cortex_agent_v1_heartbeat_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_cortex_agent_v1_heartbeat_proto_rawDesc,
+			RawDescriptor: file_coretex_agent_v1_heartbeat_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_cortex_agent_v1_heartbeat_proto_goTypes,
-		DependencyIndexes: file_cortex_agent_v1_heartbeat_proto_depIdxs,
-		MessageInfos:      file_cortex_agent_v1_heartbeat_proto_msgTypes,
+		GoTypes:           file_coretex_agent_v1_heartbeat_proto_goTypes,
+		DependencyIndexes: file_coretex_agent_v1_heartbeat_proto_depIdxs,
+		MessageInfos:      file_coretex_agent_v1_heartbeat_proto_msgTypes,
 	}.Build()
-	File_cortex_agent_v1_heartbeat_proto = out.File
-	file_cortex_agent_v1_heartbeat_proto_rawDesc = nil
-	file_cortex_agent_v1_heartbeat_proto_goTypes = nil
-	file_cortex_agent_v1_heartbeat_proto_depIdxs = nil
+	File_coretex_agent_v1_heartbeat_proto = out.File
+	file_coretex_agent_v1_heartbeat_proto_rawDesc = nil
+	file_coretex_agent_v1_heartbeat_proto_goTypes = nil
+	file_coretex_agent_v1_heartbeat_proto_depIdxs = nil
 }

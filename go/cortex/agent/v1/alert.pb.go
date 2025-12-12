@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.33.0
 // 	protoc        v3.21.12
-// source: cortex/agent/v1/alert.proto
+// source: coretex/agent/v1/alert.proto
 
 package v1
 
@@ -35,7 +35,7 @@ type SystemAlert struct {
 func (x *SystemAlert) Reset() {
 	*x = SystemAlert{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cortex_agent_v1_alert_proto_msgTypes[0]
+		mi := &file_coretex_agent_v1_alert_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -48,7 +48,7 @@ func (x *SystemAlert) String() string {
 func (*SystemAlert) ProtoMessage() {}
 
 func (x *SystemAlert) ProtoReflect() protoreflect.Message {
-	mi := &file_cortex_agent_v1_alert_proto_msgTypes[0]
+	mi := &file_coretex_agent_v1_alert_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -61,7 +61,7 @@ func (x *SystemAlert) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SystemAlert.ProtoReflect.Descriptor instead.
 func (*SystemAlert) Descriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_alert_proto_rawDescGZIP(), []int{0}
+	return file_coretex_agent_v1_alert_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *SystemAlert) GetLevel() string {
@@ -92,9 +92,9 @@ func (x *SystemAlert) GetCode() string {
 	return ""
 }
 
-var File_cortex_agent_v1_alert_proto protoreflect.FileDescriptor
+var File_coretex_agent_v1_alert_proto protoreflect.FileDescriptor
 
-var file_cortex_agent_v1_alert_proto_rawDesc = []byte{
+var file_coretex_agent_v1_alert_proto_rawDesc = []byte{
 	0x0a, 0x1b, 0x63, 0x6f, 0x72, 0x74, 0x65, 0x78, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x76,
 	0x31, 0x2f, 0x61, 0x6c, 0x65, 0x72, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x0f, 0x63,
 	0x6f, 0x72, 0x74, 0x65, 0x78, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e, 0x76, 0x31, 0x22, 0x6f,
@@ -117,22 +117,22 @@ var file_cortex_agent_v1_alert_proto_rawDesc = []byte{
 }
 
 var (
-	file_cortex_agent_v1_alert_proto_rawDescOnce sync.Once
-	file_cortex_agent_v1_alert_proto_rawDescData = file_cortex_agent_v1_alert_proto_rawDesc
+	file_coretex_agent_v1_alert_proto_rawDescOnce sync.Once
+	file_coretex_agent_v1_alert_proto_rawDescData = file_coretex_agent_v1_alert_proto_rawDesc
 )
 
-func file_cortex_agent_v1_alert_proto_rawDescGZIP() []byte {
-	file_cortex_agent_v1_alert_proto_rawDescOnce.Do(func() {
-		file_cortex_agent_v1_alert_proto_rawDescData = protoimpl.X.CompressGZIP(file_cortex_agent_v1_alert_proto_rawDescData)
+func file_coretex_agent_v1_alert_proto_rawDescGZIP() []byte {
+	file_coretex_agent_v1_alert_proto_rawDescOnce.Do(func() {
+		file_coretex_agent_v1_alert_proto_rawDescData = protoimpl.X.CompressGZIP(file_coretex_agent_v1_alert_proto_rawDescData)
 	})
-	return file_cortex_agent_v1_alert_proto_rawDescData
+	return file_coretex_agent_v1_alert_proto_rawDescData
 }
 
-var file_cortex_agent_v1_alert_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_cortex_agent_v1_alert_proto_goTypes = []interface{}{
-	(*SystemAlert)(nil), // 0: cortex.agent.v1.SystemAlert
+var file_coretex_agent_v1_alert_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_coretex_agent_v1_alert_proto_goTypes = []interface{}{
+	(*SystemAlert)(nil), // 0: coretex.agent.v1.SystemAlert
 }
-var file_cortex_agent_v1_alert_proto_depIdxs = []int32{
+var file_coretex_agent_v1_alert_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -140,13 +140,13 @@ var file_cortex_agent_v1_alert_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_cortex_agent_v1_alert_proto_init() }
-func file_cortex_agent_v1_alert_proto_init() {
-	if File_cortex_agent_v1_alert_proto != nil {
+func init() { file_coretex_agent_v1_alert_proto_init() }
+func file_coretex_agent_v1_alert_proto_init() {
+	if File_coretex_agent_v1_alert_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_cortex_agent_v1_alert_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_coretex_agent_v1_alert_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SystemAlert); i {
 			case 0:
 				return &v.state
@@ -163,18 +163,18 @@ func file_cortex_agent_v1_alert_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_cortex_agent_v1_alert_proto_rawDesc,
+			RawDescriptor: file_coretex_agent_v1_alert_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_cortex_agent_v1_alert_proto_goTypes,
-		DependencyIndexes: file_cortex_agent_v1_alert_proto_depIdxs,
-		MessageInfos:      file_cortex_agent_v1_alert_proto_msgTypes,
+		GoTypes:           file_coretex_agent_v1_alert_proto_goTypes,
+		DependencyIndexes: file_coretex_agent_v1_alert_proto_depIdxs,
+		MessageInfos:      file_coretex_agent_v1_alert_proto_msgTypes,
 	}.Build()
-	File_cortex_agent_v1_alert_proto = out.File
-	file_cortex_agent_v1_alert_proto_rawDesc = nil
-	file_cortex_agent_v1_alert_proto_goTypes = nil
-	file_cortex_agent_v1_alert_proto_depIdxs = nil
+	File_coretex_agent_v1_alert_proto = out.File
+	file_coretex_agent_v1_alert_proto_rawDesc = nil
+	file_coretex_agent_v1_alert_proto_goTypes = nil
+	file_coretex_agent_v1_alert_proto_depIdxs = nil
 }

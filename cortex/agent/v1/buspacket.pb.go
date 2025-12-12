@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.33.0
 // 	protoc        v3.21.12
-// source: cortex/agent/v1/buspacket.proto
+// source: coretex/agent/v1/buspacket.proto
 
 package v1
 
@@ -43,7 +43,7 @@ type BusPacket struct {
 func (x *BusPacket) Reset() {
 	*x = BusPacket{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_cortex_agent_v1_buspacket_proto_msgTypes[0]
+		mi := &file_coretex_agent_v1_buspacket_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -56,7 +56,7 @@ func (x *BusPacket) String() string {
 func (*BusPacket) ProtoMessage() {}
 
 func (x *BusPacket) ProtoReflect() protoreflect.Message {
-	mi := &file_cortex_agent_v1_buspacket_proto_msgTypes[0]
+	mi := &file_coretex_agent_v1_buspacket_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -69,7 +69,7 @@ func (x *BusPacket) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BusPacket.ProtoReflect.Descriptor instead.
 func (*BusPacket) Descriptor() ([]byte, []int) {
-	return file_cortex_agent_v1_buspacket_proto_rawDescGZIP(), []int{0}
+	return file_coretex_agent_v1_buspacket_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *BusPacket) GetTraceId() string {
@@ -163,9 +163,9 @@ func (*BusPacket_Heartbeat) isBusPacket_Payload() {}
 
 func (*BusPacket_Alert) isBusPacket_Payload() {}
 
-var File_cortex_agent_v1_buspacket_proto protoreflect.FileDescriptor
+var File_coretex_agent_v1_buspacket_proto protoreflect.FileDescriptor
 
-var file_cortex_agent_v1_buspacket_proto_rawDesc = []byte{
+var file_coretex_agent_v1_buspacket_proto_rawDesc = []byte{
 	0x0a, 0x1f, 0x63, 0x6f, 0x72, 0x74, 0x65, 0x78, 0x2f, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2f, 0x76,
 	0x31, 0x2f, 0x62, 0x75, 0x73, 0x70, 0x61, 0x63, 0x6b, 0x65, 0x74, 0x2e, 0x70, 0x72, 0x6f, 0x74,
 	0x6f, 0x12, 0x0f, 0x63, 0x6f, 0x72, 0x74, 0x65, 0x78, 0x2e, 0x61, 0x67, 0x65, 0x6e, 0x74, 0x2e,
@@ -215,32 +215,32 @@ var file_cortex_agent_v1_buspacket_proto_rawDesc = []byte{
 }
 
 var (
-	file_cortex_agent_v1_buspacket_proto_rawDescOnce sync.Once
-	file_cortex_agent_v1_buspacket_proto_rawDescData = file_cortex_agent_v1_buspacket_proto_rawDesc
+	file_coretex_agent_v1_buspacket_proto_rawDescOnce sync.Once
+	file_coretex_agent_v1_buspacket_proto_rawDescData = file_coretex_agent_v1_buspacket_proto_rawDesc
 )
 
-func file_cortex_agent_v1_buspacket_proto_rawDescGZIP() []byte {
-	file_cortex_agent_v1_buspacket_proto_rawDescOnce.Do(func() {
-		file_cortex_agent_v1_buspacket_proto_rawDescData = protoimpl.X.CompressGZIP(file_cortex_agent_v1_buspacket_proto_rawDescData)
+func file_coretex_agent_v1_buspacket_proto_rawDescGZIP() []byte {
+	file_coretex_agent_v1_buspacket_proto_rawDescOnce.Do(func() {
+		file_coretex_agent_v1_buspacket_proto_rawDescData = protoimpl.X.CompressGZIP(file_coretex_agent_v1_buspacket_proto_rawDescData)
 	})
-	return file_cortex_agent_v1_buspacket_proto_rawDescData
+	return file_coretex_agent_v1_buspacket_proto_rawDescData
 }
 
-var file_cortex_agent_v1_buspacket_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_cortex_agent_v1_buspacket_proto_goTypes = []interface{}{
-	(*BusPacket)(nil),             // 0: cortex.agent.v1.BusPacket
+var file_coretex_agent_v1_buspacket_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_coretex_agent_v1_buspacket_proto_goTypes = []interface{}{
+	(*BusPacket)(nil),             // 0: coretex.agent.v1.BusPacket
 	(*timestamppb.Timestamp)(nil), // 1: google.protobuf.Timestamp
-	(*JobRequest)(nil),            // 2: cortex.agent.v1.JobRequest
-	(*JobResult)(nil),             // 3: cortex.agent.v1.JobResult
-	(*Heartbeat)(nil),             // 4: cortex.agent.v1.Heartbeat
-	(*SystemAlert)(nil),           // 5: cortex.agent.v1.SystemAlert
+	(*JobRequest)(nil),            // 2: coretex.agent.v1.JobRequest
+	(*JobResult)(nil),             // 3: coretex.agent.v1.JobResult
+	(*Heartbeat)(nil),             // 4: coretex.agent.v1.Heartbeat
+	(*SystemAlert)(nil),           // 5: coretex.agent.v1.SystemAlert
 }
-var file_cortex_agent_v1_buspacket_proto_depIdxs = []int32{
-	1, // 0: cortex.agent.v1.BusPacket.created_at:type_name -> google.protobuf.Timestamp
-	2, // 1: cortex.agent.v1.BusPacket.job_request:type_name -> cortex.agent.v1.JobRequest
-	3, // 2: cortex.agent.v1.BusPacket.job_result:type_name -> cortex.agent.v1.JobResult
-	4, // 3: cortex.agent.v1.BusPacket.heartbeat:type_name -> cortex.agent.v1.Heartbeat
-	5, // 4: cortex.agent.v1.BusPacket.alert:type_name -> cortex.agent.v1.SystemAlert
+var file_coretex_agent_v1_buspacket_proto_depIdxs = []int32{
+	1, // 0: coretex.agent.v1.BusPacket.created_at:type_name -> google.protobuf.Timestamp
+	2, // 1: coretex.agent.v1.BusPacket.job_request:type_name -> coretex.agent.v1.JobRequest
+	3, // 2: coretex.agent.v1.BusPacket.job_result:type_name -> coretex.agent.v1.JobResult
+	4, // 3: coretex.agent.v1.BusPacket.heartbeat:type_name -> coretex.agent.v1.Heartbeat
+	5, // 4: coretex.agent.v1.BusPacket.alert:type_name -> coretex.agent.v1.SystemAlert
 	5, // [5:5] is the sub-list for method output_type
 	5, // [5:5] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
@@ -248,16 +248,16 @@ var file_cortex_agent_v1_buspacket_proto_depIdxs = []int32{
 	0, // [0:5] is the sub-list for field type_name
 }
 
-func init() { file_cortex_agent_v1_buspacket_proto_init() }
-func file_cortex_agent_v1_buspacket_proto_init() {
-	if File_cortex_agent_v1_buspacket_proto != nil {
+func init() { file_coretex_agent_v1_buspacket_proto_init() }
+func file_coretex_agent_v1_buspacket_proto_init() {
+	if File_coretex_agent_v1_buspacket_proto != nil {
 		return
 	}
-	file_cortex_agent_v1_job_proto_init()
-	file_cortex_agent_v1_heartbeat_proto_init()
-	file_cortex_agent_v1_alert_proto_init()
+	file_coretex_agent_v1_job_proto_init()
+	file_coretex_agent_v1_heartbeat_proto_init()
+	file_coretex_agent_v1_alert_proto_init()
 	if !protoimpl.UnsafeEnabled {
-		file_cortex_agent_v1_buspacket_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_coretex_agent_v1_buspacket_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BusPacket); i {
 			case 0:
 				return &v.state
@@ -270,7 +270,7 @@ func file_cortex_agent_v1_buspacket_proto_init() {
 			}
 		}
 	}
-	file_cortex_agent_v1_buspacket_proto_msgTypes[0].OneofWrappers = []interface{}{
+	file_coretex_agent_v1_buspacket_proto_msgTypes[0].OneofWrappers = []interface{}{
 		(*BusPacket_JobRequest)(nil),
 		(*BusPacket_JobResult)(nil),
 		(*BusPacket_Heartbeat)(nil),
@@ -280,18 +280,18 @@ func file_cortex_agent_v1_buspacket_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_cortex_agent_v1_buspacket_proto_rawDesc,
+			RawDescriptor: file_coretex_agent_v1_buspacket_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   1,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_cortex_agent_v1_buspacket_proto_goTypes,
-		DependencyIndexes: file_cortex_agent_v1_buspacket_proto_depIdxs,
-		MessageInfos:      file_cortex_agent_v1_buspacket_proto_msgTypes,
+		GoTypes:           file_coretex_agent_v1_buspacket_proto_goTypes,
+		DependencyIndexes: file_coretex_agent_v1_buspacket_proto_depIdxs,
+		MessageInfos:      file_coretex_agent_v1_buspacket_proto_msgTypes,
 	}.Build()
-	File_cortex_agent_v1_buspacket_proto = out.File
-	file_cortex_agent_v1_buspacket_proto_rawDesc = nil
-	file_cortex_agent_v1_buspacket_proto_goTypes = nil
-	file_cortex_agent_v1_buspacket_proto_depIdxs = nil
+	File_coretex_agent_v1_buspacket_proto = out.File
+	file_coretex_agent_v1_buspacket_proto_rawDesc = nil
+	file_coretex_agent_v1_buspacket_proto_goTypes = nil
+	file_coretex_agent_v1_buspacket_proto_depIdxs = nil
 }

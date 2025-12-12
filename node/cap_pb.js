@@ -7,22 +7,22 @@ var $protobuf = require("protobufjs/minimal");
 var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
 
 // Exported root namespace
-var $root = $protobuf.roots["cortex.agent.v1"] || ($protobuf.roots["cortex.agent.v1"] = {});
+var $root = $protobuf.roots["coretex.agent.v1"] || ($protobuf.roots["coretex.agent.v1"] = {});
 
-$root.cortex = (function() {
+$root.coretex = (function() {
 
     /**
-     * Namespace cortex.
-     * @exports cortex
+     * Namespace coretex.
+     * @exports coretex
      * @namespace
      */
-    var cortex = {};
+    var coretex = {};
 
-    cortex.agent = (function() {
+    coretex.agent = (function() {
 
         /**
          * Namespace agent.
-         * @memberof cortex
+         * @memberof coretex
          * @namespace
          */
         var agent = {};
@@ -31,7 +31,7 @@ $root.cortex = (function() {
 
             /**
              * Namespace v1.
-             * @memberof cortex.agent
+             * @memberof coretex.agent
              * @namespace
              */
             var v1 = {};
@@ -40,7 +40,7 @@ $root.cortex = (function() {
 
                 /**
                  * Properties of a SystemAlert.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @interface ISystemAlert
                  * @property {string|null} [level] SystemAlert level
                  * @property {string|null} [message] SystemAlert message
@@ -50,11 +50,11 @@ $root.cortex = (function() {
 
                 /**
                  * Constructs a new SystemAlert.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @classdesc Represents a SystemAlert.
                  * @implements ISystemAlert
                  * @constructor
-                 * @param {cortex.agent.v1.ISystemAlert=} [properties] Properties to set
+                 * @param {coretex.agent.v1.ISystemAlert=} [properties] Properties to set
                  */
                 function SystemAlert(properties) {
                     if (properties)
@@ -66,7 +66,7 @@ $root.cortex = (function() {
                 /**
                  * SystemAlert level.
                  * @member {string} level
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @instance
                  */
                 SystemAlert.prototype.level = "";
@@ -74,7 +74,7 @@ $root.cortex = (function() {
                 /**
                  * SystemAlert message.
                  * @member {string} message
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @instance
                  */
                 SystemAlert.prototype.message = "";
@@ -82,7 +82,7 @@ $root.cortex = (function() {
                 /**
                  * SystemAlert component.
                  * @member {string} component
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @instance
                  */
                 SystemAlert.prototype.component = "";
@@ -90,7 +90,7 @@ $root.cortex = (function() {
                 /**
                  * SystemAlert code.
                  * @member {string} code
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @instance
                  */
                 SystemAlert.prototype.code = "";
@@ -98,21 +98,21 @@ $root.cortex = (function() {
                 /**
                  * Creates a new SystemAlert instance using the specified properties.
                  * @function create
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @static
-                 * @param {cortex.agent.v1.ISystemAlert=} [properties] Properties to set
-                 * @returns {cortex.agent.v1.SystemAlert} SystemAlert instance
+                 * @param {coretex.agent.v1.ISystemAlert=} [properties] Properties to set
+                 * @returns {coretex.agent.v1.SystemAlert} SystemAlert instance
                  */
                 SystemAlert.create = function create(properties) {
                     return new SystemAlert(properties);
                 };
 
                 /**
-                 * Encodes the specified SystemAlert message. Does not implicitly {@link cortex.agent.v1.SystemAlert.verify|verify} messages.
+                 * Encodes the specified SystemAlert message. Does not implicitly {@link coretex.agent.v1.SystemAlert.verify|verify} messages.
                  * @function encode
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @static
-                 * @param {cortex.agent.v1.ISystemAlert} message SystemAlert message or plain object to encode
+                 * @param {coretex.agent.v1.ISystemAlert} message SystemAlert message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -131,11 +131,11 @@ $root.cortex = (function() {
                 };
 
                 /**
-                 * Encodes the specified SystemAlert message, length delimited. Does not implicitly {@link cortex.agent.v1.SystemAlert.verify|verify} messages.
+                 * Encodes the specified SystemAlert message, length delimited. Does not implicitly {@link coretex.agent.v1.SystemAlert.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @static
-                 * @param {cortex.agent.v1.ISystemAlert} message SystemAlert message or plain object to encode
+                 * @param {coretex.agent.v1.ISystemAlert} message SystemAlert message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -146,18 +146,18 @@ $root.cortex = (function() {
                 /**
                  * Decodes a SystemAlert message from the specified reader or buffer.
                  * @function decode
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {cortex.agent.v1.SystemAlert} SystemAlert
+                 * @returns {coretex.agent.v1.SystemAlert} SystemAlert
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 SystemAlert.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cortex.agent.v1.SystemAlert();
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.coretex.agent.v1.SystemAlert();
                     while (reader.pos < end) {
                         var tag = reader.uint32();
                         if (tag === error)
@@ -190,10 +190,10 @@ $root.cortex = (function() {
                 /**
                  * Decodes a SystemAlert message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {cortex.agent.v1.SystemAlert} SystemAlert
+                 * @returns {coretex.agent.v1.SystemAlert} SystemAlert
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
@@ -206,7 +206,7 @@ $root.cortex = (function() {
                 /**
                  * Verifies a SystemAlert message.
                  * @function verify
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -232,15 +232,15 @@ $root.cortex = (function() {
                 /**
                  * Creates a SystemAlert message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {cortex.agent.v1.SystemAlert} SystemAlert
+                 * @returns {coretex.agent.v1.SystemAlert} SystemAlert
                  */
                 SystemAlert.fromObject = function fromObject(object) {
-                    if (object instanceof $root.cortex.agent.v1.SystemAlert)
+                    if (object instanceof $root.coretex.agent.v1.SystemAlert)
                         return object;
-                    var message = new $root.cortex.agent.v1.SystemAlert();
+                    var message = new $root.coretex.agent.v1.SystemAlert();
                     if (object.level != null)
                         message.level = String(object.level);
                     if (object.message != null)
@@ -255,9 +255,9 @@ $root.cortex = (function() {
                 /**
                  * Creates a plain object from a SystemAlert message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @static
-                 * @param {cortex.agent.v1.SystemAlert} message SystemAlert
+                 * @param {coretex.agent.v1.SystemAlert} message SystemAlert
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
@@ -285,7 +285,7 @@ $root.cortex = (function() {
                 /**
                  * Converts this SystemAlert to JSON.
                  * @function toJSON
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
@@ -296,7 +296,7 @@ $root.cortex = (function() {
                 /**
                  * Gets the default type url for SystemAlert
                  * @function getTypeUrl
-                 * @memberof cortex.agent.v1.SystemAlert
+                 * @memberof coretex.agent.v1.SystemAlert
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
@@ -305,7 +305,7 @@ $root.cortex = (function() {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/cortex.agent.v1.SystemAlert";
+                    return typeUrlPrefix + "/coretex.agent.v1.SystemAlert";
                 };
 
                 return SystemAlert;
@@ -315,26 +315,26 @@ $root.cortex = (function() {
 
                 /**
                  * Properties of a BusPacket.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @interface IBusPacket
                  * @property {string|null} [traceId] BusPacket traceId
                  * @property {string|null} [senderId] BusPacket senderId
                  * @property {google.protobuf.ITimestamp|null} [createdAt] BusPacket createdAt
                  * @property {number|null} [protocolVersion] BusPacket protocolVersion
-                 * @property {cortex.agent.v1.IJobRequest|null} [jobRequest] BusPacket jobRequest
-                 * @property {cortex.agent.v1.IJobResult|null} [jobResult] BusPacket jobResult
-                 * @property {cortex.agent.v1.IHeartbeat|null} [heartbeat] BusPacket heartbeat
-                 * @property {cortex.agent.v1.ISystemAlert|null} [alert] BusPacket alert
+                 * @property {coretex.agent.v1.IJobRequest|null} [jobRequest] BusPacket jobRequest
+                 * @property {coretex.agent.v1.IJobResult|null} [jobResult] BusPacket jobResult
+                 * @property {coretex.agent.v1.IHeartbeat|null} [heartbeat] BusPacket heartbeat
+                 * @property {coretex.agent.v1.ISystemAlert|null} [alert] BusPacket alert
                  * @property {Uint8Array|null} [signature] BusPacket signature
                  */
 
                 /**
                  * Constructs a new BusPacket.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @classdesc Represents a BusPacket.
                  * @implements IBusPacket
                  * @constructor
-                 * @param {cortex.agent.v1.IBusPacket=} [properties] Properties to set
+                 * @param {coretex.agent.v1.IBusPacket=} [properties] Properties to set
                  */
                 function BusPacket(properties) {
                     if (properties)
@@ -346,7 +346,7 @@ $root.cortex = (function() {
                 /**
                  * BusPacket traceId.
                  * @member {string} traceId
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  */
                 BusPacket.prototype.traceId = "";
@@ -354,7 +354,7 @@ $root.cortex = (function() {
                 /**
                  * BusPacket senderId.
                  * @member {string} senderId
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  */
                 BusPacket.prototype.senderId = "";
@@ -362,7 +362,7 @@ $root.cortex = (function() {
                 /**
                  * BusPacket createdAt.
                  * @member {google.protobuf.ITimestamp|null|undefined} createdAt
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  */
                 BusPacket.prototype.createdAt = null;
@@ -370,39 +370,39 @@ $root.cortex = (function() {
                 /**
                  * BusPacket protocolVersion.
                  * @member {number} protocolVersion
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  */
                 BusPacket.prototype.protocolVersion = 0;
 
                 /**
                  * BusPacket jobRequest.
-                 * @member {cortex.agent.v1.IJobRequest|null|undefined} jobRequest
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @member {coretex.agent.v1.IJobRequest|null|undefined} jobRequest
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  */
                 BusPacket.prototype.jobRequest = null;
 
                 /**
                  * BusPacket jobResult.
-                 * @member {cortex.agent.v1.IJobResult|null|undefined} jobResult
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @member {coretex.agent.v1.IJobResult|null|undefined} jobResult
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  */
                 BusPacket.prototype.jobResult = null;
 
                 /**
                  * BusPacket heartbeat.
-                 * @member {cortex.agent.v1.IHeartbeat|null|undefined} heartbeat
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @member {coretex.agent.v1.IHeartbeat|null|undefined} heartbeat
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  */
                 BusPacket.prototype.heartbeat = null;
 
                 /**
                  * BusPacket alert.
-                 * @member {cortex.agent.v1.ISystemAlert|null|undefined} alert
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @member {coretex.agent.v1.ISystemAlert|null|undefined} alert
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  */
                 BusPacket.prototype.alert = null;
@@ -410,7 +410,7 @@ $root.cortex = (function() {
                 /**
                  * BusPacket signature.
                  * @member {Uint8Array} signature
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  */
                 BusPacket.prototype.signature = $util.newBuffer([]);
@@ -421,7 +421,7 @@ $root.cortex = (function() {
                 /**
                  * BusPacket payload.
                  * @member {"jobRequest"|"jobResult"|"heartbeat"|"alert"|undefined} payload
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  */
                 Object.defineProperty(BusPacket.prototype, "payload", {
@@ -432,21 +432,21 @@ $root.cortex = (function() {
                 /**
                  * Creates a new BusPacket instance using the specified properties.
                  * @function create
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @static
-                 * @param {cortex.agent.v1.IBusPacket=} [properties] Properties to set
-                 * @returns {cortex.agent.v1.BusPacket} BusPacket instance
+                 * @param {coretex.agent.v1.IBusPacket=} [properties] Properties to set
+                 * @returns {coretex.agent.v1.BusPacket} BusPacket instance
                  */
                 BusPacket.create = function create(properties) {
                     return new BusPacket(properties);
                 };
 
                 /**
-                 * Encodes the specified BusPacket message. Does not implicitly {@link cortex.agent.v1.BusPacket.verify|verify} messages.
+                 * Encodes the specified BusPacket message. Does not implicitly {@link coretex.agent.v1.BusPacket.verify|verify} messages.
                  * @function encode
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @static
-                 * @param {cortex.agent.v1.IBusPacket} message BusPacket message or plain object to encode
+                 * @param {coretex.agent.v1.IBusPacket} message BusPacket message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -462,24 +462,24 @@ $root.cortex = (function() {
                     if (message.protocolVersion != null && Object.hasOwnProperty.call(message, "protocolVersion"))
                         writer.uint32(/* id 4, wireType 0 =*/32).int32(message.protocolVersion);
                     if (message.jobRequest != null && Object.hasOwnProperty.call(message, "jobRequest"))
-                        $root.cortex.agent.v1.JobRequest.encode(message.jobRequest, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
+                        $root.coretex.agent.v1.JobRequest.encode(message.jobRequest, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
                     if (message.jobResult != null && Object.hasOwnProperty.call(message, "jobResult"))
-                        $root.cortex.agent.v1.JobResult.encode(message.jobResult, writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
+                        $root.coretex.agent.v1.JobResult.encode(message.jobResult, writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
                     if (message.heartbeat != null && Object.hasOwnProperty.call(message, "heartbeat"))
-                        $root.cortex.agent.v1.Heartbeat.encode(message.heartbeat, writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
+                        $root.coretex.agent.v1.Heartbeat.encode(message.heartbeat, writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
                     if (message.alert != null && Object.hasOwnProperty.call(message, "alert"))
-                        $root.cortex.agent.v1.SystemAlert.encode(message.alert, writer.uint32(/* id 13, wireType 2 =*/106).fork()).ldelim();
+                        $root.coretex.agent.v1.SystemAlert.encode(message.alert, writer.uint32(/* id 13, wireType 2 =*/106).fork()).ldelim();
                     if (message.signature != null && Object.hasOwnProperty.call(message, "signature"))
                         writer.uint32(/* id 14, wireType 2 =*/114).bytes(message.signature);
                     return writer;
                 };
 
                 /**
-                 * Encodes the specified BusPacket message, length delimited. Does not implicitly {@link cortex.agent.v1.BusPacket.verify|verify} messages.
+                 * Encodes the specified BusPacket message, length delimited. Does not implicitly {@link coretex.agent.v1.BusPacket.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @static
-                 * @param {cortex.agent.v1.IBusPacket} message BusPacket message or plain object to encode
+                 * @param {coretex.agent.v1.IBusPacket} message BusPacket message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -490,18 +490,18 @@ $root.cortex = (function() {
                 /**
                  * Decodes a BusPacket message from the specified reader or buffer.
                  * @function decode
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {cortex.agent.v1.BusPacket} BusPacket
+                 * @returns {coretex.agent.v1.BusPacket} BusPacket
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 BusPacket.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cortex.agent.v1.BusPacket();
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.coretex.agent.v1.BusPacket();
                     while (reader.pos < end) {
                         var tag = reader.uint32();
                         if (tag === error)
@@ -524,19 +524,19 @@ $root.cortex = (function() {
                                 break;
                             }
                         case 10: {
-                                message.jobRequest = $root.cortex.agent.v1.JobRequest.decode(reader, reader.uint32());
+                                message.jobRequest = $root.coretex.agent.v1.JobRequest.decode(reader, reader.uint32());
                                 break;
                             }
                         case 11: {
-                                message.jobResult = $root.cortex.agent.v1.JobResult.decode(reader, reader.uint32());
+                                message.jobResult = $root.coretex.agent.v1.JobResult.decode(reader, reader.uint32());
                                 break;
                             }
                         case 12: {
-                                message.heartbeat = $root.cortex.agent.v1.Heartbeat.decode(reader, reader.uint32());
+                                message.heartbeat = $root.coretex.agent.v1.Heartbeat.decode(reader, reader.uint32());
                                 break;
                             }
                         case 13: {
-                                message.alert = $root.cortex.agent.v1.SystemAlert.decode(reader, reader.uint32());
+                                message.alert = $root.coretex.agent.v1.SystemAlert.decode(reader, reader.uint32());
                                 break;
                             }
                         case 14: {
@@ -554,10 +554,10 @@ $root.cortex = (function() {
                 /**
                  * Decodes a BusPacket message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {cortex.agent.v1.BusPacket} BusPacket
+                 * @returns {coretex.agent.v1.BusPacket} BusPacket
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
@@ -570,7 +570,7 @@ $root.cortex = (function() {
                 /**
                  * Verifies a BusPacket message.
                  * @function verify
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -596,7 +596,7 @@ $root.cortex = (function() {
                     if (message.jobRequest != null && message.hasOwnProperty("jobRequest")) {
                         properties.payload = 1;
                         {
-                            var error = $root.cortex.agent.v1.JobRequest.verify(message.jobRequest);
+                            var error = $root.coretex.agent.v1.JobRequest.verify(message.jobRequest);
                             if (error)
                                 return "jobRequest." + error;
                         }
@@ -606,7 +606,7 @@ $root.cortex = (function() {
                             return "payload: multiple values";
                         properties.payload = 1;
                         {
-                            var error = $root.cortex.agent.v1.JobResult.verify(message.jobResult);
+                            var error = $root.coretex.agent.v1.JobResult.verify(message.jobResult);
                             if (error)
                                 return "jobResult." + error;
                         }
@@ -616,7 +616,7 @@ $root.cortex = (function() {
                             return "payload: multiple values";
                         properties.payload = 1;
                         {
-                            var error = $root.cortex.agent.v1.Heartbeat.verify(message.heartbeat);
+                            var error = $root.coretex.agent.v1.Heartbeat.verify(message.heartbeat);
                             if (error)
                                 return "heartbeat." + error;
                         }
@@ -626,7 +626,7 @@ $root.cortex = (function() {
                             return "payload: multiple values";
                         properties.payload = 1;
                         {
-                            var error = $root.cortex.agent.v1.SystemAlert.verify(message.alert);
+                            var error = $root.coretex.agent.v1.SystemAlert.verify(message.alert);
                             if (error)
                                 return "alert." + error;
                         }
@@ -640,45 +640,45 @@ $root.cortex = (function() {
                 /**
                  * Creates a BusPacket message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {cortex.agent.v1.BusPacket} BusPacket
+                 * @returns {coretex.agent.v1.BusPacket} BusPacket
                  */
                 BusPacket.fromObject = function fromObject(object) {
-                    if (object instanceof $root.cortex.agent.v1.BusPacket)
+                    if (object instanceof $root.coretex.agent.v1.BusPacket)
                         return object;
-                    var message = new $root.cortex.agent.v1.BusPacket();
+                    var message = new $root.coretex.agent.v1.BusPacket();
                     if (object.traceId != null)
                         message.traceId = String(object.traceId);
                     if (object.senderId != null)
                         message.senderId = String(object.senderId);
                     if (object.createdAt != null) {
                         if (typeof object.createdAt !== "object")
-                            throw TypeError(".cortex.agent.v1.BusPacket.createdAt: object expected");
+                            throw TypeError(".coretex.agent.v1.BusPacket.createdAt: object expected");
                         message.createdAt = $root.google.protobuf.Timestamp.fromObject(object.createdAt);
                     }
                     if (object.protocolVersion != null)
                         message.protocolVersion = object.protocolVersion | 0;
                     if (object.jobRequest != null) {
                         if (typeof object.jobRequest !== "object")
-                            throw TypeError(".cortex.agent.v1.BusPacket.jobRequest: object expected");
-                        message.jobRequest = $root.cortex.agent.v1.JobRequest.fromObject(object.jobRequest);
+                            throw TypeError(".coretex.agent.v1.BusPacket.jobRequest: object expected");
+                        message.jobRequest = $root.coretex.agent.v1.JobRequest.fromObject(object.jobRequest);
                     }
                     if (object.jobResult != null) {
                         if (typeof object.jobResult !== "object")
-                            throw TypeError(".cortex.agent.v1.BusPacket.jobResult: object expected");
-                        message.jobResult = $root.cortex.agent.v1.JobResult.fromObject(object.jobResult);
+                            throw TypeError(".coretex.agent.v1.BusPacket.jobResult: object expected");
+                        message.jobResult = $root.coretex.agent.v1.JobResult.fromObject(object.jobResult);
                     }
                     if (object.heartbeat != null) {
                         if (typeof object.heartbeat !== "object")
-                            throw TypeError(".cortex.agent.v1.BusPacket.heartbeat: object expected");
-                        message.heartbeat = $root.cortex.agent.v1.Heartbeat.fromObject(object.heartbeat);
+                            throw TypeError(".coretex.agent.v1.BusPacket.heartbeat: object expected");
+                        message.heartbeat = $root.coretex.agent.v1.Heartbeat.fromObject(object.heartbeat);
                     }
                     if (object.alert != null) {
                         if (typeof object.alert !== "object")
-                            throw TypeError(".cortex.agent.v1.BusPacket.alert: object expected");
-                        message.alert = $root.cortex.agent.v1.SystemAlert.fromObject(object.alert);
+                            throw TypeError(".coretex.agent.v1.BusPacket.alert: object expected");
+                        message.alert = $root.coretex.agent.v1.SystemAlert.fromObject(object.alert);
                     }
                     if (object.signature != null)
                         if (typeof object.signature === "string")
@@ -691,9 +691,9 @@ $root.cortex = (function() {
                 /**
                  * Creates a plain object from a BusPacket message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @static
-                 * @param {cortex.agent.v1.BusPacket} message BusPacket
+                 * @param {coretex.agent.v1.BusPacket} message BusPacket
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
@@ -723,22 +723,22 @@ $root.cortex = (function() {
                     if (message.protocolVersion != null && message.hasOwnProperty("protocolVersion"))
                         object.protocolVersion = message.protocolVersion;
                     if (message.jobRequest != null && message.hasOwnProperty("jobRequest")) {
-                        object.jobRequest = $root.cortex.agent.v1.JobRequest.toObject(message.jobRequest, options);
+                        object.jobRequest = $root.coretex.agent.v1.JobRequest.toObject(message.jobRequest, options);
                         if (options.oneofs)
                             object.payload = "jobRequest";
                     }
                     if (message.jobResult != null && message.hasOwnProperty("jobResult")) {
-                        object.jobResult = $root.cortex.agent.v1.JobResult.toObject(message.jobResult, options);
+                        object.jobResult = $root.coretex.agent.v1.JobResult.toObject(message.jobResult, options);
                         if (options.oneofs)
                             object.payload = "jobResult";
                     }
                     if (message.heartbeat != null && message.hasOwnProperty("heartbeat")) {
-                        object.heartbeat = $root.cortex.agent.v1.Heartbeat.toObject(message.heartbeat, options);
+                        object.heartbeat = $root.coretex.agent.v1.Heartbeat.toObject(message.heartbeat, options);
                         if (options.oneofs)
                             object.payload = "heartbeat";
                     }
                     if (message.alert != null && message.hasOwnProperty("alert")) {
-                        object.alert = $root.cortex.agent.v1.SystemAlert.toObject(message.alert, options);
+                        object.alert = $root.coretex.agent.v1.SystemAlert.toObject(message.alert, options);
                         if (options.oneofs)
                             object.payload = "alert";
                     }
@@ -750,7 +750,7 @@ $root.cortex = (function() {
                 /**
                  * Converts this BusPacket to JSON.
                  * @function toJSON
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
@@ -761,7 +761,7 @@ $root.cortex = (function() {
                 /**
                  * Gets the default type url for BusPacket
                  * @function getTypeUrl
-                 * @memberof cortex.agent.v1.BusPacket
+                 * @memberof coretex.agent.v1.BusPacket
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
@@ -770,7 +770,7 @@ $root.cortex = (function() {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/cortex.agent.v1.BusPacket";
+                    return typeUrlPrefix + "/coretex.agent.v1.BusPacket";
                 };
 
                 return BusPacket;
@@ -778,7 +778,7 @@ $root.cortex = (function() {
 
             /**
              * JobPriority enum.
-             * @name cortex.agent.v1.JobPriority
+             * @name coretex.agent.v1.JobPriority
              * @enum {number}
              * @property {number} JOB_PRIORITY_UNSPECIFIED=0 JOB_PRIORITY_UNSPECIFIED value
              * @property {number} JOB_PRIORITY_INTERACTIVE=1 JOB_PRIORITY_INTERACTIVE value
@@ -796,7 +796,7 @@ $root.cortex = (function() {
 
             /**
              * JobStatus enum.
-             * @name cortex.agent.v1.JobStatus
+             * @name coretex.agent.v1.JobStatus
              * @enum {number}
              * @property {number} JOB_STATUS_UNSPECIFIED=0 JOB_STATUS_UNSPECIFIED value
              * @property {number} JOB_STATUS_PENDING=1 JOB_STATUS_PENDING value
@@ -828,7 +828,7 @@ $root.cortex = (function() {
 
                 /**
                  * Properties of a ContextHints.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @interface IContextHints
                  * @property {number|null} [maxInputTokens] ContextHints maxInputTokens
                  * @property {boolean|null} [allowSummarization] ContextHints allowSummarization
@@ -838,11 +838,11 @@ $root.cortex = (function() {
 
                 /**
                  * Constructs a new ContextHints.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @classdesc Represents a ContextHints.
                  * @implements IContextHints
                  * @constructor
-                 * @param {cortex.agent.v1.IContextHints=} [properties] Properties to set
+                 * @param {coretex.agent.v1.IContextHints=} [properties] Properties to set
                  */
                 function ContextHints(properties) {
                     this.tags = [];
@@ -855,7 +855,7 @@ $root.cortex = (function() {
                 /**
                  * ContextHints maxInputTokens.
                  * @member {number} maxInputTokens
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @instance
                  */
                 ContextHints.prototype.maxInputTokens = 0;
@@ -863,7 +863,7 @@ $root.cortex = (function() {
                 /**
                  * ContextHints allowSummarization.
                  * @member {boolean} allowSummarization
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @instance
                  */
                 ContextHints.prototype.allowSummarization = false;
@@ -871,7 +871,7 @@ $root.cortex = (function() {
                 /**
                  * ContextHints allowRetrieval.
                  * @member {boolean} allowRetrieval
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @instance
                  */
                 ContextHints.prototype.allowRetrieval = false;
@@ -879,7 +879,7 @@ $root.cortex = (function() {
                 /**
                  * ContextHints tags.
                  * @member {Array.<string>} tags
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @instance
                  */
                 ContextHints.prototype.tags = $util.emptyArray;
@@ -887,21 +887,21 @@ $root.cortex = (function() {
                 /**
                  * Creates a new ContextHints instance using the specified properties.
                  * @function create
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @static
-                 * @param {cortex.agent.v1.IContextHints=} [properties] Properties to set
-                 * @returns {cortex.agent.v1.ContextHints} ContextHints instance
+                 * @param {coretex.agent.v1.IContextHints=} [properties] Properties to set
+                 * @returns {coretex.agent.v1.ContextHints} ContextHints instance
                  */
                 ContextHints.create = function create(properties) {
                     return new ContextHints(properties);
                 };
 
                 /**
-                 * Encodes the specified ContextHints message. Does not implicitly {@link cortex.agent.v1.ContextHints.verify|verify} messages.
+                 * Encodes the specified ContextHints message. Does not implicitly {@link coretex.agent.v1.ContextHints.verify|verify} messages.
                  * @function encode
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @static
-                 * @param {cortex.agent.v1.IContextHints} message ContextHints message or plain object to encode
+                 * @param {coretex.agent.v1.IContextHints} message ContextHints message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -921,11 +921,11 @@ $root.cortex = (function() {
                 };
 
                 /**
-                 * Encodes the specified ContextHints message, length delimited. Does not implicitly {@link cortex.agent.v1.ContextHints.verify|verify} messages.
+                 * Encodes the specified ContextHints message, length delimited. Does not implicitly {@link coretex.agent.v1.ContextHints.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @static
-                 * @param {cortex.agent.v1.IContextHints} message ContextHints message or plain object to encode
+                 * @param {coretex.agent.v1.IContextHints} message ContextHints message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -936,18 +936,18 @@ $root.cortex = (function() {
                 /**
                  * Decodes a ContextHints message from the specified reader or buffer.
                  * @function decode
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {cortex.agent.v1.ContextHints} ContextHints
+                 * @returns {coretex.agent.v1.ContextHints} ContextHints
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 ContextHints.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cortex.agent.v1.ContextHints();
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.coretex.agent.v1.ContextHints();
                     while (reader.pos < end) {
                         var tag = reader.uint32();
                         if (tag === error)
@@ -982,10 +982,10 @@ $root.cortex = (function() {
                 /**
                  * Decodes a ContextHints message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {cortex.agent.v1.ContextHints} ContextHints
+                 * @returns {coretex.agent.v1.ContextHints} ContextHints
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
@@ -998,7 +998,7 @@ $root.cortex = (function() {
                 /**
                  * Verifies a ContextHints message.
                  * @function verify
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -1028,15 +1028,15 @@ $root.cortex = (function() {
                 /**
                  * Creates a ContextHints message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {cortex.agent.v1.ContextHints} ContextHints
+                 * @returns {coretex.agent.v1.ContextHints} ContextHints
                  */
                 ContextHints.fromObject = function fromObject(object) {
-                    if (object instanceof $root.cortex.agent.v1.ContextHints)
+                    if (object instanceof $root.coretex.agent.v1.ContextHints)
                         return object;
-                    var message = new $root.cortex.agent.v1.ContextHints();
+                    var message = new $root.coretex.agent.v1.ContextHints();
                     if (object.maxInputTokens != null)
                         message.maxInputTokens = object.maxInputTokens | 0;
                     if (object.allowSummarization != null)
@@ -1045,7 +1045,7 @@ $root.cortex = (function() {
                         message.allowRetrieval = Boolean(object.allowRetrieval);
                     if (object.tags) {
                         if (!Array.isArray(object.tags))
-                            throw TypeError(".cortex.agent.v1.ContextHints.tags: array expected");
+                            throw TypeError(".coretex.agent.v1.ContextHints.tags: array expected");
                         message.tags = [];
                         for (var i = 0; i < object.tags.length; ++i)
                             message.tags[i] = String(object.tags[i]);
@@ -1056,9 +1056,9 @@ $root.cortex = (function() {
                 /**
                  * Creates a plain object from a ContextHints message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @static
-                 * @param {cortex.agent.v1.ContextHints} message ContextHints
+                 * @param {coretex.agent.v1.ContextHints} message ContextHints
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
@@ -1090,7 +1090,7 @@ $root.cortex = (function() {
                 /**
                  * Converts this ContextHints to JSON.
                  * @function toJSON
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
@@ -1101,7 +1101,7 @@ $root.cortex = (function() {
                 /**
                  * Gets the default type url for ContextHints
                  * @function getTypeUrl
-                 * @memberof cortex.agent.v1.ContextHints
+                 * @memberof coretex.agent.v1.ContextHints
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
@@ -1110,7 +1110,7 @@ $root.cortex = (function() {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/cortex.agent.v1.ContextHints";
+                    return typeUrlPrefix + "/coretex.agent.v1.ContextHints";
                 };
 
                 return ContextHints;
@@ -1120,7 +1120,7 @@ $root.cortex = (function() {
 
                 /**
                  * Properties of a Budget.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @interface IBudget
                  * @property {number|Long|null} [maxInputTokens] Budget maxInputTokens
                  * @property {number|Long|null} [maxOutputTokens] Budget maxOutputTokens
@@ -1130,11 +1130,11 @@ $root.cortex = (function() {
 
                 /**
                  * Constructs a new Budget.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @classdesc Represents a Budget.
                  * @implements IBudget
                  * @constructor
-                 * @param {cortex.agent.v1.IBudget=} [properties] Properties to set
+                 * @param {coretex.agent.v1.IBudget=} [properties] Properties to set
                  */
                 function Budget(properties) {
                     if (properties)
@@ -1146,7 +1146,7 @@ $root.cortex = (function() {
                 /**
                  * Budget maxInputTokens.
                  * @member {number|Long} maxInputTokens
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @instance
                  */
                 Budget.prototype.maxInputTokens = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
@@ -1154,7 +1154,7 @@ $root.cortex = (function() {
                 /**
                  * Budget maxOutputTokens.
                  * @member {number|Long} maxOutputTokens
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @instance
                  */
                 Budget.prototype.maxOutputTokens = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
@@ -1162,7 +1162,7 @@ $root.cortex = (function() {
                 /**
                  * Budget maxTotalTokens.
                  * @member {number|Long} maxTotalTokens
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @instance
                  */
                 Budget.prototype.maxTotalTokens = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
@@ -1170,7 +1170,7 @@ $root.cortex = (function() {
                 /**
                  * Budget deadlineMs.
                  * @member {number|Long} deadlineMs
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @instance
                  */
                 Budget.prototype.deadlineMs = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
@@ -1178,21 +1178,21 @@ $root.cortex = (function() {
                 /**
                  * Creates a new Budget instance using the specified properties.
                  * @function create
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @static
-                 * @param {cortex.agent.v1.IBudget=} [properties] Properties to set
-                 * @returns {cortex.agent.v1.Budget} Budget instance
+                 * @param {coretex.agent.v1.IBudget=} [properties] Properties to set
+                 * @returns {coretex.agent.v1.Budget} Budget instance
                  */
                 Budget.create = function create(properties) {
                     return new Budget(properties);
                 };
 
                 /**
-                 * Encodes the specified Budget message. Does not implicitly {@link cortex.agent.v1.Budget.verify|verify} messages.
+                 * Encodes the specified Budget message. Does not implicitly {@link coretex.agent.v1.Budget.verify|verify} messages.
                  * @function encode
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @static
-                 * @param {cortex.agent.v1.IBudget} message Budget message or plain object to encode
+                 * @param {coretex.agent.v1.IBudget} message Budget message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -1211,11 +1211,11 @@ $root.cortex = (function() {
                 };
 
                 /**
-                 * Encodes the specified Budget message, length delimited. Does not implicitly {@link cortex.agent.v1.Budget.verify|verify} messages.
+                 * Encodes the specified Budget message, length delimited. Does not implicitly {@link coretex.agent.v1.Budget.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @static
-                 * @param {cortex.agent.v1.IBudget} message Budget message or plain object to encode
+                 * @param {coretex.agent.v1.IBudget} message Budget message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -1226,18 +1226,18 @@ $root.cortex = (function() {
                 /**
                  * Decodes a Budget message from the specified reader or buffer.
                  * @function decode
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {cortex.agent.v1.Budget} Budget
+                 * @returns {coretex.agent.v1.Budget} Budget
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Budget.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cortex.agent.v1.Budget();
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.coretex.agent.v1.Budget();
                     while (reader.pos < end) {
                         var tag = reader.uint32();
                         if (tag === error)
@@ -1270,10 +1270,10 @@ $root.cortex = (function() {
                 /**
                  * Decodes a Budget message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {cortex.agent.v1.Budget} Budget
+                 * @returns {coretex.agent.v1.Budget} Budget
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
@@ -1286,7 +1286,7 @@ $root.cortex = (function() {
                 /**
                  * Verifies a Budget message.
                  * @function verify
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -1312,15 +1312,15 @@ $root.cortex = (function() {
                 /**
                  * Creates a Budget message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {cortex.agent.v1.Budget} Budget
+                 * @returns {coretex.agent.v1.Budget} Budget
                  */
                 Budget.fromObject = function fromObject(object) {
-                    if (object instanceof $root.cortex.agent.v1.Budget)
+                    if (object instanceof $root.coretex.agent.v1.Budget)
                         return object;
-                    var message = new $root.cortex.agent.v1.Budget();
+                    var message = new $root.coretex.agent.v1.Budget();
                     if (object.maxInputTokens != null)
                         if ($util.Long)
                             (message.maxInputTokens = $util.Long.fromValue(object.maxInputTokens)).unsigned = false;
@@ -1363,9 +1363,9 @@ $root.cortex = (function() {
                 /**
                  * Creates a plain object from a Budget message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @static
-                 * @param {cortex.agent.v1.Budget} message Budget
+                 * @param {coretex.agent.v1.Budget} message Budget
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
@@ -1421,7 +1421,7 @@ $root.cortex = (function() {
                 /**
                  * Converts this Budget to JSON.
                  * @function toJSON
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
@@ -1432,7 +1432,7 @@ $root.cortex = (function() {
                 /**
                  * Gets the default type url for Budget
                  * @function getTypeUrl
-                 * @memberof cortex.agent.v1.Budget
+                 * @memberof coretex.agent.v1.Budget
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
@@ -1441,7 +1441,7 @@ $root.cortex = (function() {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/cortex.agent.v1.Budget";
+                    return typeUrlPrefix + "/coretex.agent.v1.Budget";
                 };
 
                 return Budget;
@@ -1451,11 +1451,11 @@ $root.cortex = (function() {
 
                 /**
                  * Properties of a JobRequest.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @interface IJobRequest
                  * @property {string|null} [jobId] JobRequest jobId
                  * @property {string|null} [topic] JobRequest topic
-                 * @property {cortex.agent.v1.JobPriority|null} [priority] JobRequest priority
+                 * @property {coretex.agent.v1.JobPriority|null} [priority] JobRequest priority
                  * @property {string|null} [contextPtr] JobRequest contextPtr
                  * @property {string|null} [adapterId] JobRequest adapterId
                  * @property {Object.<string,string>|null} [env] JobRequest env
@@ -1463,8 +1463,8 @@ $root.cortex = (function() {
                  * @property {string|null} [workflowId] JobRequest workflowId
                  * @property {number|null} [stepIndex] JobRequest stepIndex
                  * @property {string|null} [memoryId] JobRequest memoryId
-                 * @property {cortex.agent.v1.IContextHints|null} [contextHints] JobRequest contextHints
-                 * @property {cortex.agent.v1.IBudget|null} [budget] JobRequest budget
+                 * @property {coretex.agent.v1.IContextHints|null} [contextHints] JobRequest contextHints
+                 * @property {coretex.agent.v1.IBudget|null} [budget] JobRequest budget
                  * @property {string|null} [tenantId] JobRequest tenantId
                  * @property {string|null} [principalId] JobRequest principalId
                  * @property {Object.<string,string>|null} [labels] JobRequest labels
@@ -1472,11 +1472,11 @@ $root.cortex = (function() {
 
                 /**
                  * Constructs a new JobRequest.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @classdesc Represents a JobRequest.
                  * @implements IJobRequest
                  * @constructor
-                 * @param {cortex.agent.v1.IJobRequest=} [properties] Properties to set
+                 * @param {coretex.agent.v1.IJobRequest=} [properties] Properties to set
                  */
                 function JobRequest(properties) {
                     this.env = {};
@@ -1490,7 +1490,7 @@ $root.cortex = (function() {
                 /**
                  * JobRequest jobId.
                  * @member {string} jobId
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.jobId = "";
@@ -1498,15 +1498,15 @@ $root.cortex = (function() {
                 /**
                  * JobRequest topic.
                  * @member {string} topic
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.topic = "";
 
                 /**
                  * JobRequest priority.
-                 * @member {cortex.agent.v1.JobPriority} priority
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @member {coretex.agent.v1.JobPriority} priority
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.priority = 0;
@@ -1514,7 +1514,7 @@ $root.cortex = (function() {
                 /**
                  * JobRequest contextPtr.
                  * @member {string} contextPtr
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.contextPtr = "";
@@ -1522,7 +1522,7 @@ $root.cortex = (function() {
                 /**
                  * JobRequest adapterId.
                  * @member {string} adapterId
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.adapterId = "";
@@ -1530,7 +1530,7 @@ $root.cortex = (function() {
                 /**
                  * JobRequest env.
                  * @member {Object.<string,string>} env
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.env = $util.emptyObject;
@@ -1538,7 +1538,7 @@ $root.cortex = (function() {
                 /**
                  * JobRequest parentJobId.
                  * @member {string} parentJobId
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.parentJobId = "";
@@ -1546,7 +1546,7 @@ $root.cortex = (function() {
                 /**
                  * JobRequest workflowId.
                  * @member {string} workflowId
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.workflowId = "";
@@ -1554,7 +1554,7 @@ $root.cortex = (function() {
                 /**
                  * JobRequest stepIndex.
                  * @member {number} stepIndex
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.stepIndex = 0;
@@ -1562,23 +1562,23 @@ $root.cortex = (function() {
                 /**
                  * JobRequest memoryId.
                  * @member {string} memoryId
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.memoryId = "";
 
                 /**
                  * JobRequest contextHints.
-                 * @member {cortex.agent.v1.IContextHints|null|undefined} contextHints
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @member {coretex.agent.v1.IContextHints|null|undefined} contextHints
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.contextHints = null;
 
                 /**
                  * JobRequest budget.
-                 * @member {cortex.agent.v1.IBudget|null|undefined} budget
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @member {coretex.agent.v1.IBudget|null|undefined} budget
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.budget = null;
@@ -1586,7 +1586,7 @@ $root.cortex = (function() {
                 /**
                  * JobRequest tenantId.
                  * @member {string} tenantId
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.tenantId = "";
@@ -1594,7 +1594,7 @@ $root.cortex = (function() {
                 /**
                  * JobRequest principalId.
                  * @member {string} principalId
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.principalId = "";
@@ -1602,7 +1602,7 @@ $root.cortex = (function() {
                 /**
                  * JobRequest labels.
                  * @member {Object.<string,string>} labels
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  */
                 JobRequest.prototype.labels = $util.emptyObject;
@@ -1610,21 +1610,21 @@ $root.cortex = (function() {
                 /**
                  * Creates a new JobRequest instance using the specified properties.
                  * @function create
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @static
-                 * @param {cortex.agent.v1.IJobRequest=} [properties] Properties to set
-                 * @returns {cortex.agent.v1.JobRequest} JobRequest instance
+                 * @param {coretex.agent.v1.IJobRequest=} [properties] Properties to set
+                 * @returns {coretex.agent.v1.JobRequest} JobRequest instance
                  */
                 JobRequest.create = function create(properties) {
                     return new JobRequest(properties);
                 };
 
                 /**
-                 * Encodes the specified JobRequest message. Does not implicitly {@link cortex.agent.v1.JobRequest.verify|verify} messages.
+                 * Encodes the specified JobRequest message. Does not implicitly {@link coretex.agent.v1.JobRequest.verify|verify} messages.
                  * @function encode
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @static
-                 * @param {cortex.agent.v1.IJobRequest} message JobRequest message or plain object to encode
+                 * @param {coretex.agent.v1.IJobRequest} message JobRequest message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -1653,9 +1653,9 @@ $root.cortex = (function() {
                     if (message.memoryId != null && Object.hasOwnProperty.call(message, "memoryId"))
                         writer.uint32(/* id 10, wireType 2 =*/82).string(message.memoryId);
                     if (message.contextHints != null && Object.hasOwnProperty.call(message, "contextHints"))
-                        $root.cortex.agent.v1.ContextHints.encode(message.contextHints, writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
+                        $root.coretex.agent.v1.ContextHints.encode(message.contextHints, writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
                     if (message.budget != null && Object.hasOwnProperty.call(message, "budget"))
-                        $root.cortex.agent.v1.Budget.encode(message.budget, writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
+                        $root.coretex.agent.v1.Budget.encode(message.budget, writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
                     if (message.tenantId != null && Object.hasOwnProperty.call(message, "tenantId"))
                         writer.uint32(/* id 13, wireType 2 =*/106).string(message.tenantId);
                     if (message.principalId != null && Object.hasOwnProperty.call(message, "principalId"))
@@ -1667,11 +1667,11 @@ $root.cortex = (function() {
                 };
 
                 /**
-                 * Encodes the specified JobRequest message, length delimited. Does not implicitly {@link cortex.agent.v1.JobRequest.verify|verify} messages.
+                 * Encodes the specified JobRequest message, length delimited. Does not implicitly {@link coretex.agent.v1.JobRequest.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @static
-                 * @param {cortex.agent.v1.IJobRequest} message JobRequest message or plain object to encode
+                 * @param {coretex.agent.v1.IJobRequest} message JobRequest message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -1682,18 +1682,18 @@ $root.cortex = (function() {
                 /**
                  * Decodes a JobRequest message from the specified reader or buffer.
                  * @function decode
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {cortex.agent.v1.JobRequest} JobRequest
+                 * @returns {coretex.agent.v1.JobRequest} JobRequest
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 JobRequest.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cortex.agent.v1.JobRequest(), key, value;
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.coretex.agent.v1.JobRequest(), key, value;
                     while (reader.pos < end) {
                         var tag = reader.uint32();
                         if (tag === error)
@@ -1759,11 +1759,11 @@ $root.cortex = (function() {
                                 break;
                             }
                         case 11: {
-                                message.contextHints = $root.cortex.agent.v1.ContextHints.decode(reader, reader.uint32());
+                                message.contextHints = $root.coretex.agent.v1.ContextHints.decode(reader, reader.uint32());
                                 break;
                             }
                         case 12: {
-                                message.budget = $root.cortex.agent.v1.Budget.decode(reader, reader.uint32());
+                                message.budget = $root.coretex.agent.v1.Budget.decode(reader, reader.uint32());
                                 break;
                             }
                         case 13: {
@@ -1808,10 +1808,10 @@ $root.cortex = (function() {
                 /**
                  * Decodes a JobRequest message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {cortex.agent.v1.JobRequest} JobRequest
+                 * @returns {coretex.agent.v1.JobRequest} JobRequest
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
@@ -1824,7 +1824,7 @@ $root.cortex = (function() {
                 /**
                  * Verifies a JobRequest message.
                  * @function verify
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -1875,12 +1875,12 @@ $root.cortex = (function() {
                         if (!$util.isString(message.memoryId))
                             return "memoryId: string expected";
                     if (message.contextHints != null && message.hasOwnProperty("contextHints")) {
-                        var error = $root.cortex.agent.v1.ContextHints.verify(message.contextHints);
+                        var error = $root.coretex.agent.v1.ContextHints.verify(message.contextHints);
                         if (error)
                             return "contextHints." + error;
                     }
                     if (message.budget != null && message.hasOwnProperty("budget")) {
-                        var error = $root.cortex.agent.v1.Budget.verify(message.budget);
+                        var error = $root.coretex.agent.v1.Budget.verify(message.budget);
                         if (error)
                             return "budget." + error;
                     }
@@ -1904,15 +1904,15 @@ $root.cortex = (function() {
                 /**
                  * Creates a JobRequest message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {cortex.agent.v1.JobRequest} JobRequest
+                 * @returns {coretex.agent.v1.JobRequest} JobRequest
                  */
                 JobRequest.fromObject = function fromObject(object) {
-                    if (object instanceof $root.cortex.agent.v1.JobRequest)
+                    if (object instanceof $root.coretex.agent.v1.JobRequest)
                         return object;
-                    var message = new $root.cortex.agent.v1.JobRequest();
+                    var message = new $root.coretex.agent.v1.JobRequest();
                     if (object.jobId != null)
                         message.jobId = String(object.jobId);
                     if (object.topic != null)
@@ -1947,7 +1947,7 @@ $root.cortex = (function() {
                         message.adapterId = String(object.adapterId);
                     if (object.env) {
                         if (typeof object.env !== "object")
-                            throw TypeError(".cortex.agent.v1.JobRequest.env: object expected");
+                            throw TypeError(".coretex.agent.v1.JobRequest.env: object expected");
                         message.env = {};
                         for (var keys = Object.keys(object.env), i = 0; i < keys.length; ++i)
                             message.env[keys[i]] = String(object.env[keys[i]]);
@@ -1962,13 +1962,13 @@ $root.cortex = (function() {
                         message.memoryId = String(object.memoryId);
                     if (object.contextHints != null) {
                         if (typeof object.contextHints !== "object")
-                            throw TypeError(".cortex.agent.v1.JobRequest.contextHints: object expected");
-                        message.contextHints = $root.cortex.agent.v1.ContextHints.fromObject(object.contextHints);
+                            throw TypeError(".coretex.agent.v1.JobRequest.contextHints: object expected");
+                        message.contextHints = $root.coretex.agent.v1.ContextHints.fromObject(object.contextHints);
                     }
                     if (object.budget != null) {
                         if (typeof object.budget !== "object")
-                            throw TypeError(".cortex.agent.v1.JobRequest.budget: object expected");
-                        message.budget = $root.cortex.agent.v1.Budget.fromObject(object.budget);
+                            throw TypeError(".coretex.agent.v1.JobRequest.budget: object expected");
+                        message.budget = $root.coretex.agent.v1.Budget.fromObject(object.budget);
                     }
                     if (object.tenantId != null)
                         message.tenantId = String(object.tenantId);
@@ -1976,7 +1976,7 @@ $root.cortex = (function() {
                         message.principalId = String(object.principalId);
                     if (object.labels) {
                         if (typeof object.labels !== "object")
-                            throw TypeError(".cortex.agent.v1.JobRequest.labels: object expected");
+                            throw TypeError(".coretex.agent.v1.JobRequest.labels: object expected");
                         message.labels = {};
                         for (var keys = Object.keys(object.labels), i = 0; i < keys.length; ++i)
                             message.labels[keys[i]] = String(object.labels[keys[i]]);
@@ -1987,9 +1987,9 @@ $root.cortex = (function() {
                 /**
                  * Creates a plain object from a JobRequest message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @static
-                 * @param {cortex.agent.v1.JobRequest} message JobRequest
+                 * @param {coretex.agent.v1.JobRequest} message JobRequest
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
@@ -2021,7 +2021,7 @@ $root.cortex = (function() {
                     if (message.topic != null && message.hasOwnProperty("topic"))
                         object.topic = message.topic;
                     if (message.priority != null && message.hasOwnProperty("priority"))
-                        object.priority = options.enums === String ? $root.cortex.agent.v1.JobPriority[message.priority] === undefined ? message.priority : $root.cortex.agent.v1.JobPriority[message.priority] : message.priority;
+                        object.priority = options.enums === String ? $root.coretex.agent.v1.JobPriority[message.priority] === undefined ? message.priority : $root.coretex.agent.v1.JobPriority[message.priority] : message.priority;
                     if (message.contextPtr != null && message.hasOwnProperty("contextPtr"))
                         object.contextPtr = message.contextPtr;
                     if (message.adapterId != null && message.hasOwnProperty("adapterId"))
@@ -2041,9 +2041,9 @@ $root.cortex = (function() {
                     if (message.memoryId != null && message.hasOwnProperty("memoryId"))
                         object.memoryId = message.memoryId;
                     if (message.contextHints != null && message.hasOwnProperty("contextHints"))
-                        object.contextHints = $root.cortex.agent.v1.ContextHints.toObject(message.contextHints, options);
+                        object.contextHints = $root.coretex.agent.v1.ContextHints.toObject(message.contextHints, options);
                     if (message.budget != null && message.hasOwnProperty("budget"))
-                        object.budget = $root.cortex.agent.v1.Budget.toObject(message.budget, options);
+                        object.budget = $root.coretex.agent.v1.Budget.toObject(message.budget, options);
                     if (message.tenantId != null && message.hasOwnProperty("tenantId"))
                         object.tenantId = message.tenantId;
                     if (message.principalId != null && message.hasOwnProperty("principalId"))
@@ -2059,7 +2059,7 @@ $root.cortex = (function() {
                 /**
                  * Converts this JobRequest to JSON.
                  * @function toJSON
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
@@ -2070,7 +2070,7 @@ $root.cortex = (function() {
                 /**
                  * Gets the default type url for JobRequest
                  * @function getTypeUrl
-                 * @memberof cortex.agent.v1.JobRequest
+                 * @memberof coretex.agent.v1.JobRequest
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
@@ -2079,7 +2079,7 @@ $root.cortex = (function() {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/cortex.agent.v1.JobRequest";
+                    return typeUrlPrefix + "/coretex.agent.v1.JobRequest";
                 };
 
                 return JobRequest;
@@ -2089,10 +2089,10 @@ $root.cortex = (function() {
 
                 /**
                  * Properties of a JobResult.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @interface IJobResult
                  * @property {string|null} [jobId] JobResult jobId
-                 * @property {cortex.agent.v1.JobStatus|null} [status] JobResult status
+                 * @property {coretex.agent.v1.JobStatus|null} [status] JobResult status
                  * @property {string|null} [resultPtr] JobResult resultPtr
                  * @property {string|null} [workerId] JobResult workerId
                  * @property {number|Long|null} [executionMs] JobResult executionMs
@@ -2102,11 +2102,11 @@ $root.cortex = (function() {
 
                 /**
                  * Constructs a new JobResult.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @classdesc Represents a JobResult.
                  * @implements IJobResult
                  * @constructor
-                 * @param {cortex.agent.v1.IJobResult=} [properties] Properties to set
+                 * @param {coretex.agent.v1.IJobResult=} [properties] Properties to set
                  */
                 function JobResult(properties) {
                     if (properties)
@@ -2118,15 +2118,15 @@ $root.cortex = (function() {
                 /**
                  * JobResult jobId.
                  * @member {string} jobId
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @instance
                  */
                 JobResult.prototype.jobId = "";
 
                 /**
                  * JobResult status.
-                 * @member {cortex.agent.v1.JobStatus} status
-                 * @memberof cortex.agent.v1.JobResult
+                 * @member {coretex.agent.v1.JobStatus} status
+                 * @memberof coretex.agent.v1.JobResult
                  * @instance
                  */
                 JobResult.prototype.status = 0;
@@ -2134,7 +2134,7 @@ $root.cortex = (function() {
                 /**
                  * JobResult resultPtr.
                  * @member {string} resultPtr
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @instance
                  */
                 JobResult.prototype.resultPtr = "";
@@ -2142,7 +2142,7 @@ $root.cortex = (function() {
                 /**
                  * JobResult workerId.
                  * @member {string} workerId
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @instance
                  */
                 JobResult.prototype.workerId = "";
@@ -2150,7 +2150,7 @@ $root.cortex = (function() {
                 /**
                  * JobResult executionMs.
                  * @member {number|Long} executionMs
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @instance
                  */
                 JobResult.prototype.executionMs = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
@@ -2158,7 +2158,7 @@ $root.cortex = (function() {
                 /**
                  * JobResult errorCode.
                  * @member {string} errorCode
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @instance
                  */
                 JobResult.prototype.errorCode = "";
@@ -2166,7 +2166,7 @@ $root.cortex = (function() {
                 /**
                  * JobResult errorMessage.
                  * @member {string} errorMessage
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @instance
                  */
                 JobResult.prototype.errorMessage = "";
@@ -2174,21 +2174,21 @@ $root.cortex = (function() {
                 /**
                  * Creates a new JobResult instance using the specified properties.
                  * @function create
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @static
-                 * @param {cortex.agent.v1.IJobResult=} [properties] Properties to set
-                 * @returns {cortex.agent.v1.JobResult} JobResult instance
+                 * @param {coretex.agent.v1.IJobResult=} [properties] Properties to set
+                 * @returns {coretex.agent.v1.JobResult} JobResult instance
                  */
                 JobResult.create = function create(properties) {
                     return new JobResult(properties);
                 };
 
                 /**
-                 * Encodes the specified JobResult message. Does not implicitly {@link cortex.agent.v1.JobResult.verify|verify} messages.
+                 * Encodes the specified JobResult message. Does not implicitly {@link coretex.agent.v1.JobResult.verify|verify} messages.
                  * @function encode
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @static
-                 * @param {cortex.agent.v1.IJobResult} message JobResult message or plain object to encode
+                 * @param {coretex.agent.v1.IJobResult} message JobResult message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -2213,11 +2213,11 @@ $root.cortex = (function() {
                 };
 
                 /**
-                 * Encodes the specified JobResult message, length delimited. Does not implicitly {@link cortex.agent.v1.JobResult.verify|verify} messages.
+                 * Encodes the specified JobResult message, length delimited. Does not implicitly {@link coretex.agent.v1.JobResult.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @static
-                 * @param {cortex.agent.v1.IJobResult} message JobResult message or plain object to encode
+                 * @param {coretex.agent.v1.IJobResult} message JobResult message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -2228,18 +2228,18 @@ $root.cortex = (function() {
                 /**
                  * Decodes a JobResult message from the specified reader or buffer.
                  * @function decode
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {cortex.agent.v1.JobResult} JobResult
+                 * @returns {coretex.agent.v1.JobResult} JobResult
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 JobResult.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cortex.agent.v1.JobResult();
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.coretex.agent.v1.JobResult();
                     while (reader.pos < end) {
                         var tag = reader.uint32();
                         if (tag === error)
@@ -2284,10 +2284,10 @@ $root.cortex = (function() {
                 /**
                  * Decodes a JobResult message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {cortex.agent.v1.JobResult} JobResult
+                 * @returns {coretex.agent.v1.JobResult} JobResult
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
@@ -2300,7 +2300,7 @@ $root.cortex = (function() {
                 /**
                  * Verifies a JobResult message.
                  * @function verify
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -2348,15 +2348,15 @@ $root.cortex = (function() {
                 /**
                  * Creates a JobResult message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {cortex.agent.v1.JobResult} JobResult
+                 * @returns {coretex.agent.v1.JobResult} JobResult
                  */
                 JobResult.fromObject = function fromObject(object) {
-                    if (object instanceof $root.cortex.agent.v1.JobResult)
+                    if (object instanceof $root.coretex.agent.v1.JobResult)
                         return object;
-                    var message = new $root.cortex.agent.v1.JobResult();
+                    var message = new $root.coretex.agent.v1.JobResult();
                     if (object.jobId != null)
                         message.jobId = String(object.jobId);
                     switch (object.status) {
@@ -2430,9 +2430,9 @@ $root.cortex = (function() {
                 /**
                  * Creates a plain object from a JobResult message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @static
-                 * @param {cortex.agent.v1.JobResult} message JobResult
+                 * @param {coretex.agent.v1.JobResult} message JobResult
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
@@ -2456,7 +2456,7 @@ $root.cortex = (function() {
                     if (message.jobId != null && message.hasOwnProperty("jobId"))
                         object.jobId = message.jobId;
                     if (message.status != null && message.hasOwnProperty("status"))
-                        object.status = options.enums === String ? $root.cortex.agent.v1.JobStatus[message.status] === undefined ? message.status : $root.cortex.agent.v1.JobStatus[message.status] : message.status;
+                        object.status = options.enums === String ? $root.coretex.agent.v1.JobStatus[message.status] === undefined ? message.status : $root.coretex.agent.v1.JobStatus[message.status] : message.status;
                     if (message.resultPtr != null && message.hasOwnProperty("resultPtr"))
                         object.resultPtr = message.resultPtr;
                     if (message.workerId != null && message.hasOwnProperty("workerId"))
@@ -2476,7 +2476,7 @@ $root.cortex = (function() {
                 /**
                  * Converts this JobResult to JSON.
                  * @function toJSON
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
@@ -2487,7 +2487,7 @@ $root.cortex = (function() {
                 /**
                  * Gets the default type url for JobResult
                  * @function getTypeUrl
-                 * @memberof cortex.agent.v1.JobResult
+                 * @memberof coretex.agent.v1.JobResult
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
@@ -2496,7 +2496,7 @@ $root.cortex = (function() {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/cortex.agent.v1.JobResult";
+                    return typeUrlPrefix + "/coretex.agent.v1.JobResult";
                 };
 
                 return JobResult;
@@ -2506,7 +2506,7 @@ $root.cortex = (function() {
 
                 /**
                  * Properties of a Heartbeat.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @interface IHeartbeat
                  * @property {string|null} [workerId] Heartbeat workerId
                  * @property {string|null} [region] Heartbeat region
@@ -2521,11 +2521,11 @@ $root.cortex = (function() {
 
                 /**
                  * Constructs a new Heartbeat.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @classdesc Represents a Heartbeat.
                  * @implements IHeartbeat
                  * @constructor
-                 * @param {cortex.agent.v1.IHeartbeat=} [properties] Properties to set
+                 * @param {coretex.agent.v1.IHeartbeat=} [properties] Properties to set
                  */
                 function Heartbeat(properties) {
                     this.capabilities = [];
@@ -2538,7 +2538,7 @@ $root.cortex = (function() {
                 /**
                  * Heartbeat workerId.
                  * @member {string} workerId
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @instance
                  */
                 Heartbeat.prototype.workerId = "";
@@ -2546,7 +2546,7 @@ $root.cortex = (function() {
                 /**
                  * Heartbeat region.
                  * @member {string} region
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @instance
                  */
                 Heartbeat.prototype.region = "";
@@ -2554,7 +2554,7 @@ $root.cortex = (function() {
                 /**
                  * Heartbeat type.
                  * @member {string} type
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @instance
                  */
                 Heartbeat.prototype.type = "";
@@ -2562,7 +2562,7 @@ $root.cortex = (function() {
                 /**
                  * Heartbeat cpuLoad.
                  * @member {number} cpuLoad
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @instance
                  */
                 Heartbeat.prototype.cpuLoad = 0;
@@ -2570,7 +2570,7 @@ $root.cortex = (function() {
                 /**
                  * Heartbeat gpuUtilization.
                  * @member {number} gpuUtilization
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @instance
                  */
                 Heartbeat.prototype.gpuUtilization = 0;
@@ -2578,7 +2578,7 @@ $root.cortex = (function() {
                 /**
                  * Heartbeat activeJobs.
                  * @member {number} activeJobs
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @instance
                  */
                 Heartbeat.prototype.activeJobs = 0;
@@ -2586,7 +2586,7 @@ $root.cortex = (function() {
                 /**
                  * Heartbeat capabilities.
                  * @member {Array.<string>} capabilities
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @instance
                  */
                 Heartbeat.prototype.capabilities = $util.emptyArray;
@@ -2594,7 +2594,7 @@ $root.cortex = (function() {
                 /**
                  * Heartbeat pool.
                  * @member {string} pool
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @instance
                  */
                 Heartbeat.prototype.pool = "";
@@ -2602,7 +2602,7 @@ $root.cortex = (function() {
                 /**
                  * Heartbeat maxParallelJobs.
                  * @member {number} maxParallelJobs
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @instance
                  */
                 Heartbeat.prototype.maxParallelJobs = 0;
@@ -2610,21 +2610,21 @@ $root.cortex = (function() {
                 /**
                  * Creates a new Heartbeat instance using the specified properties.
                  * @function create
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @static
-                 * @param {cortex.agent.v1.IHeartbeat=} [properties] Properties to set
-                 * @returns {cortex.agent.v1.Heartbeat} Heartbeat instance
+                 * @param {coretex.agent.v1.IHeartbeat=} [properties] Properties to set
+                 * @returns {coretex.agent.v1.Heartbeat} Heartbeat instance
                  */
                 Heartbeat.create = function create(properties) {
                     return new Heartbeat(properties);
                 };
 
                 /**
-                 * Encodes the specified Heartbeat message. Does not implicitly {@link cortex.agent.v1.Heartbeat.verify|verify} messages.
+                 * Encodes the specified Heartbeat message. Does not implicitly {@link coretex.agent.v1.Heartbeat.verify|verify} messages.
                  * @function encode
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @static
-                 * @param {cortex.agent.v1.IHeartbeat} message Heartbeat message or plain object to encode
+                 * @param {coretex.agent.v1.IHeartbeat} message Heartbeat message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -2654,11 +2654,11 @@ $root.cortex = (function() {
                 };
 
                 /**
-                 * Encodes the specified Heartbeat message, length delimited. Does not implicitly {@link cortex.agent.v1.Heartbeat.verify|verify} messages.
+                 * Encodes the specified Heartbeat message, length delimited. Does not implicitly {@link coretex.agent.v1.Heartbeat.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @static
-                 * @param {cortex.agent.v1.IHeartbeat} message Heartbeat message or plain object to encode
+                 * @param {coretex.agent.v1.IHeartbeat} message Heartbeat message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -2669,18 +2669,18 @@ $root.cortex = (function() {
                 /**
                  * Decodes a Heartbeat message from the specified reader or buffer.
                  * @function decode
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {cortex.agent.v1.Heartbeat} Heartbeat
+                 * @returns {coretex.agent.v1.Heartbeat} Heartbeat
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Heartbeat.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cortex.agent.v1.Heartbeat();
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.coretex.agent.v1.Heartbeat();
                     while (reader.pos < end) {
                         var tag = reader.uint32();
                         if (tag === error)
@@ -2735,10 +2735,10 @@ $root.cortex = (function() {
                 /**
                  * Decodes a Heartbeat message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {cortex.agent.v1.Heartbeat} Heartbeat
+                 * @returns {coretex.agent.v1.Heartbeat} Heartbeat
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
@@ -2751,7 +2751,7 @@ $root.cortex = (function() {
                 /**
                  * Verifies a Heartbeat message.
                  * @function verify
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -2796,15 +2796,15 @@ $root.cortex = (function() {
                 /**
                  * Creates a Heartbeat message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {cortex.agent.v1.Heartbeat} Heartbeat
+                 * @returns {coretex.agent.v1.Heartbeat} Heartbeat
                  */
                 Heartbeat.fromObject = function fromObject(object) {
-                    if (object instanceof $root.cortex.agent.v1.Heartbeat)
+                    if (object instanceof $root.coretex.agent.v1.Heartbeat)
                         return object;
-                    var message = new $root.cortex.agent.v1.Heartbeat();
+                    var message = new $root.coretex.agent.v1.Heartbeat();
                     if (object.workerId != null)
                         message.workerId = String(object.workerId);
                     if (object.region != null)
@@ -2819,7 +2819,7 @@ $root.cortex = (function() {
                         message.activeJobs = object.activeJobs | 0;
                     if (object.capabilities) {
                         if (!Array.isArray(object.capabilities))
-                            throw TypeError(".cortex.agent.v1.Heartbeat.capabilities: array expected");
+                            throw TypeError(".coretex.agent.v1.Heartbeat.capabilities: array expected");
                         message.capabilities = [];
                         for (var i = 0; i < object.capabilities.length; ++i)
                             message.capabilities[i] = String(object.capabilities[i]);
@@ -2834,9 +2834,9 @@ $root.cortex = (function() {
                 /**
                  * Creates a plain object from a Heartbeat message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @static
-                 * @param {cortex.agent.v1.Heartbeat} message Heartbeat
+                 * @param {coretex.agent.v1.Heartbeat} message Heartbeat
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
@@ -2883,7 +2883,7 @@ $root.cortex = (function() {
                 /**
                  * Converts this Heartbeat to JSON.
                  * @function toJSON
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
@@ -2894,7 +2894,7 @@ $root.cortex = (function() {
                 /**
                  * Gets the default type url for Heartbeat
                  * @function getTypeUrl
-                 * @memberof cortex.agent.v1.Heartbeat
+                 * @memberof coretex.agent.v1.Heartbeat
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
@@ -2903,7 +2903,7 @@ $root.cortex = (function() {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/cortex.agent.v1.Heartbeat";
+                    return typeUrlPrefix + "/coretex.agent.v1.Heartbeat";
                 };
 
                 return Heartbeat;
@@ -2911,7 +2911,7 @@ $root.cortex = (function() {
 
             /**
              * DecisionType enum.
-             * @name cortex.agent.v1.DecisionType
+             * @name coretex.agent.v1.DecisionType
              * @enum {number}
              * @property {number} DECISION_TYPE_UNSPECIFIED=0 DECISION_TYPE_UNSPECIFIED value
              * @property {number} DECISION_TYPE_ALLOW=1 DECISION_TYPE_ALLOW value
@@ -2933,14 +2933,14 @@ $root.cortex = (function() {
 
                 /**
                  * Properties of a PolicyCheckRequest.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @interface IPolicyCheckRequest
                  * @property {string|null} [jobId] PolicyCheckRequest jobId
                  * @property {string|null} [topic] PolicyCheckRequest topic
                  * @property {string|null} [tenant] PolicyCheckRequest tenant
-                 * @property {cortex.agent.v1.JobPriority|null} [priority] PolicyCheckRequest priority
+                 * @property {coretex.agent.v1.JobPriority|null} [priority] PolicyCheckRequest priority
                  * @property {number|null} [estimatedCost] PolicyCheckRequest estimatedCost
-                 * @property {cortex.agent.v1.IBudget|null} [budget] PolicyCheckRequest budget
+                 * @property {coretex.agent.v1.IBudget|null} [budget] PolicyCheckRequest budget
                  * @property {string|null} [principalId] PolicyCheckRequest principalId
                  * @property {Object.<string,string>|null} [labels] PolicyCheckRequest labels
                  * @property {string|null} [memoryId] PolicyCheckRequest memoryId
@@ -2948,11 +2948,11 @@ $root.cortex = (function() {
 
                 /**
                  * Constructs a new PolicyCheckRequest.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @classdesc Represents a PolicyCheckRequest.
                  * @implements IPolicyCheckRequest
                  * @constructor
-                 * @param {cortex.agent.v1.IPolicyCheckRequest=} [properties] Properties to set
+                 * @param {coretex.agent.v1.IPolicyCheckRequest=} [properties] Properties to set
                  */
                 function PolicyCheckRequest(properties) {
                     this.labels = {};
@@ -2965,7 +2965,7 @@ $root.cortex = (function() {
                 /**
                  * PolicyCheckRequest jobId.
                  * @member {string} jobId
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @instance
                  */
                 PolicyCheckRequest.prototype.jobId = "";
@@ -2973,7 +2973,7 @@ $root.cortex = (function() {
                 /**
                  * PolicyCheckRequest topic.
                  * @member {string} topic
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @instance
                  */
                 PolicyCheckRequest.prototype.topic = "";
@@ -2981,15 +2981,15 @@ $root.cortex = (function() {
                 /**
                  * PolicyCheckRequest tenant.
                  * @member {string} tenant
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @instance
                  */
                 PolicyCheckRequest.prototype.tenant = "";
 
                 /**
                  * PolicyCheckRequest priority.
-                 * @member {cortex.agent.v1.JobPriority} priority
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @member {coretex.agent.v1.JobPriority} priority
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @instance
                  */
                 PolicyCheckRequest.prototype.priority = 0;
@@ -2997,15 +2997,15 @@ $root.cortex = (function() {
                 /**
                  * PolicyCheckRequest estimatedCost.
                  * @member {number} estimatedCost
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @instance
                  */
                 PolicyCheckRequest.prototype.estimatedCost = 0;
 
                 /**
                  * PolicyCheckRequest budget.
-                 * @member {cortex.agent.v1.IBudget|null|undefined} budget
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @member {coretex.agent.v1.IBudget|null|undefined} budget
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @instance
                  */
                 PolicyCheckRequest.prototype.budget = null;
@@ -3013,7 +3013,7 @@ $root.cortex = (function() {
                 /**
                  * PolicyCheckRequest principalId.
                  * @member {string} principalId
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @instance
                  */
                 PolicyCheckRequest.prototype.principalId = "";
@@ -3021,7 +3021,7 @@ $root.cortex = (function() {
                 /**
                  * PolicyCheckRequest labels.
                  * @member {Object.<string,string>} labels
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @instance
                  */
                 PolicyCheckRequest.prototype.labels = $util.emptyObject;
@@ -3029,7 +3029,7 @@ $root.cortex = (function() {
                 /**
                  * PolicyCheckRequest memoryId.
                  * @member {string} memoryId
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @instance
                  */
                 PolicyCheckRequest.prototype.memoryId = "";
@@ -3037,21 +3037,21 @@ $root.cortex = (function() {
                 /**
                  * Creates a new PolicyCheckRequest instance using the specified properties.
                  * @function create
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @static
-                 * @param {cortex.agent.v1.IPolicyCheckRequest=} [properties] Properties to set
-                 * @returns {cortex.agent.v1.PolicyCheckRequest} PolicyCheckRequest instance
+                 * @param {coretex.agent.v1.IPolicyCheckRequest=} [properties] Properties to set
+                 * @returns {coretex.agent.v1.PolicyCheckRequest} PolicyCheckRequest instance
                  */
                 PolicyCheckRequest.create = function create(properties) {
                     return new PolicyCheckRequest(properties);
                 };
 
                 /**
-                 * Encodes the specified PolicyCheckRequest message. Does not implicitly {@link cortex.agent.v1.PolicyCheckRequest.verify|verify} messages.
+                 * Encodes the specified PolicyCheckRequest message. Does not implicitly {@link coretex.agent.v1.PolicyCheckRequest.verify|verify} messages.
                  * @function encode
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @static
-                 * @param {cortex.agent.v1.IPolicyCheckRequest} message PolicyCheckRequest message or plain object to encode
+                 * @param {coretex.agent.v1.IPolicyCheckRequest} message PolicyCheckRequest message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -3069,7 +3069,7 @@ $root.cortex = (function() {
                     if (message.estimatedCost != null && Object.hasOwnProperty.call(message, "estimatedCost"))
                         writer.uint32(/* id 5, wireType 1 =*/41).double(message.estimatedCost);
                     if (message.budget != null && Object.hasOwnProperty.call(message, "budget"))
-                        $root.cortex.agent.v1.Budget.encode(message.budget, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+                        $root.coretex.agent.v1.Budget.encode(message.budget, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
                     if (message.principalId != null && Object.hasOwnProperty.call(message, "principalId"))
                         writer.uint32(/* id 7, wireType 2 =*/58).string(message.principalId);
                     if (message.labels != null && Object.hasOwnProperty.call(message, "labels"))
@@ -3081,11 +3081,11 @@ $root.cortex = (function() {
                 };
 
                 /**
-                 * Encodes the specified PolicyCheckRequest message, length delimited. Does not implicitly {@link cortex.agent.v1.PolicyCheckRequest.verify|verify} messages.
+                 * Encodes the specified PolicyCheckRequest message, length delimited. Does not implicitly {@link coretex.agent.v1.PolicyCheckRequest.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @static
-                 * @param {cortex.agent.v1.IPolicyCheckRequest} message PolicyCheckRequest message or plain object to encode
+                 * @param {coretex.agent.v1.IPolicyCheckRequest} message PolicyCheckRequest message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -3096,18 +3096,18 @@ $root.cortex = (function() {
                 /**
                  * Decodes a PolicyCheckRequest message from the specified reader or buffer.
                  * @function decode
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {cortex.agent.v1.PolicyCheckRequest} PolicyCheckRequest
+                 * @returns {coretex.agent.v1.PolicyCheckRequest} PolicyCheckRequest
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 PolicyCheckRequest.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cortex.agent.v1.PolicyCheckRequest(), key, value;
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.coretex.agent.v1.PolicyCheckRequest(), key, value;
                     while (reader.pos < end) {
                         var tag = reader.uint32();
                         if (tag === error)
@@ -3134,7 +3134,7 @@ $root.cortex = (function() {
                                 break;
                             }
                         case 6: {
-                                message.budget = $root.cortex.agent.v1.Budget.decode(reader, reader.uint32());
+                                message.budget = $root.coretex.agent.v1.Budget.decode(reader, reader.uint32());
                                 break;
                             }
                         case 7: {
@@ -3179,10 +3179,10 @@ $root.cortex = (function() {
                 /**
                  * Decodes a PolicyCheckRequest message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {cortex.agent.v1.PolicyCheckRequest} PolicyCheckRequest
+                 * @returns {coretex.agent.v1.PolicyCheckRequest} PolicyCheckRequest
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
@@ -3195,7 +3195,7 @@ $root.cortex = (function() {
                 /**
                  * Verifies a PolicyCheckRequest message.
                  * @function verify
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -3226,7 +3226,7 @@ $root.cortex = (function() {
                         if (typeof message.estimatedCost !== "number")
                             return "estimatedCost: number expected";
                     if (message.budget != null && message.hasOwnProperty("budget")) {
-                        var error = $root.cortex.agent.v1.Budget.verify(message.budget);
+                        var error = $root.coretex.agent.v1.Budget.verify(message.budget);
                         if (error)
                             return "budget." + error;
                     }
@@ -3250,15 +3250,15 @@ $root.cortex = (function() {
                 /**
                  * Creates a PolicyCheckRequest message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {cortex.agent.v1.PolicyCheckRequest} PolicyCheckRequest
+                 * @returns {coretex.agent.v1.PolicyCheckRequest} PolicyCheckRequest
                  */
                 PolicyCheckRequest.fromObject = function fromObject(object) {
-                    if (object instanceof $root.cortex.agent.v1.PolicyCheckRequest)
+                    if (object instanceof $root.coretex.agent.v1.PolicyCheckRequest)
                         return object;
-                    var message = new $root.cortex.agent.v1.PolicyCheckRequest();
+                    var message = new $root.coretex.agent.v1.PolicyCheckRequest();
                     if (object.jobId != null)
                         message.jobId = String(object.jobId);
                     if (object.topic != null)
@@ -3293,14 +3293,14 @@ $root.cortex = (function() {
                         message.estimatedCost = Number(object.estimatedCost);
                     if (object.budget != null) {
                         if (typeof object.budget !== "object")
-                            throw TypeError(".cortex.agent.v1.PolicyCheckRequest.budget: object expected");
-                        message.budget = $root.cortex.agent.v1.Budget.fromObject(object.budget);
+                            throw TypeError(".coretex.agent.v1.PolicyCheckRequest.budget: object expected");
+                        message.budget = $root.coretex.agent.v1.Budget.fromObject(object.budget);
                     }
                     if (object.principalId != null)
                         message.principalId = String(object.principalId);
                     if (object.labels) {
                         if (typeof object.labels !== "object")
-                            throw TypeError(".cortex.agent.v1.PolicyCheckRequest.labels: object expected");
+                            throw TypeError(".coretex.agent.v1.PolicyCheckRequest.labels: object expected");
                         message.labels = {};
                         for (var keys = Object.keys(object.labels), i = 0; i < keys.length; ++i)
                             message.labels[keys[i]] = String(object.labels[keys[i]]);
@@ -3313,9 +3313,9 @@ $root.cortex = (function() {
                 /**
                  * Creates a plain object from a PolicyCheckRequest message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @static
-                 * @param {cortex.agent.v1.PolicyCheckRequest} message PolicyCheckRequest
+                 * @param {coretex.agent.v1.PolicyCheckRequest} message PolicyCheckRequest
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
@@ -3342,11 +3342,11 @@ $root.cortex = (function() {
                     if (message.tenant != null && message.hasOwnProperty("tenant"))
                         object.tenant = message.tenant;
                     if (message.priority != null && message.hasOwnProperty("priority"))
-                        object.priority = options.enums === String ? $root.cortex.agent.v1.JobPriority[message.priority] === undefined ? message.priority : $root.cortex.agent.v1.JobPriority[message.priority] : message.priority;
+                        object.priority = options.enums === String ? $root.coretex.agent.v1.JobPriority[message.priority] === undefined ? message.priority : $root.coretex.agent.v1.JobPriority[message.priority] : message.priority;
                     if (message.estimatedCost != null && message.hasOwnProperty("estimatedCost"))
                         object.estimatedCost = options.json && !isFinite(message.estimatedCost) ? String(message.estimatedCost) : message.estimatedCost;
                     if (message.budget != null && message.hasOwnProperty("budget"))
-                        object.budget = $root.cortex.agent.v1.Budget.toObject(message.budget, options);
+                        object.budget = $root.coretex.agent.v1.Budget.toObject(message.budget, options);
                     if (message.principalId != null && message.hasOwnProperty("principalId"))
                         object.principalId = message.principalId;
                     var keys2;
@@ -3363,7 +3363,7 @@ $root.cortex = (function() {
                 /**
                  * Converts this PolicyCheckRequest to JSON.
                  * @function toJSON
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
@@ -3374,7 +3374,7 @@ $root.cortex = (function() {
                 /**
                  * Gets the default type url for PolicyCheckRequest
                  * @function getTypeUrl
-                 * @memberof cortex.agent.v1.PolicyCheckRequest
+                 * @memberof coretex.agent.v1.PolicyCheckRequest
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
@@ -3383,7 +3383,7 @@ $root.cortex = (function() {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/cortex.agent.v1.PolicyCheckRequest";
+                    return typeUrlPrefix + "/coretex.agent.v1.PolicyCheckRequest";
                 };
 
                 return PolicyCheckRequest;
@@ -3393,20 +3393,20 @@ $root.cortex = (function() {
 
                 /**
                  * Properties of a PolicyCheckResponse.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @interface IPolicyCheckResponse
-                 * @property {cortex.agent.v1.DecisionType|null} [decision] PolicyCheckResponse decision
+                 * @property {coretex.agent.v1.DecisionType|null} [decision] PolicyCheckResponse decision
                  * @property {string|null} [reason] PolicyCheckResponse reason
                  * @property {string|null} [redactedContextPtr] PolicyCheckResponse redactedContextPtr
                  */
 
                 /**
                  * Constructs a new PolicyCheckResponse.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @classdesc Represents a PolicyCheckResponse.
                  * @implements IPolicyCheckResponse
                  * @constructor
-                 * @param {cortex.agent.v1.IPolicyCheckResponse=} [properties] Properties to set
+                 * @param {coretex.agent.v1.IPolicyCheckResponse=} [properties] Properties to set
                  */
                 function PolicyCheckResponse(properties) {
                     if (properties)
@@ -3417,8 +3417,8 @@ $root.cortex = (function() {
 
                 /**
                  * PolicyCheckResponse decision.
-                 * @member {cortex.agent.v1.DecisionType} decision
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @member {coretex.agent.v1.DecisionType} decision
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @instance
                  */
                 PolicyCheckResponse.prototype.decision = 0;
@@ -3426,7 +3426,7 @@ $root.cortex = (function() {
                 /**
                  * PolicyCheckResponse reason.
                  * @member {string} reason
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @instance
                  */
                 PolicyCheckResponse.prototype.reason = "";
@@ -3434,7 +3434,7 @@ $root.cortex = (function() {
                 /**
                  * PolicyCheckResponse redactedContextPtr.
                  * @member {string} redactedContextPtr
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @instance
                  */
                 PolicyCheckResponse.prototype.redactedContextPtr = "";
@@ -3442,21 +3442,21 @@ $root.cortex = (function() {
                 /**
                  * Creates a new PolicyCheckResponse instance using the specified properties.
                  * @function create
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @static
-                 * @param {cortex.agent.v1.IPolicyCheckResponse=} [properties] Properties to set
-                 * @returns {cortex.agent.v1.PolicyCheckResponse} PolicyCheckResponse instance
+                 * @param {coretex.agent.v1.IPolicyCheckResponse=} [properties] Properties to set
+                 * @returns {coretex.agent.v1.PolicyCheckResponse} PolicyCheckResponse instance
                  */
                 PolicyCheckResponse.create = function create(properties) {
                     return new PolicyCheckResponse(properties);
                 };
 
                 /**
-                 * Encodes the specified PolicyCheckResponse message. Does not implicitly {@link cortex.agent.v1.PolicyCheckResponse.verify|verify} messages.
+                 * Encodes the specified PolicyCheckResponse message. Does not implicitly {@link coretex.agent.v1.PolicyCheckResponse.verify|verify} messages.
                  * @function encode
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @static
-                 * @param {cortex.agent.v1.IPolicyCheckResponse} message PolicyCheckResponse message or plain object to encode
+                 * @param {coretex.agent.v1.IPolicyCheckResponse} message PolicyCheckResponse message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -3473,11 +3473,11 @@ $root.cortex = (function() {
                 };
 
                 /**
-                 * Encodes the specified PolicyCheckResponse message, length delimited. Does not implicitly {@link cortex.agent.v1.PolicyCheckResponse.verify|verify} messages.
+                 * Encodes the specified PolicyCheckResponse message, length delimited. Does not implicitly {@link coretex.agent.v1.PolicyCheckResponse.verify|verify} messages.
                  * @function encodeDelimited
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @static
-                 * @param {cortex.agent.v1.IPolicyCheckResponse} message PolicyCheckResponse message or plain object to encode
+                 * @param {coretex.agent.v1.IPolicyCheckResponse} message PolicyCheckResponse message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -3488,18 +3488,18 @@ $root.cortex = (function() {
                 /**
                  * Decodes a PolicyCheckResponse message from the specified reader or buffer.
                  * @function decode
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {cortex.agent.v1.PolicyCheckResponse} PolicyCheckResponse
+                 * @returns {coretex.agent.v1.PolicyCheckResponse} PolicyCheckResponse
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 PolicyCheckResponse.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cortex.agent.v1.PolicyCheckResponse();
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.coretex.agent.v1.PolicyCheckResponse();
                     while (reader.pos < end) {
                         var tag = reader.uint32();
                         if (tag === error)
@@ -3528,10 +3528,10 @@ $root.cortex = (function() {
                 /**
                  * Decodes a PolicyCheckResponse message from the specified reader or buffer, length delimited.
                  * @function decodeDelimited
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {cortex.agent.v1.PolicyCheckResponse} PolicyCheckResponse
+                 * @returns {coretex.agent.v1.PolicyCheckResponse} PolicyCheckResponse
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
@@ -3544,7 +3544,7 @@ $root.cortex = (function() {
                 /**
                  * Verifies a PolicyCheckResponse message.
                  * @function verify
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @static
                  * @param {Object.<string,*>} message Plain object to verify
                  * @returns {string|null} `null` if valid, otherwise the reason why it is not
@@ -3575,15 +3575,15 @@ $root.cortex = (function() {
                 /**
                  * Creates a PolicyCheckResponse message from a plain object. Also converts values to their respective internal types.
                  * @function fromObject
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @static
                  * @param {Object.<string,*>} object Plain object
-                 * @returns {cortex.agent.v1.PolicyCheckResponse} PolicyCheckResponse
+                 * @returns {coretex.agent.v1.PolicyCheckResponse} PolicyCheckResponse
                  */
                 PolicyCheckResponse.fromObject = function fromObject(object) {
-                    if (object instanceof $root.cortex.agent.v1.PolicyCheckResponse)
+                    if (object instanceof $root.coretex.agent.v1.PolicyCheckResponse)
                         return object;
-                    var message = new $root.cortex.agent.v1.PolicyCheckResponse();
+                    var message = new $root.coretex.agent.v1.PolicyCheckResponse();
                     switch (object.decision) {
                     default:
                         if (typeof object.decision === "number") {
@@ -3622,9 +3622,9 @@ $root.cortex = (function() {
                 /**
                  * Creates a plain object from a PolicyCheckResponse message. Also converts values to other types if specified.
                  * @function toObject
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @static
-                 * @param {cortex.agent.v1.PolicyCheckResponse} message PolicyCheckResponse
+                 * @param {coretex.agent.v1.PolicyCheckResponse} message PolicyCheckResponse
                  * @param {$protobuf.IConversionOptions} [options] Conversion options
                  * @returns {Object.<string,*>} Plain object
                  */
@@ -3638,7 +3638,7 @@ $root.cortex = (function() {
                         object.redactedContextPtr = "";
                     }
                     if (message.decision != null && message.hasOwnProperty("decision"))
-                        object.decision = options.enums === String ? $root.cortex.agent.v1.DecisionType[message.decision] === undefined ? message.decision : $root.cortex.agent.v1.DecisionType[message.decision] : message.decision;
+                        object.decision = options.enums === String ? $root.coretex.agent.v1.DecisionType[message.decision] === undefined ? message.decision : $root.coretex.agent.v1.DecisionType[message.decision] : message.decision;
                     if (message.reason != null && message.hasOwnProperty("reason"))
                         object.reason = message.reason;
                     if (message.redactedContextPtr != null && message.hasOwnProperty("redactedContextPtr"))
@@ -3649,7 +3649,7 @@ $root.cortex = (function() {
                 /**
                  * Converts this PolicyCheckResponse to JSON.
                  * @function toJSON
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @instance
                  * @returns {Object.<string,*>} JSON object
                  */
@@ -3660,7 +3660,7 @@ $root.cortex = (function() {
                 /**
                  * Gets the default type url for PolicyCheckResponse
                  * @function getTypeUrl
-                 * @memberof cortex.agent.v1.PolicyCheckResponse
+                 * @memberof coretex.agent.v1.PolicyCheckResponse
                  * @static
                  * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns {string} The default type url
@@ -3669,7 +3669,7 @@ $root.cortex = (function() {
                     if (typeUrlPrefix === undefined) {
                         typeUrlPrefix = "type.googleapis.com";
                     }
-                    return typeUrlPrefix + "/cortex.agent.v1.PolicyCheckResponse";
+                    return typeUrlPrefix + "/coretex.agent.v1.PolicyCheckResponse";
                 };
 
                 return PolicyCheckResponse;
@@ -3679,7 +3679,7 @@ $root.cortex = (function() {
 
                 /**
                  * Constructs a new SafetyKernel service.
-                 * @memberof cortex.agent.v1
+                 * @memberof coretex.agent.v1
                  * @classdesc Represents a SafetyKernel
                  * @extends $protobuf.rpc.Service
                  * @constructor
@@ -3696,7 +3696,7 @@ $root.cortex = (function() {
                 /**
                  * Creates new SafetyKernel service using the specified rpc implementation.
                  * @function create
-                 * @memberof cortex.agent.v1.SafetyKernel
+                 * @memberof coretex.agent.v1.SafetyKernel
                  * @static
                  * @param {$protobuf.RPCImpl} rpcImpl RPC implementation
                  * @param {boolean} [requestDelimited=false] Whether requests are length-delimited
@@ -3708,35 +3708,35 @@ $root.cortex = (function() {
                 };
 
                 /**
-                 * Callback as used by {@link cortex.agent.v1.SafetyKernel#check}.
-                 * @memberof cortex.agent.v1.SafetyKernel
+                 * Callback as used by {@link coretex.agent.v1.SafetyKernel#check}.
+                 * @memberof coretex.agent.v1.SafetyKernel
                  * @typedef CheckCallback
                  * @type {function}
                  * @param {Error|null} error Error, if any
-                 * @param {cortex.agent.v1.PolicyCheckResponse} [response] PolicyCheckResponse
+                 * @param {coretex.agent.v1.PolicyCheckResponse} [response] PolicyCheckResponse
                  */
 
                 /**
                  * Calls Check.
                  * @function check
-                 * @memberof cortex.agent.v1.SafetyKernel
+                 * @memberof coretex.agent.v1.SafetyKernel
                  * @instance
-                 * @param {cortex.agent.v1.IPolicyCheckRequest} request PolicyCheckRequest message or plain object
-                 * @param {cortex.agent.v1.SafetyKernel.CheckCallback} callback Node-style callback called with the error, if any, and PolicyCheckResponse
+                 * @param {coretex.agent.v1.IPolicyCheckRequest} request PolicyCheckRequest message or plain object
+                 * @param {coretex.agent.v1.SafetyKernel.CheckCallback} callback Node-style callback called with the error, if any, and PolicyCheckResponse
                  * @returns {undefined}
                  * @variation 1
                  */
                 Object.defineProperty(SafetyKernel.prototype.check = function check(request, callback) {
-                    return this.rpcCall(check, $root.cortex.agent.v1.PolicyCheckRequest, $root.cortex.agent.v1.PolicyCheckResponse, request, callback);
+                    return this.rpcCall(check, $root.coretex.agent.v1.PolicyCheckRequest, $root.coretex.agent.v1.PolicyCheckResponse, request, callback);
                 }, "name", { value: "Check" });
 
                 /**
                  * Calls Check.
                  * @function check
-                 * @memberof cortex.agent.v1.SafetyKernel
+                 * @memberof coretex.agent.v1.SafetyKernel
                  * @instance
-                 * @param {cortex.agent.v1.IPolicyCheckRequest} request PolicyCheckRequest message or plain object
-                 * @returns {Promise<cortex.agent.v1.PolicyCheckResponse>} Promise
+                 * @param {coretex.agent.v1.IPolicyCheckRequest} request PolicyCheckRequest message or plain object
+                 * @returns {Promise<coretex.agent.v1.PolicyCheckResponse>} Promise
                  * @variation 2
                  */
 
@@ -3749,7 +3749,7 @@ $root.cortex = (function() {
         return agent;
     })();
 
-    return cortex;
+    return coretex;
 })();
 
 $root.google = (function() {

@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.12
-// source: cortex/agent/v1/safety.proto
+// source: coretex/agent/v1/safety.proto
 
 package v1
 
@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	SafetyKernel_Check_FullMethodName = "/cortex.agent.v1.SafetyKernel/Check"
+	SafetyKernel_Check_FullMethodName = "/coretex.agent.v1.SafetyKernel/Check"
 )
 
 // SafetyKernelClient is the client API for SafetyKernel service.
@@ -96,7 +96,7 @@ func _SafetyKernel_Check_Handler(srv interface{}, ctx context.Context, dec func(
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var SafetyKernel_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "cortex.agent.v1.SafetyKernel",
+	ServiceName: "coretex.agent.v1.SafetyKernel",
 	HandlerType: (*SafetyKernelServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -105,5 +105,5 @@ var SafetyKernel_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "cortex/agent/v1/safety.proto",
+	Metadata: "coretex/agent/v1/safety.proto",
 }

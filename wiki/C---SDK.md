@@ -23,7 +23,7 @@ The `cap::Client` class provides an interface for submitting jobs.
 // sdk/cpp/include/cap/client.h
 
 #include "bus_interface.h"
-#include "cortex/agent/v1/job.pb.h"
+#include "coretex/agent/v1/job.pb.h"
 
 namespace cap {
 
@@ -31,7 +31,7 @@ class Client {
  public:
   explicit Client(std::unique_ptr<BusInterface> bus);
 
-  void Submit(const cortex::agent::v1::JobRequest& job_request);
+  void Submit(const coretex::agent::v1::JobRequest& job_request);
 
  private:
   std::unique_ptr<BusInterface> bus_;
@@ -52,14 +52,14 @@ The `cap::Worker` class provides an interface for building workers.
 // sdk/cpp/include/cap/worker.h
 
 #include "bus_interface.h"
-#include "cortex/agent/v1/job.pb.h"
+#include "coretex/agent/v1/job.pb.h"
 
 namespace cap {
 
 class Worker {
  public:
-  using Handler = std::function<cortex::agent::v1::JobResult(
-      const cortex::agent::v1::JobRequest&)>;
+  using Handler = std::function<coretex::agent::v1::JobResult(
+      const coretex::agent::v1::JobRequest&)>;
 
   Worker(std::unique_ptr<BusInterface> bus, std::string subject,
          Handler handler);

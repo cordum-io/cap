@@ -98,7 +98,7 @@ jobs:
             -I../../proto \
             --python_out=./cap/pb \
             --grpc_python_out=./cap/pb \
-            ../../proto/cortex/agent/v1/*.proto
+            ../../proto/coretex/agent/v1/*.proto
 
       - name: Build package
         env:

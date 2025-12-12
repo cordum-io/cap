@@ -1,6 +1,6 @@
 # CAP SDKs
 
-The Cortex Agent Protocol (CAP) has official SDKs for several popular programming languages. These SDKs provide a convenient way to interact with the CAP bus and build CAP-enabled applications.
+The coretex Agent Protocol (CAP) has official SDKs for several popular programming languages. These SDKs provide a convenient way to interact with the CAP bus and build CAP-enabled applications.
 
 ## Supported Languages
 

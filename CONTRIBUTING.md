@@ -1,6 +1,6 @@
 # Contributing to CAP
 
-Thank you for helping improve the Cortex Agent Protocol.
+Thank you for helping improve the coretex Agent Protocol.
 
 ## Ground Rules
 - Protocol evolution is append-only. Do not renumber or repurpose existing protobuf fields.
@@ -9,7 +9,7 @@ Thank you for helping improve the Cortex Agent Protocol.
 - Align spec prose with protobuf definitions; update both when changing behavior.
 
 ## Making Changes
-1. Edit proto files under `proto/cortex/agent/v1/` and keep package/options consistent.
+1. Edit proto files under `proto/coretex/agent/v1/` and keep package/options consistent.
 2. Update the matching spec page in `spec/` and link it from `00-index.md` if relevant.
 3. Add or update examples in `examples/` when message shapes change.
 4. Run `./tools/make_protos.sh` locally if you need generated stubs (optional, not checked in).

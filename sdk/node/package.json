@@ -1,7 +1,7 @@
 {
   "name": "cap-sdk-node",
   "version": "2.0.0",
-  "description": "CAP (Cortex Agent Protocol) SDK for Node/TypeScript",
+  "description": "CAP (coretex Agent Protocol) SDK for Node/TypeScript",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc -p .",

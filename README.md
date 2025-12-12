@@ -1,4 +1,4 @@
-# Cortex Agent Protocol (CAP)
+# coretex Agent Protocol (CAP)
 
 ## TL;DR
 - Cluster-native job protocol for AI agents: standard envelopes, jobs, heartbeats, and workflows over a bus.
@@ -9,15 +9,15 @@
 
 ## Status
 - Protocol (wire): CAP 1.0.0 — Stable; append-only changes only.
-- Implementation / SDK: cap v2.0.0 (tagged releases in this repo).
+- Implementation / SDK: cap v2.0.1 (tagged releases in this repo).
 - Transport profile: NATS-first; other buses experimental.
-- Reference implementation: CortexOS.
+- Reference implementation: coretexOS.
 
 ### Versioning at a glance
 | Component | Version | Notes |
 | --- | --- | --- |
 | Protocol wire schema | 1.0.0 | Append-only evolution; never renumber fields. |
-| Repo / SDKs | 2.0.0 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
+| Repo / SDKs | 2.0.1 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
 | `protocol_version` field | 1 | Used in `BusPacket` for negotiation. |
 
 ## MCP != CAP
@@ -74,7 +74,7 @@ sequenceDiagram
 - **Workflows**: orchestrators fan out child jobs and publish a parent result without changing the core job shape.
 
 ## Protocol Contracts
-Canonical protobuf definitions live under `proto/cortex/agent/v1/`:
+Canonical protobuf definitions live under `proto/coretex/agent/v1/`:
 - `buspacket.proto` — envelope and payload selection.
 - `job.proto` — job request/result messages and enums.
 - `heartbeat.proto` — liveness and capacity signals.
@@ -89,26 +89,53 @@ Canonical protobuf definitions live under `proto/cortex/agent/v1/`:
 
 ## Hello Worker (Go, 20 lines)
 ```go
-nc, _ := nats.Connect("nats://127.0.0.1:4222")
-defer nc.Drain()
+package main
 
-_, _ = nc.QueueSubscribe("job.echo", "job.echo", func(msg *nats.Msg) {
-  var pkt agentv1.BusPacket
-  _ = proto.Unmarshal(msg.Data, &pkt)
-  req := pkt.GetJobRequest()
-  res := &agentv1.JobResult{
-    JobId:     req.GetJobId(),
-    Status:    agentv1.JobStatus_JOB_STATUS_SUCCEEDED,
-    ResultPtr: "redis://res/" + req.GetJobId(),
-    WorkerId:  "echo-1",
-  }
-  out, _ := proto.Marshal(&agentv1.BusPacket{
-    TraceId: pkt.GetTraceId(), SenderId: "echo-1", ProtocolVersion: 1,
-    Payload: &agentv1.BusPacket_JobResult{JobResult: res},
-  })
-  _ = nc.Publish("sys.job.result", out)
-})
-select {} // block
+import (
+	"log"
+
+	agentv1 "github.com/coretexos/cap/v2/go/coretex/agent/v1"
+	"github.com/nats-io/nats.go"
+	"google.golang.org/protobuf/proto"
+)
+
+func main() {
+	// Connect to a NATS server.
+	nc, _ := nats.Connect("nats://127.0.0.1:4222")
+	defer nc.Drain()
+
+	// Subscribe to the "job.echo" subject and join the "job.echo" queue group.
+	_, _ = nc.QueueSubscribe("job.echo", "job.echo", func(msg *nats.Msg) {
+		// Unmarshal the received message into a BusPacket.
+		var pkt agentv1.BusPacket
+		_ = proto.Unmarshal(msg.Data, &pkt)
+
+		// Get the JobRequest from the packet.
+		req := pkt.GetJobRequest()
+
+		// Create a JobResult.
+		res := &agentv1.JobResult{
+			JobId:     req.GetJobId(),
+			Status:    agentv1.JobStatus_JOB_STATUS_SUCCEEDED,
+			ResultPtr: "redis://res/" + req.GetJobId(),
+			WorkerId:  "echo-1",
+		}
+
+		// Create the response BusPacket.
+		out, _ := proto.Marshal(&agentv1.BusPacket{
+			TraceId:         pkt.GetTraceId(),
+			SenderId:        "echo-1",
+			ProtocolVersion: 1,
+			Payload:         &agentv1.BusPacket_JobResult{JobResult: res},
+		})
+
+		// Publish the response.
+		_ = nc.Publish("sys.job.result", out)
+	})
+
+	// Block forever.
+	select {}
+}
 ```
 
 ## Repo Map
@@ -116,12 +143,17 @@ select {} // block
 - `proto/` - protobuf contracts (copy/paste ready).
 - `examples/` - JSON and sequence flows for common scenarios.
 - `tools/` - helper scripts for proto generation (optional).
-- `sdk/` - starter SDKs for Go, Python, and Node/TS with NATS helpers.
-- `go/` - Go protobuf stubs (module path `github.com/coretexos/cap/v2/go/cortex/agent/v1`).
+- `sdk/` - starter SDKs for Go, Python, Node/TS, and C++ with NATS helpers.
+- `go/` - Go protobuf stubs (import path `github.com/coretexos/cap/v2/go/coretex/agent/v1`).
 - `python/` - Python protobuf stubs (enable with `CAP_RUN_PY=1`).
 - `cpp/` - C++ protobuf stubs (vendored headers/sources).
 - `node/` - Node JS protobuf stubs (CommonJS, binary wire format).
-- Go module path: `github.com/coretexos/cap` (generate stubs via `./tools/make_protos.sh`).
+- Go module path: `github.com/coretexos/cap/v2` (see `go.mod`).
+
+## Community
+- **Discord:** [Join our Discord server!](https://discord.gg/your-invite-link)
+- **GitHub Discussions:** [Ask questions and share ideas](https://github.com/your-repo/discussions)
+- **Mailing List:** [Subscribe to our mailing list](https://example.com/subscribe)
 
 ## Compatibility and Contributing
 - Wire evolution is append-only: never renumber or repurpose existing protobuf fields.

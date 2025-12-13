@@ -44,6 +44,14 @@ go w.Start()
 // publish jobs with client.Submit(...)
 ```
 
+## Signing
+- `client.Submit` and `worker.Worker` sign envelopes; pass a non-nil ECDSA private key (P-256) and configure `PublicKeys` to verify incoming packets when you want authenticity enforcement.
+- Generate a keypair in Go:
+  ```go
+  priv, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+  pub := &priv.PublicKey
+  ```
+
 ## Notes
 - The protobuf `go_package` is `github.com/coretexos/cap/go/coretex/agent/v1`; the replace in `go.mod` points to `../..`.
 - Swap the NATS adapter if you prefer another bus; only `bus/` needs to change.

@@ -8,6 +8,7 @@ All CAP traffic is wrapped in a `BusPacket`. The envelope provides tracing, send
 - `created_at`: timestamp of emission.
 - `protocol_version`: CAP wire version. Consumers MAY reject packets with unsupported versions.
 - `payload`: exactly one of `JobRequest`, `JobResult`, `Heartbeat`, or `SystemAlert`.
+- `signature` (optional but recommended): digital signature of the serialized `BusPacket` for authenticity and integrity. Producers SHOULD sign; consumers SHOULD verify when configured with public keys.
 
 ## Canonical Proto (see `proto/coretex/agent/v1/buspacket.proto`)
 ```proto
@@ -23,6 +24,8 @@ message BusPacket {
     Heartbeat heartbeat = 12;
     SystemAlert alert = 13;
   }
+
+  bytes signature = 14; // digital signature of the serialized BusPacket
 }
 ```
 
@@ -39,3 +42,4 @@ message BusPacket {
 - Producers SHOULD set `protocol_version = 1` until a new major is defined.
 - Consumers SHOULD treat unknown fields as optional and ignore them.
 - Bus-level metadata (headers) MAY be used for auth or routing, but message-level fields remain canonical.
+- When signatures are enabled, verify the `signature` against the serialized packet with the field zeroed; drop or flag packets that fail verification.

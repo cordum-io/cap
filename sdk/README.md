@@ -17,3 +17,14 @@ Generate language stubs from `proto/` before building:
 
 ## Bus Choice
 The helpers default to NATS. You can swap in Kafka or another pub/sub by replacing the bus adapter while keeping the same message shapes.
+
+## Signing and Verification
+- SDK helpers sign `BusPacket` envelopes; pass a private key when submitting jobs and set worker/client public keys to enforce verification.
+- Example ECDSA keypair (P-256):
+  ```bash
+  openssl ecparam -name prime256v1 -genkey -noout -out cap-priv.pem
+  openssl ec -in cap-priv.pem -pubout -out cap-pub.pem
+  ```
+- Go: `client.Submit(..., privateKey)` and `worker.Worker{PrivateKey: ..., PublicKeys: map[senderID]pub}`.
+- Node: provide PEM keys to `submitJob` / `WorkerConfig.privateKey` and `publicKeyMap`.
+- Python: pass an `ec.EllipticCurvePrivateKey` to `submit_job` / `run_worker`; set `public_keys` for verification.

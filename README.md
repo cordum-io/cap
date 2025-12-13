@@ -80,6 +80,7 @@ Canonical protobuf definitions live under `proto/coretex/agent/v1/`:
 - `heartbeat.proto` — liveness and capacity signals.
 - `safety.proto` — Safety Kernel gRPC surface.
 - `alert.proto` — lightweight system alerts.
+- `BusPacket.signature` — optional digital signature for authenticity; SDK helpers sign/verify envelopes when provided keys.
 
 ## Examples
 - `examples/simple-echo/` — smallest possible job submission + result with bus messages and sequence.

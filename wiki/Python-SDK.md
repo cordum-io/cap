@@ -5,9 +5,8 @@ The Python SDK for CAP is ideal for AI/ML applications, scripting, and rapid pro
 ## Installation
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
-*(Note: A `requirements.txt` file needs to be created with the necessary dependencies, e.g., `nats-python`, `cryptography`, `protobuf`)*
 
 ## Client
 

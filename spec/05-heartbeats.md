@@ -11,6 +11,7 @@ Heartbeats advertise worker liveness, capacity, and pool membership so scheduler
 - `capabilities`: freeform skills/tools supported (e.g., `python`, `browser`, `embedding`).
 - `pool`: pool/subject this worker consumes (e.g., `job.code.llm`).
 - `max_parallel_jobs`: advertised concurrency limit.
+- `labels`: optional placement/routing metadata (e.g., `region`, `compliance`, `runtime`).
 
 ## Emission Rules
 - Default interval SHOULD be 2-5 seconds; set lower for latency-sensitive pools.

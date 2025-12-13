@@ -28,7 +28,7 @@ While transport-level encryption (TLS) protects data in transit on the bus, the 
 
 To prevent message spoofing and tampering, all `BusPacket` envelopes SHOULD be digitally signed.
 
-- **Mechanism:** The `BusPacket` proto can be extended to include a `signature` field. The sender would serialize the `BusPacket` (without the signature field), sign the serialized data with its private key, and then add the signature to the `signature` field. The receiver would verify the signature using the sender's public key.
+- **Mechanism:** `BusPacket` includes a `signature` field. The sender serializes the packet with the `signature` field cleared, signs the serialized data with its private key, and then sets the `signature` field. The receiver clears the field, recomputes the hash, and verifies using the sender's public key.
 
 ```proto
 message BusPacket {
@@ -55,10 +55,9 @@ message BusPacket {
 The Safety Kernel is a critical component for policy enforcement. To enable more sophisticated policies, the `PolicyCheckRequest` should include as much context as possible.
 
 - **Recommended `PolicyCheckRequest` Fields:**
-  - `job_id`, `topic`, `tenant`, `priority`, `adapter_id`, `estimated_cost`
-  - `user_id`, `client_ip`
-  - A hash of the `context_ptr` data, to allow the Safety Kernel to check for known malicious inputs without having access to the raw data.
-  - `env` metadata.
+  - `job_id`, `topic`, `tenant`, `principal_id`, `priority`, `estimated_cost`
+  - `budget`, `labels`, `memory_id`
+  - `effective_config` (marshaled EffectiveConfig for the resolved context)
 
 ## Input Validation
 

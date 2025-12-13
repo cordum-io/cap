@@ -23,9 +23,21 @@ namespace _pbi = _pb::internal;
 namespace coretex {
 namespace agent {
 namespace v1 {
+PROTOBUF_CONSTEXPR Heartbeat_LabelsEntry_DoNotUse::Heartbeat_LabelsEntry_DoNotUse(
+    ::_pbi::ConstantInitialized) {}
+struct Heartbeat_LabelsEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR Heartbeat_LabelsEntry_DoNotUseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~Heartbeat_LabelsEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    Heartbeat_LabelsEntry_DoNotUse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 Heartbeat_LabelsEntry_DoNotUseDefaultTypeInternal _Heartbeat_LabelsEntry_DoNotUse_default_instance_;
 PROTOBUF_CONSTEXPR Heartbeat::Heartbeat(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.capabilities_)*/{}
+  , /*decltype(_impl_.labels_)*/{::_pbi::ConstantInitialized()}
   , /*decltype(_impl_.worker_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.region_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.type_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -47,11 +59,21 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 }  // namespace v1
 }  // namespace agent
 }  // namespace coretex
-static ::_pb::Metadata file_level_metadata_coretex_2fagent_2fv1_2fheartbeat_2eproto[1];
+static ::_pb::Metadata file_level_metadata_coretex_2fagent_2fv1_2fheartbeat_2eproto[2];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_coretex_2fagent_2fv1_2fheartbeat_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_coretex_2fagent_2fv1_2fheartbeat_2eproto = nullptr;
 
 const uint32_t TableStruct_coretex_2fagent_2fv1_2fheartbeat_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Heartbeat_LabelsEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Heartbeat_LabelsEntry_DoNotUse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Heartbeat_LabelsEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Heartbeat_LabelsEntry_DoNotUse, value_),
+  0,
+  1,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Heartbeat, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -67,32 +89,38 @@ const uint32_t TableStruct_coretex_2fagent_2fv1_2fheartbeat_2eproto::offsets[] P
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Heartbeat, _impl_.capabilities_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Heartbeat, _impl_.pool_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Heartbeat, _impl_.max_parallel_jobs_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Heartbeat, _impl_.labels_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, -1, sizeof(::coretex::agent::v1::Heartbeat)},
+  { 0, 8, -1, sizeof(::coretex::agent::v1::Heartbeat_LabelsEntry_DoNotUse)},
+  { 10, -1, -1, sizeof(::coretex::agent::v1::Heartbeat)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
+  &::coretex::agent::v1::_Heartbeat_LabelsEntry_DoNotUse_default_instance_._instance,
   &::coretex::agent::v1::_Heartbeat_default_instance_._instance,
 };
 
 const char descriptor_table_protodef_coretex_2fagent_2fv1_2fheartbeat_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\037coretex/agent/v1/heartbeat.proto\022\017corte"
-  "x.agent.v1\"\273\001\n\tHeartbeat\022\021\n\tworker_id\030\001 "
-  "\001(\t\022\016\n\006region\030\002 \001(\t\022\014\n\004type\030\003 \001(\t\022\020\n\010cpu"
-  "_load\030\004 \001(\002\022\027\n\017gpu_utilization\030\005 \001(\002\022\023\n\013"
-  "active_jobs\030\006 \001(\005\022\024\n\014capabilities\030\007 \003(\t\022"
-  "\014\n\004pool\030\013 \001(\t\022\031\n\021max_parallel_jobs\030\014 \001(\005"
-  "B\177\n\026ai.coretex.cap.agent.v1P\001Z+github.com"
-  "/coretexos/cap/go/coretex/agent/v1\252\002\017Cort"
-  "ex.Agent.V1\312\002\017coretex\\Agent\\V1\352\002\021coretex::"
-  "Agent::V1b\006proto3"
+  "\n coretex/agent/v1/heartbeat.proto\022\020core"
+  "tex.agent.v1\"\243\002\n\tHeartbeat\022\021\n\tworker_id\030"
+  "\001 \001(\t\022\016\n\006region\030\002 \001(\t\022\014\n\004type\030\003 \001(\t\022\020\n\010c"
+  "pu_load\030\004 \001(\002\022\027\n\017gpu_utilization\030\005 \001(\002\022\023"
+  "\n\013active_jobs\030\006 \001(\005\022\024\n\014capabilities\030\007 \003("
+  "\t\022\014\n\004pool\030\013 \001(\t\022\031\n\021max_parallel_jobs\030\014 \001"
+  "(\005\0227\n\006labels\030\r \003(\0132\'.coretex.agent.v1.He"
+  "artbeat.LabelsEntry\032-\n\013LabelsEntry\022\013\n\003ke"
+  "y\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001B\207\001\n\027ai.corete"
+  "x.cap.agent.v1P\001Z/github.com/coretexos/c"
+  "ap/v2/go/coretex/agent/v1\252\002\020coretex.Agen"
+  "t.V1\312\002\020coretex\\Agent\\V1\352\002\022coretex::Agent"
+  "::V1b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_coretex_2fagent_2fv1_2fheartbeat_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coretex_2fagent_2fv1_2fheartbeat_2eproto = {
-    false, false, 377, descriptor_table_protodef_coretex_2fagent_2fv1_2fheartbeat_2eproto,
+    false, false, 492, descriptor_table_protodef_coretex_2fagent_2fv1_2fheartbeat_2eproto,
     "coretex/agent/v1/heartbeat.proto",
-    &descriptor_table_coretex_2fagent_2fv1_2fheartbeat_2eproto_once, nullptr, 0, 1,
+    &descriptor_table_coretex_2fagent_2fv1_2fheartbeat_2eproto_once, nullptr, 0, 2,
     schemas, file_default_instances, TableStruct_coretex_2fagent_2fv1_2fheartbeat_2eproto::offsets,
     file_level_metadata_coretex_2fagent_2fv1_2fheartbeat_2eproto, file_level_enum_descriptors_coretex_2fagent_2fv1_2fheartbeat_2eproto,
     file_level_service_descriptors_coretex_2fagent_2fv1_2fheartbeat_2eproto,
@@ -109,6 +137,20 @@ namespace v1 {
 
 // ===================================================================
 
+Heartbeat_LabelsEntry_DoNotUse::Heartbeat_LabelsEntry_DoNotUse() {}
+Heartbeat_LabelsEntry_DoNotUse::Heartbeat_LabelsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+    : SuperType(arena) {}
+void Heartbeat_LabelsEntry_DoNotUse::MergeFrom(const Heartbeat_LabelsEntry_DoNotUse& other) {
+  MergeFromInternal(other);
+}
+::PROTOBUF_NAMESPACE_ID::Metadata Heartbeat_LabelsEntry_DoNotUse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coretex_2fagent_2fv1_2fheartbeat_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fheartbeat_2eproto_once,
+      file_level_metadata_coretex_2fagent_2fv1_2fheartbeat_2eproto[0]);
+}
+
+// ===================================================================
+
 class Heartbeat::_Internal {
  public:
 };
@@ -117,6 +159,9 @@ Heartbeat::Heartbeat(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
+  if (arena != nullptr && !is_message_owned) {
+    arena->OwnCustomDestructor(this, &Heartbeat::ArenaDtor);
+  }
   // @@protoc_insertion_point(arena_constructor:coretex.agent.v1.Heartbeat)
 }
 Heartbeat::Heartbeat(const Heartbeat& from)
@@ -124,6 +169,7 @@ Heartbeat::Heartbeat(const Heartbeat& from)
   Heartbeat* const _this = this; (void)_this;
   new (&_impl_) Impl_{
       decltype(_impl_.capabilities_){from._impl_.capabilities_}
+    , /*decltype(_impl_.labels_)*/{}
     , decltype(_impl_.worker_id_){}
     , decltype(_impl_.region_){}
     , decltype(_impl_.type_){}
@@ -135,6 +181,7 @@ Heartbeat::Heartbeat(const Heartbeat& from)
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.labels_.MergeFrom(from._impl_.labels_);
   _impl_.worker_id_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.worker_id_.Set("", GetArenaForAllocation());
@@ -179,6 +226,7 @@ inline void Heartbeat::SharedCtor(
   (void)is_message_owned;
   new (&_impl_) Impl_{
       decltype(_impl_.capabilities_){arena}
+    , /*decltype(_impl_.labels_)*/{::_pbi::ArenaInitialized(), arena}
     , decltype(_impl_.worker_id_){}
     , decltype(_impl_.region_){}
     , decltype(_impl_.type_){}
@@ -211,6 +259,7 @@ Heartbeat::~Heartbeat() {
   // @@protoc_insertion_point(destructor:coretex.agent.v1.Heartbeat)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
+    ArenaDtor(this);
     return;
   }
   SharedDtor();
@@ -219,12 +268,18 @@ Heartbeat::~Heartbeat() {
 inline void Heartbeat::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
   _impl_.capabilities_.~RepeatedPtrField();
+  _impl_.labels_.Destruct();
+  _impl_.labels_.~MapField();
   _impl_.worker_id_.Destroy();
   _impl_.region_.Destroy();
   _impl_.type_.Destroy();
   _impl_.pool_.Destroy();
 }
 
+void Heartbeat::ArenaDtor(void* object) {
+  Heartbeat* _this = reinterpret_cast< Heartbeat* >(object);
+  _this->_impl_.labels_.Destruct();
+}
 void Heartbeat::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
@@ -236,6 +291,7 @@ void Heartbeat::Clear() {
   (void) cached_has_bits;
 
   _impl_.capabilities_.Clear();
+  _impl_.labels_.Clear();
   _impl_.worker_id_.ClearToEmpty();
   _impl_.region_.ClearToEmpty();
   _impl_.type_.ClearToEmpty();
@@ -336,6 +392,19 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 96)) {
           _impl_.max_parallel_jobs_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
           CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // map<string, string> labels = 13;
+      case 13:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 106)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(&_impl_.labels_, ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<106>(ptr));
         } else
           goto handle_unusual;
         continue;
@@ -450,6 +519,36 @@ uint8_t* Heartbeat::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(12, this->_internal_max_parallel_jobs(), target);
   }
 
+  // map<string, string> labels = 13;
+  if (!this->_internal_labels().empty()) {
+    using MapType = ::_pb::Map<std::string, std::string>;
+    using WireHelper = Heartbeat_LabelsEntry_DoNotUse::Funcs;
+    const auto& map_field = this->_internal_labels();
+    auto check_utf8 = [](const MapType::value_type& entry) {
+      (void)entry;
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.first.data(), static_cast<int>(entry.first.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "coretex.agent.v1.Heartbeat.LabelsEntry.key");
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.second.data(), static_cast<int>(entry.second.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "coretex.agent.v1.Heartbeat.LabelsEntry.value");
+    };
+
+    if (stream->IsSerializationDeterministic() && map_field.size() > 1) {
+      for (const auto& entry : ::_pbi::MapSorterPtr<MapType>(map_field)) {
+        target = WireHelper::InternalSerialize(13, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    } else {
+      for (const auto& entry : map_field) {
+        target = WireHelper::InternalSerialize(13, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    }
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -472,6 +571,15 @@ size_t Heartbeat::ByteSizeLong() const {
   for (int i = 0, n = _impl_.capabilities_.size(); i < n; i++) {
     total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
       _impl_.capabilities_.Get(i));
+  }
+
+  // map<string, string> labels = 13;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_labels_size());
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
+      it = this->_internal_labels().begin();
+      it != this->_internal_labels().end(); ++it) {
+    total_size += Heartbeat_LabelsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
   }
 
   // string worker_id = 1;
@@ -549,6 +657,7 @@ void Heartbeat::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROT
   (void) cached_has_bits;
 
   _this->_impl_.capabilities_.MergeFrom(from._impl_.capabilities_);
+  _this->_impl_.labels_.MergeFrom(from._impl_.labels_);
   if (!from._internal_worker_id().empty()) {
     _this->_internal_set_worker_id(from._internal_worker_id());
   }
@@ -601,6 +710,7 @@ void Heartbeat::InternalSwap(Heartbeat* other) {
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   _impl_.capabilities_.InternalSwap(&other->_impl_.capabilities_);
+  _impl_.labels_.InternalSwap(&other->_impl_.labels_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.worker_id_, lhs_arena,
       &other->_impl_.worker_id_, rhs_arena
@@ -628,7 +738,7 @@ void Heartbeat::InternalSwap(Heartbeat* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata Heartbeat::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coretex_2fagent_2fv1_2fheartbeat_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fheartbeat_2eproto_once,
-      file_level_metadata_coretex_2fagent_2fv1_2fheartbeat_2eproto[0]);
+      file_level_metadata_coretex_2fagent_2fv1_2fheartbeat_2eproto[1]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -636,6 +746,10 @@ void Heartbeat::InternalSwap(Heartbeat* other) {
 }  // namespace agent
 }  // namespace coretex
 PROTOBUF_NAMESPACE_OPEN
+template<> PROTOBUF_NOINLINE ::coretex::agent::v1::Heartbeat_LabelsEntry_DoNotUse*
+Arena::CreateMaybeMessage< ::coretex::agent::v1::Heartbeat_LabelsEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coretex::agent::v1::Heartbeat_LabelsEntry_DoNotUse >(arena);
+}
 template<> PROTOBUF_NOINLINE ::coretex::agent::v1::Heartbeat*
 Arena::CreateMaybeMessage< ::coretex::agent::v1::Heartbeat >(Arena* arena) {
   return Arena::CreateMessageInternal< ::coretex::agent::v1::Heartbeat >(arena);

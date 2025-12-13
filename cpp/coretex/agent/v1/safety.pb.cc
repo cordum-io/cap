@@ -42,6 +42,7 @@ PROTOBUF_CONSTEXPR PolicyCheckRequest::PolicyCheckRequest(
   , /*decltype(_impl_.tenant_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.principal_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.memory_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.effective_config_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.budget_)*/nullptr
   , /*decltype(_impl_.estimated_cost_)*/0
   , /*decltype(_impl_.priority_)*/0
@@ -103,6 +104,7 @@ const uint32_t TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto::offsets[] PROT
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckRequest, _impl_.principal_id_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckRequest, _impl_.labels_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckRequest, _impl_.memory_id_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckRequest, _impl_.effective_config_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::PolicyCheckResponse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -116,7 +118,7 @@ const uint32_t TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto::offsets[] PROT
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, 8, -1, sizeof(::coretex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse)},
   { 10, -1, -1, sizeof(::coretex::agent::v1::PolicyCheckRequest)},
-  { 25, -1, -1, sizeof(::coretex::agent::v1::PolicyCheckResponse)},
+  { 26, -1, -1, sizeof(::coretex::agent::v1::PolicyCheckResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -126,37 +128,38 @@ static const ::_pb::Message* const file_default_instances[] = {
 };
 
 const char descriptor_table_protodef_coretex_2fagent_2fv1_2fsafety_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\034coretex/agent/v1/safety.proto\022\017coretex.a"
-  "gent.v1\032\031coretex/agent/v1/job.proto\"\315\002\n\022P"
-  "olicyCheckRequest\022\016\n\006job_id\030\001 \001(\t\022\r\n\005top"
-  "ic\030\002 \001(\t\022\016\n\006tenant\030\003 \001(\t\022.\n\010priority\030\004 \001"
-  "(\0162\034.coretex.agent.v1.JobPriority\022\026\n\016esti"
-  "mated_cost\030\005 \001(\001\022\'\n\006budget\030\006 \001(\0132\027.corte"
-  "x.agent.v1.Budget\022\024\n\014principal_id\030\007 \001(\t\022"
-  "\?\n\006labels\030\010 \003(\0132/.coretex.agent.v1.Policy"
-  "CheckRequest.LabelsEntry\022\021\n\tmemory_id\030\t "
-  "\001(\t\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value"
-  "\030\002 \001(\t:\0028\001\"t\n\023PolicyCheckResponse\022/\n\010dec"
-  "ision\030\001 \001(\0162\035.coretex.agent.v1.DecisionTy"
-  "pe\022\016\n\006reason\030\002 \001(\t\022\034\n\024redacted_context_p"
-  "tr\030\003 \001(\t*\233\001\n\014DecisionType\022\035\n\031DECISION_TY"
-  "PE_UNSPECIFIED\020\000\022\027\n\023DECISION_TYPE_ALLOW\020"
-  "\001\022\026\n\022DECISION_TYPE_DENY\020\002\022\037\n\033DECISION_TY"
-  "PE_REQUIRE_HUMAN\020\003\022\032\n\026DECISION_TYPE_THRO"
-  "TTLE\020\0042b\n\014SafetyKernel\022R\n\005Check\022#.coretex"
-  ".agent.v1.PolicyCheckRequest\032$.coretex.ag"
-  "ent.v1.PolicyCheckResponseB\177\n\026ai.coretex."
-  "cap.agent.v1P\001Z+github.com/coretexos/cap"
-  "/go/coretex/agent/v1\252\002\017coretex.Agent.V1\312\002\017"
-  "coretex\\Agent\\V1\352\002\021coretex::Agent::V1b\006pro"
-  "to3"
+  "\n\035coretex/agent/v1/safety.proto\022\020coretex"
+  ".agent.v1\032\032coretex/agent/v1/job.proto\"\352\002"
+  "\n\022PolicyCheckRequest\022\016\n\006job_id\030\001 \001(\t\022\r\n\005"
+  "topic\030\002 \001(\t\022\016\n\006tenant\030\003 \001(\t\022/\n\010priority\030"
+  "\004 \001(\0162\035.coretex.agent.v1.JobPriority\022\026\n\016"
+  "estimated_cost\030\005 \001(\001\022(\n\006budget\030\006 \001(\0132\030.c"
+  "oretex.agent.v1.Budget\022\024\n\014principal_id\030\007"
+  " \001(\t\022@\n\006labels\030\010 \003(\01320.coretex.agent.v1."
+  "PolicyCheckRequest.LabelsEntry\022\021\n\tmemory"
+  "_id\030\t \001(\t\022\030\n\020effective_config\030\n \001(\014\032-\n\013L"
+  "abelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\002"
+  "8\001\"u\n\023PolicyCheckResponse\0220\n\010decision\030\001 "
+  "\001(\0162\036.coretex.agent.v1.DecisionType\022\016\n\006r"
+  "eason\030\002 \001(\t\022\034\n\024redacted_context_ptr\030\003 \001("
+  "\t*\233\001\n\014DecisionType\022\035\n\031DECISION_TYPE_UNSP"
+  "ECIFIED\020\000\022\027\n\023DECISION_TYPE_ALLOW\020\001\022\026\n\022DE"
+  "CISION_TYPE_DENY\020\002\022\037\n\033DECISION_TYPE_REQU"
+  "IRE_HUMAN\020\003\022\032\n\026DECISION_TYPE_THROTTLE\020\0042"
+  "d\n\014SafetyKernel\022T\n\005Check\022$.coretex.agent"
+  ".v1.PolicyCheckRequest\032%.coretex.agent.v"
+  "1.PolicyCheckResponseB\207\001\n\027ai.coretex.cap"
+  ".agent.v1P\001Z/github.com/coretexos/cap/v2"
+  "/go/coretex/agent/v1\252\002\020coretex.Agent.V1\312"
+  "\002\020coretex\\Agent\\V1\352\002\022coretex::Agent::V1b"
+  "\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_deps[1] = {
   &::descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto = {
-    false, false, 923, descriptor_table_protodef_coretex_2fagent_2fv1_2fsafety_2eproto,
+    false, false, 967, descriptor_table_protodef_coretex_2fagent_2fv1_2fsafety_2eproto,
     "coretex/agent/v1/safety.proto",
     &descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_once, descriptor_table_coretex_2fagent_2fv1_2fsafety_2eproto_deps, 1, 3,
     schemas, file_default_instances, TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto::offsets,
@@ -240,6 +243,7 @@ PolicyCheckRequest::PolicyCheckRequest(const PolicyCheckRequest& from)
     , decltype(_impl_.tenant_){}
     , decltype(_impl_.principal_id_){}
     , decltype(_impl_.memory_id_){}
+    , decltype(_impl_.effective_config_){}
     , decltype(_impl_.budget_){nullptr}
     , decltype(_impl_.estimated_cost_){}
     , decltype(_impl_.priority_){}
@@ -287,6 +291,14 @@ PolicyCheckRequest::PolicyCheckRequest(const PolicyCheckRequest& from)
     _this->_impl_.memory_id_.Set(from._internal_memory_id(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.effective_config_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.effective_config_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_effective_config().empty()) {
+    _this->_impl_.effective_config_.Set(from._internal_effective_config(), 
+      _this->GetArenaForAllocation());
+  }
   if (from._internal_has_budget()) {
     _this->_impl_.budget_ = new ::coretex::agent::v1::Budget(*from._impl_.budget_);
   }
@@ -307,6 +319,7 @@ inline void PolicyCheckRequest::SharedCtor(
     , decltype(_impl_.tenant_){}
     , decltype(_impl_.principal_id_){}
     , decltype(_impl_.memory_id_){}
+    , decltype(_impl_.effective_config_){}
     , decltype(_impl_.budget_){nullptr}
     , decltype(_impl_.estimated_cost_){0}
     , decltype(_impl_.priority_){0}
@@ -332,6 +345,10 @@ inline void PolicyCheckRequest::SharedCtor(
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.memory_id_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.effective_config_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.effective_config_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 PolicyCheckRequest::~PolicyCheckRequest() {
@@ -353,6 +370,7 @@ inline void PolicyCheckRequest::SharedDtor() {
   _impl_.tenant_.Destroy();
   _impl_.principal_id_.Destroy();
   _impl_.memory_id_.Destroy();
+  _impl_.effective_config_.Destroy();
   if (this != internal_default_instance()) delete _impl_.budget_;
 }
 
@@ -376,6 +394,7 @@ void PolicyCheckRequest::Clear() {
   _impl_.tenant_.ClearToEmpty();
   _impl_.principal_id_.ClearToEmpty();
   _impl_.memory_id_.ClearToEmpty();
+  _impl_.effective_config_.ClearToEmpty();
   if (GetArenaForAllocation() == nullptr && _impl_.budget_ != nullptr) {
     delete _impl_.budget_;
   }
@@ -477,6 +496,15 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.PolicyCheckRequest.memory_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // bytes effective_config = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 82)) {
+          auto str = _internal_mutable_effective_config();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
@@ -613,6 +641,12 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
         9, this->_internal_memory_id(), target);
   }
 
+  // bytes effective_config = 10;
+  if (!this->_internal_effective_config().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        10, this->_internal_effective_config(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -673,6 +707,13 @@ size_t PolicyCheckRequest::ByteSizeLong() const {
         this->_internal_memory_id());
   }
 
+  // bytes effective_config = 10;
+  if (!this->_internal_effective_config().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_effective_config());
+  }
+
   // .coretex.agent.v1.Budget budget = 6;
   if (this->_internal_has_budget()) {
     total_size += 1 +
@@ -729,6 +770,9 @@ void PolicyCheckRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   if (!from._internal_memory_id().empty()) {
     _this->_internal_set_memory_id(from._internal_memory_id());
   }
+  if (!from._internal_effective_config().empty()) {
+    _this->_internal_set_effective_config(from._internal_effective_config());
+  }
   if (from._internal_has_budget()) {
     _this->_internal_mutable_budget()->::coretex::agent::v1::Budget::MergeFrom(
         from._internal_budget());
@@ -782,6 +826,10 @@ void PolicyCheckRequest::InternalSwap(PolicyCheckRequest* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.memory_id_, lhs_arena,
       &other->_impl_.memory_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.effective_config_, lhs_arena,
+      &other->_impl_.effective_config_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(PolicyCheckRequest, _impl_.priority_)

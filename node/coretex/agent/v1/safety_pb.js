@@ -104,7 +104,12 @@ jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
 topic: jspb.Message.getFieldWithDefault(msg, 2, ""),
 tenant: jspb.Message.getFieldWithDefault(msg, 3, ""),
 priority: jspb.Message.getFieldWithDefault(msg, 4, 0),
-estimatedCost: jspb.Message.getFloatingPointFieldWithDefault(msg, 5, 0.0)
+estimatedCost: jspb.Message.getFloatingPointFieldWithDefault(msg, 5, 0.0),
+budget: (f = msg.getBudget()) && coretex_agent_v1_job_pb.Budget.toObject(includeInstance, f),
+principalId: jspb.Message.getFieldWithDefault(msg, 7, ""),
+labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
+memoryId: jspb.Message.getFieldWithDefault(msg, 9, ""),
+effectiveConfig: msg.getEffectiveConfig_asB64()
   };
 
   if (includeInstance) {
@@ -160,6 +165,29 @@ proto.coretex.agent.v1.PolicyCheckRequest.deserializeBinaryFromReader = function
     case 5:
       var value = /** @type {number} */ (reader.readDouble());
       msg.setEstimatedCost(value);
+      break;
+    case 6:
+      var value = new coretex_agent_v1_job_pb.Budget;
+      reader.readMessage(value,coretex_agent_v1_job_pb.Budget.deserializeBinaryFromReader);
+      msg.setBudget(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setPrincipalId(value);
+      break;
+    case 8:
+      var value = msg.getLabelsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
+         });
+      break;
+    case 9:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMemoryId(value);
+      break;
+    case 10:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setEffectiveConfig(value);
       break;
     default:
       reader.skipField();
@@ -222,6 +250,39 @@ proto.coretex.agent.v1.PolicyCheckRequest.serializeBinaryToWriter = function(mes
   if (f !== 0.0) {
     writer.writeDouble(
       5,
+      f
+    );
+  }
+  f = message.getBudget();
+  if (f != null) {
+    writer.writeMessage(
+      6,
+      f,
+      coretex_agent_v1_job_pb.Budget.serializeBinaryToWriter
+    );
+  }
+  f = message.getPrincipalId();
+  if (f.length > 0) {
+    writer.writeString(
+      7,
+      f
+    );
+  }
+  f = message.getLabelsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(8, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
+  }
+  f = message.getMemoryId();
+  if (f.length > 0) {
+    writer.writeString(
+      9,
+      f
+    );
+  }
+  f = message.getEffectiveConfig_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      10,
       f
     );
   }
@@ -315,6 +376,144 @@ proto.coretex.agent.v1.PolicyCheckRequest.prototype.getEstimatedCost = function(
  */
 proto.coretex.agent.v1.PolicyCheckRequest.prototype.setEstimatedCost = function(value) {
   return jspb.Message.setProto3FloatField(this, 5, value);
+};
+
+
+/**
+ * optional Budget budget = 6;
+ * @return {?proto.coretex.agent.v1.Budget}
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.getBudget = function() {
+  return /** @type{?proto.coretex.agent.v1.Budget} */ (
+    jspb.Message.getWrapperField(this, coretex_agent_v1_job_pb.Budget, 6));
+};
+
+
+/**
+ * @param {?proto.coretex.agent.v1.Budget|undefined} value
+ * @return {!proto.coretex.agent.v1.PolicyCheckRequest} returns this
+*/
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.setBudget = function(value) {
+  return jspb.Message.setWrapperField(this, 6, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.coretex.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.clearBudget = function() {
+  return this.setBudget(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.hasBudget = function() {
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional string principal_id = 7;
+ * @return {string}
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.getPrincipalId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 7, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.coretex.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.setPrincipalId = function(value) {
+  return jspb.Message.setProto3StringField(this, 7, value);
+};
+
+
+/**
+ * map<string, string> labels = 8;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.getLabelsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 8, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.coretex.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.clearLabelsMap = function() {
+  this.getLabelsMap().clear();
+  return this;
+};
+
+
+/**
+ * optional string memory_id = 9;
+ * @return {string}
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.getMemoryId = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.coretex.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.setMemoryId = function(value) {
+  return jspb.Message.setProto3StringField(this, 9, value);
+};
+
+
+/**
+ * optional bytes effective_config = 10;
+ * @return {!(string|Uint8Array)}
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.getEffectiveConfig = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 10, ""));
+};
+
+
+/**
+ * optional bytes effective_config = 10;
+ * This is a type-conversion wrapper around `getEffectiveConfig()`
+ * @return {string}
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.getEffectiveConfig_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getEffectiveConfig()));
+};
+
+
+/**
+ * optional bytes effective_config = 10;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getEffectiveConfig()`
+ * @return {!Uint8Array}
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.getEffectiveConfig_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getEffectiveConfig()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.coretex.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.coretex.agent.v1.PolicyCheckRequest.prototype.setEffectiveConfig = function(value) {
+  return jspb.Message.setProto3BytesField(this, 10, value);
 };
 
 

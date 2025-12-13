@@ -90,7 +90,8 @@ gpuUtilization: jspb.Message.getFloatingPointFieldWithDefault(msg, 5, 0.0),
 activeJobs: jspb.Message.getFieldWithDefault(msg, 6, 0),
 capabilitiesList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f,
 pool: jspb.Message.getFieldWithDefault(msg, 11, ""),
-maxParallelJobs: jspb.Message.getFieldWithDefault(msg, 12, 0)
+maxParallelJobs: jspb.Message.getFieldWithDefault(msg, 12, 0),
+labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -162,6 +163,12 @@ proto.coretex.agent.v1.Heartbeat.deserializeBinaryFromReader = function(msg, rea
     case 12:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setMaxParallelJobs(value);
+      break;
+    case 13:
+      var value = msg.getLabelsMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "", "");
+         });
       break;
     default:
       reader.skipField();
@@ -254,6 +261,10 @@ proto.coretex.agent.v1.Heartbeat.serializeBinaryToWriter = function(message, wri
       12,
       f
     );
+  }
+  f = message.getLabelsMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(13, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -436,6 +447,29 @@ proto.coretex.agent.v1.Heartbeat.prototype.getMaxParallelJobs = function() {
  */
 proto.coretex.agent.v1.Heartbeat.prototype.setMaxParallelJobs = function(value) {
   return jspb.Message.setProto3IntField(this, 12, value);
+};
+
+
+/**
+ * map<string, string> labels = 13;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.coretex.agent.v1.Heartbeat.prototype.getLabelsMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 13, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ * @return {!proto.coretex.agent.v1.Heartbeat} returns this
+ */
+proto.coretex.agent.v1.Heartbeat.prototype.clearLabelsMap = function() {
+  this.getLabelsMap().clear();
+  return this;
 };
 
 

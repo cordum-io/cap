@@ -4,7 +4,7 @@ CAP makes safety a first-class control-plane hook via the Safety Kernel.
 
 ## Decision Model
 - Outcomes: `ALLOW`, `DENY`, `REQUIRE_HUMAN`, `THROTTLE`.
-- Inputs: `job_id`, `topic`, `tenant`, `principal_id`, `priority`, `budget`, optional `estimated_cost`, `labels`, and `memory_id`.
+- Inputs: `job_id`, `topic`, `tenant`, `principal_id`, `priority`, `budget`, optional `estimated_cost`, `labels`, `memory_id`, and optional `effective_config` (marshaled EffectiveConfig for the request context).
 - Outputs: decision, human-readable `reason`, and optional `redacted_context_ptr`.
 
 ## Canonical Service (see `proto/coretex/agent/v1/safety.proto`)

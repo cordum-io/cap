@@ -7,14 +7,12 @@ async function main() {
     nc,
     subject: "job.echo",
     senderId: "worker-echo-node",
-    publicKeyMap: {}, // Dummy for now
-    privateKey: "", // Dummy for now
     handler: async (req) => {
       return {
-        job_id: req.job_id,
+        jobId: req.jobId,
         status: "JOB_STATUS_SUCCEEDED",
-        result_ptr: `redis://res/${req.job_id}`,
-        worker_id: "worker-echo-node",
+        resultPtr: `redis://res/${req.jobId}`,
+        workerId: "worker-echo-node",
       };
     },
   });

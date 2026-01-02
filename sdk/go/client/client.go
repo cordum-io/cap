@@ -10,7 +10,7 @@ import (
 	"log"
 
 	"github.com/coretexos/cap/sdk/go"
-	agentv1 "github.com/coretexos/cap/go/coretex/agent/v1"
+	agentv1 "github.com/coretexos/cap/v2/go/coretex/agent/v1"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -42,24 +42,25 @@ func (c *Client) Submit(ctx context.Context, req *agentv1.JobRequest, traceID, s
 		},
 	}
 
-	// Marshal the packet without the signature for signing
-	unsignedData, err := proto.Marshal(packet)
-	if err != nil {
-		return fmt.Errorf("marshal unsigned packet: %w", err)
+	if key != nil {
+		// Marshal the packet without the signature for signing
+		unsignedData, err := proto.Marshal(packet)
+		if err != nil {
+			return fmt.Errorf("marshal unsigned packet: %w", err)
+		}
+
+		// Sign the data
+		hash := sha256.Sum256(unsignedData)
+		signature, err := ecdsa.SignASN1(rand.Reader, key, hash[:])
+		if err != nil {
+			return fmt.Errorf("sign packet: %w", err)
+		}
+		packet.Signature = signature
 	}
 
-	// Sign the data
-	hash := sha256.Sum256(unsignedData)
-	signature, err := ecdsa.SignASN1(rand.Reader, key, hash[:])
-	if err != nil {
-		return fmt.Errorf("sign packet: %w", err)
-	}
-	packet.Signature = signature
-
-	// Marshal the packet again with the signature
 	data, err := proto.Marshal(packet)
 	if err != nil {
-		return fmt.Errorf("marshal signed packet: %w", err)
+		return fmt.Errorf("marshal packet: %w", err)
 	}
 	return c.NATS.Publish(capsdk.SubjectSubmit, data)
 }
@@ -127,24 +128,25 @@ func Submit(ctx context.Context, pub Publisher, req *agentv1.JobRequest, traceID
 		},
 	}
 
-	// Marshal the packet without the signature for signing
-	unsignedData, err := proto.Marshal(packet)
-	if err != nil {
-		return fmt.Errorf("marshal unsigned packet: %w", err)
+	if key != nil {
+		// Marshal the packet without the signature for signing
+		unsignedData, err := proto.Marshal(packet)
+		if err != nil {
+			return fmt.Errorf("marshal unsigned packet: %w", err)
+		}
+
+		// Sign the data
+		hash := sha256.Sum256(unsignedData)
+		signature, err := ecdsa.SignASN1(rand.Reader, key, hash[:])
+		if err != nil {
+			return fmt.Errorf("sign packet: %w", err)
+		}
+		packet.Signature = signature
 	}
 
-	// Sign the data
-	hash := sha256.Sum256(unsignedData)
-	signature, err := ecdsa.SignASN1(rand.Reader, key, hash[:])
-	if err != nil {
-		return fmt.Errorf("sign packet: %w", err)
-	}
-	packet.Signature = signature
-
-	// Marshal the packet again with the signature
 	data, err := proto.Marshal(packet)
 	if err != nil {
-		return fmt.Errorf("marshal signed packet: %w", err)
+		return fmt.Errorf("marshal packet: %w", err)
 	}
 	return pub.Publish(capsdk.SubjectSubmit, data)
 }

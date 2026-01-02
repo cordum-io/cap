@@ -13,28 +13,30 @@ cmake --build sdk/cpp/build
 
 ## Client
 
-The `cap::Client` class provides an interface for submitting jobs.
-
-*(Note: The C++ SDK is under development, and the client implementation is not yet complete.)*
+The `cap::Client` class publishes `JobRequest` envelopes onto the bus.
 
 ### `cap::Client`
 
 ```cpp
 // sdk/cpp/include/cap/client.h
 
-#include "bus_interface.h"
-#include "coretex/agent/v1/job.pb.h"
+#include "cap/bus_interface.h"
+#include "cap/subjects.h"
+#include "coretex/agent/v1/buspacket.pb.h"
 
 namespace cap {
 
 class Client {
  public:
-  explicit Client(std::unique_ptr<BusInterface> bus);
+  Client(BusClient* bus, std::string sender_id);
 
-  void Submit(const coretex::agent::v1::JobRequest& job_request);
+  bool Submit(const std::string& trace_id,
+              const coretex::agent::v1::JobRequest& req,
+              int32_t protocol_version = 1);
 
  private:
-  std::unique_ptr<BusInterface> bus_;
+  BusClient* bus_;
+  std::string sender_id_;
 };
 
 }  // namespace cap
@@ -42,34 +44,41 @@ class Client {
 
 ## Worker
 
-The `cap::Worker` class provides an interface for building workers.
-
-*(Note: The C++ SDK is under development, and the worker implementation is not yet complete.)*
+The `cap::Worker` class subscribes to a pool subject and emits `JobResult` packets.
 
 ### `cap::Worker`
 
 ```cpp
 // sdk/cpp/include/cap/worker.h
 
-#include "bus_interface.h"
-#include "coretex/agent/v1/job.pb.h"
+#include "cap/bus_interface.h"
+#include "cap/subjects.h"
+#include "coretex/agent/v1/buspacket.pb.h"
 
 namespace cap {
 
+using JobHandler = std::function<std::unique_ptr<coretex::agent::v1::JobResult>(
+    const coretex::agent::v1::JobRequest&)>;
+
 class Worker {
  public:
-  using Handler = std::function<coretex::agent::v1::JobResult(
-      const coretex::agent::v1::JobRequest&)>;
+  Worker(BusClient* bus,
+         std::string subject,
+         std::string sender_id,
+         JobHandler handler,
+         int32_t protocol_version = 1);
 
-  Worker(std::unique_ptr<BusInterface> bus, std::string subject,
-         Handler handler);
-
-  void Start();
+  bool Start();
 
  private:
-  std::unique_ptr<BusInterface> bus_;
+  void OnMessage(const BusMessage& msg);
+
+  BusClient* bus_;
   std::string subject_;
-  Handler handler_;
+  std::string sender_id_;
+  JobHandler handler_;
+  int32_t protocol_version_;
+  SubscriptionHandle sub_{nullptr};
 };
 
 }  // namespace cap
@@ -77,7 +86,7 @@ class Worker {
 
 ## Bus Interface
 
-The `cap::BusInterface` is an abstract class that defines the interface for interacting with the NATS bus. You will need to provide a concrete implementation of this interface.
+The `cap::BusClient` interface defines the transport adapter you must implement (NATS, Kafka, etc.).
 
 ```cpp
 // sdk/cpp/include/cap/bus_interface.h
@@ -88,22 +97,27 @@ The `cap::BusInterface` is an abstract class that defines the interface for inte
 
 namespace cap {
 
-class BusInterface {
+struct BusMessage {
+  std::string subject;
+  std::vector<uint8_t> data;
+};
+
+using SubscriptionHandle = void*;
+
+class BusClient {
  public:
-  using MessageHandler = std::function<void(const std::vector<char>&)>;
+  using MsgHandler = std::function<void(const BusMessage&)>;
 
-  virtual ~BusInterface() = default;
-
-  virtual void Publish(const std::string& subject,
-                     const std::vector<char>& data) = 0;
-
-  virtual void Subscribe(const std::string& subject,
-                       MessageHandler handler) = 0;
-
-  virtual void QueueSubscribe(const std::string& subject,
-                            const std::string& queue,
-                            MessageHandler handler) = 0;
+  virtual ~BusClient() = default;
+  virtual bool Publish(const std::string& subject, const std::vector<uint8_t>& data) = 0;
+  virtual SubscriptionHandle Subscribe(const std::string& subject,
+                                       const std::string& queue_group,
+                                       MsgHandler handler) = 0;
 };
 
 }  // namespace cap
 ```
+
+## Notes
+- No signing helpers are included in the C++ SDK yet; add them in your bus or worker layer if required.
+- Default subjects are defined in `sdk/cpp/include/cap/subjects.h`.

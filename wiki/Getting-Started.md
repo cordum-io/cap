@@ -84,3 +84,7 @@ The `simple-echo` example demonstrates a simple worker that echoes back the job 
     ```
 
 You should see the worker receive the job and the client receive the result.
+
+Optional variants:
+- Python: run `examples/simple-echo/python-worker/main.py` and `examples/simple-echo/python-client/main.py` after `pip install -e sdk/python`.
+- Node: run `examples/simple-echo/node-worker/main.js` and `examples/simple-echo/node-client/main.js` after `npm install && npm run build` in `sdk/node`.

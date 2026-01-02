@@ -30,3 +30,8 @@ sequenceDiagram
     Bus->>Sched: JobResult (state update)
     Client->>Mem: read result_ptr
 ```
+
+## Code Samples
+- Go: `go-client/` and `go-worker/` (run with `go run .`).
+- Python: `python-client/` and `python-worker/` (install the SDK with `pip install -e sdk/python`).
+- Node: `node-client/` and `node-worker/` (build the SDK with `npm install && npm run build` in `sdk/node`).

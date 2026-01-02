@@ -17,8 +17,9 @@ The `cap.client` module provides functions for submitting jobs.
 The `submit_job` function sends a `JobRequest` to the bus.
 
 ```python
-async def submit_job(nc, job_request, trace_id: str, sender_id: str, private_key: ec.EllipticCurvePrivateKey):
+async def submit_job(nc, job_request, trace_id: str, sender_id: str, private_key: ec.EllipticCurvePrivateKey = None):
 ```
+Pass `None` as the private key to send unsigned envelopes.
 
 **Example:**
 
@@ -35,7 +36,8 @@ async def main():
 
     req = job_pb2.JobRequest(
         job_id="my-test-job",
-        topic="job.echo"
+        topic="job.echo",
+        context_ptr="redis://ctx/my-test-job"
     )
 
     await client.submit_job(
@@ -80,7 +82,10 @@ from cap import worker
 async def my_handler(req: job_pb2.JobRequest) -> Awaitable[job_pb2.JobResult]:
     print(f"Received job: {req.job_id}")
     return job_pb2.JobResult(
-        status=job_pb2.JOB_STATUS_SUCCEEDED
+        job_id=req.job_id,
+        status=job_pb2.JOB_STATUS_SUCCEEDED,
+        result_ptr=f"redis://res/{req.job_id}",
+        worker_id="my-worker",
     )
 
 async def main():

@@ -2,6 +2,13 @@
 
 # Changelog
 
+## v2.0.5 — 2026-01-02
+- Fixed Python signing/verification to use raw packet bytes for ECDSA, matching Go/Node behavior.
+- Node SDK: corrected proto root resolution, handled handler errors, and defaulted missing `jobId`/`workerId` in results.
+- Go SDK: allow unsigned submits and handle nil handler results without panicking.
+- Python SDK: allow unsigned submits, fill missing `job_id`/`worker_id`, and lazy-load NATS for testable imports.
+- Expanded examples and SDK docs, including Python/Node simple-echo walkthroughs.
+
 ## v2.0.0 — 2025-12-12
 - Clarified versioning (protocol wire 1.0.0 with `protocol_version=1`; repo/SDK release 2.0.0).
 - Added first-class context/memory semantics: `memory_id`, `context_hints`, and a dedicated spec page.
@@ -12,6 +19,6 @@
 ## v0.1.0 — 2025-12-11
 - First public draft of the coretex Agent Protocol (CAP): BusPacket, JobRequest/JobResult, Heartbeat, SafetyKernel, and Alert protobuf contracts under `proto/coretex/agent/v1`.
 - Transport profile documented for NATS with canonical subjects (`sys.job.submit`, `sys.job.result`, `sys.heartbeat`) and pointer semantics (`context_ptr`, `result_ptr`, `redacted_context_ptr`).
-- SDKs: Go (`github.com/coretexos/cap/go/coretex/agent/v1` import path via `/go` stubs), Python (asyncio + NATS), and Node/TypeScript (protobufjs loader) aligned to the same contracts.
+- SDKs: Go (`github.com/coretexos/cap/v2/go/coretex/agent/v1` import path via `/go` stubs), Python (asyncio + NATS), and Node/TypeScript (protobufjs loader) aligned to the same contracts.
 - Tooling: `tools/make_protos.sh` to generate Go/Python stubs into `/go` and `/python`; Python virtualenv support via `PYTHON_BIN`.
 - Examples: simple echo, workflow repo review, and heartbeat samples called out from the README for quick starts.

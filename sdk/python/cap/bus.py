@@ -1,8 +1,6 @@
 import asyncio
 from typing import Optional
 
-import nats
-
 
 class NATSConfig:
     def __init__(
@@ -21,6 +19,10 @@ class NATSConfig:
 
 
 async def connect_nats(cfg: NATSConfig):
+    try:
+        import nats  # type: ignore
+    except ImportError as exc:
+        raise RuntimeError("nats-py is required to connect to NATS") from exc
     opts = {"servers": cfg.url, "name": cfg.name}
     if cfg.token:
         opts["token"] = cfg.token

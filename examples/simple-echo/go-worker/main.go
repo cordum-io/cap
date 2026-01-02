@@ -7,7 +7,7 @@ import (
 	"crypto/rand"
 	"log"
 
-	agentv1 "github.com/coretexos/cap/go/coretex/agent/v1"
+	agentv1 "github.com/coretexos/cap/v2/go/coretex/agent/v1"
 	"github.com/coretexos/cap/sdk/go/worker"
 	"github.com/nats-io/nats.go"
 )
@@ -15,7 +15,10 @@ import (
 func myHandler(ctx context.Context, req *agentv1.JobRequest) (*agentv1.JobResult, error) {
 	log.Printf("Received job: %s", req.JobId)
 	return &agentv1.JobResult{
-		Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED,
+		JobId:     req.JobId,
+		Status:    agentv1.JobStatus_JOB_STATUS_SUCCEEDED,
+		ResultPtr: "redis://res/" + req.JobId,
+		WorkerId:  "my-worker",
 	}, nil
 }
 

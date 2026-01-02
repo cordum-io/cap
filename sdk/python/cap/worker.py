@@ -1,12 +1,10 @@
 import asyncio
 from typing import Callable, Awaitable, Dict
 
-import nats
 from google.protobuf import timestamp_pb2
 from cap.pb.coretex.agent.v1 import buspacket_pb2, job_pb2
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
-import hashlib
 
 DEFAULT_PROTOCOL_VERSION = 1
 SUBJECT_RESULT = "sys.job.result"
@@ -16,9 +14,16 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
                      public_keys: Dict[str, ec.EllipticCurvePublicKey] = None,
                      private_key: ec.EllipticCurvePrivateKey = None,
                      sender_id: str = "cap-worker",
-                     connect_fn: Callable = nats.connect):
+                     connect_fn: Callable = None):
 
     # Allow injection for tests; defaults to nats.connect.
+    if connect_fn is None:
+        try:
+            import nats  # type: ignore
+        except ImportError as exc:
+            raise RuntimeError("nats-py is required to connect to NATS") from exc
+        connect_fn = nats.connect
+
     nc = await connect_fn(servers=nats_url, name=sender_id)
 
     async def on_msg(msg):
@@ -34,9 +39,8 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
             signature = packet.signature
             packet.ClearField("signature")
             unsigned_data = packet.SerializeToString()
-            digest = hashlib.sha256(unsigned_data).digest()
             try:
-                public_key.verify(signature, digest, ec.ECDSA(hashes.SHA256()))
+                public_key.verify(signature, unsigned_data, ec.ECDSA(hashes.SHA256()))
             except Exception:
                 print(f"worker: invalid signature from sender: {packet.sender_id}")
                 return
@@ -46,12 +50,22 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
             return
         try:
             res = await handler(req)
+            if res is None:
+                res = job_pb2.JobResult(
+                    job_id=req.job_id,
+                    status=job_pb2.JOB_STATUS_FAILED,
+                    error_message="handler returned null",
+                )
         except Exception as exc:  # noqa: BLE001
             res = job_pb2.JobResult(
                 job_id=req.job_id,
                 status=job_pb2.JOB_STATUS_FAILED,
                 error_message=str(exc),
             )
+        if not res.job_id:
+            res.job_id = req.job_id
+        if not res.worker_id:
+            res.worker_id = sender_id
         ts = timestamp_pb2.Timestamp()
         ts.GetCurrentTime()
         out = buspacket_pb2.BusPacket()
@@ -63,8 +77,7 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
 
         if private_key:
             unsigned_data = out.SerializeToString()
-            digest = hashlib.sha256(unsigned_data).digest()
-            signature = private_key.sign(digest, ec.ECDSA(hashes.SHA256()))
+            signature = private_key.sign(unsigned_data, ec.ECDSA(hashes.SHA256()))
             out.signature = signature
 
         await nc.publish(SUBJECT_RESULT, out.SerializeToString())

@@ -53,11 +53,27 @@ jobs:
           
           "$PYTHON_BIN" - <<'PY'
           import os
+          import re
           import tomllib
           from pathlib import Path
+          from packaging.version import InvalidVersion, Version
 
-          # Strip 'v' prefix if present
-          version = os.environ["VERSION"].lstrip("v")
+          raw_version = os.environ.get("VERSION", "").strip()
+          if not raw_version:
+              raise SystemExit("VERSION not set from tag or input")
+
+          # Strip 'v' prefix if present, then ensure PEP 440 compatibility.
+          candidate = raw_version.lstrip("v")
+          try:
+              version = str(Version(candidate))
+          except InvalidVersion:
+              # Fallback: turn branch names (e.g. "main") into a local version.
+              sanitized = re.sub(r"[^0-9A-Za-z]+", ".", raw_version.lower()).strip(".")
+              if not sanitized:
+                  raise SystemExit(f"Cannot derive PEP 440 version from {raw_version!r}")
+              version = f"0.0.0+{sanitized}"
+              print(f"Using fallback PEP 440 version: {version}")
+
           path = Path("pyproject.toml")
           
           # Verify TOML is valid

@@ -1,4 +1,4 @@
-# CAP SDKs (Go, Python, Node/TypeScript)
+# CAP SDKs (Go, Python, Node/TypeScript, C++)
 
 This folder contains production-ready starter SDKs for CAP. Each SDK is bus-agnostic but ships NATS helpers as a sane default.
 
@@ -6,6 +6,10 @@ This folder contains production-ready starter SDKs for CAP. Each SDK is bus-agno
 - `go/` — Go SDK with NATS worker/client helpers.
 - `python/` — Python SDK with asyncio NATS helpers.
 - `node/` — Node/TypeScript SDK using NATS and protobufjs loaders.
+- `cpp/` — C++ SDK with a small bus interface and helper wrappers.
+
+## Examples
+- `examples/simple-echo/` contains Go/Python/Node client+worker pairs aligned with these SDKs.
 
 ## Proto Stubs
 Generate language stubs from `proto/` before building:
@@ -19,7 +23,7 @@ Generate language stubs from `proto/` before building:
 The helpers default to NATS. You can swap in Kafka or another pub/sub by replacing the bus adapter while keeping the same message shapes.
 
 ## Signing and Verification
-- SDK helpers sign `BusPacket` envelopes; pass a private key when submitting jobs and set worker/client public keys to enforce verification.
+- SDK helpers sign `BusPacket` envelopes when given a private key; pass a key to enforce verification, or omit it to send unsigned packets.
 - Example ECDSA keypair (P-256):
   ```bash
   openssl ecparam -name prime256v1 -genkey -noout -out cap-priv.pem

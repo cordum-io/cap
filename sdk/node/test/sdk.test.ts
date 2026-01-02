@@ -40,7 +40,7 @@ describe("CAP SDK E2E Test", () => {
   before(() => {
     // Generate client keys
     const clientKey = crypto.generateKeyPairSync("ec", { // Explicitly set type to "ec"
-      namedCurve: "secp256k1",
+      namedCurve: "prime256v1",
       publicKeyEncoding: { type: "spki", format: "pem" },
       privateKeyEncoding: { type: "pkcs8", format: "pem" },
     });
@@ -49,7 +49,7 @@ describe("CAP SDK E2E Test", () => {
 
     // Generate worker keys
     const workerKey = crypto.generateKeyPairSync("ec", { // Explicitly set type to "ec"
-      namedCurve: "secp256k1",
+      namedCurve: "prime256v1",
       publicKeyEncoding: { type: "spki", format: "pem" },
       privateKeyEncoding: { type: "pkcs8", format: "pem" },
     });

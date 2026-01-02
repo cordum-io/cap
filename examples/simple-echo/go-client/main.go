@@ -7,7 +7,7 @@ import (
 	"crypto/rand"
 	"log"
 
-	agentv1 "github.com/coretexos/cap/go/coretex/agent/v1"
+	agentv1 "github.com/coretexos/cap/v2/go/coretex/agent/v1"
 	"github.com/coretexos/cap/sdk/go/client"
 	"github.com/nats-io/nats.go"
 )
@@ -25,8 +25,9 @@ func main() {
 	}
 
 	req := &agentv1.JobRequest{
-		JobId: "my-echo-job",
-		Topic: "job.echo",
+		JobId:      "my-echo-job",
+		Topic:      "job.echo",
+		ContextPtr: "redis://ctx/my-echo-job",
 	}
 
 	if err := client.Submit(context.Background(), nc, req, "my-trace-id", "my-client", priv); err != nil {

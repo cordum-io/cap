@@ -26,6 +26,8 @@ message BusPacket {
         JobResult job_result = 11;
         Heartbeat heartbeat = 12;
         SystemAlert alert = 13;
+        JobProgress job_progress = 15;
+        JobCancel job_cancel = 16;
     }
     bytes signature = 14;                   // digital signature of the serialized BusPacket
 }

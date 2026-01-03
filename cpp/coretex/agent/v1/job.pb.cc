@@ -55,6 +55,38 @@ struct BudgetDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 BudgetDefaultTypeInternal _Budget_default_instance_;
+PROTOBUF_CONSTEXPR JobMetadata_LabelsEntry_DoNotUse::JobMetadata_LabelsEntry_DoNotUse(
+    ::_pbi::ConstantInitialized) {}
+struct JobMetadata_LabelsEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR JobMetadata_LabelsEntry_DoNotUseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~JobMetadata_LabelsEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    JobMetadata_LabelsEntry_DoNotUse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 JobMetadata_LabelsEntry_DoNotUseDefaultTypeInternal _JobMetadata_LabelsEntry_DoNotUse_default_instance_;
+PROTOBUF_CONSTEXPR JobMetadata::JobMetadata(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.risk_tags_)*/{}
+  , /*decltype(_impl_.requires_)*/{}
+  , /*decltype(_impl_.labels_)*/{::_pbi::ConstantInitialized()}
+  , /*decltype(_impl_.tenant_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.actor_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.idempotency_key_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.capability_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.pack_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.actor_type_)*/0
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct JobMetadataDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR JobMetadataDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~JobMetadataDefaultTypeInternal() {}
+  union {
+    JobMetadata _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 JobMetadataDefaultTypeInternal _JobMetadata_default_instance_;
 PROTOBUF_CONSTEXPR JobRequest_EnvEntry_DoNotUse::JobRequest_EnvEntry_DoNotUse(
     ::_pbi::ConstantInitialized) {}
 struct JobRequest_EnvEntry_DoNotUseDefaultTypeInternal {
@@ -92,6 +124,7 @@ PROTOBUF_CONSTEXPR JobRequest::JobRequest(
   , /*decltype(_impl_.principal_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.context_hints_)*/nullptr
   , /*decltype(_impl_.budget_)*/nullptr
+  , /*decltype(_impl_.meta_)*/nullptr
   , /*decltype(_impl_.priority_)*/0
   , /*decltype(_impl_.step_index_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
@@ -126,8 +159,8 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 }  // namespace v1
 }  // namespace agent
 }  // namespace coretex
-static ::_pb::Metadata file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[6];
-static const ::_pb::EnumDescriptor* file_level_enum_descriptors_coretex_2fagent_2fv1_2fjob_2eproto[2];
+static ::_pb::Metadata file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[8];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_coretex_2fagent_2fv1_2fjob_2eproto[3];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_coretex_2fagent_2fv1_2fjob_2eproto = nullptr;
 
 const uint32_t TableStruct_coretex_2fagent_2fv1_2fjob_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -151,6 +184,31 @@ const uint32_t TableStruct_coretex_2fagent_2fv1_2fjob_2eproto::offsets[] PROTOBU
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Budget, _impl_.max_output_tokens_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Budget, _impl_.max_total_tokens_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::Budget, _impl_.deadline_ms_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata_LabelsEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata_LabelsEntry_DoNotUse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata_LabelsEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata_LabelsEntry_DoNotUse, value_),
+  0,
+  1,
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata, _impl_.tenant_id_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata, _impl_.actor_id_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata, _impl_.actor_type_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata, _impl_.idempotency_key_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata, _impl_.capability_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata, _impl_.risk_tags_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata, _impl_.requires_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata, _impl_.pack_id_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobMetadata, _impl_.labels_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobRequest_EnvEntry_DoNotUse, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobRequest_EnvEntry_DoNotUse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -192,6 +250,7 @@ const uint32_t TableStruct_coretex_2fagent_2fv1_2fjob_2eproto::offsets[] PROTOBU
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobRequest, _impl_.tenant_id_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobRequest, _impl_.principal_id_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobRequest, _impl_.labels_),
+  PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobRequest, _impl_.meta_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::JobResult, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -209,15 +268,19 @@ const uint32_t TableStruct_coretex_2fagent_2fv1_2fjob_2eproto::offsets[] PROTOBU
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::coretex::agent::v1::ContextHints)},
   { 10, -1, -1, sizeof(::coretex::agent::v1::Budget)},
-  { 20, 28, -1, sizeof(::coretex::agent::v1::JobRequest_EnvEntry_DoNotUse)},
-  { 30, 38, -1, sizeof(::coretex::agent::v1::JobRequest_LabelsEntry_DoNotUse)},
-  { 40, -1, -1, sizeof(::coretex::agent::v1::JobRequest)},
-  { 61, -1, -1, sizeof(::coretex::agent::v1::JobResult)},
+  { 20, 28, -1, sizeof(::coretex::agent::v1::JobMetadata_LabelsEntry_DoNotUse)},
+  { 30, -1, -1, sizeof(::coretex::agent::v1::JobMetadata)},
+  { 45, 53, -1, sizeof(::coretex::agent::v1::JobRequest_EnvEntry_DoNotUse)},
+  { 55, 63, -1, sizeof(::coretex::agent::v1::JobRequest_LabelsEntry_DoNotUse)},
+  { 65, -1, -1, sizeof(::coretex::agent::v1::JobRequest)},
+  { 87, -1, -1, sizeof(::coretex::agent::v1::JobResult)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
   &::coretex::agent::v1::_ContextHints_default_instance_._instance,
   &::coretex::agent::v1::_Budget_default_instance_._instance,
+  &::coretex::agent::v1::_JobMetadata_LabelsEntry_DoNotUse_default_instance_._instance,
+  &::coretex::agent::v1::_JobMetadata_default_instance_._instance,
   &::coretex::agent::v1::_JobRequest_EnvEntry_DoNotUse_default_instance_._instance,
   &::coretex::agent::v1::_JobRequest_LabelsEntry_DoNotUse_default_instance_._instance,
   &::coretex::agent::v1::_JobRequest_default_instance_._instance,
@@ -231,45 +294,56 @@ const char descriptor_table_protodef_coretex_2fagent_2fv1_2fjob_2eproto[] PROTOB
   "\017allow_retrieval\030\003 \001(\010\022\014\n\004tags\030\004 \003(\t\"l\n\006"
   "Budget\022\030\n\020max_input_tokens\030\001 \001(\003\022\031\n\021max_"
   "output_tokens\030\002 \001(\003\022\030\n\020max_total_tokens\030"
-  "\003 \001(\003\022\023\n\013deadline_ms\030\004 \001(\003\"\253\004\n\nJobReques"
-  "t\022\016\n\006job_id\030\001 \001(\t\022\r\n\005topic\030\002 \001(\t\022/\n\010prio"
-  "rity\030\003 \001(\0162\035.coretex.agent.v1.JobPriorit"
-  "y\022\023\n\013context_ptr\030\004 \001(\t\022\022\n\nadapter_id\030\005 \001"
-  "(\t\0222\n\003env\030\006 \003(\0132%.coretex.agent.v1.JobRe"
-  "quest.EnvEntry\022\025\n\rparent_job_id\030\007 \001(\t\022\023\n"
-  "\013workflow_id\030\010 \001(\t\022\022\n\nstep_index\030\t \001(\005\022\021"
-  "\n\tmemory_id\030\n \001(\t\0225\n\rcontext_hints\030\013 \001(\013"
-  "2\036.coretex.agent.v1.ContextHints\022(\n\006budg"
-  "et\030\014 \001(\0132\030.coretex.agent.v1.Budget\022\021\n\tte"
-  "nant_id\030\r \001(\t\022\024\n\014principal_id\030\016 \001(\t\0228\n\006l"
-  "abels\030\017 \003(\0132(.coretex.agent.v1.JobReques"
-  "t.LabelsEntry\032*\n\010EnvEntry\022\013\n\003key\030\001 \001(\t\022\r"
-  "\n\005value\030\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030"
-  "\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\260\001\n\tJobResult\022\016"
-  "\n\006job_id\030\001 \001(\t\022+\n\006status\030\002 \001(\0162\033.coretex"
-  ".agent.v1.JobStatus\022\022\n\nresult_ptr\030\003 \001(\t\022"
-  "\021\n\tworker_id\030\004 \001(\t\022\024\n\014execution_ms\030\005 \001(\003"
-  "\022\022\n\nerror_code\030\006 \001(\t\022\025\n\rerror_message\030\007 "
-  "\001(\t*|\n\013JobPriority\022\034\n\030JOB_PRIORITY_UNSPE"
-  "CIFIED\020\000\022\034\n\030JOB_PRIORITY_INTERACTIVE\020\001\022\026"
-  "\n\022JOB_PRIORITY_BATCH\020\002\022\031\n\025JOB_PRIORITY_C"
-  "RITICAL\020\003*\206\002\n\tJobStatus\022\032\n\026JOB_STATUS_UN"
-  "SPECIFIED\020\000\022\026\n\022JOB_STATUS_PENDING\020\001\022\030\n\024J"
-  "OB_STATUS_SCHEDULED\020\002\022\031\n\025JOB_STATUS_DISP"
-  "ATCHED\020\003\022\026\n\022JOB_STATUS_RUNNING\020\004\022\030\n\024JOB_"
-  "STATUS_SUCCEEDED\020\005\022\025\n\021JOB_STATUS_FAILED\020"
-  "\006\022\030\n\024JOB_STATUS_CANCELLED\020\007\022\025\n\021JOB_STATU"
-  "S_DENIED\020\010\022\026\n\022JOB_STATUS_TIMEOUT\020\tB\207\001\n\027a"
-  "i.coretex.cap.agent.v1P\001Z/github.com/cor"
-  "etexos/cap/v2/go/coretex/agent/v1\252\002\020core"
-  "tex.Agent.V1\312\002\020coretex\\Agent\\V1\352\002\022corete"
-  "x::Agent::V1b\006proto3"
+  "\003 \001(\003\022\023\n\013deadline_ms\030\004 \001(\003\"\260\002\n\013JobMetada"
+  "ta\022\021\n\ttenant_id\030\001 \001(\t\022\020\n\010actor_id\030\002 \001(\t\022"
+  "/\n\nactor_type\030\003 \001(\0162\033.coretex.agent.v1.A"
+  "ctorType\022\027\n\017idempotency_key\030\004 \001(\t\022\022\n\ncap"
+  "ability\030\005 \001(\t\022\021\n\trisk_tags\030\006 \003(\t\022\020\n\010requ"
+  "ires\030\007 \003(\t\022\017\n\007pack_id\030\010 \001(\t\0229\n\006labels\030\t "
+  "\003(\0132).coretex.agent.v1.JobMetadata.Label"
+  "sEntry\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005va"
+  "lue\030\002 \001(\t:\0028\001\"\330\004\n\nJobRequest\022\016\n\006job_id\030\001"
+  " \001(\t\022\r\n\005topic\030\002 \001(\t\022/\n\010priority\030\003 \001(\0162\035."
+  "coretex.agent.v1.JobPriority\022\023\n\013context_"
+  "ptr\030\004 \001(\t\022\022\n\nadapter_id\030\005 \001(\t\0222\n\003env\030\006 \003"
+  "(\0132%.coretex.agent.v1.JobRequest.EnvEntr"
+  "y\022\025\n\rparent_job_id\030\007 \001(\t\022\023\n\013workflow_id\030"
+  "\010 \001(\t\022\022\n\nstep_index\030\t \001(\005\022\021\n\tmemory_id\030\n"
+  " \001(\t\0225\n\rcontext_hints\030\013 \001(\0132\036.coretex.ag"
+  "ent.v1.ContextHints\022(\n\006budget\030\014 \001(\0132\030.co"
+  "retex.agent.v1.Budget\022\021\n\ttenant_id\030\r \001(\t"
+  "\022\024\n\014principal_id\030\016 \001(\t\0228\n\006labels\030\017 \003(\0132("
+  ".coretex.agent.v1.JobRequest.LabelsEntry"
+  "\022+\n\004meta\030\020 \001(\0132\035.coretex.agent.v1.JobMet"
+  "adata\032*\n\010EnvEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030"
+  "\002 \001(\t:\0028\001\032-\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n"
+  "\005value\030\002 \001(\t:\0028\001\"\260\001\n\tJobResult\022\016\n\006job_id"
+  "\030\001 \001(\t\022+\n\006status\030\002 \001(\0162\033.coretex.agent.v"
+  "1.JobStatus\022\022\n\nresult_ptr\030\003 \001(\t\022\021\n\tworke"
+  "r_id\030\004 \001(\t\022\024\n\014execution_ms\030\005 \001(\003\022\022\n\nerro"
+  "r_code\030\006 \001(\t\022\025\n\rerror_message\030\007 \001(\t*|\n\013J"
+  "obPriority\022\034\n\030JOB_PRIORITY_UNSPECIFIED\020\000"
+  "\022\034\n\030JOB_PRIORITY_INTERACTIVE\020\001\022\026\n\022JOB_PR"
+  "IORITY_BATCH\020\002\022\031\n\025JOB_PRIORITY_CRITICAL\020"
+  "\003*\206\002\n\tJobStatus\022\032\n\026JOB_STATUS_UNSPECIFIE"
+  "D\020\000\022\026\n\022JOB_STATUS_PENDING\020\001\022\030\n\024JOB_STATU"
+  "S_SCHEDULED\020\002\022\031\n\025JOB_STATUS_DISPATCHED\020\003"
+  "\022\026\n\022JOB_STATUS_RUNNING\020\004\022\030\n\024JOB_STATUS_S"
+  "UCCEEDED\020\005\022\025\n\021JOB_STATUS_FAILED\020\006\022\030\n\024JOB"
+  "_STATUS_CANCELLED\020\007\022\025\n\021JOB_STATUS_DENIED"
+  "\020\010\022\026\n\022JOB_STATUS_TIMEOUT\020\t*U\n\tActorType\022"
+  "\032\n\026ACTOR_TYPE_UNSPECIFIED\020\000\022\024\n\020ACTOR_TYP"
+  "E_HUMAN\020\001\022\026\n\022ACTOR_TYPE_SERVICE\020\002B\204\001\n\027ai"
+  ".coretex.cap.agent.v1P\001Z,github.com/core"
+  "texos/cap/v2/coretex/agent/v1\252\002\020coretex."
+  "Agent.V1\312\002\020coretex\\Agent\\V1\352\002\022coretex::A"
+  "gent::V1b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto = {
-    false, false, 1540, descriptor_table_protodef_coretex_2fagent_2fv1_2fjob_2eproto,
+    false, false, 1976, descriptor_table_protodef_coretex_2fagent_2fv1_2fjob_2eproto,
     "coretex/agent/v1/job.proto",
-    &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_once, nullptr, 0, 6,
+    &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_once, nullptr, 0, 8,
     schemas, file_default_instances, TableStruct_coretex_2fagent_2fv1_2fjob_2eproto::offsets,
     file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto, file_level_enum_descriptors_coretex_2fagent_2fv1_2fjob_2eproto,
     file_level_service_descriptors_coretex_2fagent_2fv1_2fjob_2eproto,
@@ -315,6 +389,21 @@ bool JobStatus_IsValid(int value) {
     case 7:
     case 8:
     case 9:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ActorType_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto);
+  return file_level_enum_descriptors_coretex_2fagent_2fv1_2fjob_2eproto[2];
+}
+bool ActorType_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
       return true;
     default:
       return false;
@@ -857,6 +946,599 @@ void Budget::InternalSwap(Budget* other) {
 
 // ===================================================================
 
+JobMetadata_LabelsEntry_DoNotUse::JobMetadata_LabelsEntry_DoNotUse() {}
+JobMetadata_LabelsEntry_DoNotUse::JobMetadata_LabelsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+    : SuperType(arena) {}
+void JobMetadata_LabelsEntry_DoNotUse::MergeFrom(const JobMetadata_LabelsEntry_DoNotUse& other) {
+  MergeFromInternal(other);
+}
+::PROTOBUF_NAMESPACE_ID::Metadata JobMetadata_LabelsEntry_DoNotUse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_once,
+      file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[2]);
+}
+
+// ===================================================================
+
+class JobMetadata::_Internal {
+ public:
+};
+
+JobMetadata::JobMetadata(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  if (arena != nullptr && !is_message_owned) {
+    arena->OwnCustomDestructor(this, &JobMetadata::ArenaDtor);
+  }
+  // @@protoc_insertion_point(arena_constructor:coretex.agent.v1.JobMetadata)
+}
+JobMetadata::JobMetadata(const JobMetadata& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  JobMetadata* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.risk_tags_){from._impl_.risk_tags_}
+    , decltype(_impl_.requires_){from._impl_.requires_}
+    , /*decltype(_impl_.labels_)*/{}
+    , decltype(_impl_.tenant_id_){}
+    , decltype(_impl_.actor_id_){}
+    , decltype(_impl_.idempotency_key_){}
+    , decltype(_impl_.capability_){}
+    , decltype(_impl_.pack_id_){}
+    , decltype(_impl_.actor_type_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.labels_.MergeFrom(from._impl_.labels_);
+  _impl_.tenant_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.tenant_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_tenant_id().empty()) {
+    _this->_impl_.tenant_id_.Set(from._internal_tenant_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.actor_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.actor_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_actor_id().empty()) {
+    _this->_impl_.actor_id_.Set(from._internal_actor_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.idempotency_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.idempotency_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_idempotency_key().empty()) {
+    _this->_impl_.idempotency_key_.Set(from._internal_idempotency_key(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.capability_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.capability_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_capability().empty()) {
+    _this->_impl_.capability_.Set(from._internal_capability(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.pack_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.pack_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_pack_id().empty()) {
+    _this->_impl_.pack_id_.Set(from._internal_pack_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _this->_impl_.actor_type_ = from._impl_.actor_type_;
+  // @@protoc_insertion_point(copy_constructor:coretex.agent.v1.JobMetadata)
+}
+
+inline void JobMetadata::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.risk_tags_){arena}
+    , decltype(_impl_.requires_){arena}
+    , /*decltype(_impl_.labels_)*/{::_pbi::ArenaInitialized(), arena}
+    , decltype(_impl_.tenant_id_){}
+    , decltype(_impl_.actor_id_){}
+    , decltype(_impl_.idempotency_key_){}
+    , decltype(_impl_.capability_){}
+    , decltype(_impl_.pack_id_){}
+    , decltype(_impl_.actor_type_){0}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.tenant_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.tenant_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.actor_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.actor_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.idempotency_key_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.idempotency_key_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.capability_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.capability_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.pack_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.pack_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+JobMetadata::~JobMetadata() {
+  // @@protoc_insertion_point(destructor:coretex.agent.v1.JobMetadata)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    ArenaDtor(this);
+    return;
+  }
+  SharedDtor();
+}
+
+inline void JobMetadata::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.risk_tags_.~RepeatedPtrField();
+  _impl_.requires_.~RepeatedPtrField();
+  _impl_.labels_.Destruct();
+  _impl_.labels_.~MapField();
+  _impl_.tenant_id_.Destroy();
+  _impl_.actor_id_.Destroy();
+  _impl_.idempotency_key_.Destroy();
+  _impl_.capability_.Destroy();
+  _impl_.pack_id_.Destroy();
+}
+
+void JobMetadata::ArenaDtor(void* object) {
+  JobMetadata* _this = reinterpret_cast< JobMetadata* >(object);
+  _this->_impl_.labels_.Destruct();
+}
+void JobMetadata::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void JobMetadata::Clear() {
+// @@protoc_insertion_point(message_clear_start:coretex.agent.v1.JobMetadata)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.risk_tags_.Clear();
+  _impl_.requires_.Clear();
+  _impl_.labels_.Clear();
+  _impl_.tenant_id_.ClearToEmpty();
+  _impl_.actor_id_.ClearToEmpty();
+  _impl_.idempotency_key_.ClearToEmpty();
+  _impl_.capability_.ClearToEmpty();
+  _impl_.pack_id_.ClearToEmpty();
+  _impl_.actor_type_ = 0;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* JobMetadata::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string tenant_id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_tenant_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.JobMetadata.tenant_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string actor_id = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_actor_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.JobMetadata.actor_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // .coretex.agent.v1.ActorType actor_type = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_actor_type(static_cast<::coretex::agent::v1::ActorType>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // string idempotency_key = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_idempotency_key();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.JobMetadata.idempotency_key"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string capability = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_capability();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.JobMetadata.capability"));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string risk_tags = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_risk_tags();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.JobMetadata.risk_tags"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<50>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string requires = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_requires();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.JobMetadata.requires"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<58>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // string pack_id = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+          auto str = _internal_mutable_pack_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "coretex.agent.v1.JobMetadata.pack_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // map<string, string> labels = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(&_impl_.labels_, ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<74>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* JobMetadata::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:coretex.agent.v1.JobMetadata)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string tenant_id = 1;
+  if (!this->_internal_tenant_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_tenant_id().data(), static_cast<int>(this->_internal_tenant_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.JobMetadata.tenant_id");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_tenant_id(), target);
+  }
+
+  // string actor_id = 2;
+  if (!this->_internal_actor_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_actor_id().data(), static_cast<int>(this->_internal_actor_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.JobMetadata.actor_id");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_actor_id(), target);
+  }
+
+  // .coretex.agent.v1.ActorType actor_type = 3;
+  if (this->_internal_actor_type() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+      3, this->_internal_actor_type(), target);
+  }
+
+  // string idempotency_key = 4;
+  if (!this->_internal_idempotency_key().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_idempotency_key().data(), static_cast<int>(this->_internal_idempotency_key().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.JobMetadata.idempotency_key");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_idempotency_key(), target);
+  }
+
+  // string capability = 5;
+  if (!this->_internal_capability().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_capability().data(), static_cast<int>(this->_internal_capability().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.JobMetadata.capability");
+    target = stream->WriteStringMaybeAliased(
+        5, this->_internal_capability(), target);
+  }
+
+  // repeated string risk_tags = 6;
+  for (int i = 0, n = this->_internal_risk_tags_size(); i < n; i++) {
+    const auto& s = this->_internal_risk_tags(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.JobMetadata.risk_tags");
+    target = stream->WriteString(6, s, target);
+  }
+
+  // repeated string requires = 7;
+  for (int i = 0, n = this->_internal_requires_size(); i < n; i++) {
+    const auto& s = this->_internal_requires(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.JobMetadata.requires");
+    target = stream->WriteString(7, s, target);
+  }
+
+  // string pack_id = 8;
+  if (!this->_internal_pack_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_pack_id().data(), static_cast<int>(this->_internal_pack_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "coretex.agent.v1.JobMetadata.pack_id");
+    target = stream->WriteStringMaybeAliased(
+        8, this->_internal_pack_id(), target);
+  }
+
+  // map<string, string> labels = 9;
+  if (!this->_internal_labels().empty()) {
+    using MapType = ::_pb::Map<std::string, std::string>;
+    using WireHelper = JobMetadata_LabelsEntry_DoNotUse::Funcs;
+    const auto& map_field = this->_internal_labels();
+    auto check_utf8 = [](const MapType::value_type& entry) {
+      (void)entry;
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.first.data(), static_cast<int>(entry.first.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "coretex.agent.v1.JobMetadata.LabelsEntry.key");
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.second.data(), static_cast<int>(entry.second.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "coretex.agent.v1.JobMetadata.LabelsEntry.value");
+    };
+
+    if (stream->IsSerializationDeterministic() && map_field.size() > 1) {
+      for (const auto& entry : ::_pbi::MapSorterPtr<MapType>(map_field)) {
+        target = WireHelper::InternalSerialize(9, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    } else {
+      for (const auto& entry : map_field) {
+        target = WireHelper::InternalSerialize(9, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    }
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:coretex.agent.v1.JobMetadata)
+  return target;
+}
+
+size_t JobMetadata::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:coretex.agent.v1.JobMetadata)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated string risk_tags = 6;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.risk_tags_.size());
+  for (int i = 0, n = _impl_.risk_tags_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.risk_tags_.Get(i));
+  }
+
+  // repeated string requires = 7;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.requires_.size());
+  for (int i = 0, n = _impl_.requires_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.requires_.Get(i));
+  }
+
+  // map<string, string> labels = 9;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_labels_size());
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
+      it = this->_internal_labels().begin();
+      it != this->_internal_labels().end(); ++it) {
+    total_size += JobMetadata_LabelsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
+  }
+
+  // string tenant_id = 1;
+  if (!this->_internal_tenant_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_tenant_id());
+  }
+
+  // string actor_id = 2;
+  if (!this->_internal_actor_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_actor_id());
+  }
+
+  // string idempotency_key = 4;
+  if (!this->_internal_idempotency_key().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_idempotency_key());
+  }
+
+  // string capability = 5;
+  if (!this->_internal_capability().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_capability());
+  }
+
+  // string pack_id = 8;
+  if (!this->_internal_pack_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_pack_id());
+  }
+
+  // .coretex.agent.v1.ActorType actor_type = 3;
+  if (this->_internal_actor_type() != 0) {
+    total_size += 1 +
+      ::_pbi::WireFormatLite::EnumSize(this->_internal_actor_type());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData JobMetadata::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    JobMetadata::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*JobMetadata::GetClassData() const { return &_class_data_; }
+
+
+void JobMetadata::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<JobMetadata*>(&to_msg);
+  auto& from = static_cast<const JobMetadata&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:coretex.agent.v1.JobMetadata)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.risk_tags_.MergeFrom(from._impl_.risk_tags_);
+  _this->_impl_.requires_.MergeFrom(from._impl_.requires_);
+  _this->_impl_.labels_.MergeFrom(from._impl_.labels_);
+  if (!from._internal_tenant_id().empty()) {
+    _this->_internal_set_tenant_id(from._internal_tenant_id());
+  }
+  if (!from._internal_actor_id().empty()) {
+    _this->_internal_set_actor_id(from._internal_actor_id());
+  }
+  if (!from._internal_idempotency_key().empty()) {
+    _this->_internal_set_idempotency_key(from._internal_idempotency_key());
+  }
+  if (!from._internal_capability().empty()) {
+    _this->_internal_set_capability(from._internal_capability());
+  }
+  if (!from._internal_pack_id().empty()) {
+    _this->_internal_set_pack_id(from._internal_pack_id());
+  }
+  if (from._internal_actor_type() != 0) {
+    _this->_internal_set_actor_type(from._internal_actor_type());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void JobMetadata::CopyFrom(const JobMetadata& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:coretex.agent.v1.JobMetadata)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool JobMetadata::IsInitialized() const {
+  return true;
+}
+
+void JobMetadata::InternalSwap(JobMetadata* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.risk_tags_.InternalSwap(&other->_impl_.risk_tags_);
+  _impl_.requires_.InternalSwap(&other->_impl_.requires_);
+  _impl_.labels_.InternalSwap(&other->_impl_.labels_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.tenant_id_, lhs_arena,
+      &other->_impl_.tenant_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.actor_id_, lhs_arena,
+      &other->_impl_.actor_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.idempotency_key_, lhs_arena,
+      &other->_impl_.idempotency_key_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.capability_, lhs_arena,
+      &other->_impl_.capability_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.pack_id_, lhs_arena,
+      &other->_impl_.pack_id_, rhs_arena
+  );
+  swap(_impl_.actor_type_, other->_impl_.actor_type_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata JobMetadata::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_once,
+      file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[3]);
+}
+
+// ===================================================================
+
 JobRequest_EnvEntry_DoNotUse::JobRequest_EnvEntry_DoNotUse() {}
 JobRequest_EnvEntry_DoNotUse::JobRequest_EnvEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
     : SuperType(arena) {}
@@ -866,7 +1548,7 @@ void JobRequest_EnvEntry_DoNotUse::MergeFrom(const JobRequest_EnvEntry_DoNotUse&
 ::PROTOBUF_NAMESPACE_ID::Metadata JobRequest_EnvEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_once,
-      file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[2]);
+      file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[4]);
 }
 
 // ===================================================================
@@ -880,7 +1562,7 @@ void JobRequest_LabelsEntry_DoNotUse::MergeFrom(const JobRequest_LabelsEntry_DoN
 ::PROTOBUF_NAMESPACE_ID::Metadata JobRequest_LabelsEntry_DoNotUse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_once,
-      file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[3]);
+      file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[5]);
 }
 
 // ===================================================================
@@ -889,6 +1571,7 @@ class JobRequest::_Internal {
  public:
   static const ::coretex::agent::v1::ContextHints& context_hints(const JobRequest* msg);
   static const ::coretex::agent::v1::Budget& budget(const JobRequest* msg);
+  static const ::coretex::agent::v1::JobMetadata& meta(const JobRequest* msg);
 };
 
 const ::coretex::agent::v1::ContextHints&
@@ -898,6 +1581,10 @@ JobRequest::_Internal::context_hints(const JobRequest* msg) {
 const ::coretex::agent::v1::Budget&
 JobRequest::_Internal::budget(const JobRequest* msg) {
   return *msg->_impl_.budget_;
+}
+const ::coretex::agent::v1::JobMetadata&
+JobRequest::_Internal::meta(const JobRequest* msg) {
+  return *msg->_impl_.meta_;
 }
 JobRequest::JobRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
@@ -925,6 +1612,7 @@ JobRequest::JobRequest(const JobRequest& from)
     , decltype(_impl_.principal_id_){}
     , decltype(_impl_.context_hints_){nullptr}
     , decltype(_impl_.budget_){nullptr}
+    , decltype(_impl_.meta_){nullptr}
     , decltype(_impl_.priority_){}
     , decltype(_impl_.step_index_){}
     , /*decltype(_impl_._cached_size_)*/{}};
@@ -1010,6 +1698,9 @@ JobRequest::JobRequest(const JobRequest& from)
   if (from._internal_has_budget()) {
     _this->_impl_.budget_ = new ::coretex::agent::v1::Budget(*from._impl_.budget_);
   }
+  if (from._internal_has_meta()) {
+    _this->_impl_.meta_ = new ::coretex::agent::v1::JobMetadata(*from._impl_.meta_);
+  }
   ::memcpy(&_impl_.priority_, &from._impl_.priority_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.step_index_) -
     reinterpret_cast<char*>(&_impl_.priority_)) + sizeof(_impl_.step_index_));
@@ -1034,6 +1725,7 @@ inline void JobRequest::SharedCtor(
     , decltype(_impl_.principal_id_){}
     , decltype(_impl_.context_hints_){nullptr}
     , decltype(_impl_.budget_){nullptr}
+    , decltype(_impl_.meta_){nullptr}
     , decltype(_impl_.priority_){0}
     , decltype(_impl_.step_index_){0}
     , /*decltype(_impl_._cached_size_)*/{}
@@ -1103,6 +1795,7 @@ inline void JobRequest::SharedDtor() {
   _impl_.principal_id_.Destroy();
   if (this != internal_default_instance()) delete _impl_.context_hints_;
   if (this != internal_default_instance()) delete _impl_.budget_;
+  if (this != internal_default_instance()) delete _impl_.meta_;
 }
 
 void JobRequest::ArenaDtor(void* object) {
@@ -1139,6 +1832,10 @@ void JobRequest::Clear() {
     delete _impl_.budget_;
   }
   _impl_.budget_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.meta_ != nullptr) {
+    delete _impl_.meta_;
+  }
+  _impl_.meta_ = nullptr;
   ::memset(&_impl_.priority_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.step_index_) -
       reinterpret_cast<char*>(&_impl_.priority_)) + sizeof(_impl_.step_index_));
@@ -1297,6 +1994,14 @@ const char* JobRequest::_InternalParse(const char* ptr, ::_pbi::ParseContext* ct
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<122>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // .coretex.agent.v1.JobMetadata meta = 16;
+      case 16:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 130)) {
+          ptr = ctx->ParseMessage(_internal_mutable_meta(), ptr);
+          CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
@@ -1506,6 +2211,13 @@ uint8_t* JobRequest::_InternalSerialize(
     }
   }
 
+  // .coretex.agent.v1.JobMetadata meta = 16;
+  if (this->_internal_has_meta()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(16, _Internal::meta(this),
+        _Internal::meta(this).GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -1617,6 +2329,13 @@ size_t JobRequest::ByteSizeLong() const {
         *_impl_.budget_);
   }
 
+  // .coretex.agent.v1.JobMetadata meta = 16;
+  if (this->_internal_has_meta()) {
+    total_size += 2 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.meta_);
+  }
+
   // .coretex.agent.v1.JobPriority priority = 3;
   if (this->_internal_priority() != 0) {
     total_size += 1 +
@@ -1682,6 +2401,10 @@ void JobRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PRO
   if (from._internal_has_budget()) {
     _this->_internal_mutable_budget()->::coretex::agent::v1::Budget::MergeFrom(
         from._internal_budget());
+  }
+  if (from._internal_has_meta()) {
+    _this->_internal_mutable_meta()->::coretex::agent::v1::JobMetadata::MergeFrom(
+        from._internal_meta());
   }
   if (from._internal_priority() != 0) {
     _this->_internal_set_priority(from._internal_priority());
@@ -1757,7 +2480,7 @@ void JobRequest::InternalSwap(JobRequest* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata JobRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_once,
-      file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[4]);
+      file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[6]);
 }
 
 // ===================================================================
@@ -2223,7 +2946,7 @@ void JobResult::InternalSwap(JobResult* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata JobResult::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_getter, &descriptor_table_coretex_2fagent_2fv1_2fjob_2eproto_once,
-      file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[5]);
+      file_level_metadata_coretex_2fagent_2fv1_2fjob_2eproto[7]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -2238,6 +2961,14 @@ Arena::CreateMaybeMessage< ::coretex::agent::v1::ContextHints >(Arena* arena) {
 template<> PROTOBUF_NOINLINE ::coretex::agent::v1::Budget*
 Arena::CreateMaybeMessage< ::coretex::agent::v1::Budget >(Arena* arena) {
   return Arena::CreateMessageInternal< ::coretex::agent::v1::Budget >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coretex::agent::v1::JobMetadata_LabelsEntry_DoNotUse*
+Arena::CreateMaybeMessage< ::coretex::agent::v1::JobMetadata_LabelsEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coretex::agent::v1::JobMetadata_LabelsEntry_DoNotUse >(arena);
+}
+template<> PROTOBUF_NOINLINE ::coretex::agent::v1::JobMetadata*
+Arena::CreateMaybeMessage< ::coretex::agent::v1::JobMetadata >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::coretex::agent::v1::JobMetadata >(arena);
 }
 template<> PROTOBUF_NOINLINE ::coretex::agent::v1::JobRequest_EnvEntry_DoNotUse*
 Arena::CreateMaybeMessage< ::coretex::agent::v1::JobRequest_EnvEntry_DoNotUse >(Arena* arena) {

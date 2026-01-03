@@ -23,6 +23,7 @@
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/arenastring.h>
+#include <google/protobuf/generated_message_bases.h>
 #include <google/protobuf/generated_message_util.h>
 #include <google/protobuf/metadata_lite.h>
 #include <google/protobuf/generated_message_reflection.h>
@@ -52,6 +53,18 @@ extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table
 namespace coretex {
 namespace agent {
 namespace v1 {
+class BudgetConstraints;
+struct BudgetConstraintsDefaultTypeInternal;
+extern BudgetConstraintsDefaultTypeInternal _BudgetConstraints_default_instance_;
+class DiffConstraints;
+struct DiffConstraintsDefaultTypeInternal;
+extern DiffConstraintsDefaultTypeInternal _DiffConstraints_default_instance_;
+class ListSnapshotsRequest;
+struct ListSnapshotsRequestDefaultTypeInternal;
+extern ListSnapshotsRequestDefaultTypeInternal _ListSnapshotsRequest_default_instance_;
+class ListSnapshotsResponse;
+struct ListSnapshotsResponseDefaultTypeInternal;
+extern ListSnapshotsResponseDefaultTypeInternal _ListSnapshotsResponse_default_instance_;
 class PolicyCheckRequest;
 struct PolicyCheckRequestDefaultTypeInternal;
 extern PolicyCheckRequestDefaultTypeInternal _PolicyCheckRequest_default_instance_;
@@ -61,13 +74,29 @@ extern PolicyCheckRequest_LabelsEntry_DoNotUseDefaultTypeInternal _PolicyCheckRe
 class PolicyCheckResponse;
 struct PolicyCheckResponseDefaultTypeInternal;
 extern PolicyCheckResponseDefaultTypeInternal _PolicyCheckResponse_default_instance_;
+class PolicyConstraints;
+struct PolicyConstraintsDefaultTypeInternal;
+extern PolicyConstraintsDefaultTypeInternal _PolicyConstraints_default_instance_;
+class SandboxProfile;
+struct SandboxProfileDefaultTypeInternal;
+extern SandboxProfileDefaultTypeInternal _SandboxProfile_default_instance_;
+class ToolchainConstraints;
+struct ToolchainConstraintsDefaultTypeInternal;
+extern ToolchainConstraintsDefaultTypeInternal _ToolchainConstraints_default_instance_;
 }  // namespace v1
 }  // namespace agent
 }  // namespace coretex
 PROTOBUF_NAMESPACE_OPEN
+template<> ::coretex::agent::v1::BudgetConstraints* Arena::CreateMaybeMessage<::coretex::agent::v1::BudgetConstraints>(Arena*);
+template<> ::coretex::agent::v1::DiffConstraints* Arena::CreateMaybeMessage<::coretex::agent::v1::DiffConstraints>(Arena*);
+template<> ::coretex::agent::v1::ListSnapshotsRequest* Arena::CreateMaybeMessage<::coretex::agent::v1::ListSnapshotsRequest>(Arena*);
+template<> ::coretex::agent::v1::ListSnapshotsResponse* Arena::CreateMaybeMessage<::coretex::agent::v1::ListSnapshotsResponse>(Arena*);
 template<> ::coretex::agent::v1::PolicyCheckRequest* Arena::CreateMaybeMessage<::coretex::agent::v1::PolicyCheckRequest>(Arena*);
 template<> ::coretex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::coretex::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse>(Arena*);
 template<> ::coretex::agent::v1::PolicyCheckResponse* Arena::CreateMaybeMessage<::coretex::agent::v1::PolicyCheckResponse>(Arena*);
+template<> ::coretex::agent::v1::PolicyConstraints* Arena::CreateMaybeMessage<::coretex::agent::v1::PolicyConstraints>(Arena*);
+template<> ::coretex::agent::v1::SandboxProfile* Arena::CreateMaybeMessage<::coretex::agent::v1::SandboxProfile>(Arena*);
+template<> ::coretex::agent::v1::ToolchainConstraints* Arena::CreateMaybeMessage<::coretex::agent::v1::ToolchainConstraints>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace coretex {
 namespace agent {
@@ -432,6 +461,993 @@ class PolicyCheckRequest final :
 };
 // -------------------------------------------------------------------
 
+class BudgetConstraints final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coretex.agent.v1.BudgetConstraints) */ {
+ public:
+  inline BudgetConstraints() : BudgetConstraints(nullptr) {}
+  ~BudgetConstraints() override;
+  explicit PROTOBUF_CONSTEXPR BudgetConstraints(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  BudgetConstraints(const BudgetConstraints& from);
+  BudgetConstraints(BudgetConstraints&& from) noexcept
+    : BudgetConstraints() {
+    *this = ::std::move(from);
+  }
+
+  inline BudgetConstraints& operator=(const BudgetConstraints& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline BudgetConstraints& operator=(BudgetConstraints&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const BudgetConstraints& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const BudgetConstraints* internal_default_instance() {
+    return reinterpret_cast<const BudgetConstraints*>(
+               &_BudgetConstraints_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(BudgetConstraints& a, BudgetConstraints& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(BudgetConstraints* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(BudgetConstraints* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  BudgetConstraints* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<BudgetConstraints>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const BudgetConstraints& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const BudgetConstraints& from) {
+    BudgetConstraints::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(BudgetConstraints* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coretex.agent.v1.BudgetConstraints";
+  }
+  protected:
+  explicit BudgetConstraints(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kMaxRuntimeMsFieldNumber = 1,
+    kMaxArtifactBytesFieldNumber = 3,
+    kMaxRetriesFieldNumber = 2,
+  };
+  // int64 max_runtime_ms = 1;
+  void clear_max_runtime_ms();
+  int64_t max_runtime_ms() const;
+  void set_max_runtime_ms(int64_t value);
+  private:
+  int64_t _internal_max_runtime_ms() const;
+  void _internal_set_max_runtime_ms(int64_t value);
+  public:
+
+  // int64 max_artifact_bytes = 3;
+  void clear_max_artifact_bytes();
+  int64_t max_artifact_bytes() const;
+  void set_max_artifact_bytes(int64_t value);
+  private:
+  int64_t _internal_max_artifact_bytes() const;
+  void _internal_set_max_artifact_bytes(int64_t value);
+  public:
+
+  // int32 max_retries = 2;
+  void clear_max_retries();
+  int32_t max_retries() const;
+  void set_max_retries(int32_t value);
+  private:
+  int32_t _internal_max_retries() const;
+  void _internal_set_max_retries(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coretex.agent.v1.BudgetConstraints)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    int64_t max_runtime_ms_;
+    int64_t max_artifact_bytes_;
+    int32_t max_retries_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto;
+};
+// -------------------------------------------------------------------
+
+class SandboxProfile final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coretex.agent.v1.SandboxProfile) */ {
+ public:
+  inline SandboxProfile() : SandboxProfile(nullptr) {}
+  ~SandboxProfile() override;
+  explicit PROTOBUF_CONSTEXPR SandboxProfile(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SandboxProfile(const SandboxProfile& from);
+  SandboxProfile(SandboxProfile&& from) noexcept
+    : SandboxProfile() {
+    *this = ::std::move(from);
+  }
+
+  inline SandboxProfile& operator=(const SandboxProfile& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SandboxProfile& operator=(SandboxProfile&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SandboxProfile& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SandboxProfile* internal_default_instance() {
+    return reinterpret_cast<const SandboxProfile*>(
+               &_SandboxProfile_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    3;
+
+  friend void swap(SandboxProfile& a, SandboxProfile& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SandboxProfile* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SandboxProfile* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SandboxProfile* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SandboxProfile>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SandboxProfile& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SandboxProfile& from) {
+    SandboxProfile::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SandboxProfile* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coretex.agent.v1.SandboxProfile";
+  }
+  protected:
+  explicit SandboxProfile(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kNetworkAllowlistFieldNumber = 2,
+    kFsReadOnlyFieldNumber = 3,
+    kFsReadWriteFieldNumber = 4,
+    kIsolatedFieldNumber = 1,
+  };
+  // repeated string network_allowlist = 2;
+  int network_allowlist_size() const;
+  private:
+  int _internal_network_allowlist_size() const;
+  public:
+  void clear_network_allowlist();
+  const std::string& network_allowlist(int index) const;
+  std::string* mutable_network_allowlist(int index);
+  void set_network_allowlist(int index, const std::string& value);
+  void set_network_allowlist(int index, std::string&& value);
+  void set_network_allowlist(int index, const char* value);
+  void set_network_allowlist(int index, const char* value, size_t size);
+  std::string* add_network_allowlist();
+  void add_network_allowlist(const std::string& value);
+  void add_network_allowlist(std::string&& value);
+  void add_network_allowlist(const char* value);
+  void add_network_allowlist(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& network_allowlist() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_network_allowlist();
+  private:
+  const std::string& _internal_network_allowlist(int index) const;
+  std::string* _internal_add_network_allowlist();
+  public:
+
+  // repeated string fs_read_only = 3;
+  int fs_read_only_size() const;
+  private:
+  int _internal_fs_read_only_size() const;
+  public:
+  void clear_fs_read_only();
+  const std::string& fs_read_only(int index) const;
+  std::string* mutable_fs_read_only(int index);
+  void set_fs_read_only(int index, const std::string& value);
+  void set_fs_read_only(int index, std::string&& value);
+  void set_fs_read_only(int index, const char* value);
+  void set_fs_read_only(int index, const char* value, size_t size);
+  std::string* add_fs_read_only();
+  void add_fs_read_only(const std::string& value);
+  void add_fs_read_only(std::string&& value);
+  void add_fs_read_only(const char* value);
+  void add_fs_read_only(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& fs_read_only() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_fs_read_only();
+  private:
+  const std::string& _internal_fs_read_only(int index) const;
+  std::string* _internal_add_fs_read_only();
+  public:
+
+  // repeated string fs_read_write = 4;
+  int fs_read_write_size() const;
+  private:
+  int _internal_fs_read_write_size() const;
+  public:
+  void clear_fs_read_write();
+  const std::string& fs_read_write(int index) const;
+  std::string* mutable_fs_read_write(int index);
+  void set_fs_read_write(int index, const std::string& value);
+  void set_fs_read_write(int index, std::string&& value);
+  void set_fs_read_write(int index, const char* value);
+  void set_fs_read_write(int index, const char* value, size_t size);
+  std::string* add_fs_read_write();
+  void add_fs_read_write(const std::string& value);
+  void add_fs_read_write(std::string&& value);
+  void add_fs_read_write(const char* value);
+  void add_fs_read_write(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& fs_read_write() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_fs_read_write();
+  private:
+  const std::string& _internal_fs_read_write(int index) const;
+  std::string* _internal_add_fs_read_write();
+  public:
+
+  // bool isolated = 1;
+  void clear_isolated();
+  bool isolated() const;
+  void set_isolated(bool value);
+  private:
+  bool _internal_isolated() const;
+  void _internal_set_isolated(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coretex.agent.v1.SandboxProfile)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> network_allowlist_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> fs_read_only_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> fs_read_write_;
+    bool isolated_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ToolchainConstraints final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coretex.agent.v1.ToolchainConstraints) */ {
+ public:
+  inline ToolchainConstraints() : ToolchainConstraints(nullptr) {}
+  ~ToolchainConstraints() override;
+  explicit PROTOBUF_CONSTEXPR ToolchainConstraints(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ToolchainConstraints(const ToolchainConstraints& from);
+  ToolchainConstraints(ToolchainConstraints&& from) noexcept
+    : ToolchainConstraints() {
+    *this = ::std::move(from);
+  }
+
+  inline ToolchainConstraints& operator=(const ToolchainConstraints& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ToolchainConstraints& operator=(ToolchainConstraints&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ToolchainConstraints& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ToolchainConstraints* internal_default_instance() {
+    return reinterpret_cast<const ToolchainConstraints*>(
+               &_ToolchainConstraints_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    4;
+
+  friend void swap(ToolchainConstraints& a, ToolchainConstraints& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ToolchainConstraints* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ToolchainConstraints* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ToolchainConstraints* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ToolchainConstraints>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ToolchainConstraints& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ToolchainConstraints& from) {
+    ToolchainConstraints::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ToolchainConstraints* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coretex.agent.v1.ToolchainConstraints";
+  }
+  protected:
+  explicit ToolchainConstraints(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kAllowedToolsFieldNumber = 1,
+    kAllowedCommandsFieldNumber = 2,
+  };
+  // repeated string allowed_tools = 1;
+  int allowed_tools_size() const;
+  private:
+  int _internal_allowed_tools_size() const;
+  public:
+  void clear_allowed_tools();
+  const std::string& allowed_tools(int index) const;
+  std::string* mutable_allowed_tools(int index);
+  void set_allowed_tools(int index, const std::string& value);
+  void set_allowed_tools(int index, std::string&& value);
+  void set_allowed_tools(int index, const char* value);
+  void set_allowed_tools(int index, const char* value, size_t size);
+  std::string* add_allowed_tools();
+  void add_allowed_tools(const std::string& value);
+  void add_allowed_tools(std::string&& value);
+  void add_allowed_tools(const char* value);
+  void add_allowed_tools(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& allowed_tools() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_allowed_tools();
+  private:
+  const std::string& _internal_allowed_tools(int index) const;
+  std::string* _internal_add_allowed_tools();
+  public:
+
+  // repeated string allowed_commands = 2;
+  int allowed_commands_size() const;
+  private:
+  int _internal_allowed_commands_size() const;
+  public:
+  void clear_allowed_commands();
+  const std::string& allowed_commands(int index) const;
+  std::string* mutable_allowed_commands(int index);
+  void set_allowed_commands(int index, const std::string& value);
+  void set_allowed_commands(int index, std::string&& value);
+  void set_allowed_commands(int index, const char* value);
+  void set_allowed_commands(int index, const char* value, size_t size);
+  std::string* add_allowed_commands();
+  void add_allowed_commands(const std::string& value);
+  void add_allowed_commands(std::string&& value);
+  void add_allowed_commands(const char* value);
+  void add_allowed_commands(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& allowed_commands() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_allowed_commands();
+  private:
+  const std::string& _internal_allowed_commands(int index) const;
+  std::string* _internal_add_allowed_commands();
+  public:
+
+  // @@protoc_insertion_point(class_scope:coretex.agent.v1.ToolchainConstraints)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> allowed_tools_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> allowed_commands_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto;
+};
+// -------------------------------------------------------------------
+
+class DiffConstraints final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coretex.agent.v1.DiffConstraints) */ {
+ public:
+  inline DiffConstraints() : DiffConstraints(nullptr) {}
+  ~DiffConstraints() override;
+  explicit PROTOBUF_CONSTEXPR DiffConstraints(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  DiffConstraints(const DiffConstraints& from);
+  DiffConstraints(DiffConstraints&& from) noexcept
+    : DiffConstraints() {
+    *this = ::std::move(from);
+  }
+
+  inline DiffConstraints& operator=(const DiffConstraints& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline DiffConstraints& operator=(DiffConstraints&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const DiffConstraints& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const DiffConstraints* internal_default_instance() {
+    return reinterpret_cast<const DiffConstraints*>(
+               &_DiffConstraints_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    5;
+
+  friend void swap(DiffConstraints& a, DiffConstraints& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(DiffConstraints* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(DiffConstraints* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  DiffConstraints* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<DiffConstraints>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const DiffConstraints& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const DiffConstraints& from) {
+    DiffConstraints::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(DiffConstraints* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coretex.agent.v1.DiffConstraints";
+  }
+  protected:
+  explicit DiffConstraints(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kDenyPathGlobsFieldNumber = 3,
+    kMaxFilesFieldNumber = 1,
+    kMaxLinesFieldNumber = 2,
+  };
+  // repeated string deny_path_globs = 3;
+  int deny_path_globs_size() const;
+  private:
+  int _internal_deny_path_globs_size() const;
+  public:
+  void clear_deny_path_globs();
+  const std::string& deny_path_globs(int index) const;
+  std::string* mutable_deny_path_globs(int index);
+  void set_deny_path_globs(int index, const std::string& value);
+  void set_deny_path_globs(int index, std::string&& value);
+  void set_deny_path_globs(int index, const char* value);
+  void set_deny_path_globs(int index, const char* value, size_t size);
+  std::string* add_deny_path_globs();
+  void add_deny_path_globs(const std::string& value);
+  void add_deny_path_globs(std::string&& value);
+  void add_deny_path_globs(const char* value);
+  void add_deny_path_globs(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& deny_path_globs() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_deny_path_globs();
+  private:
+  const std::string& _internal_deny_path_globs(int index) const;
+  std::string* _internal_add_deny_path_globs();
+  public:
+
+  // int32 max_files = 1;
+  void clear_max_files();
+  int32_t max_files() const;
+  void set_max_files(int32_t value);
+  private:
+  int32_t _internal_max_files() const;
+  void _internal_set_max_files(int32_t value);
+  public:
+
+  // int32 max_lines = 2;
+  void clear_max_lines();
+  int32_t max_lines() const;
+  void set_max_lines(int32_t value);
+  private:
+  int32_t _internal_max_lines() const;
+  void _internal_set_max_lines(int32_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coretex.agent.v1.DiffConstraints)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> deny_path_globs_;
+    int32_t max_files_;
+    int32_t max_lines_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto;
+};
+// -------------------------------------------------------------------
+
+class PolicyConstraints final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coretex.agent.v1.PolicyConstraints) */ {
+ public:
+  inline PolicyConstraints() : PolicyConstraints(nullptr) {}
+  ~PolicyConstraints() override;
+  explicit PROTOBUF_CONSTEXPR PolicyConstraints(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  PolicyConstraints(const PolicyConstraints& from);
+  PolicyConstraints(PolicyConstraints&& from) noexcept
+    : PolicyConstraints() {
+    *this = ::std::move(from);
+  }
+
+  inline PolicyConstraints& operator=(const PolicyConstraints& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline PolicyConstraints& operator=(PolicyConstraints&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const PolicyConstraints& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const PolicyConstraints* internal_default_instance() {
+    return reinterpret_cast<const PolicyConstraints*>(
+               &_PolicyConstraints_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    6;
+
+  friend void swap(PolicyConstraints& a, PolicyConstraints& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(PolicyConstraints* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(PolicyConstraints* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  PolicyConstraints* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<PolicyConstraints>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const PolicyConstraints& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const PolicyConstraints& from) {
+    PolicyConstraints::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(PolicyConstraints* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coretex.agent.v1.PolicyConstraints";
+  }
+  protected:
+  explicit PolicyConstraints(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kBudgetsFieldNumber = 1,
+    kSandboxFieldNumber = 2,
+    kToolchainFieldNumber = 3,
+    kDiffFieldNumber = 4,
+  };
+  // .coretex.agent.v1.BudgetConstraints budgets = 1;
+  bool has_budgets() const;
+  private:
+  bool _internal_has_budgets() const;
+  public:
+  void clear_budgets();
+  const ::coretex::agent::v1::BudgetConstraints& budgets() const;
+  PROTOBUF_NODISCARD ::coretex::agent::v1::BudgetConstraints* release_budgets();
+  ::coretex::agent::v1::BudgetConstraints* mutable_budgets();
+  void set_allocated_budgets(::coretex::agent::v1::BudgetConstraints* budgets);
+  private:
+  const ::coretex::agent::v1::BudgetConstraints& _internal_budgets() const;
+  ::coretex::agent::v1::BudgetConstraints* _internal_mutable_budgets();
+  public:
+  void unsafe_arena_set_allocated_budgets(
+      ::coretex::agent::v1::BudgetConstraints* budgets);
+  ::coretex::agent::v1::BudgetConstraints* unsafe_arena_release_budgets();
+
+  // .coretex.agent.v1.SandboxProfile sandbox = 2;
+  bool has_sandbox() const;
+  private:
+  bool _internal_has_sandbox() const;
+  public:
+  void clear_sandbox();
+  const ::coretex::agent::v1::SandboxProfile& sandbox() const;
+  PROTOBUF_NODISCARD ::coretex::agent::v1::SandboxProfile* release_sandbox();
+  ::coretex::agent::v1::SandboxProfile* mutable_sandbox();
+  void set_allocated_sandbox(::coretex::agent::v1::SandboxProfile* sandbox);
+  private:
+  const ::coretex::agent::v1::SandboxProfile& _internal_sandbox() const;
+  ::coretex::agent::v1::SandboxProfile* _internal_mutable_sandbox();
+  public:
+  void unsafe_arena_set_allocated_sandbox(
+      ::coretex::agent::v1::SandboxProfile* sandbox);
+  ::coretex::agent::v1::SandboxProfile* unsafe_arena_release_sandbox();
+
+  // .coretex.agent.v1.ToolchainConstraints toolchain = 3;
+  bool has_toolchain() const;
+  private:
+  bool _internal_has_toolchain() const;
+  public:
+  void clear_toolchain();
+  const ::coretex::agent::v1::ToolchainConstraints& toolchain() const;
+  PROTOBUF_NODISCARD ::coretex::agent::v1::ToolchainConstraints* release_toolchain();
+  ::coretex::agent::v1::ToolchainConstraints* mutable_toolchain();
+  void set_allocated_toolchain(::coretex::agent::v1::ToolchainConstraints* toolchain);
+  private:
+  const ::coretex::agent::v1::ToolchainConstraints& _internal_toolchain() const;
+  ::coretex::agent::v1::ToolchainConstraints* _internal_mutable_toolchain();
+  public:
+  void unsafe_arena_set_allocated_toolchain(
+      ::coretex::agent::v1::ToolchainConstraints* toolchain);
+  ::coretex::agent::v1::ToolchainConstraints* unsafe_arena_release_toolchain();
+
+  // .coretex.agent.v1.DiffConstraints diff = 4;
+  bool has_diff() const;
+  private:
+  bool _internal_has_diff() const;
+  public:
+  void clear_diff();
+  const ::coretex::agent::v1::DiffConstraints& diff() const;
+  PROTOBUF_NODISCARD ::coretex::agent::v1::DiffConstraints* release_diff();
+  ::coretex::agent::v1::DiffConstraints* mutable_diff();
+  void set_allocated_diff(::coretex::agent::v1::DiffConstraints* diff);
+  private:
+  const ::coretex::agent::v1::DiffConstraints& _internal_diff() const;
+  ::coretex::agent::v1::DiffConstraints* _internal_mutable_diff();
+  public:
+  void unsafe_arena_set_allocated_diff(
+      ::coretex::agent::v1::DiffConstraints* diff);
+  ::coretex::agent::v1::DiffConstraints* unsafe_arena_release_diff();
+
+  // @@protoc_insertion_point(class_scope:coretex.agent.v1.PolicyConstraints)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::coretex::agent::v1::BudgetConstraints* budgets_;
+    ::coretex::agent::v1::SandboxProfile* sandbox_;
+    ::coretex::agent::v1::ToolchainConstraints* toolchain_;
+    ::coretex::agent::v1::DiffConstraints* diff_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto;
+};
+// -------------------------------------------------------------------
+
 class PolicyCheckResponse final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coretex.agent.v1.PolicyCheckResponse) */ {
  public:
@@ -480,7 +1496,7 @@ class PolicyCheckResponse final :
                &_PolicyCheckResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    7;
 
   friend void swap(PolicyCheckResponse& a, PolicyCheckResponse& b) {
     a.Swap(&b);
@@ -555,7 +1571,12 @@ class PolicyCheckResponse final :
   enum : int {
     kReasonFieldNumber = 2,
     kRedactedContextPtrFieldNumber = 3,
+    kPolicySnapshotFieldNumber = 4,
+    kRuleIdFieldNumber = 5,
+    kApprovalRefFieldNumber = 8,
+    kConstraintsFieldNumber = 6,
     kDecisionFieldNumber = 1,
+    kApprovalRequiredFieldNumber = 7,
   };
   // string reason = 2;
   void clear_reason();
@@ -585,6 +1606,66 @@ class PolicyCheckResponse final :
   std::string* _internal_mutable_redacted_context_ptr();
   public:
 
+  // string policy_snapshot = 4;
+  void clear_policy_snapshot();
+  const std::string& policy_snapshot() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_policy_snapshot(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_policy_snapshot();
+  PROTOBUF_NODISCARD std::string* release_policy_snapshot();
+  void set_allocated_policy_snapshot(std::string* policy_snapshot);
+  private:
+  const std::string& _internal_policy_snapshot() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_policy_snapshot(const std::string& value);
+  std::string* _internal_mutable_policy_snapshot();
+  public:
+
+  // string rule_id = 5;
+  void clear_rule_id();
+  const std::string& rule_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_rule_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_rule_id();
+  PROTOBUF_NODISCARD std::string* release_rule_id();
+  void set_allocated_rule_id(std::string* rule_id);
+  private:
+  const std::string& _internal_rule_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_rule_id(const std::string& value);
+  std::string* _internal_mutable_rule_id();
+  public:
+
+  // string approval_ref = 8;
+  void clear_approval_ref();
+  const std::string& approval_ref() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_approval_ref(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_approval_ref();
+  PROTOBUF_NODISCARD std::string* release_approval_ref();
+  void set_allocated_approval_ref(std::string* approval_ref);
+  private:
+  const std::string& _internal_approval_ref() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_approval_ref(const std::string& value);
+  std::string* _internal_mutable_approval_ref();
+  public:
+
+  // .coretex.agent.v1.PolicyConstraints constraints = 6;
+  bool has_constraints() const;
+  private:
+  bool _internal_has_constraints() const;
+  public:
+  void clear_constraints();
+  const ::coretex::agent::v1::PolicyConstraints& constraints() const;
+  PROTOBUF_NODISCARD ::coretex::agent::v1::PolicyConstraints* release_constraints();
+  ::coretex::agent::v1::PolicyConstraints* mutable_constraints();
+  void set_allocated_constraints(::coretex::agent::v1::PolicyConstraints* constraints);
+  private:
+  const ::coretex::agent::v1::PolicyConstraints& _internal_constraints() const;
+  ::coretex::agent::v1::PolicyConstraints* _internal_mutable_constraints();
+  public:
+  void unsafe_arena_set_allocated_constraints(
+      ::coretex::agent::v1::PolicyConstraints* constraints);
+  ::coretex::agent::v1::PolicyConstraints* unsafe_arena_release_constraints();
+
   // .coretex.agent.v1.DecisionType decision = 1;
   void clear_decision();
   ::coretex::agent::v1::DecisionType decision() const;
@@ -592,6 +1673,15 @@ class PolicyCheckResponse final :
   private:
   ::coretex::agent::v1::DecisionType _internal_decision() const;
   void _internal_set_decision(::coretex::agent::v1::DecisionType value);
+  public:
+
+  // bool approval_required = 7;
+  void clear_approval_required();
+  bool approval_required() const;
+  void set_approval_required(bool value);
+  private:
+  bool _internal_approval_required() const;
+  void _internal_set_approval_required(bool value);
   public:
 
   // @@protoc_insertion_point(class_scope:coretex.agent.v1.PolicyCheckResponse)
@@ -604,7 +1694,293 @@ class PolicyCheckResponse final :
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr reason_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr redacted_context_ptr_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr policy_snapshot_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr rule_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr approval_ref_;
+    ::coretex::agent::v1::PolicyConstraints* constraints_;
     int decision_;
+    bool approval_required_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ListSnapshotsRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:coretex.agent.v1.ListSnapshotsRequest) */ {
+ public:
+  inline ListSnapshotsRequest() : ListSnapshotsRequest(nullptr) {}
+  explicit PROTOBUF_CONSTEXPR ListSnapshotsRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ListSnapshotsRequest(const ListSnapshotsRequest& from);
+  ListSnapshotsRequest(ListSnapshotsRequest&& from) noexcept
+    : ListSnapshotsRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline ListSnapshotsRequest& operator=(const ListSnapshotsRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ListSnapshotsRequest& operator=(ListSnapshotsRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ListSnapshotsRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ListSnapshotsRequest* internal_default_instance() {
+    return reinterpret_cast<const ListSnapshotsRequest*>(
+               &_ListSnapshotsRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    8;
+
+  friend void swap(ListSnapshotsRequest& a, ListSnapshotsRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ListSnapshotsRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ListSnapshotsRequest* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ListSnapshotsRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ListSnapshotsRequest>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyFrom;
+  inline void CopyFrom(const ListSnapshotsRequest& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::CopyImpl(*this, from);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeFrom;
+  void MergeFrom(const ListSnapshotsRequest& from) {
+    ::PROTOBUF_NAMESPACE_ID::internal::ZeroFieldsBase::MergeImpl(*this, from);
+  }
+  public:
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coretex.agent.v1.ListSnapshotsRequest";
+  }
+  protected:
+  explicit ListSnapshotsRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // @@protoc_insertion_point(class_scope:coretex.agent.v1.ListSnapshotsRequest)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+  };
+  friend struct ::TableStruct_coretex_2fagent_2fv1_2fsafety_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ListSnapshotsResponse final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coretex.agent.v1.ListSnapshotsResponse) */ {
+ public:
+  inline ListSnapshotsResponse() : ListSnapshotsResponse(nullptr) {}
+  ~ListSnapshotsResponse() override;
+  explicit PROTOBUF_CONSTEXPR ListSnapshotsResponse(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ListSnapshotsResponse(const ListSnapshotsResponse& from);
+  ListSnapshotsResponse(ListSnapshotsResponse&& from) noexcept
+    : ListSnapshotsResponse() {
+    *this = ::std::move(from);
+  }
+
+  inline ListSnapshotsResponse& operator=(const ListSnapshotsResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ListSnapshotsResponse& operator=(ListSnapshotsResponse&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ListSnapshotsResponse& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ListSnapshotsResponse* internal_default_instance() {
+    return reinterpret_cast<const ListSnapshotsResponse*>(
+               &_ListSnapshotsResponse_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    9;
+
+  friend void swap(ListSnapshotsResponse& a, ListSnapshotsResponse& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ListSnapshotsResponse* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ListSnapshotsResponse* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ListSnapshotsResponse* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ListSnapshotsResponse>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ListSnapshotsResponse& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ListSnapshotsResponse& from) {
+    ListSnapshotsResponse::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ListSnapshotsResponse* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coretex.agent.v1.ListSnapshotsResponse";
+  }
+  protected:
+  explicit ListSnapshotsResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kSnapshotsFieldNumber = 1,
+  };
+  // repeated string snapshots = 1;
+  int snapshots_size() const;
+  private:
+  int _internal_snapshots_size() const;
+  public:
+  void clear_snapshots();
+  const std::string& snapshots(int index) const;
+  std::string* mutable_snapshots(int index);
+  void set_snapshots(int index, const std::string& value);
+  void set_snapshots(int index, std::string&& value);
+  void set_snapshots(int index, const char* value);
+  void set_snapshots(int index, const char* value, size_t size);
+  std::string* add_snapshots();
+  void add_snapshots(const std::string& value);
+  void add_snapshots(std::string&& value);
+  void add_snapshots(const char* value);
+  void add_snapshots(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& snapshots() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_snapshots();
+  private:
+  const std::string& _internal_snapshots(int index) const;
+  std::string* _internal_add_snapshots();
+  public:
+
+  // @@protoc_insertion_point(class_scope:coretex.agent.v1.ListSnapshotsResponse)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> snapshots_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -1079,6 +2455,956 @@ inline void PolicyCheckRequest::set_allocated_effective_config(std::string* effe
 
 // -------------------------------------------------------------------
 
+// BudgetConstraints
+
+// int64 max_runtime_ms = 1;
+inline void BudgetConstraints::clear_max_runtime_ms() {
+  _impl_.max_runtime_ms_ = int64_t{0};
+}
+inline int64_t BudgetConstraints::_internal_max_runtime_ms() const {
+  return _impl_.max_runtime_ms_;
+}
+inline int64_t BudgetConstraints::max_runtime_ms() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.BudgetConstraints.max_runtime_ms)
+  return _internal_max_runtime_ms();
+}
+inline void BudgetConstraints::_internal_set_max_runtime_ms(int64_t value) {
+  
+  _impl_.max_runtime_ms_ = value;
+}
+inline void BudgetConstraints::set_max_runtime_ms(int64_t value) {
+  _internal_set_max_runtime_ms(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.BudgetConstraints.max_runtime_ms)
+}
+
+// int32 max_retries = 2;
+inline void BudgetConstraints::clear_max_retries() {
+  _impl_.max_retries_ = 0;
+}
+inline int32_t BudgetConstraints::_internal_max_retries() const {
+  return _impl_.max_retries_;
+}
+inline int32_t BudgetConstraints::max_retries() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.BudgetConstraints.max_retries)
+  return _internal_max_retries();
+}
+inline void BudgetConstraints::_internal_set_max_retries(int32_t value) {
+  
+  _impl_.max_retries_ = value;
+}
+inline void BudgetConstraints::set_max_retries(int32_t value) {
+  _internal_set_max_retries(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.BudgetConstraints.max_retries)
+}
+
+// int64 max_artifact_bytes = 3;
+inline void BudgetConstraints::clear_max_artifact_bytes() {
+  _impl_.max_artifact_bytes_ = int64_t{0};
+}
+inline int64_t BudgetConstraints::_internal_max_artifact_bytes() const {
+  return _impl_.max_artifact_bytes_;
+}
+inline int64_t BudgetConstraints::max_artifact_bytes() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.BudgetConstraints.max_artifact_bytes)
+  return _internal_max_artifact_bytes();
+}
+inline void BudgetConstraints::_internal_set_max_artifact_bytes(int64_t value) {
+  
+  _impl_.max_artifact_bytes_ = value;
+}
+inline void BudgetConstraints::set_max_artifact_bytes(int64_t value) {
+  _internal_set_max_artifact_bytes(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.BudgetConstraints.max_artifact_bytes)
+}
+
+// -------------------------------------------------------------------
+
+// SandboxProfile
+
+// bool isolated = 1;
+inline void SandboxProfile::clear_isolated() {
+  _impl_.isolated_ = false;
+}
+inline bool SandboxProfile::_internal_isolated() const {
+  return _impl_.isolated_;
+}
+inline bool SandboxProfile::isolated() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.SandboxProfile.isolated)
+  return _internal_isolated();
+}
+inline void SandboxProfile::_internal_set_isolated(bool value) {
+  
+  _impl_.isolated_ = value;
+}
+inline void SandboxProfile::set_isolated(bool value) {
+  _internal_set_isolated(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.SandboxProfile.isolated)
+}
+
+// repeated string network_allowlist = 2;
+inline int SandboxProfile::_internal_network_allowlist_size() const {
+  return _impl_.network_allowlist_.size();
+}
+inline int SandboxProfile::network_allowlist_size() const {
+  return _internal_network_allowlist_size();
+}
+inline void SandboxProfile::clear_network_allowlist() {
+  _impl_.network_allowlist_.Clear();
+}
+inline std::string* SandboxProfile::add_network_allowlist() {
+  std::string* _s = _internal_add_network_allowlist();
+  // @@protoc_insertion_point(field_add_mutable:coretex.agent.v1.SandboxProfile.network_allowlist)
+  return _s;
+}
+inline const std::string& SandboxProfile::_internal_network_allowlist(int index) const {
+  return _impl_.network_allowlist_.Get(index);
+}
+inline const std::string& SandboxProfile::network_allowlist(int index) const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.SandboxProfile.network_allowlist)
+  return _internal_network_allowlist(index);
+}
+inline std::string* SandboxProfile::mutable_network_allowlist(int index) {
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.SandboxProfile.network_allowlist)
+  return _impl_.network_allowlist_.Mutable(index);
+}
+inline void SandboxProfile::set_network_allowlist(int index, const std::string& value) {
+  _impl_.network_allowlist_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.SandboxProfile.network_allowlist)
+}
+inline void SandboxProfile::set_network_allowlist(int index, std::string&& value) {
+  _impl_.network_allowlist_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.SandboxProfile.network_allowlist)
+}
+inline void SandboxProfile::set_network_allowlist(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.network_allowlist_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:coretex.agent.v1.SandboxProfile.network_allowlist)
+}
+inline void SandboxProfile::set_network_allowlist(int index, const char* value, size_t size) {
+  _impl_.network_allowlist_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:coretex.agent.v1.SandboxProfile.network_allowlist)
+}
+inline std::string* SandboxProfile::_internal_add_network_allowlist() {
+  return _impl_.network_allowlist_.Add();
+}
+inline void SandboxProfile::add_network_allowlist(const std::string& value) {
+  _impl_.network_allowlist_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.SandboxProfile.network_allowlist)
+}
+inline void SandboxProfile::add_network_allowlist(std::string&& value) {
+  _impl_.network_allowlist_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.SandboxProfile.network_allowlist)
+}
+inline void SandboxProfile::add_network_allowlist(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.network_allowlist_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:coretex.agent.v1.SandboxProfile.network_allowlist)
+}
+inline void SandboxProfile::add_network_allowlist(const char* value, size_t size) {
+  _impl_.network_allowlist_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:coretex.agent.v1.SandboxProfile.network_allowlist)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+SandboxProfile::network_allowlist() const {
+  // @@protoc_insertion_point(field_list:coretex.agent.v1.SandboxProfile.network_allowlist)
+  return _impl_.network_allowlist_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+SandboxProfile::mutable_network_allowlist() {
+  // @@protoc_insertion_point(field_mutable_list:coretex.agent.v1.SandboxProfile.network_allowlist)
+  return &_impl_.network_allowlist_;
+}
+
+// repeated string fs_read_only = 3;
+inline int SandboxProfile::_internal_fs_read_only_size() const {
+  return _impl_.fs_read_only_.size();
+}
+inline int SandboxProfile::fs_read_only_size() const {
+  return _internal_fs_read_only_size();
+}
+inline void SandboxProfile::clear_fs_read_only() {
+  _impl_.fs_read_only_.Clear();
+}
+inline std::string* SandboxProfile::add_fs_read_only() {
+  std::string* _s = _internal_add_fs_read_only();
+  // @@protoc_insertion_point(field_add_mutable:coretex.agent.v1.SandboxProfile.fs_read_only)
+  return _s;
+}
+inline const std::string& SandboxProfile::_internal_fs_read_only(int index) const {
+  return _impl_.fs_read_only_.Get(index);
+}
+inline const std::string& SandboxProfile::fs_read_only(int index) const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.SandboxProfile.fs_read_only)
+  return _internal_fs_read_only(index);
+}
+inline std::string* SandboxProfile::mutable_fs_read_only(int index) {
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.SandboxProfile.fs_read_only)
+  return _impl_.fs_read_only_.Mutable(index);
+}
+inline void SandboxProfile::set_fs_read_only(int index, const std::string& value) {
+  _impl_.fs_read_only_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.SandboxProfile.fs_read_only)
+}
+inline void SandboxProfile::set_fs_read_only(int index, std::string&& value) {
+  _impl_.fs_read_only_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.SandboxProfile.fs_read_only)
+}
+inline void SandboxProfile::set_fs_read_only(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.fs_read_only_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:coretex.agent.v1.SandboxProfile.fs_read_only)
+}
+inline void SandboxProfile::set_fs_read_only(int index, const char* value, size_t size) {
+  _impl_.fs_read_only_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:coretex.agent.v1.SandboxProfile.fs_read_only)
+}
+inline std::string* SandboxProfile::_internal_add_fs_read_only() {
+  return _impl_.fs_read_only_.Add();
+}
+inline void SandboxProfile::add_fs_read_only(const std::string& value) {
+  _impl_.fs_read_only_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.SandboxProfile.fs_read_only)
+}
+inline void SandboxProfile::add_fs_read_only(std::string&& value) {
+  _impl_.fs_read_only_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.SandboxProfile.fs_read_only)
+}
+inline void SandboxProfile::add_fs_read_only(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.fs_read_only_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:coretex.agent.v1.SandboxProfile.fs_read_only)
+}
+inline void SandboxProfile::add_fs_read_only(const char* value, size_t size) {
+  _impl_.fs_read_only_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:coretex.agent.v1.SandboxProfile.fs_read_only)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+SandboxProfile::fs_read_only() const {
+  // @@protoc_insertion_point(field_list:coretex.agent.v1.SandboxProfile.fs_read_only)
+  return _impl_.fs_read_only_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+SandboxProfile::mutable_fs_read_only() {
+  // @@protoc_insertion_point(field_mutable_list:coretex.agent.v1.SandboxProfile.fs_read_only)
+  return &_impl_.fs_read_only_;
+}
+
+// repeated string fs_read_write = 4;
+inline int SandboxProfile::_internal_fs_read_write_size() const {
+  return _impl_.fs_read_write_.size();
+}
+inline int SandboxProfile::fs_read_write_size() const {
+  return _internal_fs_read_write_size();
+}
+inline void SandboxProfile::clear_fs_read_write() {
+  _impl_.fs_read_write_.Clear();
+}
+inline std::string* SandboxProfile::add_fs_read_write() {
+  std::string* _s = _internal_add_fs_read_write();
+  // @@protoc_insertion_point(field_add_mutable:coretex.agent.v1.SandboxProfile.fs_read_write)
+  return _s;
+}
+inline const std::string& SandboxProfile::_internal_fs_read_write(int index) const {
+  return _impl_.fs_read_write_.Get(index);
+}
+inline const std::string& SandboxProfile::fs_read_write(int index) const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.SandboxProfile.fs_read_write)
+  return _internal_fs_read_write(index);
+}
+inline std::string* SandboxProfile::mutable_fs_read_write(int index) {
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.SandboxProfile.fs_read_write)
+  return _impl_.fs_read_write_.Mutable(index);
+}
+inline void SandboxProfile::set_fs_read_write(int index, const std::string& value) {
+  _impl_.fs_read_write_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.SandboxProfile.fs_read_write)
+}
+inline void SandboxProfile::set_fs_read_write(int index, std::string&& value) {
+  _impl_.fs_read_write_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.SandboxProfile.fs_read_write)
+}
+inline void SandboxProfile::set_fs_read_write(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.fs_read_write_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:coretex.agent.v1.SandboxProfile.fs_read_write)
+}
+inline void SandboxProfile::set_fs_read_write(int index, const char* value, size_t size) {
+  _impl_.fs_read_write_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:coretex.agent.v1.SandboxProfile.fs_read_write)
+}
+inline std::string* SandboxProfile::_internal_add_fs_read_write() {
+  return _impl_.fs_read_write_.Add();
+}
+inline void SandboxProfile::add_fs_read_write(const std::string& value) {
+  _impl_.fs_read_write_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.SandboxProfile.fs_read_write)
+}
+inline void SandboxProfile::add_fs_read_write(std::string&& value) {
+  _impl_.fs_read_write_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.SandboxProfile.fs_read_write)
+}
+inline void SandboxProfile::add_fs_read_write(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.fs_read_write_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:coretex.agent.v1.SandboxProfile.fs_read_write)
+}
+inline void SandboxProfile::add_fs_read_write(const char* value, size_t size) {
+  _impl_.fs_read_write_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:coretex.agent.v1.SandboxProfile.fs_read_write)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+SandboxProfile::fs_read_write() const {
+  // @@protoc_insertion_point(field_list:coretex.agent.v1.SandboxProfile.fs_read_write)
+  return _impl_.fs_read_write_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+SandboxProfile::mutable_fs_read_write() {
+  // @@protoc_insertion_point(field_mutable_list:coretex.agent.v1.SandboxProfile.fs_read_write)
+  return &_impl_.fs_read_write_;
+}
+
+// -------------------------------------------------------------------
+
+// ToolchainConstraints
+
+// repeated string allowed_tools = 1;
+inline int ToolchainConstraints::_internal_allowed_tools_size() const {
+  return _impl_.allowed_tools_.size();
+}
+inline int ToolchainConstraints::allowed_tools_size() const {
+  return _internal_allowed_tools_size();
+}
+inline void ToolchainConstraints::clear_allowed_tools() {
+  _impl_.allowed_tools_.Clear();
+}
+inline std::string* ToolchainConstraints::add_allowed_tools() {
+  std::string* _s = _internal_add_allowed_tools();
+  // @@protoc_insertion_point(field_add_mutable:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+  return _s;
+}
+inline const std::string& ToolchainConstraints::_internal_allowed_tools(int index) const {
+  return _impl_.allowed_tools_.Get(index);
+}
+inline const std::string& ToolchainConstraints::allowed_tools(int index) const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+  return _internal_allowed_tools(index);
+}
+inline std::string* ToolchainConstraints::mutable_allowed_tools(int index) {
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+  return _impl_.allowed_tools_.Mutable(index);
+}
+inline void ToolchainConstraints::set_allowed_tools(int index, const std::string& value) {
+  _impl_.allowed_tools_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+}
+inline void ToolchainConstraints::set_allowed_tools(int index, std::string&& value) {
+  _impl_.allowed_tools_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+}
+inline void ToolchainConstraints::set_allowed_tools(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.allowed_tools_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+}
+inline void ToolchainConstraints::set_allowed_tools(int index, const char* value, size_t size) {
+  _impl_.allowed_tools_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+}
+inline std::string* ToolchainConstraints::_internal_add_allowed_tools() {
+  return _impl_.allowed_tools_.Add();
+}
+inline void ToolchainConstraints::add_allowed_tools(const std::string& value) {
+  _impl_.allowed_tools_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+}
+inline void ToolchainConstraints::add_allowed_tools(std::string&& value) {
+  _impl_.allowed_tools_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+}
+inline void ToolchainConstraints::add_allowed_tools(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.allowed_tools_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+}
+inline void ToolchainConstraints::add_allowed_tools(const char* value, size_t size) {
+  _impl_.allowed_tools_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+ToolchainConstraints::allowed_tools() const {
+  // @@protoc_insertion_point(field_list:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+  return _impl_.allowed_tools_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+ToolchainConstraints::mutable_allowed_tools() {
+  // @@protoc_insertion_point(field_mutable_list:coretex.agent.v1.ToolchainConstraints.allowed_tools)
+  return &_impl_.allowed_tools_;
+}
+
+// repeated string allowed_commands = 2;
+inline int ToolchainConstraints::_internal_allowed_commands_size() const {
+  return _impl_.allowed_commands_.size();
+}
+inline int ToolchainConstraints::allowed_commands_size() const {
+  return _internal_allowed_commands_size();
+}
+inline void ToolchainConstraints::clear_allowed_commands() {
+  _impl_.allowed_commands_.Clear();
+}
+inline std::string* ToolchainConstraints::add_allowed_commands() {
+  std::string* _s = _internal_add_allowed_commands();
+  // @@protoc_insertion_point(field_add_mutable:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+  return _s;
+}
+inline const std::string& ToolchainConstraints::_internal_allowed_commands(int index) const {
+  return _impl_.allowed_commands_.Get(index);
+}
+inline const std::string& ToolchainConstraints::allowed_commands(int index) const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+  return _internal_allowed_commands(index);
+}
+inline std::string* ToolchainConstraints::mutable_allowed_commands(int index) {
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+  return _impl_.allowed_commands_.Mutable(index);
+}
+inline void ToolchainConstraints::set_allowed_commands(int index, const std::string& value) {
+  _impl_.allowed_commands_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+}
+inline void ToolchainConstraints::set_allowed_commands(int index, std::string&& value) {
+  _impl_.allowed_commands_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+}
+inline void ToolchainConstraints::set_allowed_commands(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.allowed_commands_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+}
+inline void ToolchainConstraints::set_allowed_commands(int index, const char* value, size_t size) {
+  _impl_.allowed_commands_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+}
+inline std::string* ToolchainConstraints::_internal_add_allowed_commands() {
+  return _impl_.allowed_commands_.Add();
+}
+inline void ToolchainConstraints::add_allowed_commands(const std::string& value) {
+  _impl_.allowed_commands_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+}
+inline void ToolchainConstraints::add_allowed_commands(std::string&& value) {
+  _impl_.allowed_commands_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+}
+inline void ToolchainConstraints::add_allowed_commands(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.allowed_commands_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+}
+inline void ToolchainConstraints::add_allowed_commands(const char* value, size_t size) {
+  _impl_.allowed_commands_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+ToolchainConstraints::allowed_commands() const {
+  // @@protoc_insertion_point(field_list:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+  return _impl_.allowed_commands_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+ToolchainConstraints::mutable_allowed_commands() {
+  // @@protoc_insertion_point(field_mutable_list:coretex.agent.v1.ToolchainConstraints.allowed_commands)
+  return &_impl_.allowed_commands_;
+}
+
+// -------------------------------------------------------------------
+
+// DiffConstraints
+
+// int32 max_files = 1;
+inline void DiffConstraints::clear_max_files() {
+  _impl_.max_files_ = 0;
+}
+inline int32_t DiffConstraints::_internal_max_files() const {
+  return _impl_.max_files_;
+}
+inline int32_t DiffConstraints::max_files() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.DiffConstraints.max_files)
+  return _internal_max_files();
+}
+inline void DiffConstraints::_internal_set_max_files(int32_t value) {
+  
+  _impl_.max_files_ = value;
+}
+inline void DiffConstraints::set_max_files(int32_t value) {
+  _internal_set_max_files(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.DiffConstraints.max_files)
+}
+
+// int32 max_lines = 2;
+inline void DiffConstraints::clear_max_lines() {
+  _impl_.max_lines_ = 0;
+}
+inline int32_t DiffConstraints::_internal_max_lines() const {
+  return _impl_.max_lines_;
+}
+inline int32_t DiffConstraints::max_lines() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.DiffConstraints.max_lines)
+  return _internal_max_lines();
+}
+inline void DiffConstraints::_internal_set_max_lines(int32_t value) {
+  
+  _impl_.max_lines_ = value;
+}
+inline void DiffConstraints::set_max_lines(int32_t value) {
+  _internal_set_max_lines(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.DiffConstraints.max_lines)
+}
+
+// repeated string deny_path_globs = 3;
+inline int DiffConstraints::_internal_deny_path_globs_size() const {
+  return _impl_.deny_path_globs_.size();
+}
+inline int DiffConstraints::deny_path_globs_size() const {
+  return _internal_deny_path_globs_size();
+}
+inline void DiffConstraints::clear_deny_path_globs() {
+  _impl_.deny_path_globs_.Clear();
+}
+inline std::string* DiffConstraints::add_deny_path_globs() {
+  std::string* _s = _internal_add_deny_path_globs();
+  // @@protoc_insertion_point(field_add_mutable:coretex.agent.v1.DiffConstraints.deny_path_globs)
+  return _s;
+}
+inline const std::string& DiffConstraints::_internal_deny_path_globs(int index) const {
+  return _impl_.deny_path_globs_.Get(index);
+}
+inline const std::string& DiffConstraints::deny_path_globs(int index) const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.DiffConstraints.deny_path_globs)
+  return _internal_deny_path_globs(index);
+}
+inline std::string* DiffConstraints::mutable_deny_path_globs(int index) {
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.DiffConstraints.deny_path_globs)
+  return _impl_.deny_path_globs_.Mutable(index);
+}
+inline void DiffConstraints::set_deny_path_globs(int index, const std::string& value) {
+  _impl_.deny_path_globs_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.DiffConstraints.deny_path_globs)
+}
+inline void DiffConstraints::set_deny_path_globs(int index, std::string&& value) {
+  _impl_.deny_path_globs_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.DiffConstraints.deny_path_globs)
+}
+inline void DiffConstraints::set_deny_path_globs(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.deny_path_globs_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:coretex.agent.v1.DiffConstraints.deny_path_globs)
+}
+inline void DiffConstraints::set_deny_path_globs(int index, const char* value, size_t size) {
+  _impl_.deny_path_globs_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:coretex.agent.v1.DiffConstraints.deny_path_globs)
+}
+inline std::string* DiffConstraints::_internal_add_deny_path_globs() {
+  return _impl_.deny_path_globs_.Add();
+}
+inline void DiffConstraints::add_deny_path_globs(const std::string& value) {
+  _impl_.deny_path_globs_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.DiffConstraints.deny_path_globs)
+}
+inline void DiffConstraints::add_deny_path_globs(std::string&& value) {
+  _impl_.deny_path_globs_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.DiffConstraints.deny_path_globs)
+}
+inline void DiffConstraints::add_deny_path_globs(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.deny_path_globs_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:coretex.agent.v1.DiffConstraints.deny_path_globs)
+}
+inline void DiffConstraints::add_deny_path_globs(const char* value, size_t size) {
+  _impl_.deny_path_globs_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:coretex.agent.v1.DiffConstraints.deny_path_globs)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+DiffConstraints::deny_path_globs() const {
+  // @@protoc_insertion_point(field_list:coretex.agent.v1.DiffConstraints.deny_path_globs)
+  return _impl_.deny_path_globs_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+DiffConstraints::mutable_deny_path_globs() {
+  // @@protoc_insertion_point(field_mutable_list:coretex.agent.v1.DiffConstraints.deny_path_globs)
+  return &_impl_.deny_path_globs_;
+}
+
+// -------------------------------------------------------------------
+
+// PolicyConstraints
+
+// .coretex.agent.v1.BudgetConstraints budgets = 1;
+inline bool PolicyConstraints::_internal_has_budgets() const {
+  return this != internal_default_instance() && _impl_.budgets_ != nullptr;
+}
+inline bool PolicyConstraints::has_budgets() const {
+  return _internal_has_budgets();
+}
+inline void PolicyConstraints::clear_budgets() {
+  if (GetArenaForAllocation() == nullptr && _impl_.budgets_ != nullptr) {
+    delete _impl_.budgets_;
+  }
+  _impl_.budgets_ = nullptr;
+}
+inline const ::coretex::agent::v1::BudgetConstraints& PolicyConstraints::_internal_budgets() const {
+  const ::coretex::agent::v1::BudgetConstraints* p = _impl_.budgets_;
+  return p != nullptr ? *p : reinterpret_cast<const ::coretex::agent::v1::BudgetConstraints&>(
+      ::coretex::agent::v1::_BudgetConstraints_default_instance_);
+}
+inline const ::coretex::agent::v1::BudgetConstraints& PolicyConstraints::budgets() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyConstraints.budgets)
+  return _internal_budgets();
+}
+inline void PolicyConstraints::unsafe_arena_set_allocated_budgets(
+    ::coretex::agent::v1::BudgetConstraints* budgets) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.budgets_);
+  }
+  _impl_.budgets_ = budgets;
+  if (budgets) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:coretex.agent.v1.PolicyConstraints.budgets)
+}
+inline ::coretex::agent::v1::BudgetConstraints* PolicyConstraints::release_budgets() {
+  
+  ::coretex::agent::v1::BudgetConstraints* temp = _impl_.budgets_;
+  _impl_.budgets_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::coretex::agent::v1::BudgetConstraints* PolicyConstraints::unsafe_arena_release_budgets() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyConstraints.budgets)
+  
+  ::coretex::agent::v1::BudgetConstraints* temp = _impl_.budgets_;
+  _impl_.budgets_ = nullptr;
+  return temp;
+}
+inline ::coretex::agent::v1::BudgetConstraints* PolicyConstraints::_internal_mutable_budgets() {
+  
+  if (_impl_.budgets_ == nullptr) {
+    auto* p = CreateMaybeMessage<::coretex::agent::v1::BudgetConstraints>(GetArenaForAllocation());
+    _impl_.budgets_ = p;
+  }
+  return _impl_.budgets_;
+}
+inline ::coretex::agent::v1::BudgetConstraints* PolicyConstraints::mutable_budgets() {
+  ::coretex::agent::v1::BudgetConstraints* _msg = _internal_mutable_budgets();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyConstraints.budgets)
+  return _msg;
+}
+inline void PolicyConstraints::set_allocated_budgets(::coretex::agent::v1::BudgetConstraints* budgets) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.budgets_;
+  }
+  if (budgets) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(budgets);
+    if (message_arena != submessage_arena) {
+      budgets = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, budgets, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.budgets_ = budgets;
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyConstraints.budgets)
+}
+
+// .coretex.agent.v1.SandboxProfile sandbox = 2;
+inline bool PolicyConstraints::_internal_has_sandbox() const {
+  return this != internal_default_instance() && _impl_.sandbox_ != nullptr;
+}
+inline bool PolicyConstraints::has_sandbox() const {
+  return _internal_has_sandbox();
+}
+inline void PolicyConstraints::clear_sandbox() {
+  if (GetArenaForAllocation() == nullptr && _impl_.sandbox_ != nullptr) {
+    delete _impl_.sandbox_;
+  }
+  _impl_.sandbox_ = nullptr;
+}
+inline const ::coretex::agent::v1::SandboxProfile& PolicyConstraints::_internal_sandbox() const {
+  const ::coretex::agent::v1::SandboxProfile* p = _impl_.sandbox_;
+  return p != nullptr ? *p : reinterpret_cast<const ::coretex::agent::v1::SandboxProfile&>(
+      ::coretex::agent::v1::_SandboxProfile_default_instance_);
+}
+inline const ::coretex::agent::v1::SandboxProfile& PolicyConstraints::sandbox() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyConstraints.sandbox)
+  return _internal_sandbox();
+}
+inline void PolicyConstraints::unsafe_arena_set_allocated_sandbox(
+    ::coretex::agent::v1::SandboxProfile* sandbox) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.sandbox_);
+  }
+  _impl_.sandbox_ = sandbox;
+  if (sandbox) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:coretex.agent.v1.PolicyConstraints.sandbox)
+}
+inline ::coretex::agent::v1::SandboxProfile* PolicyConstraints::release_sandbox() {
+  
+  ::coretex::agent::v1::SandboxProfile* temp = _impl_.sandbox_;
+  _impl_.sandbox_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::coretex::agent::v1::SandboxProfile* PolicyConstraints::unsafe_arena_release_sandbox() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyConstraints.sandbox)
+  
+  ::coretex::agent::v1::SandboxProfile* temp = _impl_.sandbox_;
+  _impl_.sandbox_ = nullptr;
+  return temp;
+}
+inline ::coretex::agent::v1::SandboxProfile* PolicyConstraints::_internal_mutable_sandbox() {
+  
+  if (_impl_.sandbox_ == nullptr) {
+    auto* p = CreateMaybeMessage<::coretex::agent::v1::SandboxProfile>(GetArenaForAllocation());
+    _impl_.sandbox_ = p;
+  }
+  return _impl_.sandbox_;
+}
+inline ::coretex::agent::v1::SandboxProfile* PolicyConstraints::mutable_sandbox() {
+  ::coretex::agent::v1::SandboxProfile* _msg = _internal_mutable_sandbox();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyConstraints.sandbox)
+  return _msg;
+}
+inline void PolicyConstraints::set_allocated_sandbox(::coretex::agent::v1::SandboxProfile* sandbox) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.sandbox_;
+  }
+  if (sandbox) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(sandbox);
+    if (message_arena != submessage_arena) {
+      sandbox = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, sandbox, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.sandbox_ = sandbox;
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyConstraints.sandbox)
+}
+
+// .coretex.agent.v1.ToolchainConstraints toolchain = 3;
+inline bool PolicyConstraints::_internal_has_toolchain() const {
+  return this != internal_default_instance() && _impl_.toolchain_ != nullptr;
+}
+inline bool PolicyConstraints::has_toolchain() const {
+  return _internal_has_toolchain();
+}
+inline void PolicyConstraints::clear_toolchain() {
+  if (GetArenaForAllocation() == nullptr && _impl_.toolchain_ != nullptr) {
+    delete _impl_.toolchain_;
+  }
+  _impl_.toolchain_ = nullptr;
+}
+inline const ::coretex::agent::v1::ToolchainConstraints& PolicyConstraints::_internal_toolchain() const {
+  const ::coretex::agent::v1::ToolchainConstraints* p = _impl_.toolchain_;
+  return p != nullptr ? *p : reinterpret_cast<const ::coretex::agent::v1::ToolchainConstraints&>(
+      ::coretex::agent::v1::_ToolchainConstraints_default_instance_);
+}
+inline const ::coretex::agent::v1::ToolchainConstraints& PolicyConstraints::toolchain() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyConstraints.toolchain)
+  return _internal_toolchain();
+}
+inline void PolicyConstraints::unsafe_arena_set_allocated_toolchain(
+    ::coretex::agent::v1::ToolchainConstraints* toolchain) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.toolchain_);
+  }
+  _impl_.toolchain_ = toolchain;
+  if (toolchain) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:coretex.agent.v1.PolicyConstraints.toolchain)
+}
+inline ::coretex::agent::v1::ToolchainConstraints* PolicyConstraints::release_toolchain() {
+  
+  ::coretex::agent::v1::ToolchainConstraints* temp = _impl_.toolchain_;
+  _impl_.toolchain_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::coretex::agent::v1::ToolchainConstraints* PolicyConstraints::unsafe_arena_release_toolchain() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyConstraints.toolchain)
+  
+  ::coretex::agent::v1::ToolchainConstraints* temp = _impl_.toolchain_;
+  _impl_.toolchain_ = nullptr;
+  return temp;
+}
+inline ::coretex::agent::v1::ToolchainConstraints* PolicyConstraints::_internal_mutable_toolchain() {
+  
+  if (_impl_.toolchain_ == nullptr) {
+    auto* p = CreateMaybeMessage<::coretex::agent::v1::ToolchainConstraints>(GetArenaForAllocation());
+    _impl_.toolchain_ = p;
+  }
+  return _impl_.toolchain_;
+}
+inline ::coretex::agent::v1::ToolchainConstraints* PolicyConstraints::mutable_toolchain() {
+  ::coretex::agent::v1::ToolchainConstraints* _msg = _internal_mutable_toolchain();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyConstraints.toolchain)
+  return _msg;
+}
+inline void PolicyConstraints::set_allocated_toolchain(::coretex::agent::v1::ToolchainConstraints* toolchain) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.toolchain_;
+  }
+  if (toolchain) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(toolchain);
+    if (message_arena != submessage_arena) {
+      toolchain = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, toolchain, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.toolchain_ = toolchain;
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyConstraints.toolchain)
+}
+
+// .coretex.agent.v1.DiffConstraints diff = 4;
+inline bool PolicyConstraints::_internal_has_diff() const {
+  return this != internal_default_instance() && _impl_.diff_ != nullptr;
+}
+inline bool PolicyConstraints::has_diff() const {
+  return _internal_has_diff();
+}
+inline void PolicyConstraints::clear_diff() {
+  if (GetArenaForAllocation() == nullptr && _impl_.diff_ != nullptr) {
+    delete _impl_.diff_;
+  }
+  _impl_.diff_ = nullptr;
+}
+inline const ::coretex::agent::v1::DiffConstraints& PolicyConstraints::_internal_diff() const {
+  const ::coretex::agent::v1::DiffConstraints* p = _impl_.diff_;
+  return p != nullptr ? *p : reinterpret_cast<const ::coretex::agent::v1::DiffConstraints&>(
+      ::coretex::agent::v1::_DiffConstraints_default_instance_);
+}
+inline const ::coretex::agent::v1::DiffConstraints& PolicyConstraints::diff() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyConstraints.diff)
+  return _internal_diff();
+}
+inline void PolicyConstraints::unsafe_arena_set_allocated_diff(
+    ::coretex::agent::v1::DiffConstraints* diff) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.diff_);
+  }
+  _impl_.diff_ = diff;
+  if (diff) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:coretex.agent.v1.PolicyConstraints.diff)
+}
+inline ::coretex::agent::v1::DiffConstraints* PolicyConstraints::release_diff() {
+  
+  ::coretex::agent::v1::DiffConstraints* temp = _impl_.diff_;
+  _impl_.diff_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::coretex::agent::v1::DiffConstraints* PolicyConstraints::unsafe_arena_release_diff() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyConstraints.diff)
+  
+  ::coretex::agent::v1::DiffConstraints* temp = _impl_.diff_;
+  _impl_.diff_ = nullptr;
+  return temp;
+}
+inline ::coretex::agent::v1::DiffConstraints* PolicyConstraints::_internal_mutable_diff() {
+  
+  if (_impl_.diff_ == nullptr) {
+    auto* p = CreateMaybeMessage<::coretex::agent::v1::DiffConstraints>(GetArenaForAllocation());
+    _impl_.diff_ = p;
+  }
+  return _impl_.diff_;
+}
+inline ::coretex::agent::v1::DiffConstraints* PolicyConstraints::mutable_diff() {
+  ::coretex::agent::v1::DiffConstraints* _msg = _internal_mutable_diff();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyConstraints.diff)
+  return _msg;
+}
+inline void PolicyConstraints::set_allocated_diff(::coretex::agent::v1::DiffConstraints* diff) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.diff_;
+  }
+  if (diff) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(diff);
+    if (message_arena != submessage_arena) {
+      diff = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, diff, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.diff_ = diff;
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyConstraints.diff)
+}
+
+// -------------------------------------------------------------------
+
 // PolicyCheckResponse
 
 // .coretex.agent.v1.DecisionType decision = 1;
@@ -1201,9 +3527,366 @@ inline void PolicyCheckResponse::set_allocated_redacted_context_ptr(std::string*
   // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyCheckResponse.redacted_context_ptr)
 }
 
+// string policy_snapshot = 4;
+inline void PolicyCheckResponse::clear_policy_snapshot() {
+  _impl_.policy_snapshot_.ClearToEmpty();
+}
+inline const std::string& PolicyCheckResponse::policy_snapshot() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyCheckResponse.policy_snapshot)
+  return _internal_policy_snapshot();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyCheckResponse::set_policy_snapshot(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.policy_snapshot_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.PolicyCheckResponse.policy_snapshot)
+}
+inline std::string* PolicyCheckResponse::mutable_policy_snapshot() {
+  std::string* _s = _internal_mutable_policy_snapshot();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyCheckResponse.policy_snapshot)
+  return _s;
+}
+inline const std::string& PolicyCheckResponse::_internal_policy_snapshot() const {
+  return _impl_.policy_snapshot_.Get();
+}
+inline void PolicyCheckResponse::_internal_set_policy_snapshot(const std::string& value) {
+  
+  _impl_.policy_snapshot_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyCheckResponse::_internal_mutable_policy_snapshot() {
+  
+  return _impl_.policy_snapshot_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyCheckResponse::release_policy_snapshot() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyCheckResponse.policy_snapshot)
+  return _impl_.policy_snapshot_.Release();
+}
+inline void PolicyCheckResponse::set_allocated_policy_snapshot(std::string* policy_snapshot) {
+  if (policy_snapshot != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.policy_snapshot_.SetAllocated(policy_snapshot, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.policy_snapshot_.IsDefault()) {
+    _impl_.policy_snapshot_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyCheckResponse.policy_snapshot)
+}
+
+// string rule_id = 5;
+inline void PolicyCheckResponse::clear_rule_id() {
+  _impl_.rule_id_.ClearToEmpty();
+}
+inline const std::string& PolicyCheckResponse::rule_id() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyCheckResponse.rule_id)
+  return _internal_rule_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyCheckResponse::set_rule_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.rule_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.PolicyCheckResponse.rule_id)
+}
+inline std::string* PolicyCheckResponse::mutable_rule_id() {
+  std::string* _s = _internal_mutable_rule_id();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyCheckResponse.rule_id)
+  return _s;
+}
+inline const std::string& PolicyCheckResponse::_internal_rule_id() const {
+  return _impl_.rule_id_.Get();
+}
+inline void PolicyCheckResponse::_internal_set_rule_id(const std::string& value) {
+  
+  _impl_.rule_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyCheckResponse::_internal_mutable_rule_id() {
+  
+  return _impl_.rule_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyCheckResponse::release_rule_id() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyCheckResponse.rule_id)
+  return _impl_.rule_id_.Release();
+}
+inline void PolicyCheckResponse::set_allocated_rule_id(std::string* rule_id) {
+  if (rule_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.rule_id_.SetAllocated(rule_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.rule_id_.IsDefault()) {
+    _impl_.rule_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyCheckResponse.rule_id)
+}
+
+// .coretex.agent.v1.PolicyConstraints constraints = 6;
+inline bool PolicyCheckResponse::_internal_has_constraints() const {
+  return this != internal_default_instance() && _impl_.constraints_ != nullptr;
+}
+inline bool PolicyCheckResponse::has_constraints() const {
+  return _internal_has_constraints();
+}
+inline void PolicyCheckResponse::clear_constraints() {
+  if (GetArenaForAllocation() == nullptr && _impl_.constraints_ != nullptr) {
+    delete _impl_.constraints_;
+  }
+  _impl_.constraints_ = nullptr;
+}
+inline const ::coretex::agent::v1::PolicyConstraints& PolicyCheckResponse::_internal_constraints() const {
+  const ::coretex::agent::v1::PolicyConstraints* p = _impl_.constraints_;
+  return p != nullptr ? *p : reinterpret_cast<const ::coretex::agent::v1::PolicyConstraints&>(
+      ::coretex::agent::v1::_PolicyConstraints_default_instance_);
+}
+inline const ::coretex::agent::v1::PolicyConstraints& PolicyCheckResponse::constraints() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyCheckResponse.constraints)
+  return _internal_constraints();
+}
+inline void PolicyCheckResponse::unsafe_arena_set_allocated_constraints(
+    ::coretex::agent::v1::PolicyConstraints* constraints) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.constraints_);
+  }
+  _impl_.constraints_ = constraints;
+  if (constraints) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:coretex.agent.v1.PolicyCheckResponse.constraints)
+}
+inline ::coretex::agent::v1::PolicyConstraints* PolicyCheckResponse::release_constraints() {
+  
+  ::coretex::agent::v1::PolicyConstraints* temp = _impl_.constraints_;
+  _impl_.constraints_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::coretex::agent::v1::PolicyConstraints* PolicyCheckResponse::unsafe_arena_release_constraints() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyCheckResponse.constraints)
+  
+  ::coretex::agent::v1::PolicyConstraints* temp = _impl_.constraints_;
+  _impl_.constraints_ = nullptr;
+  return temp;
+}
+inline ::coretex::agent::v1::PolicyConstraints* PolicyCheckResponse::_internal_mutable_constraints() {
+  
+  if (_impl_.constraints_ == nullptr) {
+    auto* p = CreateMaybeMessage<::coretex::agent::v1::PolicyConstraints>(GetArenaForAllocation());
+    _impl_.constraints_ = p;
+  }
+  return _impl_.constraints_;
+}
+inline ::coretex::agent::v1::PolicyConstraints* PolicyCheckResponse::mutable_constraints() {
+  ::coretex::agent::v1::PolicyConstraints* _msg = _internal_mutable_constraints();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyCheckResponse.constraints)
+  return _msg;
+}
+inline void PolicyCheckResponse::set_allocated_constraints(::coretex::agent::v1::PolicyConstraints* constraints) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.constraints_;
+  }
+  if (constraints) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(constraints);
+    if (message_arena != submessage_arena) {
+      constraints = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, constraints, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.constraints_ = constraints;
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyCheckResponse.constraints)
+}
+
+// bool approval_required = 7;
+inline void PolicyCheckResponse::clear_approval_required() {
+  _impl_.approval_required_ = false;
+}
+inline bool PolicyCheckResponse::_internal_approval_required() const {
+  return _impl_.approval_required_;
+}
+inline bool PolicyCheckResponse::approval_required() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyCheckResponse.approval_required)
+  return _internal_approval_required();
+}
+inline void PolicyCheckResponse::_internal_set_approval_required(bool value) {
+  
+  _impl_.approval_required_ = value;
+}
+inline void PolicyCheckResponse::set_approval_required(bool value) {
+  _internal_set_approval_required(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.PolicyCheckResponse.approval_required)
+}
+
+// string approval_ref = 8;
+inline void PolicyCheckResponse::clear_approval_ref() {
+  _impl_.approval_ref_.ClearToEmpty();
+}
+inline const std::string& PolicyCheckResponse::approval_ref() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.PolicyCheckResponse.approval_ref)
+  return _internal_approval_ref();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyCheckResponse::set_approval_ref(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.approval_ref_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.PolicyCheckResponse.approval_ref)
+}
+inline std::string* PolicyCheckResponse::mutable_approval_ref() {
+  std::string* _s = _internal_mutable_approval_ref();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.PolicyCheckResponse.approval_ref)
+  return _s;
+}
+inline const std::string& PolicyCheckResponse::_internal_approval_ref() const {
+  return _impl_.approval_ref_.Get();
+}
+inline void PolicyCheckResponse::_internal_set_approval_ref(const std::string& value) {
+  
+  _impl_.approval_ref_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyCheckResponse::_internal_mutable_approval_ref() {
+  
+  return _impl_.approval_ref_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyCheckResponse::release_approval_ref() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.PolicyCheckResponse.approval_ref)
+  return _impl_.approval_ref_.Release();
+}
+inline void PolicyCheckResponse::set_allocated_approval_ref(std::string* approval_ref) {
+  if (approval_ref != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.approval_ref_.SetAllocated(approval_ref, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.approval_ref_.IsDefault()) {
+    _impl_.approval_ref_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.PolicyCheckResponse.approval_ref)
+}
+
+// -------------------------------------------------------------------
+
+// ListSnapshotsRequest
+
+// -------------------------------------------------------------------
+
+// ListSnapshotsResponse
+
+// repeated string snapshots = 1;
+inline int ListSnapshotsResponse::_internal_snapshots_size() const {
+  return _impl_.snapshots_.size();
+}
+inline int ListSnapshotsResponse::snapshots_size() const {
+  return _internal_snapshots_size();
+}
+inline void ListSnapshotsResponse::clear_snapshots() {
+  _impl_.snapshots_.Clear();
+}
+inline std::string* ListSnapshotsResponse::add_snapshots() {
+  std::string* _s = _internal_add_snapshots();
+  // @@protoc_insertion_point(field_add_mutable:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+  return _s;
+}
+inline const std::string& ListSnapshotsResponse::_internal_snapshots(int index) const {
+  return _impl_.snapshots_.Get(index);
+}
+inline const std::string& ListSnapshotsResponse::snapshots(int index) const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+  return _internal_snapshots(index);
+}
+inline std::string* ListSnapshotsResponse::mutable_snapshots(int index) {
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+  return _impl_.snapshots_.Mutable(index);
+}
+inline void ListSnapshotsResponse::set_snapshots(int index, const std::string& value) {
+  _impl_.snapshots_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+}
+inline void ListSnapshotsResponse::set_snapshots(int index, std::string&& value) {
+  _impl_.snapshots_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+}
+inline void ListSnapshotsResponse::set_snapshots(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.snapshots_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+}
+inline void ListSnapshotsResponse::set_snapshots(int index, const char* value, size_t size) {
+  _impl_.snapshots_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+}
+inline std::string* ListSnapshotsResponse::_internal_add_snapshots() {
+  return _impl_.snapshots_.Add();
+}
+inline void ListSnapshotsResponse::add_snapshots(const std::string& value) {
+  _impl_.snapshots_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+}
+inline void ListSnapshotsResponse::add_snapshots(std::string&& value) {
+  _impl_.snapshots_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+}
+inline void ListSnapshotsResponse::add_snapshots(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.snapshots_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+}
+inline void ListSnapshotsResponse::add_snapshots(const char* value, size_t size) {
+  _impl_.snapshots_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+ListSnapshotsResponse::snapshots() const {
+  // @@protoc_insertion_point(field_list:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+  return _impl_.snapshots_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+ListSnapshotsResponse::mutable_snapshots() {
+  // @@protoc_insertion_point(field_mutable_list:coretex.agent.v1.ListSnapshotsResponse.snapshots)
+  return &_impl_.snapshots_;
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

@@ -28,14 +28,14 @@ from coretex.agent.v1 import heartbeat_pb2 as coretex_dot_agent_dot_v1_dot_heart
 from coretex.agent.v1 import alert_pb2 as coretex_dot_agent_dot_v1_dot_alert__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ortex/agent/v1/buspacket.proto\x12\x0f\x63ortex.agent.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19\x63ortex/agent/v1/job.proto\x1a\x1f\x63ortex/agent/v1/heartbeat.proto\x1a\x1b\x63ortex/agent/v1/alert.proto\"\xde\x02\n\tBusPacket\x12\x10\n\x08trace_id\x18\x01 \x01(\t\x12\x11\n\tsender_id\x18\x02 \x01(\t\x12.\n\ncreated_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x18\n\x10protocol_version\x18\x04 \x01(\x05\x12\x32\n\x0bjob_request\x18\n \x01(\x0b\x32\x1b.coretex.agent.v1.JobRequestH\x00\x12\x30\n\njob_result\x18\x0b \x01(\x0b\x32\x1a.coretex.agent.v1.JobResultH\x00\x12/\n\theartbeat\x18\x0c \x01(\x0b\x32\x1a.coretex.agent.v1.HeartbeatH\x00\x12-\n\x05\x61lert\x18\r \x01(\x0b\x32\x1c.coretex.agent.v1.SystemAlertH\x00\x12\x11\n\tsignature\x18\x0e \x01(\x0c\x42\t\n\x07payloadB\x7f\n\x16\x61i.coretex.cap.agent.v1P\x01Z+github.com/coretexos/cap/go/coretex/agent/v1\xaa\x02\x0f\x43ortex.Agent.V1\xca\x02\x0f\x43ortex\\Agent\\V1\xea\x02\x11\x43ortex::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n coretex/agent/v1/buspacket.proto\x12\x10\x63oretex.agent.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1a\x63oretex/agent/v1/job.proto\x1a coretex/agent/v1/heartbeat.proto\x1a\x1c\x63oretex/agent/v1/alert.proto\"\xe2\x02\n\tBusPacket\x12\x10\n\x08trace_id\x18\x01 \x01(\t\x12\x11\n\tsender_id\x18\x02 \x01(\t\x12.\n\ncreated_at\x18\x03 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x18\n\x10protocol_version\x18\x04 \x01(\x05\x12\x33\n\x0bjob_request\x18\n \x01(\x0b\x32\x1c.coretex.agent.v1.JobRequestH\x00\x12\x31\n\njob_result\x18\x0b \x01(\x0b\x32\x1b.coretex.agent.v1.JobResultH\x00\x12\x30\n\theartbeat\x18\x0c \x01(\x0b\x32\x1b.coretex.agent.v1.HeartbeatH\x00\x12.\n\x05\x61lert\x18\r \x01(\x0b\x32\x1d.coretex.agent.v1.SystemAlertH\x00\x12\x11\n\tsignature\x18\x0e \x01(\x0c\x42\t\n\x07payloadB\x84\x01\n\x17\x61i.coretex.cap.agent.v1P\x01Z,github.com/coretexos/cap/v2/coretex/agent/v1\xaa\x02\x10\x63oretex.Agent.V1\xca\x02\x10\x63oretex\\Agent\\V1\xea\x02\x12\x63oretex::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'coretex.agent.v1.buspacket_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'\n\026ai.coretex.cap.agent.v1P\001Z+github.com/coretexos/cap/go/coretex/agent/v1\252\002\017coretex.Agent.V1\312\002\017coretex\\Agent\\V1\352\002\021coretex::Agent::V1'
-  _globals['_BUSPACKET']._serialized_start=175
-  _globals['_BUSPACKET']._serialized_end=525
+  _globals['DESCRIPTOR']._serialized_options = b'\n\027ai.coretex.cap.agent.v1P\001Z,github.com/coretexos/cap/v2/coretex/agent/v1\252\002\020coretex.Agent.V1\312\002\020coretex\\Agent\\V1\352\002\022coretex::Agent::V1'
+  _globals['_BUSPACKET']._serialized_start=180
+  _globals['_BUSPACKET']._serialized_end=534
 # @@protoc_insertion_point(module_scope)

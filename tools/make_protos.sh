@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple helper to generate language-specific stubs into ./go, ./python, ./cpp, and ./node
+# Simple helper to generate language-specific stubs into ./coretex (Go), ./python, ./cpp, and ./node
 # (configurable via CAP_OUT_GO/CAP_OUT_PY/CAP_OUT_CPP/CAP_OUT_JS)
 # Requirements:
 # - protoc
@@ -11,7 +11,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROTO_DIR="$ROOT_DIR/proto"
 # Override output paths with env vars if desired.
-OUT_GO="${CAP_OUT_GO:-$ROOT_DIR/go}"
+OUT_GO="${CAP_OUT_GO:-$ROOT_DIR}"
 OUT_PY="${CAP_OUT_PY:-$ROOT_DIR/python}"
 OUT_CPP="${CAP_OUT_CPP:-$ROOT_DIR/cpp}"
 OUT_JS="${CAP_OUT_JS:-$ROOT_DIR/node}"
@@ -66,9 +66,16 @@ fi
 
 # JavaScript stubs (CommonJS, binary wire) for Node consumers.
 if [ "${CAP_RUN_JS:-1}" = "1" ]; then
+  PROTOC_JS=""
   if command -v protoc-gen-js >/dev/null 2>&1; then
-    echo "Generating Node JS stubs (protoc)..."
-    protoc \
+    PROTOC_JS="protoc"
+  elif command -v grpc_tools_node_protoc >/dev/null 2>&1; then
+    PROTOC_JS="grpc_tools_node_protoc"
+  fi
+
+  if [ -n "$PROTOC_JS" ]; then
+    echo "Generating Node JS stubs ($PROTOC_JS)..."
+    "$PROTOC_JS" \
       -I"$PROTO_DIR" \
       --js_out=import_style=commonjs,binary:"$OUT_JS" \
       $(find "$PROTO_DIR" -name '*.proto')
@@ -76,15 +83,19 @@ if [ "${CAP_RUN_JS:-1}" = "1" ]; then
     echo "Generating Node JS stubs (pbjs)..."
     pbjs -p "$PROTO_DIR" -t static-module -w commonjs -r coretex.agent.v1 -o "$OUT_JS/cap_pb.js" $(find "$PROTO_DIR" -name '*.proto')
   else
-    echo "No JS generator found; skipping Node JS stubs (install protoc-gen-js or pbjs)"
+    echo "No JS generator found; skipping Node JS stubs (install protoc-gen-js, grpc-tools, or pbjs)"
   fi
 
   # Generate TypeScript definitions when protoc-gen-ts or pbts is available.
   if command -v protoc-gen-ts >/dev/null 2>&1; then
-    protoc \
-      -I"$PROTO_DIR" \
-      --ts_out="$OUT_JS" \
-      $(find "$PROTO_DIR" -name '*.proto')
+    if [ -n "$PROTOC_JS" ]; then
+      "$PROTOC_JS" \
+        -I"$PROTO_DIR" \
+        --ts_out="$OUT_JS" \
+        $(find "$PROTO_DIR" -name '*.proto')
+    else
+      echo "No protoc JS generator found; skipping TypeScript typings (install protoc-gen-js or grpc-tools)"
+    fi
   elif command -v pbts >/dev/null 2>&1 && [ -f "$OUT_JS/cap_pb.js" ]; then
     echo "Generating TypeScript typings (pbts)..."
     pbts -o "$OUT_JS/cap_pb.d.ts" "$OUT_JS/cap_pb.js"

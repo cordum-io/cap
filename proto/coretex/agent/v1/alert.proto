@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package coretex.agent.v1;
 
-option go_package = "github.com/coretexos/cap/v2/go/coretex/agent/v1";
+option go_package = "github.com/coretexos/cap/v2/coretex/agent/v1";
 option java_package = "ai.coretex.cap.agent.v1";
 option java_multiple_files = true;
 option csharp_namespace = "coretex.Agent.V1";

@@ -24,14 +24,14 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n coretex/agent/v1/heartbeat.proto\x12\x10\x63oretex.agent.v1\"\xa3\x02\n\tHeartbeat\x12\x11\n\tworker_id\x18\x01 \x01(\t\x12\x0e\n\x06region\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x10\n\x08\x63pu_load\x18\x04 \x01(\x02\x12\x17\n\x0fgpu_utilization\x18\x05 \x01(\x02\x12\x13\n\x0b\x61\x63tive_jobs\x18\x06 \x01(\x05\x12\x14\n\x0c\x63\x61pabilities\x18\x07 \x03(\t\x12\x0c\n\x04pool\x18\x0b \x01(\t\x12\x19\n\x11max_parallel_jobs\x18\x0c \x01(\x05\x12\x37\n\x06labels\x18\r \x03(\x0b\x32\'.coretex.agent.v1.Heartbeat.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x87\x01\n\x17\x61i.coretex.cap.agent.v1P\x01Z/github.com/coretexos/cap/v2/go/coretex/agent/v1\xaa\x02\x10\x63oretex.Agent.V1\xca\x02\x10\x63oretex\\Agent\\V1\xea\x02\x12\x63oretex::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n coretex/agent/v1/heartbeat.proto\x12\x10\x63oretex.agent.v1\"\xa3\x02\n\tHeartbeat\x12\x11\n\tworker_id\x18\x01 \x01(\t\x12\x0e\n\x06region\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x10\n\x08\x63pu_load\x18\x04 \x01(\x02\x12\x17\n\x0fgpu_utilization\x18\x05 \x01(\x02\x12\x13\n\x0b\x61\x63tive_jobs\x18\x06 \x01(\x05\x12\x14\n\x0c\x63\x61pabilities\x18\x07 \x03(\t\x12\x0c\n\x04pool\x18\x0b \x01(\t\x12\x19\n\x11max_parallel_jobs\x18\x0c \x01(\x05\x12\x37\n\x06labels\x18\r \x03(\x0b\x32\'.coretex.agent.v1.Heartbeat.LabelsEntry\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x42\x84\x01\n\x17\x61i.coretex.cap.agent.v1P\x01Z,github.com/coretexos/cap/v2/coretex/agent/v1\xaa\x02\x10\x63oretex.Agent.V1\xca\x02\x10\x63oretex\\Agent\\V1\xea\x02\x12\x63oretex::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'coretex.agent.v1.heartbeat_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'\n\027ai.coretex.cap.agent.v1P\001Z/github.com/coretexos/cap/v2/go/coretex/agent/v1\252\002\020coretex.Agent.V1\312\002\020coretex\\Agent\\V1\352\002\022coretex::Agent::V1'
+  _globals['DESCRIPTOR']._serialized_options = b'\n\027ai.coretex.cap.agent.v1P\001Z,github.com/coretexos/cap/v2/coretex/agent/v1\252\002\020coretex.Agent.V1\312\002\020coretex\\Agent\\V1\352\002\022coretex::Agent::V1'
   _globals['_HEARTBEAT_LABELSENTRY']._loaded_options = None
   _globals['_HEARTBEAT_LABELSENTRY']._serialized_options = b'8\001'
   _globals['_HEARTBEAT']._serialized_start=55

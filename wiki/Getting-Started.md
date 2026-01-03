@@ -35,7 +35,6 @@ Before you begin, you will need to have the following installed:
     *   **Go:**
 
         ```bash
-        cd sdk/go
         go mod tidy
         ```
 

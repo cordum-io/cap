@@ -95,7 +95,7 @@ package main
 import (
 	"log"
 
-	agentv1 "github.com/coretexos/cap/v2/go/coretex/agent/v1"
+	agentv1 "github.com/coretexos/cap/v2/coretex/agent/v1"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 )
@@ -145,7 +145,7 @@ func main() {
 - `examples/` - JSON and sequence flows for common scenarios.
 - `tools/` - helper scripts for proto generation (optional).
 - `sdk/` - starter SDKs for Go, Python, Node/TS, and C++ with NATS helpers.
-- `go/` - Go protobuf stubs (import path `github.com/coretexos/cap/v2/go/coretex/agent/v1`).
+- `coretex/` - Go protobuf stubs (import path `github.com/coretexos/cap/v2/coretex/agent/v1`).
 - `python/` - Python protobuf stubs (enable with `CAP_RUN_PY=1`).
 - `cpp/` - C++ protobuf stubs (vendored headers/sources).
 - `node/` - Node JS protobuf stubs (CommonJS, binary wire format).

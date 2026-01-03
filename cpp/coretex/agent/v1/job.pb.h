@@ -57,12 +57,18 @@ extern BudgetDefaultTypeInternal _Budget_default_instance_;
 class ContextHints;
 struct ContextHintsDefaultTypeInternal;
 extern ContextHintsDefaultTypeInternal _ContextHints_default_instance_;
+class JobCancel;
+struct JobCancelDefaultTypeInternal;
+extern JobCancelDefaultTypeInternal _JobCancel_default_instance_;
 class JobMetadata;
 struct JobMetadataDefaultTypeInternal;
 extern JobMetadataDefaultTypeInternal _JobMetadata_default_instance_;
 class JobMetadata_LabelsEntry_DoNotUse;
 struct JobMetadata_LabelsEntry_DoNotUseDefaultTypeInternal;
 extern JobMetadata_LabelsEntry_DoNotUseDefaultTypeInternal _JobMetadata_LabelsEntry_DoNotUse_default_instance_;
+class JobProgress;
+struct JobProgressDefaultTypeInternal;
+extern JobProgressDefaultTypeInternal _JobProgress_default_instance_;
 class JobRequest;
 struct JobRequestDefaultTypeInternal;
 extern JobRequestDefaultTypeInternal _JobRequest_default_instance_;
@@ -81,8 +87,10 @@ extern JobResultDefaultTypeInternal _JobResult_default_instance_;
 PROTOBUF_NAMESPACE_OPEN
 template<> ::coretex::agent::v1::Budget* Arena::CreateMaybeMessage<::coretex::agent::v1::Budget>(Arena*);
 template<> ::coretex::agent::v1::ContextHints* Arena::CreateMaybeMessage<::coretex::agent::v1::ContextHints>(Arena*);
+template<> ::coretex::agent::v1::JobCancel* Arena::CreateMaybeMessage<::coretex::agent::v1::JobCancel>(Arena*);
 template<> ::coretex::agent::v1::JobMetadata* Arena::CreateMaybeMessage<::coretex::agent::v1::JobMetadata>(Arena*);
 template<> ::coretex::agent::v1::JobMetadata_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::coretex::agent::v1::JobMetadata_LabelsEntry_DoNotUse>(Arena*);
+template<> ::coretex::agent::v1::JobProgress* Arena::CreateMaybeMessage<::coretex::agent::v1::JobProgress>(Arena*);
 template<> ::coretex::agent::v1::JobRequest* Arena::CreateMaybeMessage<::coretex::agent::v1::JobRequest>(Arena*);
 template<> ::coretex::agent::v1::JobRequest_EnvEntry_DoNotUse* Arena::CreateMaybeMessage<::coretex::agent::v1::JobRequest_EnvEntry_DoNotUse>(Arena*);
 template<> ::coretex::agent::v1::JobRequest_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::coretex::agent::v1::JobRequest_LabelsEntry_DoNotUse>(Arena*);
@@ -1480,6 +1488,7 @@ class JobResult final :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kArtifactPtrsFieldNumber = 8,
     kJobIdFieldNumber = 1,
     kResultPtrFieldNumber = 3,
     kWorkerIdFieldNumber = 4,
@@ -1488,6 +1497,30 @@ class JobResult final :
     kExecutionMsFieldNumber = 5,
     kStatusFieldNumber = 2,
   };
+  // repeated string artifact_ptrs = 8;
+  int artifact_ptrs_size() const;
+  private:
+  int _internal_artifact_ptrs_size() const;
+  public:
+  void clear_artifact_ptrs();
+  const std::string& artifact_ptrs(int index) const;
+  std::string* mutable_artifact_ptrs(int index);
+  void set_artifact_ptrs(int index, const std::string& value);
+  void set_artifact_ptrs(int index, std::string&& value);
+  void set_artifact_ptrs(int index, const char* value);
+  void set_artifact_ptrs(int index, const char* value, size_t size);
+  std::string* add_artifact_ptrs();
+  void add_artifact_ptrs(const std::string& value);
+  void add_artifact_ptrs(std::string&& value);
+  void add_artifact_ptrs(const char* value);
+  void add_artifact_ptrs(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& artifact_ptrs() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_artifact_ptrs();
+  private:
+  const std::string& _internal_artifact_ptrs(int index) const;
+  std::string* _internal_add_artifact_ptrs();
+  public:
+
   // string job_id = 1;
   void clear_job_id();
   const std::string& job_id() const;
@@ -1584,6 +1617,7 @@ class JobResult final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> artifact_ptrs_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr job_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr result_ptr_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr worker_id_;
@@ -1591,6 +1625,440 @@ class JobResult final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr error_message_;
     int64_t execution_ms_;
     int status_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coretex_2fagent_2fv1_2fjob_2eproto;
+};
+// -------------------------------------------------------------------
+
+class JobProgress final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coretex.agent.v1.JobProgress) */ {
+ public:
+  inline JobProgress() : JobProgress(nullptr) {}
+  ~JobProgress() override;
+  explicit PROTOBUF_CONSTEXPR JobProgress(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  JobProgress(const JobProgress& from);
+  JobProgress(JobProgress&& from) noexcept
+    : JobProgress() {
+    *this = ::std::move(from);
+  }
+
+  inline JobProgress& operator=(const JobProgress& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline JobProgress& operator=(JobProgress&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const JobProgress& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const JobProgress* internal_default_instance() {
+    return reinterpret_cast<const JobProgress*>(
+               &_JobProgress_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    8;
+
+  friend void swap(JobProgress& a, JobProgress& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(JobProgress* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(JobProgress* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  JobProgress* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<JobProgress>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const JobProgress& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const JobProgress& from) {
+    JobProgress::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(JobProgress* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coretex.agent.v1.JobProgress";
+  }
+  protected:
+  explicit JobProgress(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kArtifactPtrsFieldNumber = 6,
+    kJobIdFieldNumber = 1,
+    kStepIdFieldNumber = 2,
+    kMessageFieldNumber = 4,
+    kResultPtrFieldNumber = 5,
+    kPercentFieldNumber = 3,
+    kStatusFieldNumber = 7,
+  };
+  // repeated string artifact_ptrs = 6;
+  int artifact_ptrs_size() const;
+  private:
+  int _internal_artifact_ptrs_size() const;
+  public:
+  void clear_artifact_ptrs();
+  const std::string& artifact_ptrs(int index) const;
+  std::string* mutable_artifact_ptrs(int index);
+  void set_artifact_ptrs(int index, const std::string& value);
+  void set_artifact_ptrs(int index, std::string&& value);
+  void set_artifact_ptrs(int index, const char* value);
+  void set_artifact_ptrs(int index, const char* value, size_t size);
+  std::string* add_artifact_ptrs();
+  void add_artifact_ptrs(const std::string& value);
+  void add_artifact_ptrs(std::string&& value);
+  void add_artifact_ptrs(const char* value);
+  void add_artifact_ptrs(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& artifact_ptrs() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_artifact_ptrs();
+  private:
+  const std::string& _internal_artifact_ptrs(int index) const;
+  std::string* _internal_add_artifact_ptrs();
+  public:
+
+  // string job_id = 1;
+  void clear_job_id();
+  const std::string& job_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_job_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_job_id();
+  PROTOBUF_NODISCARD std::string* release_job_id();
+  void set_allocated_job_id(std::string* job_id);
+  private:
+  const std::string& _internal_job_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_job_id(const std::string& value);
+  std::string* _internal_mutable_job_id();
+  public:
+
+  // string step_id = 2;
+  void clear_step_id();
+  const std::string& step_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_step_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_step_id();
+  PROTOBUF_NODISCARD std::string* release_step_id();
+  void set_allocated_step_id(std::string* step_id);
+  private:
+  const std::string& _internal_step_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_step_id(const std::string& value);
+  std::string* _internal_mutable_step_id();
+  public:
+
+  // string message = 4;
+  void clear_message();
+  const std::string& message() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_message(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_message();
+  PROTOBUF_NODISCARD std::string* release_message();
+  void set_allocated_message(std::string* message);
+  private:
+  const std::string& _internal_message() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_message(const std::string& value);
+  std::string* _internal_mutable_message();
+  public:
+
+  // string result_ptr = 5;
+  void clear_result_ptr();
+  const std::string& result_ptr() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_result_ptr(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_result_ptr();
+  PROTOBUF_NODISCARD std::string* release_result_ptr();
+  void set_allocated_result_ptr(std::string* result_ptr);
+  private:
+  const std::string& _internal_result_ptr() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_result_ptr(const std::string& value);
+  std::string* _internal_mutable_result_ptr();
+  public:
+
+  // int32 percent = 3;
+  void clear_percent();
+  int32_t percent() const;
+  void set_percent(int32_t value);
+  private:
+  int32_t _internal_percent() const;
+  void _internal_set_percent(int32_t value);
+  public:
+
+  // .coretex.agent.v1.JobStatus status = 7;
+  void clear_status();
+  ::coretex::agent::v1::JobStatus status() const;
+  void set_status(::coretex::agent::v1::JobStatus value);
+  private:
+  ::coretex::agent::v1::JobStatus _internal_status() const;
+  void _internal_set_status(::coretex::agent::v1::JobStatus value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:coretex.agent.v1.JobProgress)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> artifact_ptrs_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr job_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr step_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr message_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr result_ptr_;
+    int32_t percent_;
+    int status_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_coretex_2fagent_2fv1_2fjob_2eproto;
+};
+// -------------------------------------------------------------------
+
+class JobCancel final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:coretex.agent.v1.JobCancel) */ {
+ public:
+  inline JobCancel() : JobCancel(nullptr) {}
+  ~JobCancel() override;
+  explicit PROTOBUF_CONSTEXPR JobCancel(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  JobCancel(const JobCancel& from);
+  JobCancel(JobCancel&& from) noexcept
+    : JobCancel() {
+    *this = ::std::move(from);
+  }
+
+  inline JobCancel& operator=(const JobCancel& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline JobCancel& operator=(JobCancel&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const JobCancel& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const JobCancel* internal_default_instance() {
+    return reinterpret_cast<const JobCancel*>(
+               &_JobCancel_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    9;
+
+  friend void swap(JobCancel& a, JobCancel& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(JobCancel* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(JobCancel* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  JobCancel* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<JobCancel>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const JobCancel& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const JobCancel& from) {
+    JobCancel::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(JobCancel* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "coretex.agent.v1.JobCancel";
+  }
+  protected:
+  explicit JobCancel(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kJobIdFieldNumber = 1,
+    kReasonFieldNumber = 2,
+    kRequestedByFieldNumber = 3,
+  };
+  // string job_id = 1;
+  void clear_job_id();
+  const std::string& job_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_job_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_job_id();
+  PROTOBUF_NODISCARD std::string* release_job_id();
+  void set_allocated_job_id(std::string* job_id);
+  private:
+  const std::string& _internal_job_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_job_id(const std::string& value);
+  std::string* _internal_mutable_job_id();
+  public:
+
+  // string reason = 2;
+  void clear_reason();
+  const std::string& reason() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_reason(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_reason();
+  PROTOBUF_NODISCARD std::string* release_reason();
+  void set_allocated_reason(std::string* reason);
+  private:
+  const std::string& _internal_reason() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_reason(const std::string& value);
+  std::string* _internal_mutable_reason();
+  public:
+
+  // string requested_by = 3;
+  void clear_requested_by();
+  const std::string& requested_by() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_requested_by(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_requested_by();
+  PROTOBUF_NODISCARD std::string* release_requested_by();
+  void set_allocated_requested_by(std::string* requested_by);
+  private:
+  const std::string& _internal_requested_by() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_requested_by(const std::string& value);
+  std::string* _internal_mutable_requested_by();
+  public:
+
+  // @@protoc_insertion_point(class_scope:coretex.agent.v1.JobCancel)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr job_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr reason_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr requested_by_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -3401,9 +3869,561 @@ inline void JobResult::set_allocated_error_message(std::string* error_message) {
   // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.JobResult.error_message)
 }
 
+// repeated string artifact_ptrs = 8;
+inline int JobResult::_internal_artifact_ptrs_size() const {
+  return _impl_.artifact_ptrs_.size();
+}
+inline int JobResult::artifact_ptrs_size() const {
+  return _internal_artifact_ptrs_size();
+}
+inline void JobResult::clear_artifact_ptrs() {
+  _impl_.artifact_ptrs_.Clear();
+}
+inline std::string* JobResult::add_artifact_ptrs() {
+  std::string* _s = _internal_add_artifact_ptrs();
+  // @@protoc_insertion_point(field_add_mutable:coretex.agent.v1.JobResult.artifact_ptrs)
+  return _s;
+}
+inline const std::string& JobResult::_internal_artifact_ptrs(int index) const {
+  return _impl_.artifact_ptrs_.Get(index);
+}
+inline const std::string& JobResult::artifact_ptrs(int index) const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobResult.artifact_ptrs)
+  return _internal_artifact_ptrs(index);
+}
+inline std::string* JobResult::mutable_artifact_ptrs(int index) {
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.JobResult.artifact_ptrs)
+  return _impl_.artifact_ptrs_.Mutable(index);
+}
+inline void JobResult::set_artifact_ptrs(int index, const std::string& value) {
+  _impl_.artifact_ptrs_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobResult.artifact_ptrs)
+}
+inline void JobResult::set_artifact_ptrs(int index, std::string&& value) {
+  _impl_.artifact_ptrs_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobResult.artifact_ptrs)
+}
+inline void JobResult::set_artifact_ptrs(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.artifact_ptrs_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:coretex.agent.v1.JobResult.artifact_ptrs)
+}
+inline void JobResult::set_artifact_ptrs(int index, const char* value, size_t size) {
+  _impl_.artifact_ptrs_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:coretex.agent.v1.JobResult.artifact_ptrs)
+}
+inline std::string* JobResult::_internal_add_artifact_ptrs() {
+  return _impl_.artifact_ptrs_.Add();
+}
+inline void JobResult::add_artifact_ptrs(const std::string& value) {
+  _impl_.artifact_ptrs_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.JobResult.artifact_ptrs)
+}
+inline void JobResult::add_artifact_ptrs(std::string&& value) {
+  _impl_.artifact_ptrs_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.JobResult.artifact_ptrs)
+}
+inline void JobResult::add_artifact_ptrs(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.artifact_ptrs_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:coretex.agent.v1.JobResult.artifact_ptrs)
+}
+inline void JobResult::add_artifact_ptrs(const char* value, size_t size) {
+  _impl_.artifact_ptrs_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:coretex.agent.v1.JobResult.artifact_ptrs)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+JobResult::artifact_ptrs() const {
+  // @@protoc_insertion_point(field_list:coretex.agent.v1.JobResult.artifact_ptrs)
+  return _impl_.artifact_ptrs_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+JobResult::mutable_artifact_ptrs() {
+  // @@protoc_insertion_point(field_mutable_list:coretex.agent.v1.JobResult.artifact_ptrs)
+  return &_impl_.artifact_ptrs_;
+}
+
+// -------------------------------------------------------------------
+
+// JobProgress
+
+// string job_id = 1;
+inline void JobProgress::clear_job_id() {
+  _impl_.job_id_.ClearToEmpty();
+}
+inline const std::string& JobProgress::job_id() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobProgress.job_id)
+  return _internal_job_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void JobProgress::set_job_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.job_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobProgress.job_id)
+}
+inline std::string* JobProgress::mutable_job_id() {
+  std::string* _s = _internal_mutable_job_id();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.JobProgress.job_id)
+  return _s;
+}
+inline const std::string& JobProgress::_internal_job_id() const {
+  return _impl_.job_id_.Get();
+}
+inline void JobProgress::_internal_set_job_id(const std::string& value) {
+  
+  _impl_.job_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* JobProgress::_internal_mutable_job_id() {
+  
+  return _impl_.job_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* JobProgress::release_job_id() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.JobProgress.job_id)
+  return _impl_.job_id_.Release();
+}
+inline void JobProgress::set_allocated_job_id(std::string* job_id) {
+  if (job_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.job_id_.SetAllocated(job_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.job_id_.IsDefault()) {
+    _impl_.job_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.JobProgress.job_id)
+}
+
+// string step_id = 2;
+inline void JobProgress::clear_step_id() {
+  _impl_.step_id_.ClearToEmpty();
+}
+inline const std::string& JobProgress::step_id() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobProgress.step_id)
+  return _internal_step_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void JobProgress::set_step_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.step_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobProgress.step_id)
+}
+inline std::string* JobProgress::mutable_step_id() {
+  std::string* _s = _internal_mutable_step_id();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.JobProgress.step_id)
+  return _s;
+}
+inline const std::string& JobProgress::_internal_step_id() const {
+  return _impl_.step_id_.Get();
+}
+inline void JobProgress::_internal_set_step_id(const std::string& value) {
+  
+  _impl_.step_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* JobProgress::_internal_mutable_step_id() {
+  
+  return _impl_.step_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* JobProgress::release_step_id() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.JobProgress.step_id)
+  return _impl_.step_id_.Release();
+}
+inline void JobProgress::set_allocated_step_id(std::string* step_id) {
+  if (step_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.step_id_.SetAllocated(step_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.step_id_.IsDefault()) {
+    _impl_.step_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.JobProgress.step_id)
+}
+
+// int32 percent = 3;
+inline void JobProgress::clear_percent() {
+  _impl_.percent_ = 0;
+}
+inline int32_t JobProgress::_internal_percent() const {
+  return _impl_.percent_;
+}
+inline int32_t JobProgress::percent() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobProgress.percent)
+  return _internal_percent();
+}
+inline void JobProgress::_internal_set_percent(int32_t value) {
+  
+  _impl_.percent_ = value;
+}
+inline void JobProgress::set_percent(int32_t value) {
+  _internal_set_percent(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobProgress.percent)
+}
+
+// string message = 4;
+inline void JobProgress::clear_message() {
+  _impl_.message_.ClearToEmpty();
+}
+inline const std::string& JobProgress::message() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobProgress.message)
+  return _internal_message();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void JobProgress::set_message(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.message_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobProgress.message)
+}
+inline std::string* JobProgress::mutable_message() {
+  std::string* _s = _internal_mutable_message();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.JobProgress.message)
+  return _s;
+}
+inline const std::string& JobProgress::_internal_message() const {
+  return _impl_.message_.Get();
+}
+inline void JobProgress::_internal_set_message(const std::string& value) {
+  
+  _impl_.message_.Set(value, GetArenaForAllocation());
+}
+inline std::string* JobProgress::_internal_mutable_message() {
+  
+  return _impl_.message_.Mutable(GetArenaForAllocation());
+}
+inline std::string* JobProgress::release_message() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.JobProgress.message)
+  return _impl_.message_.Release();
+}
+inline void JobProgress::set_allocated_message(std::string* message) {
+  if (message != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.message_.SetAllocated(message, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.message_.IsDefault()) {
+    _impl_.message_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.JobProgress.message)
+}
+
+// string result_ptr = 5;
+inline void JobProgress::clear_result_ptr() {
+  _impl_.result_ptr_.ClearToEmpty();
+}
+inline const std::string& JobProgress::result_ptr() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobProgress.result_ptr)
+  return _internal_result_ptr();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void JobProgress::set_result_ptr(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.result_ptr_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobProgress.result_ptr)
+}
+inline std::string* JobProgress::mutable_result_ptr() {
+  std::string* _s = _internal_mutable_result_ptr();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.JobProgress.result_ptr)
+  return _s;
+}
+inline const std::string& JobProgress::_internal_result_ptr() const {
+  return _impl_.result_ptr_.Get();
+}
+inline void JobProgress::_internal_set_result_ptr(const std::string& value) {
+  
+  _impl_.result_ptr_.Set(value, GetArenaForAllocation());
+}
+inline std::string* JobProgress::_internal_mutable_result_ptr() {
+  
+  return _impl_.result_ptr_.Mutable(GetArenaForAllocation());
+}
+inline std::string* JobProgress::release_result_ptr() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.JobProgress.result_ptr)
+  return _impl_.result_ptr_.Release();
+}
+inline void JobProgress::set_allocated_result_ptr(std::string* result_ptr) {
+  if (result_ptr != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.result_ptr_.SetAllocated(result_ptr, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.result_ptr_.IsDefault()) {
+    _impl_.result_ptr_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.JobProgress.result_ptr)
+}
+
+// repeated string artifact_ptrs = 6;
+inline int JobProgress::_internal_artifact_ptrs_size() const {
+  return _impl_.artifact_ptrs_.size();
+}
+inline int JobProgress::artifact_ptrs_size() const {
+  return _internal_artifact_ptrs_size();
+}
+inline void JobProgress::clear_artifact_ptrs() {
+  _impl_.artifact_ptrs_.Clear();
+}
+inline std::string* JobProgress::add_artifact_ptrs() {
+  std::string* _s = _internal_add_artifact_ptrs();
+  // @@protoc_insertion_point(field_add_mutable:coretex.agent.v1.JobProgress.artifact_ptrs)
+  return _s;
+}
+inline const std::string& JobProgress::_internal_artifact_ptrs(int index) const {
+  return _impl_.artifact_ptrs_.Get(index);
+}
+inline const std::string& JobProgress::artifact_ptrs(int index) const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobProgress.artifact_ptrs)
+  return _internal_artifact_ptrs(index);
+}
+inline std::string* JobProgress::mutable_artifact_ptrs(int index) {
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.JobProgress.artifact_ptrs)
+  return _impl_.artifact_ptrs_.Mutable(index);
+}
+inline void JobProgress::set_artifact_ptrs(int index, const std::string& value) {
+  _impl_.artifact_ptrs_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobProgress.artifact_ptrs)
+}
+inline void JobProgress::set_artifact_ptrs(int index, std::string&& value) {
+  _impl_.artifact_ptrs_.Mutable(index)->assign(std::move(value));
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobProgress.artifact_ptrs)
+}
+inline void JobProgress::set_artifact_ptrs(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.artifact_ptrs_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:coretex.agent.v1.JobProgress.artifact_ptrs)
+}
+inline void JobProgress::set_artifact_ptrs(int index, const char* value, size_t size) {
+  _impl_.artifact_ptrs_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:coretex.agent.v1.JobProgress.artifact_ptrs)
+}
+inline std::string* JobProgress::_internal_add_artifact_ptrs() {
+  return _impl_.artifact_ptrs_.Add();
+}
+inline void JobProgress::add_artifact_ptrs(const std::string& value) {
+  _impl_.artifact_ptrs_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.JobProgress.artifact_ptrs)
+}
+inline void JobProgress::add_artifact_ptrs(std::string&& value) {
+  _impl_.artifact_ptrs_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:coretex.agent.v1.JobProgress.artifact_ptrs)
+}
+inline void JobProgress::add_artifact_ptrs(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  _impl_.artifact_ptrs_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:coretex.agent.v1.JobProgress.artifact_ptrs)
+}
+inline void JobProgress::add_artifact_ptrs(const char* value, size_t size) {
+  _impl_.artifact_ptrs_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:coretex.agent.v1.JobProgress.artifact_ptrs)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+JobProgress::artifact_ptrs() const {
+  // @@protoc_insertion_point(field_list:coretex.agent.v1.JobProgress.artifact_ptrs)
+  return _impl_.artifact_ptrs_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+JobProgress::mutable_artifact_ptrs() {
+  // @@protoc_insertion_point(field_mutable_list:coretex.agent.v1.JobProgress.artifact_ptrs)
+  return &_impl_.artifact_ptrs_;
+}
+
+// .coretex.agent.v1.JobStatus status = 7;
+inline void JobProgress::clear_status() {
+  _impl_.status_ = 0;
+}
+inline ::coretex::agent::v1::JobStatus JobProgress::_internal_status() const {
+  return static_cast< ::coretex::agent::v1::JobStatus >(_impl_.status_);
+}
+inline ::coretex::agent::v1::JobStatus JobProgress::status() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobProgress.status)
+  return _internal_status();
+}
+inline void JobProgress::_internal_set_status(::coretex::agent::v1::JobStatus value) {
+  
+  _impl_.status_ = value;
+}
+inline void JobProgress::set_status(::coretex::agent::v1::JobStatus value) {
+  _internal_set_status(value);
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobProgress.status)
+}
+
+// -------------------------------------------------------------------
+
+// JobCancel
+
+// string job_id = 1;
+inline void JobCancel::clear_job_id() {
+  _impl_.job_id_.ClearToEmpty();
+}
+inline const std::string& JobCancel::job_id() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobCancel.job_id)
+  return _internal_job_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void JobCancel::set_job_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.job_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobCancel.job_id)
+}
+inline std::string* JobCancel::mutable_job_id() {
+  std::string* _s = _internal_mutable_job_id();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.JobCancel.job_id)
+  return _s;
+}
+inline const std::string& JobCancel::_internal_job_id() const {
+  return _impl_.job_id_.Get();
+}
+inline void JobCancel::_internal_set_job_id(const std::string& value) {
+  
+  _impl_.job_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* JobCancel::_internal_mutable_job_id() {
+  
+  return _impl_.job_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* JobCancel::release_job_id() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.JobCancel.job_id)
+  return _impl_.job_id_.Release();
+}
+inline void JobCancel::set_allocated_job_id(std::string* job_id) {
+  if (job_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.job_id_.SetAllocated(job_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.job_id_.IsDefault()) {
+    _impl_.job_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.JobCancel.job_id)
+}
+
+// string reason = 2;
+inline void JobCancel::clear_reason() {
+  _impl_.reason_.ClearToEmpty();
+}
+inline const std::string& JobCancel::reason() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobCancel.reason)
+  return _internal_reason();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void JobCancel::set_reason(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.reason_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobCancel.reason)
+}
+inline std::string* JobCancel::mutable_reason() {
+  std::string* _s = _internal_mutable_reason();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.JobCancel.reason)
+  return _s;
+}
+inline const std::string& JobCancel::_internal_reason() const {
+  return _impl_.reason_.Get();
+}
+inline void JobCancel::_internal_set_reason(const std::string& value) {
+  
+  _impl_.reason_.Set(value, GetArenaForAllocation());
+}
+inline std::string* JobCancel::_internal_mutable_reason() {
+  
+  return _impl_.reason_.Mutable(GetArenaForAllocation());
+}
+inline std::string* JobCancel::release_reason() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.JobCancel.reason)
+  return _impl_.reason_.Release();
+}
+inline void JobCancel::set_allocated_reason(std::string* reason) {
+  if (reason != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.reason_.SetAllocated(reason, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.reason_.IsDefault()) {
+    _impl_.reason_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.JobCancel.reason)
+}
+
+// string requested_by = 3;
+inline void JobCancel::clear_requested_by() {
+  _impl_.requested_by_.ClearToEmpty();
+}
+inline const std::string& JobCancel::requested_by() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.JobCancel.requested_by)
+  return _internal_requested_by();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void JobCancel::set_requested_by(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.requested_by_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:coretex.agent.v1.JobCancel.requested_by)
+}
+inline std::string* JobCancel::mutable_requested_by() {
+  std::string* _s = _internal_mutable_requested_by();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.JobCancel.requested_by)
+  return _s;
+}
+inline const std::string& JobCancel::_internal_requested_by() const {
+  return _impl_.requested_by_.Get();
+}
+inline void JobCancel::_internal_set_requested_by(const std::string& value) {
+  
+  _impl_.requested_by_.Set(value, GetArenaForAllocation());
+}
+inline std::string* JobCancel::_internal_mutable_requested_by() {
+  
+  return _impl_.requested_by_.Mutable(GetArenaForAllocation());
+}
+inline std::string* JobCancel::release_requested_by() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.JobCancel.requested_by)
+  return _impl_.requested_by_.Release();
+}
+inline void JobCancel::set_allocated_requested_by(std::string* requested_by) {
+  if (requested_by != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.requested_by_.SetAllocated(requested_by, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.requested_by_.IsDefault()) {
+    _impl_.requested_by_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.JobCancel.requested_by)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

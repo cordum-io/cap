@@ -1012,9 +1012,10 @@ export namespace coretex.agent.v1 {
             execution_ms?: number;
             error_code?: string;
             error_message?: string;
+            artifact_ptrs?: string[];
         }) {
             super();
-            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [8], this.#one_of_decls);
             if (!Array.isArray(data) && typeof data == "object") {
                 if ("job_id" in data && data.job_id != undefined) {
                     this.job_id = data.job_id;
@@ -1036,6 +1037,9 @@ export namespace coretex.agent.v1 {
                 }
                 if ("error_message" in data && data.error_message != undefined) {
                     this.error_message = data.error_message;
+                }
+                if ("artifact_ptrs" in data && data.artifact_ptrs != undefined) {
+                    this.artifact_ptrs = data.artifact_ptrs;
                 }
             }
         }
@@ -1081,6 +1085,12 @@ export namespace coretex.agent.v1 {
         set error_message(value: string) {
             pb_1.Message.setField(this, 7, value);
         }
+        get artifact_ptrs() {
+            return pb_1.Message.getFieldWithDefault(this, 8, []) as string[];
+        }
+        set artifact_ptrs(value: string[]) {
+            pb_1.Message.setField(this, 8, value);
+        }
         static fromObject(data: {
             job_id?: string;
             status?: JobStatus;
@@ -1089,6 +1099,7 @@ export namespace coretex.agent.v1 {
             execution_ms?: number;
             error_code?: string;
             error_message?: string;
+            artifact_ptrs?: string[];
         }): JobResult {
             const message = new JobResult({});
             if (data.job_id != null) {
@@ -1112,6 +1123,9 @@ export namespace coretex.agent.v1 {
             if (data.error_message != null) {
                 message.error_message = data.error_message;
             }
+            if (data.artifact_ptrs != null) {
+                message.artifact_ptrs = data.artifact_ptrs;
+            }
             return message;
         }
         toObject() {
@@ -1123,6 +1137,7 @@ export namespace coretex.agent.v1 {
                 execution_ms?: number;
                 error_code?: string;
                 error_message?: string;
+                artifact_ptrs?: string[];
             } = {};
             if (this.job_id != null) {
                 data.job_id = this.job_id;
@@ -1145,6 +1160,9 @@ export namespace coretex.agent.v1 {
             if (this.error_message != null) {
                 data.error_message = this.error_message;
             }
+            if (this.artifact_ptrs != null) {
+                data.artifact_ptrs = this.artifact_ptrs;
+            }
             return data;
         }
         serialize(): Uint8Array;
@@ -1165,6 +1183,8 @@ export namespace coretex.agent.v1 {
                 writer.writeString(6, this.error_code);
             if (this.error_message.length)
                 writer.writeString(7, this.error_message);
+            if (this.artifact_ptrs.length)
+                writer.writeRepeatedString(8, this.artifact_ptrs);
             if (!w)
                 return writer.getResultBuffer();
         }
@@ -1195,6 +1215,9 @@ export namespace coretex.agent.v1 {
                     case 7:
                         message.error_message = reader.readString();
                         break;
+                    case 8:
+                        pb_1.Message.addToRepeatedField(message, 8, reader.readString());
+                        break;
                     default: reader.skipField();
                 }
             }
@@ -1205,6 +1228,324 @@ export namespace coretex.agent.v1 {
         }
         static deserializeBinary(bytes: Uint8Array): JobResult {
             return JobResult.deserialize(bytes);
+        }
+    }
+    export class JobProgress extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            job_id?: string;
+            step_id?: string;
+            percent?: number;
+            message?: string;
+            result_ptr?: string;
+            artifact_ptrs?: string[];
+            status?: JobStatus;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [6], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("job_id" in data && data.job_id != undefined) {
+                    this.job_id = data.job_id;
+                }
+                if ("step_id" in data && data.step_id != undefined) {
+                    this.step_id = data.step_id;
+                }
+                if ("percent" in data && data.percent != undefined) {
+                    this.percent = data.percent;
+                }
+                if ("message" in data && data.message != undefined) {
+                    this.message = data.message;
+                }
+                if ("result_ptr" in data && data.result_ptr != undefined) {
+                    this.result_ptr = data.result_ptr;
+                }
+                if ("artifact_ptrs" in data && data.artifact_ptrs != undefined) {
+                    this.artifact_ptrs = data.artifact_ptrs;
+                }
+                if ("status" in data && data.status != undefined) {
+                    this.status = data.status;
+                }
+            }
+        }
+        get job_id() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set job_id(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get step_id() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set step_id(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get percent() {
+            return pb_1.Message.getFieldWithDefault(this, 3, 0) as number;
+        }
+        set percent(value: number) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        get message() {
+            return pb_1.Message.getFieldWithDefault(this, 4, "") as string;
+        }
+        set message(value: string) {
+            pb_1.Message.setField(this, 4, value);
+        }
+        get result_ptr() {
+            return pb_1.Message.getFieldWithDefault(this, 5, "") as string;
+        }
+        set result_ptr(value: string) {
+            pb_1.Message.setField(this, 5, value);
+        }
+        get artifact_ptrs() {
+            return pb_1.Message.getFieldWithDefault(this, 6, []) as string[];
+        }
+        set artifact_ptrs(value: string[]) {
+            pb_1.Message.setField(this, 6, value);
+        }
+        get status() {
+            return pb_1.Message.getFieldWithDefault(this, 7, JobStatus.JOB_STATUS_UNSPECIFIED) as JobStatus;
+        }
+        set status(value: JobStatus) {
+            pb_1.Message.setField(this, 7, value);
+        }
+        static fromObject(data: {
+            job_id?: string;
+            step_id?: string;
+            percent?: number;
+            message?: string;
+            result_ptr?: string;
+            artifact_ptrs?: string[];
+            status?: JobStatus;
+        }): JobProgress {
+            const message = new JobProgress({});
+            if (data.job_id != null) {
+                message.job_id = data.job_id;
+            }
+            if (data.step_id != null) {
+                message.step_id = data.step_id;
+            }
+            if (data.percent != null) {
+                message.percent = data.percent;
+            }
+            if (data.message != null) {
+                message.message = data.message;
+            }
+            if (data.result_ptr != null) {
+                message.result_ptr = data.result_ptr;
+            }
+            if (data.artifact_ptrs != null) {
+                message.artifact_ptrs = data.artifact_ptrs;
+            }
+            if (data.status != null) {
+                message.status = data.status;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                job_id?: string;
+                step_id?: string;
+                percent?: number;
+                message?: string;
+                result_ptr?: string;
+                artifact_ptrs?: string[];
+                status?: JobStatus;
+            } = {};
+            if (this.job_id != null) {
+                data.job_id = this.job_id;
+            }
+            if (this.step_id != null) {
+                data.step_id = this.step_id;
+            }
+            if (this.percent != null) {
+                data.percent = this.percent;
+            }
+            if (this.message != null) {
+                data.message = this.message;
+            }
+            if (this.result_ptr != null) {
+                data.result_ptr = this.result_ptr;
+            }
+            if (this.artifact_ptrs != null) {
+                data.artifact_ptrs = this.artifact_ptrs;
+            }
+            if (this.status != null) {
+                data.status = this.status;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.job_id.length)
+                writer.writeString(1, this.job_id);
+            if (this.step_id.length)
+                writer.writeString(2, this.step_id);
+            if (this.percent != 0)
+                writer.writeInt32(3, this.percent);
+            if (this.message.length)
+                writer.writeString(4, this.message);
+            if (this.result_ptr.length)
+                writer.writeString(5, this.result_ptr);
+            if (this.artifact_ptrs.length)
+                writer.writeRepeatedString(6, this.artifact_ptrs);
+            if (this.status != JobStatus.JOB_STATUS_UNSPECIFIED)
+                writer.writeEnum(7, this.status);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): JobProgress {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new JobProgress();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.job_id = reader.readString();
+                        break;
+                    case 2:
+                        message.step_id = reader.readString();
+                        break;
+                    case 3:
+                        message.percent = reader.readInt32();
+                        break;
+                    case 4:
+                        message.message = reader.readString();
+                        break;
+                    case 5:
+                        message.result_ptr = reader.readString();
+                        break;
+                    case 6:
+                        pb_1.Message.addToRepeatedField(message, 6, reader.readString());
+                        break;
+                    case 7:
+                        message.status = reader.readEnum();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): JobProgress {
+            return JobProgress.deserialize(bytes);
+        }
+    }
+    export class JobCancel extends pb_1.Message {
+        #one_of_decls: number[][] = [];
+        constructor(data?: any[] | {
+            job_id?: string;
+            reason?: string;
+            requested_by?: string;
+        }) {
+            super();
+            pb_1.Message.initialize(this, Array.isArray(data) ? data : [], 0, -1, [], this.#one_of_decls);
+            if (!Array.isArray(data) && typeof data == "object") {
+                if ("job_id" in data && data.job_id != undefined) {
+                    this.job_id = data.job_id;
+                }
+                if ("reason" in data && data.reason != undefined) {
+                    this.reason = data.reason;
+                }
+                if ("requested_by" in data && data.requested_by != undefined) {
+                    this.requested_by = data.requested_by;
+                }
+            }
+        }
+        get job_id() {
+            return pb_1.Message.getFieldWithDefault(this, 1, "") as string;
+        }
+        set job_id(value: string) {
+            pb_1.Message.setField(this, 1, value);
+        }
+        get reason() {
+            return pb_1.Message.getFieldWithDefault(this, 2, "") as string;
+        }
+        set reason(value: string) {
+            pb_1.Message.setField(this, 2, value);
+        }
+        get requested_by() {
+            return pb_1.Message.getFieldWithDefault(this, 3, "") as string;
+        }
+        set requested_by(value: string) {
+            pb_1.Message.setField(this, 3, value);
+        }
+        static fromObject(data: {
+            job_id?: string;
+            reason?: string;
+            requested_by?: string;
+        }): JobCancel {
+            const message = new JobCancel({});
+            if (data.job_id != null) {
+                message.job_id = data.job_id;
+            }
+            if (data.reason != null) {
+                message.reason = data.reason;
+            }
+            if (data.requested_by != null) {
+                message.requested_by = data.requested_by;
+            }
+            return message;
+        }
+        toObject() {
+            const data: {
+                job_id?: string;
+                reason?: string;
+                requested_by?: string;
+            } = {};
+            if (this.job_id != null) {
+                data.job_id = this.job_id;
+            }
+            if (this.reason != null) {
+                data.reason = this.reason;
+            }
+            if (this.requested_by != null) {
+                data.requested_by = this.requested_by;
+            }
+            return data;
+        }
+        serialize(): Uint8Array;
+        serialize(w: pb_1.BinaryWriter): void;
+        serialize(w?: pb_1.BinaryWriter): Uint8Array | void {
+            const writer = w || new pb_1.BinaryWriter();
+            if (this.job_id.length)
+                writer.writeString(1, this.job_id);
+            if (this.reason.length)
+                writer.writeString(2, this.reason);
+            if (this.requested_by.length)
+                writer.writeString(3, this.requested_by);
+            if (!w)
+                return writer.getResultBuffer();
+        }
+        static deserialize(bytes: Uint8Array | pb_1.BinaryReader): JobCancel {
+            const reader = bytes instanceof pb_1.BinaryReader ? bytes : new pb_1.BinaryReader(bytes), message = new JobCancel();
+            while (reader.nextField()) {
+                if (reader.isEndGroup())
+                    break;
+                switch (reader.getFieldNumber()) {
+                    case 1:
+                        message.job_id = reader.readString();
+                        break;
+                    case 2:
+                        message.reason = reader.readString();
+                        break;
+                    case 3:
+                        message.requested_by = reader.readString();
+                        break;
+                    default: reader.skipField();
+                }
+            }
+            return message;
+        }
+        serializeBinary(): Uint8Array {
+            return this.serialize();
+        }
+        static deserializeBinary(bytes: Uint8Array): JobCancel {
+            return JobCancel.deserialize(bytes);
         }
     }
 }

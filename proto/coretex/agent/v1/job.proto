@@ -96,4 +96,23 @@ message JobResult {
     int64 execution_ms = 5;       // elapsed processing time in milliseconds
     string error_code = 6;        // optional machine-readable error
     string error_message = 7;     // optional human-readable error
+    repeated string artifact_ptrs = 8; // pointers to artifacts (logs/diffs/evidence)
+}
+
+// JobProgress conveys incremental progress for a job.
+message JobProgress {
+    string job_id = 1;           // originating job identifier
+    string step_id = 2;          // optional workflow step identifier
+    int32 percent = 3;           // 0-100 progress indicator
+    string message = 4;          // human-readable progress update
+    string result_ptr = 5;       // optional partial result pointer
+    repeated string artifact_ptrs = 6; // optional artifacts emitted so far
+    JobStatus status = 7;        // optional status hint
+}
+
+// JobCancel requests cancellation of a running job.
+message JobCancel {
+    string job_id = 1;
+    string reason = 2;
+    string requested_by = 3;
 }

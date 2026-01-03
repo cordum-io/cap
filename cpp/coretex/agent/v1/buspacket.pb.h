@@ -114,6 +114,8 @@ class BusPacket final :
     kJobResult = 11,
     kHeartbeat = 12,
     kAlert = 13,
+    kJobProgress = 15,
+    kJobCancel = 16,
     PAYLOAD_NOT_SET = 0,
   };
 
@@ -204,6 +206,8 @@ class BusPacket final :
     kJobResultFieldNumber = 11,
     kHeartbeatFieldNumber = 12,
     kAlertFieldNumber = 13,
+    kJobProgressFieldNumber = 15,
+    kJobCancelFieldNumber = 16,
   };
   // string trace_id = 1;
   void clear_trace_id();
@@ -346,6 +350,42 @@ class BusPacket final :
       ::coretex::agent::v1::SystemAlert* alert);
   ::coretex::agent::v1::SystemAlert* unsafe_arena_release_alert();
 
+  // .coretex.agent.v1.JobProgress job_progress = 15;
+  bool has_job_progress() const;
+  private:
+  bool _internal_has_job_progress() const;
+  public:
+  void clear_job_progress();
+  const ::coretex::agent::v1::JobProgress& job_progress() const;
+  PROTOBUF_NODISCARD ::coretex::agent::v1::JobProgress* release_job_progress();
+  ::coretex::agent::v1::JobProgress* mutable_job_progress();
+  void set_allocated_job_progress(::coretex::agent::v1::JobProgress* job_progress);
+  private:
+  const ::coretex::agent::v1::JobProgress& _internal_job_progress() const;
+  ::coretex::agent::v1::JobProgress* _internal_mutable_job_progress();
+  public:
+  void unsafe_arena_set_allocated_job_progress(
+      ::coretex::agent::v1::JobProgress* job_progress);
+  ::coretex::agent::v1::JobProgress* unsafe_arena_release_job_progress();
+
+  // .coretex.agent.v1.JobCancel job_cancel = 16;
+  bool has_job_cancel() const;
+  private:
+  bool _internal_has_job_cancel() const;
+  public:
+  void clear_job_cancel();
+  const ::coretex::agent::v1::JobCancel& job_cancel() const;
+  PROTOBUF_NODISCARD ::coretex::agent::v1::JobCancel* release_job_cancel();
+  ::coretex::agent::v1::JobCancel* mutable_job_cancel();
+  void set_allocated_job_cancel(::coretex::agent::v1::JobCancel* job_cancel);
+  private:
+  const ::coretex::agent::v1::JobCancel& _internal_job_cancel() const;
+  ::coretex::agent::v1::JobCancel* _internal_mutable_job_cancel();
+  public:
+  void unsafe_arena_set_allocated_job_cancel(
+      ::coretex::agent::v1::JobCancel* job_cancel);
+  ::coretex::agent::v1::JobCancel* unsafe_arena_release_job_cancel();
+
   void clear_payload();
   PayloadCase payload_case() const;
   // @@protoc_insertion_point(class_scope:coretex.agent.v1.BusPacket)
@@ -355,6 +395,8 @@ class BusPacket final :
   void set_has_job_result();
   void set_has_heartbeat();
   void set_has_alert();
+  void set_has_job_progress();
+  void set_has_job_cancel();
 
   inline bool has_payload() const;
   inline void clear_has_payload();
@@ -375,6 +417,8 @@ class BusPacket final :
       ::coretex::agent::v1::JobResult* job_result_;
       ::coretex::agent::v1::Heartbeat* heartbeat_;
       ::coretex::agent::v1::SystemAlert* alert_;
+      ::coretex::agent::v1::JobProgress* job_progress_;
+      ::coretex::agent::v1::JobCancel* job_cancel_;
     } payload_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     uint32_t _oneof_case_[1];
@@ -860,6 +904,138 @@ inline ::coretex::agent::v1::SystemAlert* BusPacket::_internal_mutable_alert() {
 inline ::coretex::agent::v1::SystemAlert* BusPacket::mutable_alert() {
   ::coretex::agent::v1::SystemAlert* _msg = _internal_mutable_alert();
   // @@protoc_insertion_point(field_mutable:coretex.agent.v1.BusPacket.alert)
+  return _msg;
+}
+
+// .coretex.agent.v1.JobProgress job_progress = 15;
+inline bool BusPacket::_internal_has_job_progress() const {
+  return payload_case() == kJobProgress;
+}
+inline bool BusPacket::has_job_progress() const {
+  return _internal_has_job_progress();
+}
+inline void BusPacket::set_has_job_progress() {
+  _impl_._oneof_case_[0] = kJobProgress;
+}
+inline ::coretex::agent::v1::JobProgress* BusPacket::release_job_progress() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.BusPacket.job_progress)
+  if (_internal_has_job_progress()) {
+    clear_has_payload();
+    ::coretex::agent::v1::JobProgress* temp = _impl_.payload_.job_progress_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.job_progress_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::coretex::agent::v1::JobProgress& BusPacket::_internal_job_progress() const {
+  return _internal_has_job_progress()
+      ? *_impl_.payload_.job_progress_
+      : reinterpret_cast< ::coretex::agent::v1::JobProgress&>(::coretex::agent::v1::_JobProgress_default_instance_);
+}
+inline const ::coretex::agent::v1::JobProgress& BusPacket::job_progress() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.BusPacket.job_progress)
+  return _internal_job_progress();
+}
+inline ::coretex::agent::v1::JobProgress* BusPacket::unsafe_arena_release_job_progress() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:coretex.agent.v1.BusPacket.job_progress)
+  if (_internal_has_job_progress()) {
+    clear_has_payload();
+    ::coretex::agent::v1::JobProgress* temp = _impl_.payload_.job_progress_;
+    _impl_.payload_.job_progress_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void BusPacket::unsafe_arena_set_allocated_job_progress(::coretex::agent::v1::JobProgress* job_progress) {
+  clear_payload();
+  if (job_progress) {
+    set_has_job_progress();
+    _impl_.payload_.job_progress_ = job_progress;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:coretex.agent.v1.BusPacket.job_progress)
+}
+inline ::coretex::agent::v1::JobProgress* BusPacket::_internal_mutable_job_progress() {
+  if (!_internal_has_job_progress()) {
+    clear_payload();
+    set_has_job_progress();
+    _impl_.payload_.job_progress_ = CreateMaybeMessage< ::coretex::agent::v1::JobProgress >(GetArenaForAllocation());
+  }
+  return _impl_.payload_.job_progress_;
+}
+inline ::coretex::agent::v1::JobProgress* BusPacket::mutable_job_progress() {
+  ::coretex::agent::v1::JobProgress* _msg = _internal_mutable_job_progress();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.BusPacket.job_progress)
+  return _msg;
+}
+
+// .coretex.agent.v1.JobCancel job_cancel = 16;
+inline bool BusPacket::_internal_has_job_cancel() const {
+  return payload_case() == kJobCancel;
+}
+inline bool BusPacket::has_job_cancel() const {
+  return _internal_has_job_cancel();
+}
+inline void BusPacket::set_has_job_cancel() {
+  _impl_._oneof_case_[0] = kJobCancel;
+}
+inline ::coretex::agent::v1::JobCancel* BusPacket::release_job_cancel() {
+  // @@protoc_insertion_point(field_release:coretex.agent.v1.BusPacket.job_cancel)
+  if (_internal_has_job_cancel()) {
+    clear_has_payload();
+    ::coretex::agent::v1::JobCancel* temp = _impl_.payload_.job_cancel_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.job_cancel_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::coretex::agent::v1::JobCancel& BusPacket::_internal_job_cancel() const {
+  return _internal_has_job_cancel()
+      ? *_impl_.payload_.job_cancel_
+      : reinterpret_cast< ::coretex::agent::v1::JobCancel&>(::coretex::agent::v1::_JobCancel_default_instance_);
+}
+inline const ::coretex::agent::v1::JobCancel& BusPacket::job_cancel() const {
+  // @@protoc_insertion_point(field_get:coretex.agent.v1.BusPacket.job_cancel)
+  return _internal_job_cancel();
+}
+inline ::coretex::agent::v1::JobCancel* BusPacket::unsafe_arena_release_job_cancel() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:coretex.agent.v1.BusPacket.job_cancel)
+  if (_internal_has_job_cancel()) {
+    clear_has_payload();
+    ::coretex::agent::v1::JobCancel* temp = _impl_.payload_.job_cancel_;
+    _impl_.payload_.job_cancel_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void BusPacket::unsafe_arena_set_allocated_job_cancel(::coretex::agent::v1::JobCancel* job_cancel) {
+  clear_payload();
+  if (job_cancel) {
+    set_has_job_cancel();
+    _impl_.payload_.job_cancel_ = job_cancel;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:coretex.agent.v1.BusPacket.job_cancel)
+}
+inline ::coretex::agent::v1::JobCancel* BusPacket::_internal_mutable_job_cancel() {
+  if (!_internal_has_job_cancel()) {
+    clear_payload();
+    set_has_job_cancel();
+    _impl_.payload_.job_cancel_ = CreateMaybeMessage< ::coretex::agent::v1::JobCancel >(GetArenaForAllocation());
+  }
+  return _impl_.payload_.job_cancel_;
+}
+inline ::coretex::agent::v1::JobCancel* BusPacket::mutable_job_cancel() {
+  ::coretex::agent::v1::JobCancel* _msg = _internal_mutable_job_cancel();
+  // @@protoc_insertion_point(field_mutable:coretex.agent.v1.BusPacket.job_cancel)
   return _msg;
 }
 

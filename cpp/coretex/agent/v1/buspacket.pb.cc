@@ -64,6 +64,8 @@ const uint32_t TableStruct_coretex_2fagent_2fv1_2fbuspacket_2eproto::offsets[] P
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
+  ::_pbi::kInvalidFieldOffsetTag,
+  ::_pbi::kInvalidFieldOffsetTag,
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::BusPacket, _impl_.signature_),
   PROTOBUF_FIELD_OFFSET(::coretex::agent::v1::BusPacket, _impl_.payload_),
 };
@@ -80,7 +82,7 @@ const char descriptor_table_protodef_coretex_2fagent_2fv1_2fbuspacket_2eproto[] 
   "tex.agent.v1\032\037google/protobuf/timestamp."
   "proto\032\032coretex/agent/v1/job.proto\032 coret"
   "ex/agent/v1/heartbeat.proto\032\034coretex/age"
-  "nt/v1/alert.proto\"\342\002\n\tBusPacket\022\020\n\010trace"
+  "nt/v1/alert.proto\"\314\003\n\tBusPacket\022\020\n\010trace"
   "_id\030\001 \001(\t\022\021\n\tsender_id\030\002 \001(\t\022.\n\ncreated_"
   "at\030\003 \001(\0132\032.google.protobuf.Timestamp\022\030\n\020"
   "protocol_version\030\004 \001(\005\0223\n\013job_request\030\n "
@@ -88,11 +90,14 @@ const char descriptor_table_protodef_coretex_2fagent_2fv1_2fbuspacket_2eproto[] 
   "ob_result\030\013 \001(\0132\033.coretex.agent.v1.JobRe"
   "sultH\000\0220\n\theartbeat\030\014 \001(\0132\033.coretex.agen"
   "t.v1.HeartbeatH\000\022.\n\005alert\030\r \001(\0132\035.corete"
-  "x.agent.v1.SystemAlertH\000\022\021\n\tsignature\030\016 "
-  "\001(\014B\t\n\007payloadB\204\001\n\027ai.coretex.cap.agent."
-  "v1P\001Z,github.com/coretexos/cap/v2/corete"
-  "x/agent/v1\252\002\020coretex.Agent.V1\312\002\020coretex\\"
-  "Agent\\V1\352\002\022coretex::Agent::V1b\006proto3"
+  "x.agent.v1.SystemAlertH\000\0225\n\014job_progress"
+  "\030\017 \001(\0132\035.coretex.agent.v1.JobProgressH\000\022"
+  "1\n\njob_cancel\030\020 \001(\0132\033.coretex.agent.v1.J"
+  "obCancelH\000\022\021\n\tsignature\030\016 \001(\014B\t\n\007payload"
+  "B\204\001\n\027ai.coretex.cap.agent.v1P\001Z,github.c"
+  "om/coretexos/cap/v2/coretex/agent/v1\252\002\020c"
+  "oretex.Agent.V1\312\002\020coretex\\Agent\\V1\352\002\022cor"
+  "etex::Agent::V1b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_deps[4] = {
   &::descriptor_table_coretex_2fagent_2fv1_2falert_2eproto,
@@ -102,7 +107,7 @@ static const ::_pbi::DescriptorTable* const descriptor_table_coretex_2fagent_2fv
 };
 static ::_pbi::once_flag descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto = {
-    false, false, 677, descriptor_table_protodef_coretex_2fagent_2fv1_2fbuspacket_2eproto,
+    false, false, 783, descriptor_table_protodef_coretex_2fagent_2fv1_2fbuspacket_2eproto,
     "coretex/agent/v1/buspacket.proto",
     &descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_once, descriptor_table_coretex_2fagent_2fv1_2fbuspacket_2eproto_deps, 4, 1,
     schemas, file_default_instances, TableStruct_coretex_2fagent_2fv1_2fbuspacket_2eproto::offsets,
@@ -128,6 +133,8 @@ class BusPacket::_Internal {
   static const ::coretex::agent::v1::JobResult& job_result(const BusPacket* msg);
   static const ::coretex::agent::v1::Heartbeat& heartbeat(const BusPacket* msg);
   static const ::coretex::agent::v1::SystemAlert& alert(const BusPacket* msg);
+  static const ::coretex::agent::v1::JobProgress& job_progress(const BusPacket* msg);
+  static const ::coretex::agent::v1::JobCancel& job_cancel(const BusPacket* msg);
 };
 
 const ::PROTOBUF_NAMESPACE_ID::Timestamp&
@@ -149,6 +156,14 @@ BusPacket::_Internal::heartbeat(const BusPacket* msg) {
 const ::coretex::agent::v1::SystemAlert&
 BusPacket::_Internal::alert(const BusPacket* msg) {
   return *msg->_impl_.payload_.alert_;
+}
+const ::coretex::agent::v1::JobProgress&
+BusPacket::_Internal::job_progress(const BusPacket* msg) {
+  return *msg->_impl_.payload_.job_progress_;
+}
+const ::coretex::agent::v1::JobCancel&
+BusPacket::_Internal::job_cancel(const BusPacket* msg) {
+  return *msg->_impl_.payload_.job_cancel_;
 }
 void BusPacket::clear_created_at() {
   if (GetArenaForAllocation() == nullptr && _impl_.created_at_ != nullptr) {
@@ -252,6 +267,54 @@ void BusPacket::clear_alert() {
     clear_has_payload();
   }
 }
+void BusPacket::set_allocated_job_progress(::coretex::agent::v1::JobProgress* job_progress) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  clear_payload();
+  if (job_progress) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(job_progress));
+    if (message_arena != submessage_arena) {
+      job_progress = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, job_progress, submessage_arena);
+    }
+    set_has_job_progress();
+    _impl_.payload_.job_progress_ = job_progress;
+  }
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.BusPacket.job_progress)
+}
+void BusPacket::clear_job_progress() {
+  if (_internal_has_job_progress()) {
+    if (GetArenaForAllocation() == nullptr) {
+      delete _impl_.payload_.job_progress_;
+    }
+    clear_has_payload();
+  }
+}
+void BusPacket::set_allocated_job_cancel(::coretex::agent::v1::JobCancel* job_cancel) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  clear_payload();
+  if (job_cancel) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(job_cancel));
+    if (message_arena != submessage_arena) {
+      job_cancel = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, job_cancel, submessage_arena);
+    }
+    set_has_job_cancel();
+    _impl_.payload_.job_cancel_ = job_cancel;
+  }
+  // @@protoc_insertion_point(field_set_allocated:coretex.agent.v1.BusPacket.job_cancel)
+}
+void BusPacket::clear_job_cancel() {
+  if (_internal_has_job_cancel()) {
+    if (GetArenaForAllocation() == nullptr) {
+      delete _impl_.payload_.job_cancel_;
+    }
+    clear_has_payload();
+  }
+}
 BusPacket::BusPacket(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
@@ -320,6 +383,16 @@ BusPacket::BusPacket(const BusPacket& from)
     case kAlert: {
       _this->_internal_mutable_alert()->::coretex::agent::v1::SystemAlert::MergeFrom(
           from._internal_alert());
+      break;
+    }
+    case kJobProgress: {
+      _this->_internal_mutable_job_progress()->::coretex::agent::v1::JobProgress::MergeFrom(
+          from._internal_job_progress());
+      break;
+    }
+    case kJobCancel: {
+      _this->_internal_mutable_job_cancel()->::coretex::agent::v1::JobCancel::MergeFrom(
+          from._internal_job_cancel());
       break;
     }
     case PAYLOAD_NOT_SET: {
@@ -406,6 +479,18 @@ void BusPacket::clear_payload() {
     case kAlert: {
       if (GetArenaForAllocation() == nullptr) {
         delete _impl_.payload_.alert_;
+      }
+      break;
+    }
+    case kJobProgress: {
+      if (GetArenaForAllocation() == nullptr) {
+        delete _impl_.payload_.job_progress_;
+      }
+      break;
+    }
+    case kJobCancel: {
+      if (GetArenaForAllocation() == nullptr) {
+        delete _impl_.payload_.job_cancel_;
       }
       break;
     }
@@ -518,6 +603,22 @@ const char* BusPacket::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
+      // .coretex.agent.v1.JobProgress job_progress = 15;
+      case 15:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 122)) {
+          ptr = ctx->ParseMessage(_internal_mutable_job_progress(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .coretex.agent.v1.JobCancel job_cancel = 16;
+      case 16:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 130)) {
+          ptr = ctx->ParseMessage(_internal_mutable_job_cancel(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
       default:
         goto handle_unusual;
     }  // switch
@@ -614,6 +715,20 @@ uint8_t* BusPacket::_InternalSerialize(
         14, this->_internal_signature(), target);
   }
 
+  // .coretex.agent.v1.JobProgress job_progress = 15;
+  if (_internal_has_job_progress()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(15, _Internal::job_progress(this),
+        _Internal::job_progress(this).GetCachedSize(), target, stream);
+  }
+
+  // .coretex.agent.v1.JobCancel job_cancel = 16;
+  if (_internal_has_job_cancel()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(16, _Internal::job_cancel(this),
+        _Internal::job_cancel(this).GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -692,6 +807,20 @@ size_t BusPacket::ByteSizeLong() const {
           *_impl_.payload_.alert_);
       break;
     }
+    // .coretex.agent.v1.JobProgress job_progress = 15;
+    case kJobProgress: {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+          *_impl_.payload_.job_progress_);
+      break;
+    }
+    // .coretex.agent.v1.JobCancel job_cancel = 16;
+    case kJobCancel: {
+      total_size += 2 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+          *_impl_.payload_.job_cancel_);
+      break;
+    }
     case PAYLOAD_NOT_SET: {
       break;
     }
@@ -749,6 +878,16 @@ void BusPacket::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROT
     case kAlert: {
       _this->_internal_mutable_alert()->::coretex::agent::v1::SystemAlert::MergeFrom(
           from._internal_alert());
+      break;
+    }
+    case kJobProgress: {
+      _this->_internal_mutable_job_progress()->::coretex::agent::v1::JobProgress::MergeFrom(
+          from._internal_job_progress());
+      break;
+    }
+    case kJobCancel: {
+      _this->_internal_mutable_job_cancel()->::coretex::agent::v1::JobCancel::MergeFrom(
+          from._internal_job_cancel());
       break;
     }
     case PAYLOAD_NOT_SET: {

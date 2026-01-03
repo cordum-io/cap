@@ -19,7 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	SafetyKernel_Check_FullMethodName = "/coretex.agent.v1.SafetyKernel/Check"
+	SafetyKernel_Check_FullMethodName         = "/coretex.agent.v1.SafetyKernel/Check"
+	SafetyKernel_Evaluate_FullMethodName      = "/coretex.agent.v1.SafetyKernel/Evaluate"
+	SafetyKernel_Explain_FullMethodName       = "/coretex.agent.v1.SafetyKernel/Explain"
+	SafetyKernel_Simulate_FullMethodName      = "/coretex.agent.v1.SafetyKernel/Simulate"
+	SafetyKernel_ListSnapshots_FullMethodName = "/coretex.agent.v1.SafetyKernel/ListSnapshots"
 )
 
 // SafetyKernelClient is the client API for SafetyKernel service.
@@ -27,6 +31,10 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SafetyKernelClient interface {
 	Check(ctx context.Context, in *PolicyCheckRequest, opts ...grpc.CallOption) (*PolicyCheckResponse, error)
+	Evaluate(ctx context.Context, in *PolicyCheckRequest, opts ...grpc.CallOption) (*PolicyCheckResponse, error)
+	Explain(ctx context.Context, in *PolicyCheckRequest, opts ...grpc.CallOption) (*PolicyCheckResponse, error)
+	Simulate(ctx context.Context, in *PolicyCheckRequest, opts ...grpc.CallOption) (*PolicyCheckResponse, error)
+	ListSnapshots(ctx context.Context, in *ListSnapshotsRequest, opts ...grpc.CallOption) (*ListSnapshotsResponse, error)
 }
 
 type safetyKernelClient struct {
@@ -46,11 +54,51 @@ func (c *safetyKernelClient) Check(ctx context.Context, in *PolicyCheckRequest, 
 	return out, nil
 }
 
+func (c *safetyKernelClient) Evaluate(ctx context.Context, in *PolicyCheckRequest, opts ...grpc.CallOption) (*PolicyCheckResponse, error) {
+	out := new(PolicyCheckResponse)
+	err := c.cc.Invoke(ctx, SafetyKernel_Evaluate_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *safetyKernelClient) Explain(ctx context.Context, in *PolicyCheckRequest, opts ...grpc.CallOption) (*PolicyCheckResponse, error) {
+	out := new(PolicyCheckResponse)
+	err := c.cc.Invoke(ctx, SafetyKernel_Explain_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *safetyKernelClient) Simulate(ctx context.Context, in *PolicyCheckRequest, opts ...grpc.CallOption) (*PolicyCheckResponse, error) {
+	out := new(PolicyCheckResponse)
+	err := c.cc.Invoke(ctx, SafetyKernel_Simulate_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *safetyKernelClient) ListSnapshots(ctx context.Context, in *ListSnapshotsRequest, opts ...grpc.CallOption) (*ListSnapshotsResponse, error) {
+	out := new(ListSnapshotsResponse)
+	err := c.cc.Invoke(ctx, SafetyKernel_ListSnapshots_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SafetyKernelServer is the server API for SafetyKernel service.
 // All implementations must embed UnimplementedSafetyKernelServer
 // for forward compatibility
 type SafetyKernelServer interface {
 	Check(context.Context, *PolicyCheckRequest) (*PolicyCheckResponse, error)
+	Evaluate(context.Context, *PolicyCheckRequest) (*PolicyCheckResponse, error)
+	Explain(context.Context, *PolicyCheckRequest) (*PolicyCheckResponse, error)
+	Simulate(context.Context, *PolicyCheckRequest) (*PolicyCheckResponse, error)
+	ListSnapshots(context.Context, *ListSnapshotsRequest) (*ListSnapshotsResponse, error)
 	mustEmbedUnimplementedSafetyKernelServer()
 }
 
@@ -60,6 +108,18 @@ type UnimplementedSafetyKernelServer struct {
 
 func (UnimplementedSafetyKernelServer) Check(context.Context, *PolicyCheckRequest) (*PolicyCheckResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
+}
+func (UnimplementedSafetyKernelServer) Evaluate(context.Context, *PolicyCheckRequest) (*PolicyCheckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Evaluate not implemented")
+}
+func (UnimplementedSafetyKernelServer) Explain(context.Context, *PolicyCheckRequest) (*PolicyCheckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Explain not implemented")
+}
+func (UnimplementedSafetyKernelServer) Simulate(context.Context, *PolicyCheckRequest) (*PolicyCheckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Simulate not implemented")
+}
+func (UnimplementedSafetyKernelServer) ListSnapshots(context.Context, *ListSnapshotsRequest) (*ListSnapshotsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSnapshots not implemented")
 }
 func (UnimplementedSafetyKernelServer) mustEmbedUnimplementedSafetyKernelServer() {}
 
@@ -92,6 +152,78 @@ func _SafetyKernel_Check_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SafetyKernel_Evaluate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PolicyCheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SafetyKernelServer).Evaluate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SafetyKernel_Evaluate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SafetyKernelServer).Evaluate(ctx, req.(*PolicyCheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SafetyKernel_Explain_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PolicyCheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SafetyKernelServer).Explain(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SafetyKernel_Explain_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SafetyKernelServer).Explain(ctx, req.(*PolicyCheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SafetyKernel_Simulate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PolicyCheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SafetyKernelServer).Simulate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SafetyKernel_Simulate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SafetyKernelServer).Simulate(ctx, req.(*PolicyCheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SafetyKernel_ListSnapshots_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSnapshotsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SafetyKernelServer).ListSnapshots(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SafetyKernel_ListSnapshots_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SafetyKernelServer).ListSnapshots(ctx, req.(*ListSnapshotsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SafetyKernel_ServiceDesc is the grpc.ServiceDesc for SafetyKernel service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -102,6 +234,22 @@ var SafetyKernel_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Check",
 			Handler:    _SafetyKernel_Check_Handler,
+		},
+		{
+			MethodName: "Evaluate",
+			Handler:    _SafetyKernel_Evaluate_Handler,
+		},
+		{
+			MethodName: "Explain",
+			Handler:    _SafetyKernel_Explain_Handler,
+		},
+		{
+			MethodName: "Simulate",
+			Handler:    _SafetyKernel_Simulate_Handler,
+		},
+		{
+			MethodName: "ListSnapshots",
+			Handler:    _SafetyKernel_ListSnapshots_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

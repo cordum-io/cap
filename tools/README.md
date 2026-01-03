@@ -13,7 +13,7 @@ Run:
 ./tools/make_protos.sh
 ```
 Outputs:
-- Go stubs under `/go`
+- Go stubs under `/coretex/agent/v1`
 - C++ stubs under `/cpp`
 - Node (JS) stubs under `/node` (CommonJS, binary wire)
 - Python stubs under `/python` (set `CAP_RUN_PY=1`)

@@ -25,24 +25,38 @@ _sym_db = _symbol_database.Default()
 from coretex.agent.v1 import job_pb2 as coretex_dot_agent_dot_v1_dot_job__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1d\x63oretex/agent/v1/safety.proto\x12\x10\x63oretex.agent.v1\x1a\x1a\x63oretex/agent/v1/job.proto\"\xea\x02\n\x12PolicyCheckRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x0e\n\x06tenant\x18\x03 \x01(\t\x12/\n\x08priority\x18\x04 \x01(\x0e\x32\x1d.coretex.agent.v1.JobPriority\x12\x16\n\x0e\x65stimated_cost\x18\x05 \x01(\x01\x12(\n\x06\x62udget\x18\x06 \x01(\x0b\x32\x18.coretex.agent.v1.Budget\x12\x14\n\x0cprincipal_id\x18\x07 \x01(\t\x12@\n\x06labels\x18\x08 \x03(\x0b\x32\x30.coretex.agent.v1.PolicyCheckRequest.LabelsEntry\x12\x11\n\tmemory_id\x18\t \x01(\t\x12\x18\n\x10\x65\x66\x66\x65\x63tive_config\x18\n \x01(\x0c\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"u\n\x13PolicyCheckResponse\x12\x30\n\x08\x64\x65\x63ision\x18\x01 \x01(\x0e\x32\x1e.coretex.agent.v1.DecisionType\x12\x0e\n\x06reason\x18\x02 \x01(\t\x12\x1c\n\x14redacted_context_ptr\x18\x03 \x01(\t*\x9b\x01\n\x0c\x44\x65\x63isionType\x12\x1d\n\x19\x44\x45\x43ISION_TYPE_UNSPECIFIED\x10\x00\x12\x17\n\x13\x44\x45\x43ISION_TYPE_ALLOW\x10\x01\x12\x16\n\x12\x44\x45\x43ISION_TYPE_DENY\x10\x02\x12\x1f\n\x1b\x44\x45\x43ISION_TYPE_REQUIRE_HUMAN\x10\x03\x12\x1a\n\x16\x44\x45\x43ISION_TYPE_THROTTLE\x10\x04\x32\x64\n\x0cSafetyKernel\x12T\n\x05\x43heck\x12$.coretex.agent.v1.PolicyCheckRequest\x1a%.coretex.agent.v1.PolicyCheckResponseB\x87\x01\n\x17\x61i.coretex.cap.agent.v1P\x01Z/github.com/coretexos/cap/v2/go/coretex/agent/v1\xaa\x02\x10\x63oretex.Agent.V1\xca\x02\x10\x63oretex\\Agent\\V1\xea\x02\x12\x63oretex::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1d\x63oretex/agent/v1/safety.proto\x12\x10\x63oretex.agent.v1\x1a\x1a\x63oretex/agent/v1/job.proto\"\xea\x02\n\x12PolicyCheckRequest\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12\r\n\x05topic\x18\x02 \x01(\t\x12\x0e\n\x06tenant\x18\x03 \x01(\t\x12/\n\x08priority\x18\x04 \x01(\x0e\x32\x1d.coretex.agent.v1.JobPriority\x12\x16\n\x0e\x65stimated_cost\x18\x05 \x01(\x01\x12(\n\x06\x62udget\x18\x06 \x01(\x0b\x32\x18.coretex.agent.v1.Budget\x12\x14\n\x0cprincipal_id\x18\x07 \x01(\t\x12@\n\x06labels\x18\x08 \x03(\x0b\x32\x30.coretex.agent.v1.PolicyCheckRequest.LabelsEntry\x12\x11\n\tmemory_id\x18\t \x01(\t\x12\x18\n\x10\x65\x66\x66\x65\x63tive_config\x18\n \x01(\x0c\x1a-\n\x0bLabelsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\"\\\n\x11\x42udgetConstraints\x12\x16\n\x0emax_runtime_ms\x18\x01 \x01(\x03\x12\x13\n\x0bmax_retries\x18\x02 \x01(\x05\x12\x1a\n\x12max_artifact_bytes\x18\x03 \x01(\x03\"j\n\x0eSandboxProfile\x12\x10\n\x08isolated\x18\x01 \x01(\x08\x12\x19\n\x11network_allowlist\x18\x02 \x03(\t\x12\x14\n\x0c\x66s_read_only\x18\x03 \x03(\t\x12\x15\n\rfs_read_write\x18\x04 \x03(\t\"G\n\x14ToolchainConstraints\x12\x15\n\rallowed_tools\x18\x01 \x03(\t\x12\x18\n\x10\x61llowed_commands\x18\x02 \x03(\t\"P\n\x0f\x44iffConstraints\x12\x11\n\tmax_files\x18\x01 \x01(\x05\x12\x11\n\tmax_lines\x18\x02 \x01(\x05\x12\x17\n\x0f\x64\x65ny_path_globs\x18\x03 \x03(\t\"\xe8\x01\n\x11PolicyConstraints\x12\x34\n\x07\x62udgets\x18\x01 \x01(\x0b\x32#.coretex.agent.v1.BudgetConstraints\x12\x31\n\x07sandbox\x18\x02 \x01(\x0b\x32 .coretex.agent.v1.SandboxProfile\x12\x39\n\ttoolchain\x18\x03 \x01(\x0b\x32&.coretex.agent.v1.ToolchainConstraints\x12/\n\x04\x64iff\x18\x04 \x01(\x0b\x32!.coretex.agent.v1.DiffConstraints\"\x8a\x02\n\x13PolicyCheckResponse\x12\x30\n\x08\x64\x65\x63ision\x18\x01 \x01(\x0e\x32\x1e.coretex.agent.v1.DecisionType\x12\x0e\n\x06reason\x18\x02 \x01(\t\x12\x1c\n\x14redacted_context_ptr\x18\x03 \x01(\t\x12\x17\n\x0fpolicy_snapshot\x18\x04 \x01(\t\x12\x0f\n\x07rule_id\x18\x05 \x01(\t\x12\x38\n\x0b\x63onstraints\x18\x06 \x01(\x0b\x32#.coretex.agent.v1.PolicyConstraints\x12\x19\n\x11\x61pproval_required\x18\x07 \x01(\x08\x12\x14\n\x0c\x61pproval_ref\x18\x08 \x01(\t\"\x16\n\x14ListSnapshotsRequest\"*\n\x15ListSnapshotsResponse\x12\x11\n\tsnapshots\x18\x01 \x03(\t*\x9b\x01\n\x0c\x44\x65\x63isionType\x12\x1d\n\x19\x44\x45\x43ISION_TYPE_UNSPECIFIED\x10\x00\x12\x17\n\x13\x44\x45\x43ISION_TYPE_ALLOW\x10\x01\x12\x16\n\x12\x44\x45\x43ISION_TYPE_DENY\x10\x02\x12\x1f\n\x1b\x44\x45\x43ISION_TYPE_REQUIRE_HUMAN\x10\x03\x12\x1a\n\x16\x44\x45\x43ISION_TYPE_THROTTLE\x10\x04\x32\xd0\x03\n\x0cSafetyKernel\x12T\n\x05\x43heck\x12$.coretex.agent.v1.PolicyCheckRequest\x1a%.coretex.agent.v1.PolicyCheckResponse\x12W\n\x08\x45valuate\x12$.coretex.agent.v1.PolicyCheckRequest\x1a%.coretex.agent.v1.PolicyCheckResponse\x12V\n\x07\x45xplain\x12$.coretex.agent.v1.PolicyCheckRequest\x1a%.coretex.agent.v1.PolicyCheckResponse\x12W\n\x08Simulate\x12$.coretex.agent.v1.PolicyCheckRequest\x1a%.coretex.agent.v1.PolicyCheckResponse\x12`\n\rListSnapshots\x12&.coretex.agent.v1.ListSnapshotsRequest\x1a\'.coretex.agent.v1.ListSnapshotsResponseB\x84\x01\n\x17\x61i.coretex.cap.agent.v1P\x01Z,github.com/coretexos/cap/v2/coretex/agent/v1\xaa\x02\x10\x63oretex.Agent.V1\xca\x02\x10\x63oretex\\Agent\\V1\xea\x02\x12\x63oretex::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'coretex.agent.v1.safety_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'\n\027ai.coretex.cap.agent.v1P\001Z/github.com/coretexos/cap/v2/go/coretex/agent/v1\252\002\020coretex.Agent.V1\312\002\020coretex\\Agent\\V1\352\002\022coretex::Agent::V1'
+  _globals['DESCRIPTOR']._serialized_options = b'\n\027ai.coretex.cap.agent.v1P\001Z,github.com/coretexos/cap/v2/coretex/agent/v1\252\002\020coretex.Agent.V1\312\002\020coretex\\Agent\\V1\352\002\022coretex::Agent::V1'
   _globals['_POLICYCHECKREQUEST_LABELSENTRY']._loaded_options = None
   _globals['_POLICYCHECKREQUEST_LABELSENTRY']._serialized_options = b'8\001'
-  _globals['_DECISIONTYPE']._serialized_start=564
-  _globals['_DECISIONTYPE']._serialized_end=719
+  _globals['_DECISIONTYPE']._serialized_start=1374
+  _globals['_DECISIONTYPE']._serialized_end=1529
   _globals['_POLICYCHECKREQUEST']._serialized_start=80
   _globals['_POLICYCHECKREQUEST']._serialized_end=442
   _globals['_POLICYCHECKREQUEST_LABELSENTRY']._serialized_start=397
   _globals['_POLICYCHECKREQUEST_LABELSENTRY']._serialized_end=442
-  _globals['_POLICYCHECKRESPONSE']._serialized_start=444
-  _globals['_POLICYCHECKRESPONSE']._serialized_end=561
-  _globals['_SAFETYKERNEL']._serialized_start=721
-  _globals['_SAFETYKERNEL']._serialized_end=821
+  _globals['_BUDGETCONSTRAINTS']._serialized_start=444
+  _globals['_BUDGETCONSTRAINTS']._serialized_end=536
+  _globals['_SANDBOXPROFILE']._serialized_start=538
+  _globals['_SANDBOXPROFILE']._serialized_end=644
+  _globals['_TOOLCHAINCONSTRAINTS']._serialized_start=646
+  _globals['_TOOLCHAINCONSTRAINTS']._serialized_end=717
+  _globals['_DIFFCONSTRAINTS']._serialized_start=719
+  _globals['_DIFFCONSTRAINTS']._serialized_end=799
+  _globals['_POLICYCONSTRAINTS']._serialized_start=802
+  _globals['_POLICYCONSTRAINTS']._serialized_end=1034
+  _globals['_POLICYCHECKRESPONSE']._serialized_start=1037
+  _globals['_POLICYCHECKRESPONSE']._serialized_end=1303
+  _globals['_LISTSNAPSHOTSREQUEST']._serialized_start=1305
+  _globals['_LISTSNAPSHOTSREQUEST']._serialized_end=1327
+  _globals['_LISTSNAPSHOTSRESPONSE']._serialized_start=1329
+  _globals['_LISTSNAPSHOTSRESPONSE']._serialized_end=1371
+  _globals['_SAFETYKERNEL']._serialized_start=1532
+  _globals['_SAFETYKERNEL']._serialized_end=1996
 # @@protoc_insertion_point(module_scope)

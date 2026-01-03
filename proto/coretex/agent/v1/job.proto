@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package coretex.agent.v1;
 
-option go_package = "github.com/coretexos/cap/v2/go/coretex/agent/v1";
+option go_package = "github.com/coretexos/cap/v2/coretex/agent/v1";
 option java_package = "ai.coretex.cap.agent.v1";
 option java_multiple_files = true;
 option csharp_namespace = "coretex.Agent.V1";
@@ -47,6 +47,26 @@ message Budget {
     int64 deadline_ms = 4;        // soft deadline for completion
 }
 
+// ActorType identifies the origin of a request.
+enum ActorType {
+    ACTOR_TYPE_UNSPECIFIED = 0;
+    ACTOR_TYPE_HUMAN = 1;
+    ACTOR_TYPE_SERVICE = 2;
+}
+
+// JobMetadata captures structured identity and capability metadata.
+message JobMetadata {
+    string tenant_id = 1;
+    string actor_id = 2;
+    ActorType actor_type = 3;
+    string idempotency_key = 4;
+    string capability = 5;       // semantic action label
+    repeated string risk_tags = 6; // prod/write/network/secrets/exec/etc.
+    repeated string requires = 7; // docker/git/kubectl/network-egress/etc.
+    string pack_id = 8;          // empty for platform-only jobs
+    map<string, string> labels = 9; // freeform metadata
+}
+
 // JobRequest represents a schedulable unit of work.
 message JobRequest {
     string job_id = 1;           // globally unique job identifier
@@ -64,6 +84,7 @@ message JobRequest {
     string tenant_id = 13;       // tenant or organization id
     string principal_id = 14;    // end-user or service identity
     map<string, string> labels = 15; // arbitrary routing/placement labels
+    JobMetadata meta = 16;       // structured identity/capability metadata
 }
 
 // JobResult conveys the outcome of a job.

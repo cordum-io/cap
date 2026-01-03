@@ -40,6 +40,26 @@ class SafetyKernelStub(object):
                 request_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
                 response_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
                 _registered_method=True)
+        self.Evaluate = channel.unary_unary(
+                '/coretex.agent.v1.SafetyKernel/Evaluate',
+                request_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
+                response_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
+                _registered_method=True)
+        self.Explain = channel.unary_unary(
+                '/coretex.agent.v1.SafetyKernel/Explain',
+                request_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
+                response_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
+                _registered_method=True)
+        self.Simulate = channel.unary_unary(
+                '/coretex.agent.v1.SafetyKernel/Simulate',
+                request_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
+                response_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
+                _registered_method=True)
+        self.ListSnapshots = channel.unary_unary(
+                '/coretex.agent.v1.SafetyKernel/ListSnapshots',
+                request_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.ListSnapshotsRequest.SerializeToString,
+                response_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.ListSnapshotsResponse.FromString,
+                _registered_method=True)
 
 
 class SafetyKernelServicer(object):
@@ -52,6 +72,30 @@ class SafetyKernelServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def Evaluate(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Explain(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def Simulate(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListSnapshots(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_SafetyKernelServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -59,6 +103,26 @@ def add_SafetyKernelServicer_to_server(servicer, server):
                     servicer.Check,
                     request_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.FromString,
                     response_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.SerializeToString,
+            ),
+            'Evaluate': grpc.unary_unary_rpc_method_handler(
+                    servicer.Evaluate,
+                    request_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.FromString,
+                    response_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.SerializeToString,
+            ),
+            'Explain': grpc.unary_unary_rpc_method_handler(
+                    servicer.Explain,
+                    request_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.FromString,
+                    response_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.SerializeToString,
+            ),
+            'Simulate': grpc.unary_unary_rpc_method_handler(
+                    servicer.Simulate,
+                    request_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.FromString,
+                    response_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.SerializeToString,
+            ),
+            'ListSnapshots': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListSnapshots,
+                    request_deserializer=coretex_dot_agent_dot_v1_dot_safety__pb2.ListSnapshotsRequest.FromString,
+                    response_serializer=coretex_dot_agent_dot_v1_dot_safety__pb2.ListSnapshotsResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -89,6 +153,114 @@ class SafetyKernel(object):
             '/coretex.agent.v1.SafetyKernel/Check',
             coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
             coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Evaluate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/coretex.agent.v1.SafetyKernel/Evaluate',
+            coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
+            coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Explain(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/coretex.agent.v1.SafetyKernel/Explain',
+            coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
+            coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def Simulate(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/coretex.agent.v1.SafetyKernel/Simulate',
+            coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckRequest.SerializeToString,
+            coretex_dot_agent_dot_v1_dot_safety__pb2.PolicyCheckResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListSnapshots(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/coretex.agent.v1.SafetyKernel/ListSnapshots',
+            coretex_dot_agent_dot_v1_dot_safety__pb2.ListSnapshotsRequest.SerializeToString,
+            coretex_dot_agent_dot_v1_dot_safety__pb2.ListSnapshotsResponse.FromString,
             options,
             channel_credentials,
             insecure,

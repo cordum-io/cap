@@ -13,13 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global =
-    (typeof globalThis !== 'undefined' && globalThis) ||
-    (typeof window !== 'undefined' && window) ||
-    (typeof global !== 'undefined' && global) ||
-    (typeof self !== 'undefined' && self) ||
-    (function () { return this; }).call(null) ||
-    Function('return this')();
+var global = (function() {
+  if (this) { return this; }
+  if (typeof window !== 'undefined') { return window; }
+  if (typeof global !== 'undefined') { return global; }
+  if (typeof self !== 'undefined') { return self; }
+  return Function('return this')();
+}.call(null));
 
 goog.exportSymbol('proto.coretex.agent.v1.SystemAlert', null, global);
 /**
@@ -75,10 +75,10 @@ proto.coretex.agent.v1.SystemAlert.prototype.toObject = function(opt_includeInst
  */
 proto.coretex.agent.v1.SystemAlert.toObject = function(includeInstance, msg) {
   var f, obj = {
-level: jspb.Message.getFieldWithDefault(msg, 1, ""),
-message: jspb.Message.getFieldWithDefault(msg, 2, ""),
-component: jspb.Message.getFieldWithDefault(msg, 3, ""),
-code: jspb.Message.getFieldWithDefault(msg, 4, "")
+    level: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    message: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    component: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    code: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {

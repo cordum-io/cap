@@ -13,13 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global =
-    (typeof globalThis !== 'undefined' && globalThis) ||
-    (typeof window !== 'undefined' && window) ||
-    (typeof global !== 'undefined' && global) ||
-    (typeof self !== 'undefined' && self) ||
-    (function () { return this; }).call(null) ||
-    Function('return this')();
+var global = (function() {
+  if (this) { return this; }
+  if (typeof window !== 'undefined') { return window; }
+  if (typeof global !== 'undefined') { return global; }
+  if (typeof self !== 'undefined') { return self; }
+  return Function('return this')();
+}.call(null));
 
 goog.exportSymbol('proto.coretex.agent.v1.Heartbeat', null, global);
 /**
@@ -82,16 +82,16 @@ proto.coretex.agent.v1.Heartbeat.prototype.toObject = function(opt_includeInstan
  */
 proto.coretex.agent.v1.Heartbeat.toObject = function(includeInstance, msg) {
   var f, obj = {
-workerId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-region: jspb.Message.getFieldWithDefault(msg, 2, ""),
-type: jspb.Message.getFieldWithDefault(msg, 3, ""),
-cpuLoad: jspb.Message.getFloatingPointFieldWithDefault(msg, 4, 0.0),
-gpuUtilization: jspb.Message.getFloatingPointFieldWithDefault(msg, 5, 0.0),
-activeJobs: jspb.Message.getFieldWithDefault(msg, 6, 0),
-capabilitiesList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f,
-pool: jspb.Message.getFieldWithDefault(msg, 11, ""),
-maxParallelJobs: jspb.Message.getFieldWithDefault(msg, 12, 0),
-labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : []
+    workerId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    region: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    type: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    cpuLoad: jspb.Message.getFloatingPointFieldWithDefault(msg, 4, 0.0),
+    gpuUtilization: jspb.Message.getFloatingPointFieldWithDefault(msg, 5, 0.0),
+    activeJobs: jspb.Message.getFieldWithDefault(msg, 6, 0),
+    capabilitiesList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f,
+    pool: jspb.Message.getFieldWithDefault(msg, 11, ""),
+    maxParallelJobs: jspb.Message.getFieldWithDefault(msg, 12, 0),
+    labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -469,8 +469,7 @@ proto.coretex.agent.v1.Heartbeat.prototype.getLabelsMap = function(opt_noLazyCre
  */
 proto.coretex.agent.v1.Heartbeat.prototype.clearLabelsMap = function() {
   this.getLabelsMap().clear();
-  return this;
-};
+  return this;};
 
 
 goog.object.extend(exports, proto.coretex.agent.v1);

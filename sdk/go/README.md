@@ -7,16 +7,15 @@ Go SDK with NATS helpers for workers and clients. Uses generated protobuf stubs 
    ```bash
    ./tools/make_protos.sh
    ```
-   This writes Go stubs to `/go`. The module uses a replace directive to point at the repo root.
+   This writes Go stubs to `/coretex/agent/v1`.
 
 2. Install deps and run tests:
    ```bash
-   cd sdk/go
-   go test ./...
+   go test ./sdk/go/...
    ```
 
 ## Structure
-- `go.mod` — module + replace for generated protos.
+- Go module: `github.com/coretexos/cap/v2` (see root `go.mod`).
 - `bus/` — NATS connector.
 - `worker/` — worker skeleton with handler signature.
 - `client/` — submission/result helpers.
@@ -66,5 +65,5 @@ if err := client.Submit(context.Background(), nc, req, "trace-1", "client-go", p
  - Pass `nil` as the private key to send unsigned envelopes.
 
 ## Notes
-- The protobuf `go_package` is `github.com/coretexos/cap/v2/go/coretex/agent/v1`; the replace in `go.mod` points to `../..`.
+- The protobuf `go_package` is `github.com/coretexos/cap/v2/coretex/agent/v1`.
 - Swap the NATS adapter if you prefer another bus; only `bus/` needs to change.

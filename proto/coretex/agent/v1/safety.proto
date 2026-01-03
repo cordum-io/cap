@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package coretex.agent.v1;
 
-option go_package = "github.com/coretexos/cap/v2/go/coretex/agent/v1";
+option go_package = "github.com/coretexos/cap/v2/coretex/agent/v1";
 option java_package = "ai.coretex.cap.agent.v1";
 option java_multiple_files = true;
 option csharp_namespace = "coretex.Agent.V1";
@@ -34,14 +34,67 @@ message PolicyCheckRequest {
     bytes effective_config = 10; // marshaled EffectiveConfig for policy context
 }
 
+// BudgetConstraints capture execution caps enforced by policy.
+message BudgetConstraints {
+    int64 max_runtime_ms = 1;
+    int32 max_retries = 2;
+    int64 max_artifact_bytes = 3;
+}
+
+// SandboxProfile describes runtime isolation and access boundaries.
+message SandboxProfile {
+    bool isolated = 1;
+    repeated string network_allowlist = 2;
+    repeated string fs_read_only = 3;
+    repeated string fs_read_write = 4;
+}
+
+// ToolchainConstraints define allowed tooling for execution.
+message ToolchainConstraints {
+    repeated string allowed_tools = 1;
+    repeated string allowed_commands = 2;
+}
+
+// DiffConstraints bound change-set sizes and path filters.
+message DiffConstraints {
+    int32 max_files = 1;
+    int32 max_lines = 2;
+    repeated string deny_path_globs = 3;
+}
+
+// PolicyConstraints capture structured enforcement limits.
+message PolicyConstraints {
+    BudgetConstraints budgets = 1;
+    SandboxProfile sandbox = 2;
+    ToolchainConstraints toolchain = 3;
+    DiffConstraints diff = 4;
+}
+
 // PolicyCheckResponse conveys the decision and optional redaction pointer.
 message PolicyCheckResponse {
     DecisionType decision = 1;
     string reason = 2;
     string redacted_context_ptr = 3; // optional pointer to sanitized context
+    string policy_snapshot = 4; // version/hash of the loaded policy
+    string rule_id = 5;         // matched rule identifier
+    PolicyConstraints constraints = 6;
+    bool approval_required = 7;
+    string approval_ref = 8;
+}
+
+// ListSnapshotsRequest asks for loaded policy snapshots.
+message ListSnapshotsRequest {}
+
+// ListSnapshotsResponse returns currently loaded snapshots.
+message ListSnapshotsResponse {
+    repeated string snapshots = 1;
 }
 
 // SafetyKernel defines the policy decision service.
 service SafetyKernel {
     rpc Check(PolicyCheckRequest) returns (PolicyCheckResponse);
+    rpc Evaluate(PolicyCheckRequest) returns (PolicyCheckResponse);
+    rpc Explain(PolicyCheckRequest) returns (PolicyCheckResponse);
+    rpc Simulate(PolicyCheckRequest) returns (PolicyCheckResponse);
+    rpc ListSnapshots(ListSnapshotsRequest) returns (ListSnapshotsResponse);
 }

@@ -10,8 +10,8 @@ export async function submitJob(
   privateKey?: string
 ) {
   const root = await loadRoot();
-  const BusPacket = root.lookupType("coretex.agent.v1.BusPacket");
-  const JobRequest = root.lookupType("coretex.agent.v1.JobRequest");
+  const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+  const JobRequest = root.lookupType("cordum.agent.v1.JobRequest");
 
   const jrMsg = JobRequest.fromObject(jobRequest);
   const payload = BusPacket.fromObject({

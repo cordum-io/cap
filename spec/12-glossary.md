@@ -1,6 +1,6 @@
 # Glossary
 
-This document defines key terms used in the coretex Agent Protocol (CAP) specification.
+This document defines key terms used in the Cordum Agent Protocol (CAP) specification.
 
 | Term | Definition |
 | --- | --- |

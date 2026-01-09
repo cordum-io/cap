@@ -1,7 +1,7 @@
 import asyncio
 
 from cap import worker
-from cap.pb.coretex.agent.v1 import job_pb2
+from cap.pb.cordum.agent.v1 import job_pb2
 
 
 async def handle(req: job_pb2.JobRequest) -> job_pb2.JobResult:

@@ -1,6 +1,8 @@
-module github.com/coretexos/cap/v2
+module github.com/cordum/cap/v2
 
-go 1.21
+go 1.23.0
+
+toolchain go1.24.0
 
 require (
 	github.com/nats-io/nats.go v1.48.0

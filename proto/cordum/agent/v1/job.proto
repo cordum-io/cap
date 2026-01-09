@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package cordum.agent.v1;
+
+option go_package = "github.com/cordum/cap/v2/cordum/agent/v1";
+option java_package = "io.cordum.cap.agent.v1";
+option java_multiple_files = true;
+option csharp_namespace = "Cordum.Agent.V1";
+option php_namespace = "cordum\\Agent\\V1";
+option ruby_package = "Cordum::Agent::V1";
+
+// JobPriority represents scheduling hints.
+enum JobPriority {
+    JOB_PRIORITY_UNSPECIFIED = 0;
+    JOB_PRIORITY_INTERACTIVE = 1;
+    JOB_PRIORITY_BATCH = 2;
+    JOB_PRIORITY_CRITICAL = 3;
+}
+
+// JobStatus captures lifecycle states for a job.
+enum JobStatus {
+    JOB_STATUS_UNSPECIFIED = 0;
+    JOB_STATUS_PENDING = 1;
+    JOB_STATUS_SCHEDULED = 2;
+    JOB_STATUS_DISPATCHED = 3;
+    JOB_STATUS_RUNNING = 4;
+    JOB_STATUS_SUCCEEDED = 5;
+    JOB_STATUS_FAILED = 6;
+    JOB_STATUS_CANCELLED = 7;
+    JOB_STATUS_DENIED = 8;
+    JOB_STATUS_TIMEOUT = 9;
+}
+
+// ContextHints describe how a worker may fetch or adapt context.
+message ContextHints {
+    int32 max_input_tokens = 1;  // per-call token budget
+    bool allow_summarization = 2; // worker may summarize input to fit
+    bool allow_retrieval = 3;     // worker may retrieve using memory_id
+    repeated string tags = 4;     // optional retrieval scope: logs/code/etc.
+}
+
+// Budget carries soft limits for execution.
+message Budget {
+    int64 max_input_tokens = 1;   // total input token budget for the job
+    int64 max_output_tokens = 2;  // total output token budget for the job
+    int64 max_total_tokens = 3;   // combined in/out ceiling
+    int64 deadline_ms = 4;        // soft deadline for completion
+}
+
+// ActorType identifies the origin of a request.
+enum ActorType {
+    ACTOR_TYPE_UNSPECIFIED = 0;
+    ACTOR_TYPE_HUMAN = 1;
+    ACTOR_TYPE_SERVICE = 2;
+}
+
+// JobMetadata captures structured identity and capability metadata.
+message JobMetadata {
+    string tenant_id = 1;
+    string actor_id = 2;
+    ActorType actor_type = 3;
+    string idempotency_key = 4;
+    string capability = 5;       // semantic action label
+    repeated string risk_tags = 6; // prod/write/network/secrets/exec/etc.
+    repeated string requires = 7; // docker/git/kubectl/network-egress/etc.
+    string pack_id = 8;          // empty for platform-only jobs
+    map<string, string> labels = 9; // freeform metadata
+}
+
+// JobRequest represents a schedulable unit of work.
+message JobRequest {
+    string job_id = 1;           // globally unique job identifier
+    string topic = 2;            // bus subject, e.g. job.chat.simple
+    JobPriority priority = 3;    // scheduling hint
+    string context_ptr = 4;      // opaque pointer to input payload
+    string adapter_id = 5;       // optional specialization hint
+    map<string, string> env = 6; // tenant, locale, sandbox flags, etc.
+    string parent_job_id = 7;    // optional parent link
+    string workflow_id = 8;      // optional workflow identifier
+    int32 step_index = 9;        // optional ordering within a workflow
+    string memory_id = 10;       // logical corpus id (repo/chat/kb/etc.)
+    ContextHints context_hints = 11; // guidance for retrieval/summarization
+    Budget budget = 12;          // soft limits for cost/time
+    string tenant_id = 13;       // tenant or organization id
+    string principal_id = 14;    // end-user or service identity
+    map<string, string> labels = 15; // arbitrary routing/placement labels
+    JobMetadata meta = 16;       // structured identity/capability metadata
+}
+
+// JobResult conveys the outcome of a job.
+message JobResult {
+    string job_id = 1;            // originating job identifier
+    JobStatus status = 2;         // terminal or transitional state
+    string result_ptr = 3;        // pointer to output payload
+    string worker_id = 4;         // emitting worker
+    int64 execution_ms = 5;       // elapsed processing time in milliseconds
+    string error_code = 6;        // optional machine-readable error
+    string error_message = 7;     // optional human-readable error
+    repeated string artifact_ptrs = 8; // pointers to artifacts (logs/diffs/evidence)
+}
+
+// JobProgress conveys incremental progress for a job.
+message JobProgress {
+    string job_id = 1;           // originating job identifier
+    string step_id = 2;          // optional workflow step identifier
+    int32 percent = 3;           // 0-100 progress indicator
+    string message = 4;          // human-readable progress update
+    string result_ptr = 5;       // optional partial result pointer
+    repeated string artifact_ptrs = 6; // optional artifacts emitted so far
+    JobStatus status = 7;        // optional status hint
+}
+
+// JobCancel requests cancellation of a running job.
+message JobCancel {
+    string job_id = 1;
+    string reason = 2;
+    string requested_by = 3;
+}

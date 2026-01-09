@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package cordum.agent.v1;
+
+option go_package = "github.com/cordum/cap/v2/cordum/agent/v1";
+option java_package = "io.cordum.cap.agent.v1";
+option java_multiple_files = true;
+option csharp_namespace = "Cordum.Agent.V1";
+option php_namespace = "cordum\\Agent\\V1";
+option ruby_package = "Cordum::Agent::V1";
+
+import "google/protobuf/timestamp.proto";
+import "cordum/agent/v1/job.proto";
+import "cordum/agent/v1/heartbeat.proto";
+import "cordum/agent/v1/alert.proto";
+
+// BusPacket is the envelope for all traffic on the bus.
+message BusPacket {
+    string trace_id = 1;                    // correlates related packets
+    string sender_id = 2;                   // emitting agent id
+    google.protobuf.Timestamp created_at = 3; // emission time
+    int32 protocol_version = 4;             // CAP wire version
+
+    oneof payload {
+        JobRequest job_request = 10;
+        JobResult job_result = 11;
+        Heartbeat heartbeat = 12;
+        SystemAlert alert = 13;
+        JobProgress job_progress = 15;
+        JobCancel job_cancel = 16;
+    }
+    bytes signature = 14;                   // digital signature of the serialized BusPacket
+}

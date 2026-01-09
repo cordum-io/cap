@@ -27,7 +27,7 @@ Pass `None` as the private key to send unsigned envelopes.
 import asyncio
 import nats
 from cryptography.hazmat.primitives.asymmetric import ec
-from cap.pb.coretex.agent.v1 import job_pb2
+from cap.pb.cordum.agent.v1 import job_pb2
 from cap import client
 
 async def main():
@@ -76,7 +76,7 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
 import asyncio
 from typing import Awaitable
 from cryptography.hazmat.primitives.asymmetric import ec
-from cap.pb.coretex.agent.v1 import job_pb2
+from cap.pb.cordum.agent.v1 import job_pb2
 from cap import worker
 
 async def my_handler(req: job_pb2.JobRequest) -> Awaitable[job_pb2.JobResult]:

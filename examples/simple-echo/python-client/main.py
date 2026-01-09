@@ -2,7 +2,7 @@ import asyncio
 
 import nats
 from cap import client
-from cap.pb.coretex.agent.v1 import job_pb2
+from cap.pb.cordum.agent.v1 import job_pb2
 
 
 async def main():

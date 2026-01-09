@@ -1,6 +1,6 @@
-# coretex Agent Protocol - Specification Index
+# Cordum Agent Protocol - Specification Index
 
-This folder contains the normative specification for the coretex Agent Protocol (CAP). The protobuf definitions in `proto/` are the canonical wire format; the prose here defines semantics, expectations, and recommended behaviors.
+This folder contains the normative specification for the Cordum Agent Protocol (CAP). The protobuf definitions in `proto/` are the canonical wire format; the prose here defines semantics, expectations, and recommended behaviors.
 
 ## Conformance
 - RFC 2119 keywords (MUST, SHOULD, MAY, etc.) are normative.
@@ -10,10 +10,10 @@ This folder contains the normative specification for the coretex Agent Protocol 
 ## Versioning
 - `protocol_version` in `BusPacket` is used for wire negotiation. Current wire version: `1` (schema 1.0.0).
 - Protobuf evolution is append-only: add new fields with new numbers; do not delete or reuse.
-- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.5`) for reproducibility.
+- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.8`) for reproducibility.
 - Protocol vs SDK:
   - Protocol wire schema: 1.0.0 (stable).
-  - Repository/SDK: 2.0.5 (may add helpers, docs, and generated stubs without wire breaks).
+  - Repository/SDK: 2.0.8 (may add helpers, docs, and generated stubs without wire breaks).
 
 ## Table of Contents
 - [01 Overview](01-overview.md)
@@ -119,7 +119,7 @@ All CAP traffic is wrapped in a `BusPacket`. The envelope provides tracing, send
 - `payload`: exactly one of `JobRequest`, `JobResult`, `Heartbeat`, or `SystemAlert`.
 - `signature` (optional but recommended): digital signature of the serialized `BusPacket` for authenticity and integrity.
 
-## Canonical Proto (see `proto/coretex/agent/v1/buspacket.proto`)
+## Canonical Proto (see `proto/cordum/agent/v1/buspacket.proto`)
 ```proto
 message BusPacket {
   string trace_id = 1;
@@ -323,7 +323,7 @@ CAP makes safety a first-class control-plane hook via the Safety Kernel.
 - Inputs: `job_id`, `topic`, `tenant`, `principal_id`, `priority`, `budget`, optional `estimated_cost`, `labels`, `memory_id`, and optional `effective_config` (marshaled EffectiveConfig).
 - Outputs: decision, human-readable `reason`, optional `redacted_context_ptr`, and optional policy metadata (`policy_snapshot`, `rule_id`, `constraints`, `approval_required`, `approval_ref`).
 
-## Canonical Service (see `proto/coretex/agent/v1/safety.proto`)
+## Canonical Service (see `proto/cordum/agent/v1/safety.proto`)
 ```proto
 service SafetyKernel {
   rpc Check(PolicyCheckRequest) returns (PolicyCheckResponse);
@@ -508,7 +508,7 @@ Security and visibility are mandatory for production deployments of CAP. For a m
 - Keep audit logs of safety decisions and job state transitions for a policy-defined retention window.
 # Security Best Practices
 
-This document provides a comprehensive overview of security best practices for implementing and deploying the coretex Agent Protocol (CAP). These recommendations are intended to supplement the baseline security requirements outlined in `10-security-observability.md`.
+This document provides a comprehensive overview of security best practices for implementing and deploying the Cordum Agent Protocol (CAP). These recommendations are intended to supplement the baseline security requirements outlined in `10-security-observability.md`.
 
 ## Threat Model
 
@@ -601,7 +601,7 @@ Components should only have the permissions they need to perform their function.
 - **Schedulers:** A scheduler needs broader permissions, but these should still be carefully scoped.
 # Glossary
 
-This document defines key terms used in the coretex Agent Protocol (CAP) specification.
+This document defines key terms used in the Cordum Agent Protocol (CAP) specification.
 
 | Term | Definition |
 | --- | --- |

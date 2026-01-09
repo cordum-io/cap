@@ -22,7 +22,7 @@ The `cap::Client` class publishes `JobRequest` envelopes onto the bus.
 
 #include "cap/bus_interface.h"
 #include "cap/subjects.h"
-#include "coretex/agent/v1/buspacket.pb.h"
+#include "cordum/agent/v1/buspacket.pb.h"
 
 namespace cap {
 
@@ -31,7 +31,7 @@ class Client {
   Client(BusClient* bus, std::string sender_id);
 
   bool Submit(const std::string& trace_id,
-              const coretex::agent::v1::JobRequest& req,
+              const cordum::agent::v1::JobRequest& req,
               int32_t protocol_version = 1);
 
  private:
@@ -53,12 +53,12 @@ The `cap::Worker` class subscribes to a pool subject and emits `JobResult` packe
 
 #include "cap/bus_interface.h"
 #include "cap/subjects.h"
-#include "coretex/agent/v1/buspacket.pb.h"
+#include "cordum/agent/v1/buspacket.pb.h"
 
 namespace cap {
 
-using JobHandler = std::function<std::unique_ptr<coretex::agent::v1::JobResult>(
-    const coretex::agent::v1::JobRequest&)>;
+using JobHandler = std::function<std::unique_ptr<cordum::agent::v1::JobResult>(
+    const cordum::agent::v1::JobRequest&)>;
 
 class Worker {
  public:

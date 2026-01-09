@@ -1,6 +1,6 @@
-# Welcome to the coretex Agent Protocol (CAP) Wiki!
+# Welcome to the Cordum Agent Protocol (CAP) Wiki!
 
-The coretex Agent Protocol (CAP) is a distributed job protocol for AI agents that communicates over a pub/sub bus. It standardizes envelopes, job messages, heartbeats, and workflow metadata so schedulers, workers, orchestrators, and gateways can interoperate.
+The Cordum Agent Protocol (CAP) is a distributed job protocol for AI agents that communicates over a pub/sub bus. It standardizes envelopes, job messages, heartbeats, and workflow metadata so schedulers, workers, orchestrators, and gateways can interoperate.
 
 This wiki provides a comprehensive guide to understanding, using, and contributing to the CAP project.
 

@@ -787,8 +787,8 @@ const file_cordum_agent_v1_safety_proto_rawDesc = "" +
 	"\bEvaluate\x12#.cordum.agent.v1.PolicyCheckRequest\x1a$.cordum.agent.v1.PolicyCheckResponse\x12T\n" +
 	"\aExplain\x12#.cordum.agent.v1.PolicyCheckRequest\x1a$.cordum.agent.v1.PolicyCheckResponse\x12U\n" +
 	"\bSimulate\x12#.cordum.agent.v1.PolicyCheckRequest\x1a$.cordum.agent.v1.PolicyCheckResponse\x12^\n" +
-	"\rListSnapshots\x12%.cordum.agent.v1.ListSnapshotsRequest\x1a&.cordum.agent.v1.ListSnapshotsResponseB|\n" +
-	"\x16io.cordum.cap.agent.v1P\x01Z(github.com/cordum/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
+	"\rListSnapshots\x12%.cordum.agent.v1.ListSnapshotsRequest\x1a&.cordum.agent.v1.ListSnapshotsResponseB\x7f\n" +
+	"\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
 
 var (
 	file_cordum_agent_v1_safety_proto_rawDescOnce sync.Once

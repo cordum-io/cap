@@ -1,4 +1,4 @@
-module github.com/cordum/cap/v2
+module github.com/cordum-io/cap/v2
 
 go 1.23.0
 

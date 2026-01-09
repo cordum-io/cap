@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/cordum/cap"
+Homepage = "https://github.com/cordum-io/cap"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -70,14 +70,14 @@ const char descriptor_table_protodef_cordum_2fagent_2fv1_2falert_2eproto[] PROTO
   "\n\033cordum/agent/v1/alert.proto\022\017cordum.ag"
   "ent.v1\"N\n\013SystemAlert\022\r\n\005level\030\001 \001(\t\022\017\n\007"
   "message\030\002 \001(\t\022\021\n\tcomponent\030\003 \001(\t\022\014\n\004code"
-  "\030\004 \001(\tB|\n\026io.cordum.cap.agent.v1P\001Z(gith"
-  "ub.com/cordum/cap/v2/cordum/agent/v1\252\002\017C"
-  "ordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordu"
-  "m::Agent::V1b\006proto3"
+  "\030\004 \001(\tB\177\n\026io.cordum.cap.agent.v1P\001Z+gith"
+  "ub.com/cordum-io/cap/v2/cordum/agent/v1\252"
+  "\002\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Co"
+  "rdum::Agent::V1b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2falert_2eproto = {
-    false, false, 260, descriptor_table_protodef_cordum_2fagent_2fv1_2falert_2eproto,
+    false, false, 263, descriptor_table_protodef_cordum_2fagent_2fv1_2falert_2eproto,
     "cordum/agent/v1/alert.proto",
     &descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_once, nullptr, 0, 1,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2falert_2eproto::offsets,

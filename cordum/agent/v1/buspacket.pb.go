@@ -231,8 +231,8 @@ const file_cordum_agent_v1_buspacket_proto_rawDesc = "" +
 	"\n" +
 	"job_cancel\x18\x10 \x01(\v2\x1a.cordum.agent.v1.JobCancelH\x00R\tjobCancel\x12\x1c\n" +
 	"\tsignature\x18\x0e \x01(\fR\tsignatureB\t\n" +
-	"\apayloadB|\n" +
-	"\x16io.cordum.cap.agent.v1P\x01Z(github.com/cordum/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
+	"\apayloadB\x7f\n" +
+	"\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
 
 var (
 	file_cordum_agent_v1_buspacket_proto_rawDescOnce sync.Once

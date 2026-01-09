@@ -93,11 +93,11 @@ const char descriptor_table_protodef_cordum_2fagent_2fv1_2fbuspacket_2eproto[] P
   "1.SystemAlertH\000\0224\n\014job_progress\030\017 \001(\0132\034."
   "cordum.agent.v1.JobProgressH\000\0220\n\njob_can"
   "cel\030\020 \001(\0132\032.cordum.agent.v1.JobCancelH\000\022"
-  "\021\n\tsignature\030\016 \001(\014B\t\n\007payloadB|\n\026io.cord"
-  "um.cap.agent.v1P\001Z(github.com/cordum/cap"
-  "/v2/cordum/agent/v1\252\002\017Cordum.Agent.V1\312\002\017"
-  "cordum\\Agent\\V1\352\002\021Cordum::Agent::V1b\006pro"
-  "to3"
+  "\021\n\tsignature\030\016 \001(\014B\t\n\007payloadB\177\n\026io.cord"
+  "um.cap.agent.v1P\001Z+github.com/cordum-io/"
+  "cap/v2/cordum/agent/v1\252\002\017Cordum.Agent.V1"
+  "\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent::V1b\006"
+  "proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_deps[4] = {
   &::descriptor_table_cordum_2fagent_2fv1_2falert_2eproto,
@@ -107,7 +107,7 @@ static const ::_pbi::DescriptorTable* const descriptor_table_cordum_2fagent_2fv1
 };
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto = {
-    false, false, 763, descriptor_table_protodef_cordum_2fagent_2fv1_2fbuspacket_2eproto,
+    false, false, 766, descriptor_table_protodef_cordum_2fagent_2fv1_2fbuspacket_2eproto,
     "cordum/agent/v1/buspacket.proto",
     &descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_once, descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_deps, 4, 1,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fbuspacket_2eproto::offsets,

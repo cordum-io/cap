@@ -24,14 +24,14 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1b\x63ordum/agent/v1/alert.proto\x12\x0f\x63ordum.agent.v1\"N\n\x0bSystemAlert\x12\r\n\x05level\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x11\n\tcomponent\x18\x03 \x01(\t\x12\x0c\n\x04\x63ode\x18\x04 \x01(\tB|\n\x16io.cordum.cap.agent.v1P\x01Z(github.com/cordum/cap/v2/cordum/agent/v1\xaa\x02\x0f\x43ordum.Agent.V1\xca\x02\x0f\x63ordum\\Agent\\V1\xea\x02\x11\x43ordum::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1b\x63ordum/agent/v1/alert.proto\x12\x0f\x63ordum.agent.v1\"N\n\x0bSystemAlert\x12\r\n\x05level\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x11\n\tcomponent\x18\x03 \x01(\t\x12\x0c\n\x04\x63ode\x18\x04 \x01(\tB\x7f\n\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0f\x43ordum.Agent.V1\xca\x02\x0f\x63ordum\\Agent\\V1\xea\x02\x11\x43ordum::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'cordum.agent.v1.alert_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'\n\026io.cordum.cap.agent.v1P\001Z(github.com/cordum/cap/v2/cordum/agent/v1\252\002\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent::V1'
+  _globals['DESCRIPTOR']._serialized_options = b'\n\026io.cordum.cap.agent.v1P\001Z+github.com/cordum-io/cap/v2/cordum/agent/v1\252\002\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent::V1'
   _globals['_SYSTEMALERT']._serialized_start=48
   _globals['_SYSTEMALERT']._serialized_end=126
 # @@protoc_insertion_point(module_scope)

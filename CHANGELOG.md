@@ -2,6 +2,9 @@
 
 # Changelog
 
+## v2.0.9 — 2026-01-09
+- Release bump for published tag.
+
 ## v2.0.8 — 2026-01-09
 - Rebranded CAP to Cordum: module path, proto package, and namespace updates across SDKs.
 - Regenerated Go/C++/Node/Python stubs under `cordum/agent/v1`.

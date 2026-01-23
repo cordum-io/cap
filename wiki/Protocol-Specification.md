@@ -296,7 +296,7 @@ Heartbeats advertise worker liveness, capacity, and pool membership so scheduler
 - `worker_id`: stable identity for the worker process.
 - `region`: location hint (region/zone/cluster) for locality-aware scheduling.
 - `type`: capability class (cpu, gpu, cpu-tools, gpu-code, etc.).
-- `cpu_load` / `gpu_utilization`: utilization percentages (0-100).
+- `cpu_load` / `memory_load` / `gpu_utilization`: utilization percentages (0-100).
 - `active_jobs`: number of in-flight jobs on the worker.
 - `capabilities`: freeform skills/tools supported (e.g., `python`, `browser`, `embedding`).
 - `pool`: pool/subject this worker consumes (e.g., `job.code.llm`).

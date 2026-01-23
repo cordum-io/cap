@@ -10,8 +10,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/cordum-io/cap/v2/sdk/go"
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+	"github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -28,12 +28,12 @@ type NATSConn interface {
 
 // Worker subscribes to a pool subject and handles jobs.
 type Worker struct {
-	NATS        NATSConn
-	Subject     string
-	Handler     Handler
-	PublicKeys  map[string]*ecdsa.PublicKey
-	PrivateKey  *ecdsa.PrivateKey
-	SenderID    string
+	NATS       NATSConn
+	Subject    string
+	Handler    Handler
+	PublicKeys map[string]*ecdsa.PublicKey
+	PrivateKey *ecdsa.PrivateKey
+	SenderID   string
 }
 
 // Start begins consuming and handling JobRequests. It returns after the subscription is created.
@@ -160,6 +160,26 @@ func HeartbeatPayload(workerID, pool string, activeJobs, maxParallel int, cpuLoa
 				ActiveJobs:      int32(activeJobs),
 				MaxParallelJobs: int32(maxParallel),
 				CpuLoad:         cpuLoad,
+			},
+		},
+	}
+	return proto.Marshal(hb)
+}
+
+// HeartbeatPayloadWithMemory returns a heartbeat payload including memory utilization.
+func HeartbeatPayloadWithMemory(workerID, pool string, activeJobs, maxParallel int, cpuLoad, memoryLoad float32) ([]byte, error) {
+	hb := &agentv1.BusPacket{
+		TraceId:         "",
+		SenderId:        workerID,
+		ProtocolVersion: capsdk.DefaultProtocolVersion,
+		Payload: &agentv1.BusPacket_Heartbeat{
+			Heartbeat: &agentv1.Heartbeat{
+				WorkerId:        workerID,
+				Pool:            pool,
+				ActiveJobs:      int32(activeJobs),
+				MaxParallelJobs: int32(maxParallel),
+				CpuLoad:         cpuLoad,
+				MemoryLoad:      memoryLoad,
 			},
 		},
 	}

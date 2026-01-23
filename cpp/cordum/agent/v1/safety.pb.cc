@@ -135,9 +135,40 @@ struct PolicyConstraintsDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PolicyConstraintsDefaultTypeInternal _PolicyConstraints_default_instance_;
+PROTOBUF_CONSTEXPR PolicyRemediation_AddLabelsEntry_DoNotUse::PolicyRemediation_AddLabelsEntry_DoNotUse(
+    ::_pbi::ConstantInitialized) {}
+struct PolicyRemediation_AddLabelsEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PolicyRemediation_AddLabelsEntry_DoNotUseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PolicyRemediation_AddLabelsEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    PolicyRemediation_AddLabelsEntry_DoNotUse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PolicyRemediation_AddLabelsEntry_DoNotUseDefaultTypeInternal _PolicyRemediation_AddLabelsEntry_DoNotUse_default_instance_;
+PROTOBUF_CONSTEXPR PolicyRemediation::PolicyRemediation(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.add_labels_)*/{::_pbi::ConstantInitialized()}
+  , /*decltype(_impl_.remove_labels_)*/{}
+  , /*decltype(_impl_.id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.title_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.summary_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.replacement_topic_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.replacement_capability_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct PolicyRemediationDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR PolicyRemediationDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~PolicyRemediationDefaultTypeInternal() {}
+  union {
+    PolicyRemediation _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 PolicyRemediationDefaultTypeInternal _PolicyRemediation_default_instance_;
 PROTOBUF_CONSTEXPR PolicyCheckResponse::PolicyCheckResponse(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.reason_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_.remediations_)*/{}
+  , /*decltype(_impl_.reason_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.redacted_context_ptr_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.policy_snapshot_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.rule_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -182,7 +213,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 }  // namespace v1
 }  // namespace agent
 }  // namespace cordum
-static ::_pb::Metadata file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto[10];
+static ::_pb::Metadata file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto[12];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_cordum_2fagent_2fv1_2fsafety_2eproto[1];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_cordum_2fagent_2fv1_2fsafety_2eproto = nullptr;
 
@@ -262,6 +293,29 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets[] PROTO
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyConstraints, _impl_.toolchain_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyConstraints, _impl_.diff_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyConstraints, _impl_.redaction_level_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse, value_),
+  0,
+  1,
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation, _impl_.id_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation, _impl_.title_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation, _impl_.summary_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation, _impl_.replacement_topic_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation, _impl_.replacement_capability_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation, _impl_.add_labels_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyRemediation, _impl_.remove_labels_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckResponse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -276,6 +330,7 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets[] PROTO
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckResponse, _impl_.constraints_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckResponse, _impl_.approval_required_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckResponse, _impl_.approval_ref_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckResponse, _impl_.remediations_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::ListSnapshotsRequest, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -298,9 +353,11 @@ static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protode
   { 47, -1, -1, sizeof(::cordum::agent::v1::ToolchainConstraints)},
   { 55, -1, -1, sizeof(::cordum::agent::v1::DiffConstraints)},
   { 64, -1, -1, sizeof(::cordum::agent::v1::PolicyConstraints)},
-  { 75, -1, -1, sizeof(::cordum::agent::v1::PolicyCheckResponse)},
-  { 89, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsRequest)},
-  { 95, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsResponse)},
+  { 75, 83, -1, sizeof(::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse)},
+  { 85, -1, -1, sizeof(::cordum::agent::v1::PolicyRemediation)},
+  { 98, -1, -1, sizeof(::cordum::agent::v1::PolicyCheckResponse)},
+  { 113, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsRequest)},
+  { 119, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -311,6 +368,8 @@ static const ::_pb::Message* const file_default_instances[] = {
   &::cordum::agent::v1::_ToolchainConstraints_default_instance_._instance,
   &::cordum::agent::v1::_DiffConstraints_default_instance_._instance,
   &::cordum::agent::v1::_PolicyConstraints_default_instance_._instance,
+  &::cordum::agent::v1::_PolicyRemediation_AddLabelsEntry_DoNotUse_default_instance_._instance,
+  &::cordum::agent::v1::_PolicyRemediation_default_instance_._instance,
   &::cordum::agent::v1::_PolicyCheckResponse_default_instance_._instance,
   &::cordum::agent::v1::_ListSnapshotsRequest_default_instance_._instance,
   &::cordum::agent::v1::_ListSnapshotsResponse_default_instance_._instance,
@@ -345,44 +404,52 @@ const char descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto[] PROT
   "hain\030\003 \001(\0132%.cordum.agent.v1.ToolchainCo"
   "nstraints\022.\n\004diff\030\004 \001(\0132 .cordum.agent.v"
   "1.DiffConstraints\022\027\n\017redaction_level\030\005 \001"
-  "(\t\"\210\002\n\023PolicyCheckResponse\022/\n\010decision\030\001"
-  " \001(\0162\035.cordum.agent.v1.DecisionType\022\016\n\006r"
-  "eason\030\002 \001(\t\022\034\n\024redacted_context_ptr\030\003 \001("
-  "\t\022\027\n\017policy_snapshot\030\004 \001(\t\022\017\n\007rule_id\030\005 "
-  "\001(\t\0227\n\013constraints\030\006 \001(\0132\".cordum.agent."
-  "v1.PolicyConstraints\022\031\n\021approval_require"
-  "d\030\007 \001(\010\022\024\n\014approval_ref\030\010 \001(\t\"\026\n\024ListSna"
-  "pshotsRequest\"*\n\025ListSnapshotsResponse\022\021"
-  "\n\tsnapshots\030\001 \003(\t*\305\001\n\014DecisionType\022\035\n\031DE"
-  "CISION_TYPE_UNSPECIFIED\020\000\022\027\n\023DECISION_TY"
-  "PE_ALLOW\020\001\022\026\n\022DECISION_TYPE_DENY\020\002\022\037\n\033DE"
-  "CISION_TYPE_REQUIRE_HUMAN\020\003\022\032\n\026DECISION_"
-  "TYPE_THROTTLE\020\004\022(\n$DECISION_TYPE_ALLOW_W"
-  "ITH_CONSTRAINTS\020\0052\306\003\n\014SafetyKernel\022R\n\005Ch"
-  "eck\022#.cordum.agent.v1.PolicyCheckRequest"
-  "\032$.cordum.agent.v1.PolicyCheckResponse\022U"
-  "\n\010Evaluate\022#.cordum.agent.v1.PolicyCheck"
+  "(\t\"\212\002\n\021PolicyRemediation\022\n\n\002id\030\001 \001(\t\022\r\n\005"
+  "title\030\002 \001(\t\022\017\n\007summary\030\003 \001(\t\022\031\n\021replacem"
+  "ent_topic\030\004 \001(\t\022\036\n\026replacement_capabilit"
+  "y\030\005 \001(\t\022E\n\nadd_labels\030\006 \003(\01321.cordum.age"
+  "nt.v1.PolicyRemediation.AddLabelsEntry\022\025"
+  "\n\rremove_labels\030\007 \003(\t\0320\n\016AddLabelsEntry\022"
+  "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\302\002\n\023Poli"
+  "cyCheckResponse\022/\n\010decision\030\001 \001(\0162\035.cord"
+  "um.agent.v1.DecisionType\022\016\n\006reason\030\002 \001(\t"
+  "\022\034\n\024redacted_context_ptr\030\003 \001(\t\022\027\n\017policy"
+  "_snapshot\030\004 \001(\t\022\017\n\007rule_id\030\005 \001(\t\0227\n\013cons"
+  "traints\030\006 \001(\0132\".cordum.agent.v1.PolicyCo"
+  "nstraints\022\031\n\021approval_required\030\007 \001(\010\022\024\n\014"
+  "approval_ref\030\010 \001(\t\0228\n\014remediations\030\t \003(\013"
+  "2\".cordum.agent.v1.PolicyRemediation\"\026\n\024"
+  "ListSnapshotsRequest\"*\n\025ListSnapshotsRes"
+  "ponse\022\021\n\tsnapshots\030\001 \003(\t*\305\001\n\014DecisionTyp"
+  "e\022\035\n\031DECISION_TYPE_UNSPECIFIED\020\000\022\027\n\023DECI"
+  "SION_TYPE_ALLOW\020\001\022\026\n\022DECISION_TYPE_DENY\020"
+  "\002\022\037\n\033DECISION_TYPE_REQUIRE_HUMAN\020\003\022\032\n\026DE"
+  "CISION_TYPE_THROTTLE\020\004\022(\n$DECISION_TYPE_"
+  "ALLOW_WITH_CONSTRAINTS\020\0052\306\003\n\014SafetyKerne"
+  "l\022R\n\005Check\022#.cordum.agent.v1.PolicyCheck"
   "Request\032$.cordum.agent.v1.PolicyCheckRes"
-  "ponse\022T\n\007Explain\022#.cordum.agent.v1.Polic"
-  "yCheckRequest\032$.cordum.agent.v1.PolicyCh"
-  "eckResponse\022U\n\010Simulate\022#.cordum.agent.v"
+  "ponse\022U\n\010Evaluate\022#.cordum.agent.v1.Poli"
+  "cyCheckRequest\032$.cordum.agent.v1.PolicyC"
+  "heckResponse\022T\n\007Explain\022#.cordum.agent.v"
   "1.PolicyCheckRequest\032$.cordum.agent.v1.P"
-  "olicyCheckResponse\022^\n\rListSnapshots\022%.co"
-  "rdum.agent.v1.ListSnapshotsRequest\032&.cor"
-  "dum.agent.v1.ListSnapshotsResponseB\177\n\026io"
-  ".cordum.cap.agent.v1P\001Z+github.com/cordu"
-  "m-io/cap/v2/cordum/agent/v1\252\002\017Cordum.Age"
-  "nt.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent:"
-  ":V1b\006proto3"
+  "olicyCheckResponse\022U\n\010Simulate\022#.cordum."
+  "agent.v1.PolicyCheckRequest\032$.cordum.age"
+  "nt.v1.PolicyCheckResponse\022^\n\rListSnapsho"
+  "ts\022%.cordum.agent.v1.ListSnapshotsReques"
+  "t\032&.cordum.agent.v1.ListSnapshotsRespons"
+  "eB\177\n\026io.cordum.cap.agent.v1P\001Z+github.co"
+  "m/cordum-io/cap/v2/cordum/agent/v1\252\002\017Cor"
+  "dum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum:"
+  ":Agent::V1b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_deps[1] = {
   &::descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto = {
-    false, false, 2251, descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto,
+    false, false, 2578, descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto,
     "cordum/agent/v1/safety.proto",
-    &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once, descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_deps, 1, 10,
+    &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once, descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_deps, 1, 12,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets,
     file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto, file_level_enum_descriptors_cordum_2fagent_2fv1_2fsafety_2eproto,
     file_level_service_descriptors_cordum_2fagent_2fv1_2fsafety_2eproto,
@@ -2522,6 +2589,530 @@ void PolicyConstraints::InternalSwap(PolicyConstraints* other) {
 
 // ===================================================================
 
+PolicyRemediation_AddLabelsEntry_DoNotUse::PolicyRemediation_AddLabelsEntry_DoNotUse() {}
+PolicyRemediation_AddLabelsEntry_DoNotUse::PolicyRemediation_AddLabelsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+    : SuperType(arena) {}
+void PolicyRemediation_AddLabelsEntry_DoNotUse::MergeFrom(const PolicyRemediation_AddLabelsEntry_DoNotUse& other) {
+  MergeFromInternal(other);
+}
+::PROTOBUF_NAMESPACE_ID::Metadata PolicyRemediation_AddLabelsEntry_DoNotUse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once,
+      file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto[7]);
+}
+
+// ===================================================================
+
+class PolicyRemediation::_Internal {
+ public:
+};
+
+PolicyRemediation::PolicyRemediation(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  if (arena != nullptr && !is_message_owned) {
+    arena->OwnCustomDestructor(this, &PolicyRemediation::ArenaDtor);
+  }
+  // @@protoc_insertion_point(arena_constructor:cordum.agent.v1.PolicyRemediation)
+}
+PolicyRemediation::PolicyRemediation(const PolicyRemediation& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  PolicyRemediation* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      /*decltype(_impl_.add_labels_)*/{}
+    , decltype(_impl_.remove_labels_){from._impl_.remove_labels_}
+    , decltype(_impl_.id_){}
+    , decltype(_impl_.title_){}
+    , decltype(_impl_.summary_){}
+    , decltype(_impl_.replacement_topic_){}
+    , decltype(_impl_.replacement_capability_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.add_labels_.MergeFrom(from._impl_.add_labels_);
+  _impl_.id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_id().empty()) {
+    _this->_impl_.id_.Set(from._internal_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.title_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.title_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_title().empty()) {
+    _this->_impl_.title_.Set(from._internal_title(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.summary_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.summary_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_summary().empty()) {
+    _this->_impl_.summary_.Set(from._internal_summary(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.replacement_topic_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.replacement_topic_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_replacement_topic().empty()) {
+    _this->_impl_.replacement_topic_.Set(from._internal_replacement_topic(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.replacement_capability_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.replacement_capability_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_replacement_capability().empty()) {
+    _this->_impl_.replacement_capability_.Set(from._internal_replacement_capability(), 
+      _this->GetArenaForAllocation());
+  }
+  // @@protoc_insertion_point(copy_constructor:cordum.agent.v1.PolicyRemediation)
+}
+
+inline void PolicyRemediation::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      /*decltype(_impl_.add_labels_)*/{::_pbi::ArenaInitialized(), arena}
+    , decltype(_impl_.remove_labels_){arena}
+    , decltype(_impl_.id_){}
+    , decltype(_impl_.title_){}
+    , decltype(_impl_.summary_){}
+    , decltype(_impl_.replacement_topic_){}
+    , decltype(_impl_.replacement_capability_){}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.title_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.title_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.summary_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.summary_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.replacement_topic_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.replacement_topic_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.replacement_capability_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.replacement_capability_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+PolicyRemediation::~PolicyRemediation() {
+  // @@protoc_insertion_point(destructor:cordum.agent.v1.PolicyRemediation)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    ArenaDtor(this);
+    return;
+  }
+  SharedDtor();
+}
+
+inline void PolicyRemediation::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.add_labels_.Destruct();
+  _impl_.add_labels_.~MapField();
+  _impl_.remove_labels_.~RepeatedPtrField();
+  _impl_.id_.Destroy();
+  _impl_.title_.Destroy();
+  _impl_.summary_.Destroy();
+  _impl_.replacement_topic_.Destroy();
+  _impl_.replacement_capability_.Destroy();
+}
+
+void PolicyRemediation::ArenaDtor(void* object) {
+  PolicyRemediation* _this = reinterpret_cast< PolicyRemediation* >(object);
+  _this->_impl_.add_labels_.Destruct();
+}
+void PolicyRemediation::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void PolicyRemediation::Clear() {
+// @@protoc_insertion_point(message_clear_start:cordum.agent.v1.PolicyRemediation)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.add_labels_.Clear();
+  _impl_.remove_labels_.Clear();
+  _impl_.id_.ClearToEmpty();
+  _impl_.title_.ClearToEmpty();
+  _impl_.summary_.ClearToEmpty();
+  _impl_.replacement_topic_.ClearToEmpty();
+  _impl_.replacement_capability_.ClearToEmpty();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* PolicyRemediation::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string id = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.PolicyRemediation.id"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string title = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_title();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.PolicyRemediation.title"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string summary = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_summary();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.PolicyRemediation.summary"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string replacement_topic = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_replacement_topic();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.PolicyRemediation.replacement_topic"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string replacement_capability = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_replacement_capability();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.PolicyRemediation.replacement_capability"));
+        } else
+          goto handle_unusual;
+        continue;
+      // map<string, string> add_labels = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(&_impl_.add_labels_, ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<50>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated string remove_labels = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            auto str = _internal_add_remove_labels();
+            ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+            CHK_(ptr);
+            CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.PolicyRemediation.remove_labels"));
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<58>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* PolicyRemediation::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:cordum.agent.v1.PolicyRemediation)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string id = 1;
+  if (!this->_internal_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_id().data(), static_cast<int>(this->_internal_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.PolicyRemediation.id");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_id(), target);
+  }
+
+  // string title = 2;
+  if (!this->_internal_title().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_title().data(), static_cast<int>(this->_internal_title().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.PolicyRemediation.title");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_title(), target);
+  }
+
+  // string summary = 3;
+  if (!this->_internal_summary().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_summary().data(), static_cast<int>(this->_internal_summary().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.PolicyRemediation.summary");
+    target = stream->WriteStringMaybeAliased(
+        3, this->_internal_summary(), target);
+  }
+
+  // string replacement_topic = 4;
+  if (!this->_internal_replacement_topic().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_replacement_topic().data(), static_cast<int>(this->_internal_replacement_topic().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.PolicyRemediation.replacement_topic");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_replacement_topic(), target);
+  }
+
+  // string replacement_capability = 5;
+  if (!this->_internal_replacement_capability().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_replacement_capability().data(), static_cast<int>(this->_internal_replacement_capability().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.PolicyRemediation.replacement_capability");
+    target = stream->WriteStringMaybeAliased(
+        5, this->_internal_replacement_capability(), target);
+  }
+
+  // map<string, string> add_labels = 6;
+  if (!this->_internal_add_labels().empty()) {
+    using MapType = ::_pb::Map<std::string, std::string>;
+    using WireHelper = PolicyRemediation_AddLabelsEntry_DoNotUse::Funcs;
+    const auto& map_field = this->_internal_add_labels();
+    auto check_utf8 = [](const MapType::value_type& entry) {
+      (void)entry;
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.first.data(), static_cast<int>(entry.first.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "cordum.agent.v1.PolicyRemediation.AddLabelsEntry.key");
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.second.data(), static_cast<int>(entry.second.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "cordum.agent.v1.PolicyRemediation.AddLabelsEntry.value");
+    };
+
+    if (stream->IsSerializationDeterministic() && map_field.size() > 1) {
+      for (const auto& entry : ::_pbi::MapSorterPtr<MapType>(map_field)) {
+        target = WireHelper::InternalSerialize(6, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    } else {
+      for (const auto& entry : map_field) {
+        target = WireHelper::InternalSerialize(6, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    }
+  }
+
+  // repeated string remove_labels = 7;
+  for (int i = 0, n = this->_internal_remove_labels_size(); i < n; i++) {
+    const auto& s = this->_internal_remove_labels(i);
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      s.data(), static_cast<int>(s.length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.PolicyRemediation.remove_labels");
+    target = stream->WriteString(7, s, target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:cordum.agent.v1.PolicyRemediation)
+  return target;
+}
+
+size_t PolicyRemediation::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:cordum.agent.v1.PolicyRemediation)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // map<string, string> add_labels = 6;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_add_labels_size());
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
+      it = this->_internal_add_labels().begin();
+      it != this->_internal_add_labels().end(); ++it) {
+    total_size += PolicyRemediation_AddLabelsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
+  }
+
+  // repeated string remove_labels = 7;
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.remove_labels_.size());
+  for (int i = 0, n = _impl_.remove_labels_.size(); i < n; i++) {
+    total_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+      _impl_.remove_labels_.Get(i));
+  }
+
+  // string id = 1;
+  if (!this->_internal_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_id());
+  }
+
+  // string title = 2;
+  if (!this->_internal_title().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_title());
+  }
+
+  // string summary = 3;
+  if (!this->_internal_summary().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_summary());
+  }
+
+  // string replacement_topic = 4;
+  if (!this->_internal_replacement_topic().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_replacement_topic());
+  }
+
+  // string replacement_capability = 5;
+  if (!this->_internal_replacement_capability().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_replacement_capability());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData PolicyRemediation::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    PolicyRemediation::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*PolicyRemediation::GetClassData() const { return &_class_data_; }
+
+
+void PolicyRemediation::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<PolicyRemediation*>(&to_msg);
+  auto& from = static_cast<const PolicyRemediation&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:cordum.agent.v1.PolicyRemediation)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  _this->_impl_.add_labels_.MergeFrom(from._impl_.add_labels_);
+  _this->_impl_.remove_labels_.MergeFrom(from._impl_.remove_labels_);
+  if (!from._internal_id().empty()) {
+    _this->_internal_set_id(from._internal_id());
+  }
+  if (!from._internal_title().empty()) {
+    _this->_internal_set_title(from._internal_title());
+  }
+  if (!from._internal_summary().empty()) {
+    _this->_internal_set_summary(from._internal_summary());
+  }
+  if (!from._internal_replacement_topic().empty()) {
+    _this->_internal_set_replacement_topic(from._internal_replacement_topic());
+  }
+  if (!from._internal_replacement_capability().empty()) {
+    _this->_internal_set_replacement_capability(from._internal_replacement_capability());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void PolicyRemediation::CopyFrom(const PolicyRemediation& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:cordum.agent.v1.PolicyRemediation)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool PolicyRemediation::IsInitialized() const {
+  return true;
+}
+
+void PolicyRemediation::InternalSwap(PolicyRemediation* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.add_labels_.InternalSwap(&other->_impl_.add_labels_);
+  _impl_.remove_labels_.InternalSwap(&other->_impl_.remove_labels_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.id_, lhs_arena,
+      &other->_impl_.id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.title_, lhs_arena,
+      &other->_impl_.title_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.summary_, lhs_arena,
+      &other->_impl_.summary_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.replacement_topic_, lhs_arena,
+      &other->_impl_.replacement_topic_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.replacement_capability_, lhs_arena,
+      &other->_impl_.replacement_capability_, rhs_arena
+  );
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata PolicyRemediation::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once,
+      file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto[8]);
+}
+
+// ===================================================================
+
 class PolicyCheckResponse::_Internal {
  public:
   static const ::cordum::agent::v1::PolicyConstraints& constraints(const PolicyCheckResponse* msg);
@@ -2541,7 +3132,8 @@ PolicyCheckResponse::PolicyCheckResponse(const PolicyCheckResponse& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   PolicyCheckResponse* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.reason_){}
+      decltype(_impl_.remediations_){from._impl_.remediations_}
+    , decltype(_impl_.reason_){}
     , decltype(_impl_.redacted_context_ptr_){}
     , decltype(_impl_.policy_snapshot_){}
     , decltype(_impl_.rule_id_){}
@@ -2606,7 +3198,8 @@ inline void PolicyCheckResponse::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.reason_){}
+      decltype(_impl_.remediations_){arena}
+    , decltype(_impl_.reason_){}
     , decltype(_impl_.redacted_context_ptr_){}
     , decltype(_impl_.policy_snapshot_){}
     , decltype(_impl_.rule_id_){}
@@ -2649,6 +3242,7 @@ PolicyCheckResponse::~PolicyCheckResponse() {
 
 inline void PolicyCheckResponse::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.remediations_.~RepeatedPtrField();
   _impl_.reason_.Destroy();
   _impl_.redacted_context_ptr_.Destroy();
   _impl_.policy_snapshot_.Destroy();
@@ -2667,6 +3261,7 @@ void PolicyCheckResponse::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  _impl_.remediations_.Clear();
   _impl_.reason_.ClearToEmpty();
   _impl_.redacted_context_ptr_.ClearToEmpty();
   _impl_.policy_snapshot_.ClearToEmpty();
@@ -2760,6 +3355,19 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.PolicyCheckResponse.approval_ref"));
+        } else
+          goto handle_unusual;
+        continue;
+      // repeated .cordum.agent.v1.PolicyRemediation remediations = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(_internal_add_remediations(), ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<74>(ptr));
         } else
           goto handle_unusual;
         continue;
@@ -2862,6 +3470,14 @@ uint8_t* PolicyCheckResponse::_InternalSerialize(
         8, this->_internal_approval_ref(), target);
   }
 
+  // repeated .cordum.agent.v1.PolicyRemediation remediations = 9;
+  for (unsigned i = 0,
+      n = static_cast<unsigned>(this->_internal_remediations_size()); i < n; i++) {
+    const auto& repfield = this->_internal_remediations(i);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+        InternalWriteMessage(9, repfield, repfield.GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -2877,6 +3493,13 @@ size_t PolicyCheckResponse::ByteSizeLong() const {
   uint32_t cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
+
+  // repeated .cordum.agent.v1.PolicyRemediation remediations = 9;
+  total_size += 1UL * this->_internal_remediations_size();
+  for (const auto& msg : this->_impl_.remediations_) {
+    total_size +=
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
+  }
 
   // string reason = 2;
   if (!this->_internal_reason().empty()) {
@@ -2949,6 +3572,7 @@ void PolicyCheckResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, co
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
+  _this->_impl_.remediations_.MergeFrom(from._impl_.remediations_);
   if (!from._internal_reason().empty()) {
     _this->_internal_set_reason(from._internal_reason());
   }
@@ -2993,6 +3617,7 @@ void PolicyCheckResponse::InternalSwap(PolicyCheckResponse* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.remediations_.InternalSwap(&other->_impl_.remediations_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.reason_, lhs_arena,
       &other->_impl_.reason_, rhs_arena
@@ -3024,7 +3649,7 @@ void PolicyCheckResponse::InternalSwap(PolicyCheckResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata PolicyCheckResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once,
-      file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto[7]);
+      file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto[9]);
 }
 
 // ===================================================================
@@ -3064,7 +3689,7 @@ const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*ListSnapshotsRequest::GetClass
 ::PROTOBUF_NAMESPACE_ID::Metadata ListSnapshotsRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once,
-      file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto[8]);
+      file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto[10]);
 }
 
 // ===================================================================
@@ -3254,7 +3879,7 @@ void ListSnapshotsResponse::InternalSwap(ListSnapshotsResponse* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata ListSnapshotsResponse::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once,
-      file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto[9]);
+      file_level_metadata_cordum_2fagent_2fv1_2fsafety_2eproto[11]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -3289,6 +3914,14 @@ Arena::CreateMaybeMessage< ::cordum::agent::v1::DiffConstraints >(Arena* arena) 
 template<> PROTOBUF_NOINLINE ::cordum::agent::v1::PolicyConstraints*
 Arena::CreateMaybeMessage< ::cordum::agent::v1::PolicyConstraints >(Arena* arena) {
   return Arena::CreateMessageInternal< ::cordum::agent::v1::PolicyConstraints >(arena);
+}
+template<> PROTOBUF_NOINLINE ::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse*
+Arena::CreateMaybeMessage< ::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse >(arena);
+}
+template<> PROTOBUF_NOINLINE ::cordum::agent::v1::PolicyRemediation*
+Arena::CreateMaybeMessage< ::cordum::agent::v1::PolicyRemediation >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::cordum::agent::v1::PolicyRemediation >(arena);
 }
 template<> PROTOBUF_NOINLINE ::cordum::agent::v1::PolicyCheckResponse*
 Arena::CreateMaybeMessage< ::cordum::agent::v1::PolicyCheckResponse >(Arena* arena) {

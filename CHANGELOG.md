@@ -1,5 +1,8 @@
 # Changelog
 
+## v2.0.13 — 2026-01-23
+- Added `memory_load` to worker Heartbeats for memory utilization telemetry.
+- Regenerated Go/C++ stubs and added Go SDK heartbeat helper with memory.
 # Changelog
 
 ## v2.0.9 — 2026-01-09

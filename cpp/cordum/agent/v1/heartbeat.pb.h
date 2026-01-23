@@ -231,6 +231,7 @@ class Heartbeat final :
     kGpuUtilizationFieldNumber = 5,
     kActiveJobsFieldNumber = 6,
     kMaxParallelJobsFieldNumber = 12,
+    kMemoryLoadFieldNumber = 14,
   };
   // repeated string capabilities = 7;
   int capabilities_size() const;
@@ -365,6 +366,15 @@ class Heartbeat final :
   void _internal_set_max_parallel_jobs(int32_t value);
   public:
 
+  // float memory_load = 14;
+  void clear_memory_load();
+  float memory_load() const;
+  void set_memory_load(float value);
+  private:
+  float _internal_memory_load() const;
+  void _internal_set_memory_load(float value);
+  public:
+
   // @@protoc_insertion_point(class_scope:cordum.agent.v1.Heartbeat)
  private:
   class _Internal;
@@ -387,6 +397,7 @@ class Heartbeat final :
     float gpu_utilization_;
     int32_t active_jobs_;
     int32_t max_parallel_jobs_;
+    float memory_load_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -787,6 +798,26 @@ inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
 Heartbeat::mutable_labels() {
   // @@protoc_insertion_point(field_mutable_map:cordum.agent.v1.Heartbeat.labels)
   return _internal_mutable_labels();
+}
+
+// float memory_load = 14;
+inline void Heartbeat::clear_memory_load() {
+  _impl_.memory_load_ = 0;
+}
+inline float Heartbeat::_internal_memory_load() const {
+  return _impl_.memory_load_;
+}
+inline float Heartbeat::memory_load() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Heartbeat.memory_load)
+  return _internal_memory_load();
+}
+inline void Heartbeat::_internal_set_memory_load(float value) {
+  
+  _impl_.memory_load_ = value;
+}
+inline void Heartbeat::set_memory_load(float value) {
+  _internal_set_memory_load(value);
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.memory_load)
 }
 
 #ifdef __GNUC__

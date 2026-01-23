@@ -22,6 +22,11 @@ Go SDK with NATS helpers for workers and clients. Uses generated protobuf stubs 
 - `types.go` — common constants and helper functions.
 
 ## Usage
+
+### Heartbeats
+- `HeartbeatPayload` builds a heartbeat with CPU load only.
+- `HeartbeatPayloadWithMemory` includes both CPU and memory utilization.
+
 ```go
 nc, _ := bus.Connect(bus.Config{URL: "nats://127.0.0.1:4222"})
 defer nc.Close()

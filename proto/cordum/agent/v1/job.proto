@@ -67,6 +67,23 @@ message JobMetadata {
     map<string, string> labels = 9; // freeform metadata
 }
 
+// Compensation describes an inverse action to execute if a workflow rolls back.
+// Fields are interpreted as overrides; omitted/empty values SHOULD inherit from the parent JobRequest.
+message Compensation {
+    string topic = 1;             // pool subject for the compensation job
+    string context_ptr = 2;       // pointer to compensation input payload
+    JobPriority priority = 3;     // scheduling hint override
+    string adapter_id = 4;        // optional specialization hint
+    map<string, string> env = 5;  // optional environment overrides
+    string memory_id = 6;         // logical corpus id for retrieval
+    ContextHints context_hints = 7; // retrieval/summarization guidance
+    Budget budget = 8;            // execution limits (e.g., timeout)
+    string tenant_id = 9;         // optional tenant override
+    string principal_id = 10;     // optional principal override
+    map<string, string> labels = 11; // routing/placement overrides
+    JobMetadata meta = 12;        // identity/capability metadata (idempotency_key, risk tags, etc.)
+}
+
 // JobRequest represents a schedulable unit of work.
 message JobRequest {
     string job_id = 1;           // globally unique job identifier
@@ -85,6 +102,7 @@ message JobRequest {
     string principal_id = 14;    // end-user or service identity
     map<string, string> labels = 15; // arbitrary routing/placement labels
     JobMetadata meta = 16;       // structured identity/capability metadata
+    Compensation compensation = 17; // optional inverse action for rollback
 }
 
 // JobResult conveys the outcome of a job.

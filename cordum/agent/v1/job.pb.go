@@ -442,6 +442,140 @@ func (x *JobMetadata) GetLabels() map[string]string {
 	return nil
 }
 
+// Compensation describes an inverse action to execute if a workflow rolls back.
+// Fields are interpreted as overrides; omitted/empty values SHOULD inherit from the parent JobRequest.
+type Compensation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Topic         string                 `protobuf:"bytes,1,opt,name=topic,proto3" json:"topic,omitempty"`                                                                              // pool subject for the compensation job
+	ContextPtr    string                 `protobuf:"bytes,2,opt,name=context_ptr,json=contextPtr,proto3" json:"context_ptr,omitempty"`                                                  // pointer to compensation input payload
+	Priority      JobPriority            `protobuf:"varint,3,opt,name=priority,proto3,enum=cordum.agent.v1.JobPriority" json:"priority,omitempty"`                                      // scheduling hint override
+	AdapterId     string                 `protobuf:"bytes,4,opt,name=adapter_id,json=adapterId,proto3" json:"adapter_id,omitempty"`                                                     // optional specialization hint
+	Env           map[string]string      `protobuf:"bytes,5,rep,name=env,proto3" json:"env,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`        // optional environment overrides
+	MemoryId      string                 `protobuf:"bytes,6,opt,name=memory_id,json=memoryId,proto3" json:"memory_id,omitempty"`                                                        // logical corpus id for retrieval
+	ContextHints  *ContextHints          `protobuf:"bytes,7,opt,name=context_hints,json=contextHints,proto3" json:"context_hints,omitempty"`                                            // retrieval/summarization guidance
+	Budget        *Budget                `protobuf:"bytes,8,opt,name=budget,proto3" json:"budget,omitempty"`                                                                            // execution limits (e.g., timeout)
+	TenantId      string                 `protobuf:"bytes,9,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`                                                        // optional tenant override
+	PrincipalId   string                 `protobuf:"bytes,10,opt,name=principal_id,json=principalId,proto3" json:"principal_id,omitempty"`                                              // optional principal override
+	Labels        map[string]string      `protobuf:"bytes,11,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // routing/placement overrides
+	Meta          *JobMetadata           `protobuf:"bytes,12,opt,name=meta,proto3" json:"meta,omitempty"`                                                                               // identity/capability metadata (idempotency_key, risk tags, etc.)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Compensation) Reset() {
+	*x = Compensation{}
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Compensation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Compensation) ProtoMessage() {}
+
+func (x *Compensation) ProtoReflect() protoreflect.Message {
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Compensation.ProtoReflect.Descriptor instead.
+func (*Compensation) Descriptor() ([]byte, []int) {
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Compensation) GetTopic() string {
+	if x != nil {
+		return x.Topic
+	}
+	return ""
+}
+
+func (x *Compensation) GetContextPtr() string {
+	if x != nil {
+		return x.ContextPtr
+	}
+	return ""
+}
+
+func (x *Compensation) GetPriority() JobPriority {
+	if x != nil {
+		return x.Priority
+	}
+	return JobPriority_JOB_PRIORITY_UNSPECIFIED
+}
+
+func (x *Compensation) GetAdapterId() string {
+	if x != nil {
+		return x.AdapterId
+	}
+	return ""
+}
+
+func (x *Compensation) GetEnv() map[string]string {
+	if x != nil {
+		return x.Env
+	}
+	return nil
+}
+
+func (x *Compensation) GetMemoryId() string {
+	if x != nil {
+		return x.MemoryId
+	}
+	return ""
+}
+
+func (x *Compensation) GetContextHints() *ContextHints {
+	if x != nil {
+		return x.ContextHints
+	}
+	return nil
+}
+
+func (x *Compensation) GetBudget() *Budget {
+	if x != nil {
+		return x.Budget
+	}
+	return nil
+}
+
+func (x *Compensation) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *Compensation) GetPrincipalId() string {
+	if x != nil {
+		return x.PrincipalId
+	}
+	return ""
+}
+
+func (x *Compensation) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *Compensation) GetMeta() *JobMetadata {
+	if x != nil {
+		return x.Meta
+	}
+	return nil
+}
+
 // JobRequest represents a schedulable unit of work.
 type JobRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -461,13 +595,14 @@ type JobRequest struct {
 	PrincipalId   string                 `protobuf:"bytes,14,opt,name=principal_id,json=principalId,proto3" json:"principal_id,omitempty"`                                              // end-user or service identity
 	Labels        map[string]string      `protobuf:"bytes,15,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // arbitrary routing/placement labels
 	Meta          *JobMetadata           `protobuf:"bytes,16,opt,name=meta,proto3" json:"meta,omitempty"`                                                                               // structured identity/capability metadata
+	Compensation  *Compensation          `protobuf:"bytes,17,opt,name=compensation,proto3" json:"compensation,omitempty"`                                                               // optional inverse action for rollback
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *JobRequest) Reset() {
 	*x = JobRequest{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[3]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -479,7 +614,7 @@ func (x *JobRequest) String() string {
 func (*JobRequest) ProtoMessage() {}
 
 func (x *JobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[3]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -492,7 +627,7 @@ func (x *JobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRequest.ProtoReflect.Descriptor instead.
 func (*JobRequest) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{3}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *JobRequest) GetJobId() string {
@@ -607,6 +742,13 @@ func (x *JobRequest) GetMeta() *JobMetadata {
 	return nil
 }
 
+func (x *JobRequest) GetCompensation() *Compensation {
+	if x != nil {
+		return x.Compensation
+	}
+	return nil
+}
+
 // JobResult conveys the outcome of a job.
 type JobResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -624,7 +766,7 @@ type JobResult struct {
 
 func (x *JobResult) Reset() {
 	*x = JobResult{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[4]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -636,7 +778,7 @@ func (x *JobResult) String() string {
 func (*JobResult) ProtoMessage() {}
 
 func (x *JobResult) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[4]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -649,7 +791,7 @@ func (x *JobResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobResult.ProtoReflect.Descriptor instead.
 func (*JobResult) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{4}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *JobResult) GetJobId() string {
@@ -724,7 +866,7 @@ type JobProgress struct {
 
 func (x *JobProgress) Reset() {
 	*x = JobProgress{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[5]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -736,7 +878,7 @@ func (x *JobProgress) String() string {
 func (*JobProgress) ProtoMessage() {}
 
 func (x *JobProgress) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[5]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -749,7 +891,7 @@ func (x *JobProgress) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobProgress.ProtoReflect.Descriptor instead.
 func (*JobProgress) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{5}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *JobProgress) GetJobId() string {
@@ -813,7 +955,7 @@ type JobCancel struct {
 
 func (x *JobCancel) Reset() {
 	*x = JobCancel{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[6]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -825,7 +967,7 @@ func (x *JobCancel) String() string {
 func (*JobCancel) ProtoMessage() {}
 
 func (x *JobCancel) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[6]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -838,7 +980,7 @@ func (x *JobCancel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobCancel.ProtoReflect.Descriptor instead.
 func (*JobCancel) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{6}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *JobCancel) GetJobId() string {
@@ -893,7 +1035,29 @@ const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"\x06labels\x18\t \x03(\v2(.cordum.agent.v1.JobMetadata.LabelsEntryR\x06labels\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x87\x06\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x92\x05\n" +
+	"\fCompensation\x12\x14\n" +
+	"\x05topic\x18\x01 \x01(\tR\x05topic\x12\x1f\n" +
+	"\vcontext_ptr\x18\x02 \x01(\tR\n" +
+	"contextPtr\x128\n" +
+	"\bpriority\x18\x03 \x01(\x0e2\x1c.cordum.agent.v1.JobPriorityR\bpriority\x12\x1d\n" +
+	"\n" +
+	"adapter_id\x18\x04 \x01(\tR\tadapterId\x128\n" +
+	"\x03env\x18\x05 \x03(\v2&.cordum.agent.v1.Compensation.EnvEntryR\x03env\x12\x1b\n" +
+	"\tmemory_id\x18\x06 \x01(\tR\bmemoryId\x12B\n" +
+	"\rcontext_hints\x18\a \x01(\v2\x1d.cordum.agent.v1.ContextHintsR\fcontextHints\x12/\n" +
+	"\x06budget\x18\b \x01(\v2\x17.cordum.agent.v1.BudgetR\x06budget\x12\x1b\n" +
+	"\ttenant_id\x18\t \x01(\tR\btenantId\x12!\n" +
+	"\fprincipal_id\x18\n" +
+	" \x01(\tR\vprincipalId\x12A\n" +
+	"\x06labels\x18\v \x03(\v2).cordum.agent.v1.Compensation.LabelsEntryR\x06labels\x120\n" +
+	"\x04meta\x18\f \x01(\v2\x1c.cordum.agent.v1.JobMetadataR\x04meta\x1a6\n" +
+	"\bEnvEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xca\x06\n" +
 	"\n" +
 	"JobRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x14\n" +
@@ -916,7 +1080,8 @@ const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"\ttenant_id\x18\r \x01(\tR\btenantId\x12!\n" +
 	"\fprincipal_id\x18\x0e \x01(\tR\vprincipalId\x12?\n" +
 	"\x06labels\x18\x0f \x03(\v2'.cordum.agent.v1.JobRequest.LabelsEntryR\x06labels\x120\n" +
-	"\x04meta\x18\x10 \x01(\v2\x1c.cordum.agent.v1.JobMetadataR\x04meta\x1a6\n" +
+	"\x04meta\x18\x10 \x01(\v2\x1c.cordum.agent.v1.JobMetadataR\x04meta\x12A\n" +
+	"\fcompensation\x18\x11 \x01(\v2\x1d.cordum.agent.v1.CompensationR\fcompensation\x1a6\n" +
 	"\bEnvEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
@@ -982,7 +1147,7 @@ func file_cordum_agent_v1_job_proto_rawDescGZIP() []byte {
 }
 
 var file_cordum_agent_v1_job_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_cordum_agent_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_cordum_agent_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_cordum_agent_v1_job_proto_goTypes = []any{
 	(JobPriority)(0),     // 0: cordum.agent.v1.JobPriority
 	(JobStatus)(0),       // 1: cordum.agent.v1.JobStatus
@@ -990,30 +1155,40 @@ var file_cordum_agent_v1_job_proto_goTypes = []any{
 	(*ContextHints)(nil), // 3: cordum.agent.v1.ContextHints
 	(*Budget)(nil),       // 4: cordum.agent.v1.Budget
 	(*JobMetadata)(nil),  // 5: cordum.agent.v1.JobMetadata
-	(*JobRequest)(nil),   // 6: cordum.agent.v1.JobRequest
-	(*JobResult)(nil),    // 7: cordum.agent.v1.JobResult
-	(*JobProgress)(nil),  // 8: cordum.agent.v1.JobProgress
-	(*JobCancel)(nil),    // 9: cordum.agent.v1.JobCancel
-	nil,                  // 10: cordum.agent.v1.JobMetadata.LabelsEntry
-	nil,                  // 11: cordum.agent.v1.JobRequest.EnvEntry
-	nil,                  // 12: cordum.agent.v1.JobRequest.LabelsEntry
+	(*Compensation)(nil), // 6: cordum.agent.v1.Compensation
+	(*JobRequest)(nil),   // 7: cordum.agent.v1.JobRequest
+	(*JobResult)(nil),    // 8: cordum.agent.v1.JobResult
+	(*JobProgress)(nil),  // 9: cordum.agent.v1.JobProgress
+	(*JobCancel)(nil),    // 10: cordum.agent.v1.JobCancel
+	nil,                  // 11: cordum.agent.v1.JobMetadata.LabelsEntry
+	nil,                  // 12: cordum.agent.v1.Compensation.EnvEntry
+	nil,                  // 13: cordum.agent.v1.Compensation.LabelsEntry
+	nil,                  // 14: cordum.agent.v1.JobRequest.EnvEntry
+	nil,                  // 15: cordum.agent.v1.JobRequest.LabelsEntry
 }
 var file_cordum_agent_v1_job_proto_depIdxs = []int32{
 	2,  // 0: cordum.agent.v1.JobMetadata.actor_type:type_name -> cordum.agent.v1.ActorType
-	10, // 1: cordum.agent.v1.JobMetadata.labels:type_name -> cordum.agent.v1.JobMetadata.LabelsEntry
-	0,  // 2: cordum.agent.v1.JobRequest.priority:type_name -> cordum.agent.v1.JobPriority
-	11, // 3: cordum.agent.v1.JobRequest.env:type_name -> cordum.agent.v1.JobRequest.EnvEntry
-	3,  // 4: cordum.agent.v1.JobRequest.context_hints:type_name -> cordum.agent.v1.ContextHints
-	4,  // 5: cordum.agent.v1.JobRequest.budget:type_name -> cordum.agent.v1.Budget
-	12, // 6: cordum.agent.v1.JobRequest.labels:type_name -> cordum.agent.v1.JobRequest.LabelsEntry
-	5,  // 7: cordum.agent.v1.JobRequest.meta:type_name -> cordum.agent.v1.JobMetadata
-	1,  // 8: cordum.agent.v1.JobResult.status:type_name -> cordum.agent.v1.JobStatus
-	1,  // 9: cordum.agent.v1.JobProgress.status:type_name -> cordum.agent.v1.JobStatus
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	11, // 1: cordum.agent.v1.JobMetadata.labels:type_name -> cordum.agent.v1.JobMetadata.LabelsEntry
+	0,  // 2: cordum.agent.v1.Compensation.priority:type_name -> cordum.agent.v1.JobPriority
+	12, // 3: cordum.agent.v1.Compensation.env:type_name -> cordum.agent.v1.Compensation.EnvEntry
+	3,  // 4: cordum.agent.v1.Compensation.context_hints:type_name -> cordum.agent.v1.ContextHints
+	4,  // 5: cordum.agent.v1.Compensation.budget:type_name -> cordum.agent.v1.Budget
+	13, // 6: cordum.agent.v1.Compensation.labels:type_name -> cordum.agent.v1.Compensation.LabelsEntry
+	5,  // 7: cordum.agent.v1.Compensation.meta:type_name -> cordum.agent.v1.JobMetadata
+	0,  // 8: cordum.agent.v1.JobRequest.priority:type_name -> cordum.agent.v1.JobPriority
+	14, // 9: cordum.agent.v1.JobRequest.env:type_name -> cordum.agent.v1.JobRequest.EnvEntry
+	3,  // 10: cordum.agent.v1.JobRequest.context_hints:type_name -> cordum.agent.v1.ContextHints
+	4,  // 11: cordum.agent.v1.JobRequest.budget:type_name -> cordum.agent.v1.Budget
+	15, // 12: cordum.agent.v1.JobRequest.labels:type_name -> cordum.agent.v1.JobRequest.LabelsEntry
+	5,  // 13: cordum.agent.v1.JobRequest.meta:type_name -> cordum.agent.v1.JobMetadata
+	6,  // 14: cordum.agent.v1.JobRequest.compensation:type_name -> cordum.agent.v1.Compensation
+	1,  // 15: cordum.agent.v1.JobResult.status:type_name -> cordum.agent.v1.JobStatus
+	1,  // 16: cordum.agent.v1.JobProgress.status:type_name -> cordum.agent.v1.JobStatus
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_cordum_agent_v1_job_proto_init() }
@@ -1027,7 +1202,7 @@ func file_cordum_agent_v1_job_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cordum_agent_v1_job_proto_rawDesc), len(file_cordum_agent_v1_job_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   10,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

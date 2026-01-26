@@ -10,10 +10,10 @@ This folder contains the normative specification for the Cordum Agent Protocol (
 ## Versioning
 - `protocol_version` in `BusPacket` is used for wire negotiation. Current wire version: `1` (schema 1.0.0).
 - Protobuf evolution is append-only: add new fields with new numbers; do not delete or reuse.
-- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.9`) for reproducibility.
+- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.15`) for reproducibility.
 - Protocol vs SDK:
   - Protocol wire schema: 1.0.0 (stable).
-  - Repository/SDK: 2.0.9 (may add helpers, docs, and generated stubs without wire breaks).
+  - Repository/SDK: 2.0.15 (may add helpers, docs, and generated stubs without wire breaks).
 
 ## Table of Contents
 - [01 Overview](01-overview.md)
@@ -169,6 +169,7 @@ CAP jobs are the core unit of work. Gateways submit `JobRequest` packets, worker
 - `tenant_id`, `principal_id`: multi-tenant identities for policy/audit.
 - `labels`: arbitrary routing/placement metadata (environment, project, compliance flags).
 - `meta`: structured identity/capability metadata (tenant_id, actor_id, actor_type, idempotency_key, capability, risk_tags, requires, pack_id, labels).
+- `compensation`: optional inverse action template used for rollback; omitted fields SHOULD inherit from the parent job.
 - `parent_job_id`, `workflow_id`, `step_index`: optional workflow metadata for orchestrators.
 
 ## JobResult Semantics
@@ -216,10 +217,18 @@ sequenceDiagram
 2. Worker publishes `BusPacket{JobResult}` to `sys.job.result` (and MAY also emit to `job.<pool>.result` for observability).
 3. Scheduler validates correlation, updates state, and notifies external clients as needed.
 
+## Compensation and Rollback
+- `JobRequest.compensation` describes an inverse action that can be dispatched if a workflow rolls back.
+- Orchestrators MAY log the compensation template after a successful job and dispatch compensations in reverse order on rollback.
+- `compensation.context_ptr` SHOULD point to the compensation input; keep payloads off the bus.
+- `compensation.meta.idempotency_key` SHOULD be set for durable re-entry and de-duplication.
+- Tags: `compensation`, `rollback`, `saga`.
+
 ## Idempotency and Retries
 - Re-delivery of the same `job_id` MUST be tolerated; consumers should deduplicate via `job_id`.
 - Retries SHOULD reuse the same `job_id` only if the worker behavior is idempotent; otherwise emit a new `job_id` and link via `parent_job_id`.
 - JobResults for already-terminal jobs SHOULD be logged and ignored unless policy allows overrides.
+- `meta.idempotency_key` MAY be used by workers/orchestrators as a stable de-duplication key across retries and re-entry.
 
 ## Tracing and Relationships
 - `trace_id` in `BusPacket` MUST remain stable across an entire workflow tree; orchestrators SHOULD reuse the parent `trace_id` when fanning out.
@@ -302,12 +311,16 @@ Heartbeats advertise worker liveness, capacity, and pool membership so scheduler
 - `pool`: pool/subject this worker consumes (e.g., `job.code.llm`).
 - `max_parallel_jobs`: advertised concurrency limit.
 - `labels`: optional placement/routing metadata (e.g., `region`, `compliance`, `runtime`).
+- `progress_pct`: optional task-level progress checkpoint (0-100).
+- `last_memo`: optional short string/hash identifying the last successful internal step.
+- Tags: `checkpoint-heartbeat`, `progress`.
 
 ## Emission Rules
 - Default interval SHOULD be 2-5 seconds; set lower for latency-sensitive pools.
 - Heartbeats SHOULD be sent even when idle so schedulers can detect zero-load pools.
 - Workers SHOULD stop heartbeats immediately before planned shutdown to allow drain.
 - Heartbeats SHOULD be published to `sys.heartbeat` without queue groups so all schedulers/controllers see them.
+- When emitting progress, workers SHOULD keep `last_memo` short and stable (e.g., step IDs or hashes).
 
 ## Scheduler Behavior
 - Treat absent heartbeats as worker loss after a grace window (e.g., 3x interval).
@@ -438,6 +451,13 @@ graph TD
 - Child jobs MAY target different pools; schedulers treat them like any other job.
 - Orchestrators SHOULD checkpoint intermediate state via pointers (manifests, partial outputs) to allow resumption.
 - Cancellations SHOULD cascade: cancelling a parent SHOULD attempt to cancel active children.
+
+## Compensation (Durable Saga Pattern)
+- `JobRequest.compensation` defines an optional inverse action for rollback.
+- Orchestrators MAY push compensations onto a reverse-order stack after each successful child completes.
+- On rollback, orchestrators SHOULD dispatch compensations in LIFO order to restore consistency.
+- Compensation jobs SHOULD carry their own `meta.idempotency_key` to prevent duplicate cleanup on retries.
+- Tags: `compensation`, `rollback`, `saga`.
 
 ## Example Subjects
 - Parent submission: `sys.job.submit` -> scheduler -> `job.workflow.repo.review`.

@@ -36,6 +36,8 @@ type Heartbeat struct {
 	MaxParallelJobs int32             `protobuf:"varint,12,opt,name=max_parallel_jobs,json=maxParallelJobs,proto3" json:"max_parallel_jobs,omitempty"`                               // advertised concurrency limit
 	Labels          map[string]string `protobuf:"bytes,13,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // optional placement labels
 	MemoryLoad      float32           `protobuf:"fixed32,14,opt,name=memory_load,json=memoryLoad,proto3" json:"memory_load,omitempty"`                                               // 0-100
+	ProgressPct     int32             `protobuf:"varint,15,opt,name=progress_pct,json=progressPct,proto3" json:"progress_pct,omitempty"`                                             // 0-100 task-level progress checkpoint (optional)
+	LastMemo        string            `protobuf:"bytes,16,opt,name=last_memo,json=lastMemo,proto3" json:"last_memo,omitempty"`                                                       // last successful internal step/memo (short string/hash)
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -147,11 +149,25 @@ func (x *Heartbeat) GetMemoryLoad() float32 {
 	return 0
 }
 
+func (x *Heartbeat) GetProgressPct() int32 {
+	if x != nil {
+		return x.ProgressPct
+	}
+	return 0
+}
+
+func (x *Heartbeat) GetLastMemo() string {
+	if x != nil {
+		return x.LastMemo
+	}
+	return ""
+}
+
 var File_cordum_agent_v1_heartbeat_proto protoreflect.FileDescriptor
 
 const file_cordum_agent_v1_heartbeat_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcordum/agent/v1/heartbeat.proto\x12\x0fcordum.agent.v1\"\xb9\x03\n" +
+	"\x1fcordum/agent/v1/heartbeat.proto\x12\x0fcordum.agent.v1\"\xf9\x03\n" +
 	"\tHeartbeat\x12\x1b\n" +
 	"\tworker_id\x18\x01 \x01(\tR\bworkerId\x12\x16\n" +
 	"\x06region\x18\x02 \x01(\tR\x06region\x12\x12\n" +
@@ -165,7 +181,9 @@ const file_cordum_agent_v1_heartbeat_proto_rawDesc = "" +
 	"\x11max_parallel_jobs\x18\f \x01(\x05R\x0fmaxParallelJobs\x12>\n" +
 	"\x06labels\x18\r \x03(\v2&.cordum.agent.v1.Heartbeat.LabelsEntryR\x06labels\x12\x1f\n" +
 	"\vmemory_load\x18\x0e \x01(\x02R\n" +
-	"memoryLoad\x1a9\n" +
+	"memoryLoad\x12!\n" +
+	"\fprogress_pct\x18\x0f \x01(\x05R\vprogressPct\x12\x1b\n" +
+	"\tlast_memo\x18\x10 \x01(\tR\blastMemo\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x7f\n" +

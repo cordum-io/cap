@@ -23,4 +23,6 @@ message Heartbeat {
     int32 max_parallel_jobs = 12;   // advertised concurrency limit
     map<string, string> labels = 13; // optional placement labels
     float memory_load = 14;         // 0-100
+    int32 progress_pct = 15;        // 0-100 task-level progress checkpoint (optional)
+    string last_memo = 16;          // last successful internal step/memo (short string/hash)
 }

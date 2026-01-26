@@ -149,25 +149,16 @@ func (w *Worker) Start() error {
 
 // HeartbeatPayload returns a protobuf-encoded heartbeat envelope.
 func HeartbeatPayload(workerID, pool string, activeJobs, maxParallel int, cpuLoad float32) ([]byte, error) {
-	hb := &agentv1.BusPacket{
-		TraceId:         "",
-		SenderId:        workerID,
-		ProtocolVersion: capsdk.DefaultProtocolVersion,
-		Payload: &agentv1.BusPacket_Heartbeat{
-			Heartbeat: &agentv1.Heartbeat{
-				WorkerId:        workerID,
-				Pool:            pool,
-				ActiveJobs:      int32(activeJobs),
-				MaxParallelJobs: int32(maxParallel),
-				CpuLoad:         cpuLoad,
-			},
-		},
-	}
-	return proto.Marshal(hb)
+	return HeartbeatPayloadWithProgress(workerID, pool, activeJobs, maxParallel, cpuLoad, 0, 0, "")
 }
 
 // HeartbeatPayloadWithMemory returns a heartbeat payload including memory utilization.
 func HeartbeatPayloadWithMemory(workerID, pool string, activeJobs, maxParallel int, cpuLoad, memoryLoad float32) ([]byte, error) {
+	return HeartbeatPayloadWithProgress(workerID, pool, activeJobs, maxParallel, cpuLoad, memoryLoad, 0, "")
+}
+
+// HeartbeatPayloadWithProgress returns a heartbeat payload including optional progress checkpoints.
+func HeartbeatPayloadWithProgress(workerID, pool string, activeJobs, maxParallel int, cpuLoad, memoryLoad float32, progressPct int32, lastMemo string) ([]byte, error) {
 	hb := &agentv1.BusPacket{
 		TraceId:         "",
 		SenderId:        workerID,
@@ -180,6 +171,8 @@ func HeartbeatPayloadWithMemory(workerID, pool string, activeJobs, maxParallel i
 				MaxParallelJobs: int32(maxParallel),
 				CpuLoad:         cpuLoad,
 				MemoryLoad:      memoryLoad,
+				ProgressPct:     progressPct,
+				LastMemo:        lastMemo,
 			},
 		},
 	}

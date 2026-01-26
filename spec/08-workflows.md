@@ -37,6 +37,13 @@ graph TD
 - Orchestrators SHOULD checkpoint intermediate state via pointers (manifests, partial outputs) to allow resumption.
 - Cancellations SHOULD cascade: cancelling a parent SHOULD attempt to cancel active children.
 
+## Compensation (Durable Saga Pattern)
+- `JobRequest.compensation` defines an optional inverse action for rollback.
+- Orchestrators MAY push compensations onto a reverse-order stack after each successful child completes.
+- On rollback, orchestrators SHOULD dispatch compensations in LIFO order to restore consistency.
+- Compensation jobs SHOULD carry their own `meta.idempotency_key` to prevent duplicate cleanup on retries.
+- Tags: `compensation`, `rollback`, `saga`.
+
 ## Example Subjects
 - Parent submission: `sys.job.submit` -> scheduler -> `job.workflow.repo.review`.
 - Child dispatch: `job.repo.scan`, `job.repo.summary`, `job.repo.risks`.

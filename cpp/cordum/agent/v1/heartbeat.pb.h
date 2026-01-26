@@ -227,11 +227,13 @@ class Heartbeat final :
     kRegionFieldNumber = 2,
     kTypeFieldNumber = 3,
     kPoolFieldNumber = 11,
+    kLastMemoFieldNumber = 16,
     kCpuLoadFieldNumber = 4,
     kGpuUtilizationFieldNumber = 5,
     kActiveJobsFieldNumber = 6,
     kMaxParallelJobsFieldNumber = 12,
     kMemoryLoadFieldNumber = 14,
+    kProgressPctFieldNumber = 15,
   };
   // repeated string capabilities = 7;
   int capabilities_size() const;
@@ -330,6 +332,20 @@ class Heartbeat final :
   std::string* _internal_mutable_pool();
   public:
 
+  // string last_memo = 16;
+  void clear_last_memo();
+  const std::string& last_memo() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_last_memo(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_last_memo();
+  PROTOBUF_NODISCARD std::string* release_last_memo();
+  void set_allocated_last_memo(std::string* last_memo);
+  private:
+  const std::string& _internal_last_memo() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_last_memo(const std::string& value);
+  std::string* _internal_mutable_last_memo();
+  public:
+
   // float cpu_load = 4;
   void clear_cpu_load();
   float cpu_load() const;
@@ -375,6 +391,15 @@ class Heartbeat final :
   void _internal_set_memory_load(float value);
   public:
 
+  // int32 progress_pct = 15;
+  void clear_progress_pct();
+  int32_t progress_pct() const;
+  void set_progress_pct(int32_t value);
+  private:
+  int32_t _internal_progress_pct() const;
+  void _internal_set_progress_pct(int32_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:cordum.agent.v1.Heartbeat)
  private:
   class _Internal;
@@ -393,11 +418,13 @@ class Heartbeat final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr region_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr type_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr pool_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr last_memo_;
     float cpu_load_;
     float gpu_utilization_;
     int32_t active_jobs_;
     int32_t max_parallel_jobs_;
     float memory_load_;
+    int32_t progress_pct_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -818,6 +845,76 @@ inline void Heartbeat::_internal_set_memory_load(float value) {
 inline void Heartbeat::set_memory_load(float value) {
   _internal_set_memory_load(value);
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.memory_load)
+}
+
+// int32 progress_pct = 15;
+inline void Heartbeat::clear_progress_pct() {
+  _impl_.progress_pct_ = 0;
+}
+inline int32_t Heartbeat::_internal_progress_pct() const {
+  return _impl_.progress_pct_;
+}
+inline int32_t Heartbeat::progress_pct() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Heartbeat.progress_pct)
+  return _internal_progress_pct();
+}
+inline void Heartbeat::_internal_set_progress_pct(int32_t value) {
+  
+  _impl_.progress_pct_ = value;
+}
+inline void Heartbeat::set_progress_pct(int32_t value) {
+  _internal_set_progress_pct(value);
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.progress_pct)
+}
+
+// string last_memo = 16;
+inline void Heartbeat::clear_last_memo() {
+  _impl_.last_memo_.ClearToEmpty();
+}
+inline const std::string& Heartbeat::last_memo() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Heartbeat.last_memo)
+  return _internal_last_memo();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Heartbeat::set_last_memo(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.last_memo_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.last_memo)
+}
+inline std::string* Heartbeat::mutable_last_memo() {
+  std::string* _s = _internal_mutable_last_memo();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Heartbeat.last_memo)
+  return _s;
+}
+inline const std::string& Heartbeat::_internal_last_memo() const {
+  return _impl_.last_memo_.Get();
+}
+inline void Heartbeat::_internal_set_last_memo(const std::string& value) {
+  
+  _impl_.last_memo_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Heartbeat::_internal_mutable_last_memo() {
+  
+  return _impl_.last_memo_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Heartbeat::release_last_memo() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Heartbeat.last_memo)
+  return _impl_.last_memo_.Release();
+}
+inline void Heartbeat::set_allocated_last_memo(std::string* last_memo) {
+  if (last_memo != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.last_memo_.SetAllocated(last_memo, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.last_memo_.IsDefault()) {
+    _impl_.last_memo_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Heartbeat.last_memo)
 }
 
 #ifdef __GNUC__

@@ -124,6 +124,74 @@ export namespace JobMetadata {
   }
 }
 
+export class Compensation extends jspb.Message {
+  getTopic(): string;
+  setTopic(value: string): void;
+
+  getContextPtr(): string;
+  setContextPtr(value: string): void;
+
+  getPriority(): JobPriorityMap[keyof JobPriorityMap];
+  setPriority(value: JobPriorityMap[keyof JobPriorityMap]): void;
+
+  getAdapterId(): string;
+  setAdapterId(value: string): void;
+
+  getEnvMap(): jspb.Map<string, string>;
+  clearEnvMap(): void;
+  getMemoryId(): string;
+  setMemoryId(value: string): void;
+
+  hasContextHints(): boolean;
+  clearContextHints(): void;
+  getContextHints(): ContextHints | undefined;
+  setContextHints(value?: ContextHints): void;
+
+  hasBudget(): boolean;
+  clearBudget(): void;
+  getBudget(): Budget | undefined;
+  setBudget(value?: Budget): void;
+
+  getTenantId(): string;
+  setTenantId(value: string): void;
+
+  getPrincipalId(): string;
+  setPrincipalId(value: string): void;
+
+  getLabelsMap(): jspb.Map<string, string>;
+  clearLabelsMap(): void;
+  hasMeta(): boolean;
+  clearMeta(): void;
+  getMeta(): JobMetadata | undefined;
+  setMeta(value?: JobMetadata): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): Compensation.AsObject;
+  static toObject(includeInstance: boolean, msg: Compensation): Compensation.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: Compensation, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): Compensation;
+  static deserializeBinaryFromReader(message: Compensation, reader: jspb.BinaryReader): Compensation;
+}
+
+export namespace Compensation {
+  export type AsObject = {
+    topic: string,
+    contextPtr: string,
+    priority: JobPriorityMap[keyof JobPriorityMap],
+    adapterId: string,
+    envMap: Array<[string, string]>,
+    memoryId: string,
+    contextHints?: ContextHints.AsObject,
+    budget?: Budget.AsObject,
+    tenantId: string,
+    principalId: string,
+    labelsMap: Array<[string, string]>,
+    meta?: JobMetadata.AsObject,
+  }
+}
+
 export class JobRequest extends jspb.Message {
   getJobId(): string;
   setJobId(value: string): void;
@@ -177,6 +245,11 @@ export class JobRequest extends jspb.Message {
   getMeta(): JobMetadata | undefined;
   setMeta(value?: JobMetadata): void;
 
+  hasCompensation(): boolean;
+  clearCompensation(): void;
+  getCompensation(): Compensation | undefined;
+  setCompensation(value?: Compensation): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): JobRequest.AsObject;
   static toObject(includeInstance: boolean, msg: JobRequest): JobRequest.AsObject;
@@ -205,6 +278,7 @@ export namespace JobRequest {
     principalId: string,
     labelsMap: Array<[string, string]>,
     meta?: JobMetadata.AsObject,
+    compensation?: Compensation.AsObject,
   }
 }
 

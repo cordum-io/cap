@@ -28,6 +28,7 @@ CAP is transport-agnostic but assumes a pub/sub fabric with subjects/topics and 
 - Producers SHOULD set reasonable timeouts and retries on publish; consumers SHOULD handle transient failures.
 - Retry strategy: re-publish with the same `job_id` only if the workload is idempotent; otherwise create a new job and link via `parent_job_id`.
 - Idempotency guidance: treat `job_id + result_ptr` as the idempotency key and avoid side effects if a result already exists.
+- When provided, `meta.idempotency_key` SHOULD be used to short-circuit duplicate work across re-deliveries.
 
 ## Security at Transport Layer
 - Use TLS for all bus connections.

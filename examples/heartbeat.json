@@ -16,6 +16,8 @@
       "runtime": "cpu"
     },
     "pool": "job.code.llm",
-    "max_parallel_jobs": 4
+    "max_parallel_jobs": 4,
+    "progress_pct": 40,
+    "last_memo": "auth_complete"
   }
 }

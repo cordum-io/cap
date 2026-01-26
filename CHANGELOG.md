@@ -1,5 +1,14 @@
 # Changelog
 
+## v2.0.15 — 2026-01-26
+- Updated Go toolchain to 1.24.11 and bumped Go deps (grpc/x/*) to address vulnerability reports.
+- Fixed Node SDK proto path resolution for built artifacts and added npm override to remediate diff advisory.
+
+## v2.0.14 — 2026-01-26
+- Added `JobRequest.compensation` template for rollback semantics.
+- Added heartbeat checkpoint fields `progress_pct` and `last_memo`.
+- Regenerated stubs across Go/C++/Node/Python and updated Go heartbeat helper.
+
 ## v2.0.13 — 2026-01-23
 - Added `memory_load` to worker Heartbeats for memory utilization telemetry.
 - Regenerated Go/C++ stubs and added Go SDK heartbeat helper with memory.

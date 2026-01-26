@@ -2017,6 +2017,580 @@ $root.cordum = (function() {
                 return JobMetadata;
             })();
 
+            v1.Compensation = (function() {
+
+                /**
+                 * Properties of a Compensation.
+                 * @memberof cordum.agent.v1
+                 * @interface ICompensation
+                 * @property {string|null} [topic] Compensation topic
+                 * @property {string|null} [contextPtr] Compensation contextPtr
+                 * @property {cordum.agent.v1.JobPriority|null} [priority] Compensation priority
+                 * @property {string|null} [adapterId] Compensation adapterId
+                 * @property {Object.<string,string>|null} [env] Compensation env
+                 * @property {string|null} [memoryId] Compensation memoryId
+                 * @property {cordum.agent.v1.IContextHints|null} [contextHints] Compensation contextHints
+                 * @property {cordum.agent.v1.IBudget|null} [budget] Compensation budget
+                 * @property {string|null} [tenantId] Compensation tenantId
+                 * @property {string|null} [principalId] Compensation principalId
+                 * @property {Object.<string,string>|null} [labels] Compensation labels
+                 * @property {cordum.agent.v1.IJobMetadata|null} [meta] Compensation meta
+                 */
+
+                /**
+                 * Constructs a new Compensation.
+                 * @memberof cordum.agent.v1
+                 * @classdesc Represents a Compensation.
+                 * @implements ICompensation
+                 * @constructor
+                 * @param {cordum.agent.v1.ICompensation=} [properties] Properties to set
+                 */
+                function Compensation(properties) {
+                    this.env = {};
+                    this.labels = {};
+                    if (properties)
+                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * Compensation topic.
+                 * @member {string} topic
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.topic = "";
+
+                /**
+                 * Compensation contextPtr.
+                 * @member {string} contextPtr
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.contextPtr = "";
+
+                /**
+                 * Compensation priority.
+                 * @member {cordum.agent.v1.JobPriority} priority
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.priority = 0;
+
+                /**
+                 * Compensation adapterId.
+                 * @member {string} adapterId
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.adapterId = "";
+
+                /**
+                 * Compensation env.
+                 * @member {Object.<string,string>} env
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.env = $util.emptyObject;
+
+                /**
+                 * Compensation memoryId.
+                 * @member {string} memoryId
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.memoryId = "";
+
+                /**
+                 * Compensation contextHints.
+                 * @member {cordum.agent.v1.IContextHints|null|undefined} contextHints
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.contextHints = null;
+
+                /**
+                 * Compensation budget.
+                 * @member {cordum.agent.v1.IBudget|null|undefined} budget
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.budget = null;
+
+                /**
+                 * Compensation tenantId.
+                 * @member {string} tenantId
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.tenantId = "";
+
+                /**
+                 * Compensation principalId.
+                 * @member {string} principalId
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.principalId = "";
+
+                /**
+                 * Compensation labels.
+                 * @member {Object.<string,string>} labels
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.labels = $util.emptyObject;
+
+                /**
+                 * Compensation meta.
+                 * @member {cordum.agent.v1.IJobMetadata|null|undefined} meta
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.meta = null;
+
+                /**
+                 * Creates a new Compensation instance using the specified properties.
+                 * @function create
+                 * @memberof cordum.agent.v1.Compensation
+                 * @static
+                 * @param {cordum.agent.v1.ICompensation=} [properties] Properties to set
+                 * @returns {cordum.agent.v1.Compensation} Compensation instance
+                 */
+                Compensation.create = function create(properties) {
+                    return new Compensation(properties);
+                };
+
+                /**
+                 * Encodes the specified Compensation message. Does not implicitly {@link cordum.agent.v1.Compensation.verify|verify} messages.
+                 * @function encode
+                 * @memberof cordum.agent.v1.Compensation
+                 * @static
+                 * @param {cordum.agent.v1.ICompensation} message Compensation message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                Compensation.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.topic != null && Object.hasOwnProperty.call(message, "topic"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.topic);
+                    if (message.contextPtr != null && Object.hasOwnProperty.call(message, "contextPtr"))
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.contextPtr);
+                    if (message.priority != null && Object.hasOwnProperty.call(message, "priority"))
+                        writer.uint32(/* id 3, wireType 0 =*/24).int32(message.priority);
+                    if (message.adapterId != null && Object.hasOwnProperty.call(message, "adapterId"))
+                        writer.uint32(/* id 4, wireType 2 =*/34).string(message.adapterId);
+                    if (message.env != null && Object.hasOwnProperty.call(message, "env"))
+                        for (var keys = Object.keys(message.env), i = 0; i < keys.length; ++i)
+                            writer.uint32(/* id 5, wireType 2 =*/42).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.env[keys[i]]).ldelim();
+                    if (message.memoryId != null && Object.hasOwnProperty.call(message, "memoryId"))
+                        writer.uint32(/* id 6, wireType 2 =*/50).string(message.memoryId);
+                    if (message.contextHints != null && Object.hasOwnProperty.call(message, "contextHints"))
+                        $root.cordum.agent.v1.ContextHints.encode(message.contextHints, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
+                    if (message.budget != null && Object.hasOwnProperty.call(message, "budget"))
+                        $root.cordum.agent.v1.Budget.encode(message.budget, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
+                    if (message.tenantId != null && Object.hasOwnProperty.call(message, "tenantId"))
+                        writer.uint32(/* id 9, wireType 2 =*/74).string(message.tenantId);
+                    if (message.principalId != null && Object.hasOwnProperty.call(message, "principalId"))
+                        writer.uint32(/* id 10, wireType 2 =*/82).string(message.principalId);
+                    if (message.labels != null && Object.hasOwnProperty.call(message, "labels"))
+                        for (var keys = Object.keys(message.labels), i = 0; i < keys.length; ++i)
+                            writer.uint32(/* id 11, wireType 2 =*/90).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.labels[keys[i]]).ldelim();
+                    if (message.meta != null && Object.hasOwnProperty.call(message, "meta"))
+                        $root.cordum.agent.v1.JobMetadata.encode(message.meta, writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified Compensation message, length delimited. Does not implicitly {@link cordum.agent.v1.Compensation.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof cordum.agent.v1.Compensation
+                 * @static
+                 * @param {cordum.agent.v1.ICompensation} message Compensation message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                Compensation.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a Compensation message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof cordum.agent.v1.Compensation
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {cordum.agent.v1.Compensation} Compensation
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                Compensation.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.Compensation(), key, value;
+                    while (reader.pos < end) {
+                        var tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.topic = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.contextPtr = reader.string();
+                                break;
+                            }
+                        case 3: {
+                                message.priority = reader.int32();
+                                break;
+                            }
+                        case 4: {
+                                message.adapterId = reader.string();
+                                break;
+                            }
+                        case 5: {
+                                if (message.env === $util.emptyObject)
+                                    message.env = {};
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = "";
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.string();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.env[key] = value;
+                                break;
+                            }
+                        case 6: {
+                                message.memoryId = reader.string();
+                                break;
+                            }
+                        case 7: {
+                                message.contextHints = $root.cordum.agent.v1.ContextHints.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 8: {
+                                message.budget = $root.cordum.agent.v1.Budget.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 9: {
+                                message.tenantId = reader.string();
+                                break;
+                            }
+                        case 10: {
+                                message.principalId = reader.string();
+                                break;
+                            }
+                        case 11: {
+                                if (message.labels === $util.emptyObject)
+                                    message.labels = {};
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = "";
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.string();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.labels[key] = value;
+                                break;
+                            }
+                        case 12: {
+                                message.meta = $root.cordum.agent.v1.JobMetadata.decode(reader, reader.uint32());
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a Compensation message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof cordum.agent.v1.Compensation
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {cordum.agent.v1.Compensation} Compensation
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                Compensation.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a Compensation message.
+                 * @function verify
+                 * @memberof cordum.agent.v1.Compensation
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                Compensation.verify = function verify(message) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (message.topic != null && message.hasOwnProperty("topic"))
+                        if (!$util.isString(message.topic))
+                            return "topic: string expected";
+                    if (message.contextPtr != null && message.hasOwnProperty("contextPtr"))
+                        if (!$util.isString(message.contextPtr))
+                            return "contextPtr: string expected";
+                    if (message.priority != null && message.hasOwnProperty("priority"))
+                        switch (message.priority) {
+                        default:
+                            return "priority: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            break;
+                        }
+                    if (message.adapterId != null && message.hasOwnProperty("adapterId"))
+                        if (!$util.isString(message.adapterId))
+                            return "adapterId: string expected";
+                    if (message.env != null && message.hasOwnProperty("env")) {
+                        if (!$util.isObject(message.env))
+                            return "env: object expected";
+                        var key = Object.keys(message.env);
+                        for (var i = 0; i < key.length; ++i)
+                            if (!$util.isString(message.env[key[i]]))
+                                return "env: string{k:string} expected";
+                    }
+                    if (message.memoryId != null && message.hasOwnProperty("memoryId"))
+                        if (!$util.isString(message.memoryId))
+                            return "memoryId: string expected";
+                    if (message.contextHints != null && message.hasOwnProperty("contextHints")) {
+                        var error = $root.cordum.agent.v1.ContextHints.verify(message.contextHints);
+                        if (error)
+                            return "contextHints." + error;
+                    }
+                    if (message.budget != null && message.hasOwnProperty("budget")) {
+                        var error = $root.cordum.agent.v1.Budget.verify(message.budget);
+                        if (error)
+                            return "budget." + error;
+                    }
+                    if (message.tenantId != null && message.hasOwnProperty("tenantId"))
+                        if (!$util.isString(message.tenantId))
+                            return "tenantId: string expected";
+                    if (message.principalId != null && message.hasOwnProperty("principalId"))
+                        if (!$util.isString(message.principalId))
+                            return "principalId: string expected";
+                    if (message.labels != null && message.hasOwnProperty("labels")) {
+                        if (!$util.isObject(message.labels))
+                            return "labels: object expected";
+                        var key = Object.keys(message.labels);
+                        for (var i = 0; i < key.length; ++i)
+                            if (!$util.isString(message.labels[key[i]]))
+                                return "labels: string{k:string} expected";
+                    }
+                    if (message.meta != null && message.hasOwnProperty("meta")) {
+                        var error = $root.cordum.agent.v1.JobMetadata.verify(message.meta);
+                        if (error)
+                            return "meta." + error;
+                    }
+                    return null;
+                };
+
+                /**
+                 * Creates a Compensation message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof cordum.agent.v1.Compensation
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {cordum.agent.v1.Compensation} Compensation
+                 */
+                Compensation.fromObject = function fromObject(object) {
+                    if (object instanceof $root.cordum.agent.v1.Compensation)
+                        return object;
+                    var message = new $root.cordum.agent.v1.Compensation();
+                    if (object.topic != null)
+                        message.topic = String(object.topic);
+                    if (object.contextPtr != null)
+                        message.contextPtr = String(object.contextPtr);
+                    switch (object.priority) {
+                    default:
+                        if (typeof object.priority === "number") {
+                            message.priority = object.priority;
+                            break;
+                        }
+                        break;
+                    case "JOB_PRIORITY_UNSPECIFIED":
+                    case 0:
+                        message.priority = 0;
+                        break;
+                    case "JOB_PRIORITY_INTERACTIVE":
+                    case 1:
+                        message.priority = 1;
+                        break;
+                    case "JOB_PRIORITY_BATCH":
+                    case 2:
+                        message.priority = 2;
+                        break;
+                    case "JOB_PRIORITY_CRITICAL":
+                    case 3:
+                        message.priority = 3;
+                        break;
+                    }
+                    if (object.adapterId != null)
+                        message.adapterId = String(object.adapterId);
+                    if (object.env) {
+                        if (typeof object.env !== "object")
+                            throw TypeError(".cordum.agent.v1.Compensation.env: object expected");
+                        message.env = {};
+                        for (var keys = Object.keys(object.env), i = 0; i < keys.length; ++i)
+                            message.env[keys[i]] = String(object.env[keys[i]]);
+                    }
+                    if (object.memoryId != null)
+                        message.memoryId = String(object.memoryId);
+                    if (object.contextHints != null) {
+                        if (typeof object.contextHints !== "object")
+                            throw TypeError(".cordum.agent.v1.Compensation.contextHints: object expected");
+                        message.contextHints = $root.cordum.agent.v1.ContextHints.fromObject(object.contextHints);
+                    }
+                    if (object.budget != null) {
+                        if (typeof object.budget !== "object")
+                            throw TypeError(".cordum.agent.v1.Compensation.budget: object expected");
+                        message.budget = $root.cordum.agent.v1.Budget.fromObject(object.budget);
+                    }
+                    if (object.tenantId != null)
+                        message.tenantId = String(object.tenantId);
+                    if (object.principalId != null)
+                        message.principalId = String(object.principalId);
+                    if (object.labels) {
+                        if (typeof object.labels !== "object")
+                            throw TypeError(".cordum.agent.v1.Compensation.labels: object expected");
+                        message.labels = {};
+                        for (var keys = Object.keys(object.labels), i = 0; i < keys.length; ++i)
+                            message.labels[keys[i]] = String(object.labels[keys[i]]);
+                    }
+                    if (object.meta != null) {
+                        if (typeof object.meta !== "object")
+                            throw TypeError(".cordum.agent.v1.Compensation.meta: object expected");
+                        message.meta = $root.cordum.agent.v1.JobMetadata.fromObject(object.meta);
+                    }
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a Compensation message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof cordum.agent.v1.Compensation
+                 * @static
+                 * @param {cordum.agent.v1.Compensation} message Compensation
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                Compensation.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    var object = {};
+                    if (options.objects || options.defaults) {
+                        object.env = {};
+                        object.labels = {};
+                    }
+                    if (options.defaults) {
+                        object.topic = "";
+                        object.contextPtr = "";
+                        object.priority = options.enums === String ? "JOB_PRIORITY_UNSPECIFIED" : 0;
+                        object.adapterId = "";
+                        object.memoryId = "";
+                        object.contextHints = null;
+                        object.budget = null;
+                        object.tenantId = "";
+                        object.principalId = "";
+                        object.meta = null;
+                    }
+                    if (message.topic != null && message.hasOwnProperty("topic"))
+                        object.topic = message.topic;
+                    if (message.contextPtr != null && message.hasOwnProperty("contextPtr"))
+                        object.contextPtr = message.contextPtr;
+                    if (message.priority != null && message.hasOwnProperty("priority"))
+                        object.priority = options.enums === String ? $root.cordum.agent.v1.JobPriority[message.priority] === undefined ? message.priority : $root.cordum.agent.v1.JobPriority[message.priority] : message.priority;
+                    if (message.adapterId != null && message.hasOwnProperty("adapterId"))
+                        object.adapterId = message.adapterId;
+                    var keys2;
+                    if (message.env && (keys2 = Object.keys(message.env)).length) {
+                        object.env = {};
+                        for (var j = 0; j < keys2.length; ++j)
+                            object.env[keys2[j]] = message.env[keys2[j]];
+                    }
+                    if (message.memoryId != null && message.hasOwnProperty("memoryId"))
+                        object.memoryId = message.memoryId;
+                    if (message.contextHints != null && message.hasOwnProperty("contextHints"))
+                        object.contextHints = $root.cordum.agent.v1.ContextHints.toObject(message.contextHints, options);
+                    if (message.budget != null && message.hasOwnProperty("budget"))
+                        object.budget = $root.cordum.agent.v1.Budget.toObject(message.budget, options);
+                    if (message.tenantId != null && message.hasOwnProperty("tenantId"))
+                        object.tenantId = message.tenantId;
+                    if (message.principalId != null && message.hasOwnProperty("principalId"))
+                        object.principalId = message.principalId;
+                    if (message.labels && (keys2 = Object.keys(message.labels)).length) {
+                        object.labels = {};
+                        for (var j = 0; j < keys2.length; ++j)
+                            object.labels[keys2[j]] = message.labels[keys2[j]];
+                    }
+                    if (message.meta != null && message.hasOwnProperty("meta"))
+                        object.meta = $root.cordum.agent.v1.JobMetadata.toObject(message.meta, options);
+                    return object;
+                };
+
+                /**
+                 * Converts this Compensation to JSON.
+                 * @function toJSON
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                Compensation.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for Compensation
+                 * @function getTypeUrl
+                 * @memberof cordum.agent.v1.Compensation
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                Compensation.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/cordum.agent.v1.Compensation";
+                };
+
+                return Compensation;
+            })();
+
             v1.JobRequest = (function() {
 
                 /**
@@ -2039,6 +2613,7 @@ $root.cordum = (function() {
                  * @property {string|null} [principalId] JobRequest principalId
                  * @property {Object.<string,string>|null} [labels] JobRequest labels
                  * @property {cordum.agent.v1.IJobMetadata|null} [meta] JobRequest meta
+                 * @property {cordum.agent.v1.ICompensation|null} [compensation] JobRequest compensation
                  */
 
                 /**
@@ -2187,6 +2762,14 @@ $root.cordum = (function() {
                 JobRequest.prototype.meta = null;
 
                 /**
+                 * JobRequest compensation.
+                 * @member {cordum.agent.v1.ICompensation|null|undefined} compensation
+                 * @memberof cordum.agent.v1.JobRequest
+                 * @instance
+                 */
+                JobRequest.prototype.compensation = null;
+
+                /**
                  * Creates a new JobRequest instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.JobRequest
@@ -2244,6 +2827,8 @@ $root.cordum = (function() {
                             writer.uint32(/* id 15, wireType 2 =*/122).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.labels[keys[i]]).ldelim();
                     if (message.meta != null && Object.hasOwnProperty.call(message, "meta"))
                         $root.cordum.agent.v1.JobMetadata.encode(message.meta, writer.uint32(/* id 16, wireType 2 =*/130).fork()).ldelim();
+                    if (message.compensation != null && Object.hasOwnProperty.call(message, "compensation"))
+                        $root.cordum.agent.v1.Compensation.encode(message.compensation, writer.uint32(/* id 17, wireType 2 =*/138).fork()).ldelim();
                     return writer;
                 };
 
@@ -2382,6 +2967,10 @@ $root.cordum = (function() {
                                 message.meta = $root.cordum.agent.v1.JobMetadata.decode(reader, reader.uint32());
                                 break;
                             }
+                        case 17: {
+                                message.compensation = $root.cordum.agent.v1.Compensation.decode(reader, reader.uint32());
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7);
                             break;
@@ -2488,6 +3077,11 @@ $root.cordum = (function() {
                         if (error)
                             return "meta." + error;
                     }
+                    if (message.compensation != null && message.hasOwnProperty("compensation")) {
+                        var error = $root.cordum.agent.v1.Compensation.verify(message.compensation);
+                        if (error)
+                            return "compensation." + error;
+                    }
                     return null;
                 };
 
@@ -2576,6 +3170,11 @@ $root.cordum = (function() {
                             throw TypeError(".cordum.agent.v1.JobRequest.meta: object expected");
                         message.meta = $root.cordum.agent.v1.JobMetadata.fromObject(object.meta);
                     }
+                    if (object.compensation != null) {
+                        if (typeof object.compensation !== "object")
+                            throw TypeError(".cordum.agent.v1.JobRequest.compensation: object expected");
+                        message.compensation = $root.cordum.agent.v1.Compensation.fromObject(object.compensation);
+                    }
                     return message;
                 };
 
@@ -2611,6 +3210,7 @@ $root.cordum = (function() {
                         object.tenantId = "";
                         object.principalId = "";
                         object.meta = null;
+                        object.compensation = null;
                     }
                     if (message.jobId != null && message.hasOwnProperty("jobId"))
                         object.jobId = message.jobId;
@@ -2651,6 +3251,8 @@ $root.cordum = (function() {
                     }
                     if (message.meta != null && message.hasOwnProperty("meta"))
                         object.meta = $root.cordum.agent.v1.JobMetadata.toObject(message.meta, options);
+                    if (message.compensation != null && message.hasOwnProperty("compensation"))
+                        object.compensation = $root.cordum.agent.v1.Compensation.toObject(message.compensation, options);
                     return object;
                 };
 
@@ -3828,6 +4430,9 @@ $root.cordum = (function() {
                  * @property {string|null} [pool] Heartbeat pool
                  * @property {number|null} [maxParallelJobs] Heartbeat maxParallelJobs
                  * @property {Object.<string,string>|null} [labels] Heartbeat labels
+                 * @property {number|null} [memoryLoad] Heartbeat memoryLoad
+                 * @property {number|null} [progressPct] Heartbeat progressPct
+                 * @property {string|null} [lastMemo] Heartbeat lastMemo
                  */
 
                 /**
@@ -3928,6 +4533,30 @@ $root.cordum = (function() {
                 Heartbeat.prototype.labels = $util.emptyObject;
 
                 /**
+                 * Heartbeat memoryLoad.
+                 * @member {number} memoryLoad
+                 * @memberof cordum.agent.v1.Heartbeat
+                 * @instance
+                 */
+                Heartbeat.prototype.memoryLoad = 0;
+
+                /**
+                 * Heartbeat progressPct.
+                 * @member {number} progressPct
+                 * @memberof cordum.agent.v1.Heartbeat
+                 * @instance
+                 */
+                Heartbeat.prototype.progressPct = 0;
+
+                /**
+                 * Heartbeat lastMemo.
+                 * @member {string} lastMemo
+                 * @memberof cordum.agent.v1.Heartbeat
+                 * @instance
+                 */
+                Heartbeat.prototype.lastMemo = "";
+
+                /**
                  * Creates a new Heartbeat instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.Heartbeat
@@ -3973,6 +4602,12 @@ $root.cordum = (function() {
                     if (message.labels != null && Object.hasOwnProperty.call(message, "labels"))
                         for (var keys = Object.keys(message.labels), i = 0; i < keys.length; ++i)
                             writer.uint32(/* id 13, wireType 2 =*/106).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.labels[keys[i]]).ldelim();
+                    if (message.memoryLoad != null && Object.hasOwnProperty.call(message, "memoryLoad"))
+                        writer.uint32(/* id 14, wireType 5 =*/117).float(message.memoryLoad);
+                    if (message.progressPct != null && Object.hasOwnProperty.call(message, "progressPct"))
+                        writer.uint32(/* id 15, wireType 0 =*/120).int32(message.progressPct);
+                    if (message.lastMemo != null && Object.hasOwnProperty.call(message, "lastMemo"))
+                        writer.uint32(/* id 16, wireType 2 =*/130).string(message.lastMemo);
                     return writer;
                 };
 
@@ -4070,6 +4705,18 @@ $root.cordum = (function() {
                                 message.labels[key] = value;
                                 break;
                             }
+                        case 14: {
+                                message.memoryLoad = reader.float();
+                                break;
+                            }
+                        case 15: {
+                                message.progressPct = reader.int32();
+                                break;
+                            }
+                        case 16: {
+                                message.lastMemo = reader.string();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7);
                             break;
@@ -4144,6 +4791,15 @@ $root.cordum = (function() {
                             if (!$util.isString(message.labels[key[i]]))
                                 return "labels: string{k:string} expected";
                     }
+                    if (message.memoryLoad != null && message.hasOwnProperty("memoryLoad"))
+                        if (typeof message.memoryLoad !== "number")
+                            return "memoryLoad: number expected";
+                    if (message.progressPct != null && message.hasOwnProperty("progressPct"))
+                        if (!$util.isInteger(message.progressPct))
+                            return "progressPct: integer expected";
+                    if (message.lastMemo != null && message.hasOwnProperty("lastMemo"))
+                        if (!$util.isString(message.lastMemo))
+                            return "lastMemo: string expected";
                     return null;
                 };
 
@@ -4189,6 +4845,12 @@ $root.cordum = (function() {
                         for (var keys = Object.keys(object.labels), i = 0; i < keys.length; ++i)
                             message.labels[keys[i]] = String(object.labels[keys[i]]);
                     }
+                    if (object.memoryLoad != null)
+                        message.memoryLoad = Number(object.memoryLoad);
+                    if (object.progressPct != null)
+                        message.progressPct = object.progressPct | 0;
+                    if (object.lastMemo != null)
+                        message.lastMemo = String(object.lastMemo);
                     return message;
                 };
 
@@ -4218,6 +4880,9 @@ $root.cordum = (function() {
                         object.activeJobs = 0;
                         object.pool = "";
                         object.maxParallelJobs = 0;
+                        object.memoryLoad = 0;
+                        object.progressPct = 0;
+                        object.lastMemo = "";
                     }
                     if (message.workerId != null && message.hasOwnProperty("workerId"))
                         object.workerId = message.workerId;
@@ -4246,6 +4911,12 @@ $root.cordum = (function() {
                         for (var j = 0; j < keys2.length; ++j)
                             object.labels[keys2[j]] = message.labels[keys2[j]];
                     }
+                    if (message.memoryLoad != null && message.hasOwnProperty("memoryLoad"))
+                        object.memoryLoad = options.json && !isFinite(message.memoryLoad) ? String(message.memoryLoad) : message.memoryLoad;
+                    if (message.progressPct != null && message.hasOwnProperty("progressPct"))
+                        object.progressPct = message.progressPct;
+                    if (message.lastMemo != null && message.hasOwnProperty("lastMemo"))
+                        object.lastMemo = message.lastMemo;
                     return object;
                 };
 
@@ -6295,6 +6966,403 @@ $root.cordum = (function() {
                 return PolicyConstraints;
             })();
 
+            v1.PolicyRemediation = (function() {
+
+                /**
+                 * Properties of a PolicyRemediation.
+                 * @memberof cordum.agent.v1
+                 * @interface IPolicyRemediation
+                 * @property {string|null} [id] PolicyRemediation id
+                 * @property {string|null} [title] PolicyRemediation title
+                 * @property {string|null} [summary] PolicyRemediation summary
+                 * @property {string|null} [replacementTopic] PolicyRemediation replacementTopic
+                 * @property {string|null} [replacementCapability] PolicyRemediation replacementCapability
+                 * @property {Object.<string,string>|null} [addLabels] PolicyRemediation addLabels
+                 * @property {Array.<string>|null} [removeLabels] PolicyRemediation removeLabels
+                 */
+
+                /**
+                 * Constructs a new PolicyRemediation.
+                 * @memberof cordum.agent.v1
+                 * @classdesc Represents a PolicyRemediation.
+                 * @implements IPolicyRemediation
+                 * @constructor
+                 * @param {cordum.agent.v1.IPolicyRemediation=} [properties] Properties to set
+                 */
+                function PolicyRemediation(properties) {
+                    this.addLabels = {};
+                    this.removeLabels = [];
+                    if (properties)
+                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * PolicyRemediation id.
+                 * @member {string} id
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @instance
+                 */
+                PolicyRemediation.prototype.id = "";
+
+                /**
+                 * PolicyRemediation title.
+                 * @member {string} title
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @instance
+                 */
+                PolicyRemediation.prototype.title = "";
+
+                /**
+                 * PolicyRemediation summary.
+                 * @member {string} summary
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @instance
+                 */
+                PolicyRemediation.prototype.summary = "";
+
+                /**
+                 * PolicyRemediation replacementTopic.
+                 * @member {string} replacementTopic
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @instance
+                 */
+                PolicyRemediation.prototype.replacementTopic = "";
+
+                /**
+                 * PolicyRemediation replacementCapability.
+                 * @member {string} replacementCapability
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @instance
+                 */
+                PolicyRemediation.prototype.replacementCapability = "";
+
+                /**
+                 * PolicyRemediation addLabels.
+                 * @member {Object.<string,string>} addLabels
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @instance
+                 */
+                PolicyRemediation.prototype.addLabels = $util.emptyObject;
+
+                /**
+                 * PolicyRemediation removeLabels.
+                 * @member {Array.<string>} removeLabels
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @instance
+                 */
+                PolicyRemediation.prototype.removeLabels = $util.emptyArray;
+
+                /**
+                 * Creates a new PolicyRemediation instance using the specified properties.
+                 * @function create
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @static
+                 * @param {cordum.agent.v1.IPolicyRemediation=} [properties] Properties to set
+                 * @returns {cordum.agent.v1.PolicyRemediation} PolicyRemediation instance
+                 */
+                PolicyRemediation.create = function create(properties) {
+                    return new PolicyRemediation(properties);
+                };
+
+                /**
+                 * Encodes the specified PolicyRemediation message. Does not implicitly {@link cordum.agent.v1.PolicyRemediation.verify|verify} messages.
+                 * @function encode
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @static
+                 * @param {cordum.agent.v1.IPolicyRemediation} message PolicyRemediation message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                PolicyRemediation.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
+                    if (message.title != null && Object.hasOwnProperty.call(message, "title"))
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.title);
+                    if (message.summary != null && Object.hasOwnProperty.call(message, "summary"))
+                        writer.uint32(/* id 3, wireType 2 =*/26).string(message.summary);
+                    if (message.replacementTopic != null && Object.hasOwnProperty.call(message, "replacementTopic"))
+                        writer.uint32(/* id 4, wireType 2 =*/34).string(message.replacementTopic);
+                    if (message.replacementCapability != null && Object.hasOwnProperty.call(message, "replacementCapability"))
+                        writer.uint32(/* id 5, wireType 2 =*/42).string(message.replacementCapability);
+                    if (message.addLabels != null && Object.hasOwnProperty.call(message, "addLabels"))
+                        for (var keys = Object.keys(message.addLabels), i = 0; i < keys.length; ++i)
+                            writer.uint32(/* id 6, wireType 2 =*/50).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.addLabels[keys[i]]).ldelim();
+                    if (message.removeLabels != null && message.removeLabels.length)
+                        for (var i = 0; i < message.removeLabels.length; ++i)
+                            writer.uint32(/* id 7, wireType 2 =*/58).string(message.removeLabels[i]);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified PolicyRemediation message, length delimited. Does not implicitly {@link cordum.agent.v1.PolicyRemediation.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @static
+                 * @param {cordum.agent.v1.IPolicyRemediation} message PolicyRemediation message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                PolicyRemediation.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a PolicyRemediation message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {cordum.agent.v1.PolicyRemediation} PolicyRemediation
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                PolicyRemediation.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.PolicyRemediation(), key, value;
+                    while (reader.pos < end) {
+                        var tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.id = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.title = reader.string();
+                                break;
+                            }
+                        case 3: {
+                                message.summary = reader.string();
+                                break;
+                            }
+                        case 4: {
+                                message.replacementTopic = reader.string();
+                                break;
+                            }
+                        case 5: {
+                                message.replacementCapability = reader.string();
+                                break;
+                            }
+                        case 6: {
+                                if (message.addLabels === $util.emptyObject)
+                                    message.addLabels = {};
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = "";
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.string();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.addLabels[key] = value;
+                                break;
+                            }
+                        case 7: {
+                                if (!(message.removeLabels && message.removeLabels.length))
+                                    message.removeLabels = [];
+                                message.removeLabels.push(reader.string());
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a PolicyRemediation message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {cordum.agent.v1.PolicyRemediation} PolicyRemediation
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                PolicyRemediation.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a PolicyRemediation message.
+                 * @function verify
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                PolicyRemediation.verify = function verify(message) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (message.id != null && message.hasOwnProperty("id"))
+                        if (!$util.isString(message.id))
+                            return "id: string expected";
+                    if (message.title != null && message.hasOwnProperty("title"))
+                        if (!$util.isString(message.title))
+                            return "title: string expected";
+                    if (message.summary != null && message.hasOwnProperty("summary"))
+                        if (!$util.isString(message.summary))
+                            return "summary: string expected";
+                    if (message.replacementTopic != null && message.hasOwnProperty("replacementTopic"))
+                        if (!$util.isString(message.replacementTopic))
+                            return "replacementTopic: string expected";
+                    if (message.replacementCapability != null && message.hasOwnProperty("replacementCapability"))
+                        if (!$util.isString(message.replacementCapability))
+                            return "replacementCapability: string expected";
+                    if (message.addLabels != null && message.hasOwnProperty("addLabels")) {
+                        if (!$util.isObject(message.addLabels))
+                            return "addLabels: object expected";
+                        var key = Object.keys(message.addLabels);
+                        for (var i = 0; i < key.length; ++i)
+                            if (!$util.isString(message.addLabels[key[i]]))
+                                return "addLabels: string{k:string} expected";
+                    }
+                    if (message.removeLabels != null && message.hasOwnProperty("removeLabels")) {
+                        if (!Array.isArray(message.removeLabels))
+                            return "removeLabels: array expected";
+                        for (var i = 0; i < message.removeLabels.length; ++i)
+                            if (!$util.isString(message.removeLabels[i]))
+                                return "removeLabels: string[] expected";
+                    }
+                    return null;
+                };
+
+                /**
+                 * Creates a PolicyRemediation message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {cordum.agent.v1.PolicyRemediation} PolicyRemediation
+                 */
+                PolicyRemediation.fromObject = function fromObject(object) {
+                    if (object instanceof $root.cordum.agent.v1.PolicyRemediation)
+                        return object;
+                    var message = new $root.cordum.agent.v1.PolicyRemediation();
+                    if (object.id != null)
+                        message.id = String(object.id);
+                    if (object.title != null)
+                        message.title = String(object.title);
+                    if (object.summary != null)
+                        message.summary = String(object.summary);
+                    if (object.replacementTopic != null)
+                        message.replacementTopic = String(object.replacementTopic);
+                    if (object.replacementCapability != null)
+                        message.replacementCapability = String(object.replacementCapability);
+                    if (object.addLabels) {
+                        if (typeof object.addLabels !== "object")
+                            throw TypeError(".cordum.agent.v1.PolicyRemediation.addLabels: object expected");
+                        message.addLabels = {};
+                        for (var keys = Object.keys(object.addLabels), i = 0; i < keys.length; ++i)
+                            message.addLabels[keys[i]] = String(object.addLabels[keys[i]]);
+                    }
+                    if (object.removeLabels) {
+                        if (!Array.isArray(object.removeLabels))
+                            throw TypeError(".cordum.agent.v1.PolicyRemediation.removeLabels: array expected");
+                        message.removeLabels = [];
+                        for (var i = 0; i < object.removeLabels.length; ++i)
+                            message.removeLabels[i] = String(object.removeLabels[i]);
+                    }
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a PolicyRemediation message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @static
+                 * @param {cordum.agent.v1.PolicyRemediation} message PolicyRemediation
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                PolicyRemediation.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    var object = {};
+                    if (options.arrays || options.defaults)
+                        object.removeLabels = [];
+                    if (options.objects || options.defaults)
+                        object.addLabels = {};
+                    if (options.defaults) {
+                        object.id = "";
+                        object.title = "";
+                        object.summary = "";
+                        object.replacementTopic = "";
+                        object.replacementCapability = "";
+                    }
+                    if (message.id != null && message.hasOwnProperty("id"))
+                        object.id = message.id;
+                    if (message.title != null && message.hasOwnProperty("title"))
+                        object.title = message.title;
+                    if (message.summary != null && message.hasOwnProperty("summary"))
+                        object.summary = message.summary;
+                    if (message.replacementTopic != null && message.hasOwnProperty("replacementTopic"))
+                        object.replacementTopic = message.replacementTopic;
+                    if (message.replacementCapability != null && message.hasOwnProperty("replacementCapability"))
+                        object.replacementCapability = message.replacementCapability;
+                    var keys2;
+                    if (message.addLabels && (keys2 = Object.keys(message.addLabels)).length) {
+                        object.addLabels = {};
+                        for (var j = 0; j < keys2.length; ++j)
+                            object.addLabels[keys2[j]] = message.addLabels[keys2[j]];
+                    }
+                    if (message.removeLabels && message.removeLabels.length) {
+                        object.removeLabels = [];
+                        for (var j = 0; j < message.removeLabels.length; ++j)
+                            object.removeLabels[j] = message.removeLabels[j];
+                    }
+                    return object;
+                };
+
+                /**
+                 * Converts this PolicyRemediation to JSON.
+                 * @function toJSON
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                PolicyRemediation.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for PolicyRemediation
+                 * @function getTypeUrl
+                 * @memberof cordum.agent.v1.PolicyRemediation
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                PolicyRemediation.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/cordum.agent.v1.PolicyRemediation";
+                };
+
+                return PolicyRemediation;
+            })();
+
             v1.PolicyCheckResponse = (function() {
 
                 /**
@@ -6309,6 +7377,7 @@ $root.cordum = (function() {
                  * @property {cordum.agent.v1.IPolicyConstraints|null} [constraints] PolicyCheckResponse constraints
                  * @property {boolean|null} [approvalRequired] PolicyCheckResponse approvalRequired
                  * @property {string|null} [approvalRef] PolicyCheckResponse approvalRef
+                 * @property {Array.<cordum.agent.v1.IPolicyRemediation>|null} [remediations] PolicyCheckResponse remediations
                  */
 
                 /**
@@ -6320,6 +7389,7 @@ $root.cordum = (function() {
                  * @param {cordum.agent.v1.IPolicyCheckResponse=} [properties] Properties to set
                  */
                 function PolicyCheckResponse(properties) {
+                    this.remediations = [];
                     if (properties)
                         for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null)
@@ -6391,6 +7461,14 @@ $root.cordum = (function() {
                 PolicyCheckResponse.prototype.approvalRef = "";
 
                 /**
+                 * PolicyCheckResponse remediations.
+                 * @member {Array.<cordum.agent.v1.IPolicyRemediation>} remediations
+                 * @memberof cordum.agent.v1.PolicyCheckResponse
+                 * @instance
+                 */
+                PolicyCheckResponse.prototype.remediations = $util.emptyArray;
+
+                /**
                  * Creates a new PolicyCheckResponse instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.PolicyCheckResponse
@@ -6430,6 +7508,9 @@ $root.cordum = (function() {
                         writer.uint32(/* id 7, wireType 0 =*/56).bool(message.approvalRequired);
                     if (message.approvalRef != null && Object.hasOwnProperty.call(message, "approvalRef"))
                         writer.uint32(/* id 8, wireType 2 =*/66).string(message.approvalRef);
+                    if (message.remediations != null && message.remediations.length)
+                        for (var i = 0; i < message.remediations.length; ++i)
+                            $root.cordum.agent.v1.PolicyRemediation.encode(message.remediations[i], writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
                     return writer;
                 };
 
@@ -6496,6 +7577,12 @@ $root.cordum = (function() {
                             }
                         case 8: {
                                 message.approvalRef = reader.string();
+                                break;
+                            }
+                        case 9: {
+                                if (!(message.remediations && message.remediations.length))
+                                    message.remediations = [];
+                                message.remediations.push($root.cordum.agent.v1.PolicyRemediation.decode(reader, reader.uint32()));
                                 break;
                             }
                         default:
@@ -6568,6 +7655,15 @@ $root.cordum = (function() {
                     if (message.approvalRef != null && message.hasOwnProperty("approvalRef"))
                         if (!$util.isString(message.approvalRef))
                             return "approvalRef: string expected";
+                    if (message.remediations != null && message.hasOwnProperty("remediations")) {
+                        if (!Array.isArray(message.remediations))
+                            return "remediations: array expected";
+                        for (var i = 0; i < message.remediations.length; ++i) {
+                            var error = $root.cordum.agent.v1.PolicyRemediation.verify(message.remediations[i]);
+                            if (error)
+                                return "remediations." + error;
+                        }
+                    }
                     return null;
                 };
 
@@ -6632,6 +7728,16 @@ $root.cordum = (function() {
                         message.approvalRequired = Boolean(object.approvalRequired);
                     if (object.approvalRef != null)
                         message.approvalRef = String(object.approvalRef);
+                    if (object.remediations) {
+                        if (!Array.isArray(object.remediations))
+                            throw TypeError(".cordum.agent.v1.PolicyCheckResponse.remediations: array expected");
+                        message.remediations = [];
+                        for (var i = 0; i < object.remediations.length; ++i) {
+                            if (typeof object.remediations[i] !== "object")
+                                throw TypeError(".cordum.agent.v1.PolicyCheckResponse.remediations: object expected");
+                            message.remediations[i] = $root.cordum.agent.v1.PolicyRemediation.fromObject(object.remediations[i]);
+                        }
+                    }
                     return message;
                 };
 
@@ -6648,6 +7754,8 @@ $root.cordum = (function() {
                     if (!options)
                         options = {};
                     var object = {};
+                    if (options.arrays || options.defaults)
+                        object.remediations = [];
                     if (options.defaults) {
                         object.decision = options.enums === String ? "DECISION_TYPE_UNSPECIFIED" : 0;
                         object.reason = "";
@@ -6674,6 +7782,11 @@ $root.cordum = (function() {
                         object.approvalRequired = message.approvalRequired;
                     if (message.approvalRef != null && message.hasOwnProperty("approvalRef"))
                         object.approvalRef = message.approvalRef;
+                    if (message.remediations && message.remediations.length) {
+                        object.remediations = [];
+                        for (var j = 0; j < message.remediations.length; ++j)
+                            object.remediations[j] = $root.cordum.agent.v1.PolicyRemediation.toObject(message.remediations[j], options);
+                    }
                     return object;
                 };
 

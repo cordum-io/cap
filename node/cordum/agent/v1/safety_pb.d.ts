@@ -241,6 +241,51 @@ export namespace PolicyConstraints {
   }
 }
 
+export class PolicyRemediation extends jspb.Message {
+  getId(): string;
+  setId(value: string): void;
+
+  getTitle(): string;
+  setTitle(value: string): void;
+
+  getSummary(): string;
+  setSummary(value: string): void;
+
+  getReplacementTopic(): string;
+  setReplacementTopic(value: string): void;
+
+  getReplacementCapability(): string;
+  setReplacementCapability(value: string): void;
+
+  getAddLabelsMap(): jspb.Map<string, string>;
+  clearAddLabelsMap(): void;
+  clearRemoveLabelsList(): void;
+  getRemoveLabelsList(): Array<string>;
+  setRemoveLabelsList(value: Array<string>): void;
+  addRemoveLabels(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): PolicyRemediation.AsObject;
+  static toObject(includeInstance: boolean, msg: PolicyRemediation): PolicyRemediation.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: PolicyRemediation, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): PolicyRemediation;
+  static deserializeBinaryFromReader(message: PolicyRemediation, reader: jspb.BinaryReader): PolicyRemediation;
+}
+
+export namespace PolicyRemediation {
+  export type AsObject = {
+    id: string,
+    title: string,
+    summary: string,
+    replacementTopic: string,
+    replacementCapability: string,
+    addLabelsMap: Array<[string, string]>,
+    removeLabelsList: Array<string>,
+  }
+}
+
 export class PolicyCheckResponse extends jspb.Message {
   getDecision(): DecisionTypeMap[keyof DecisionTypeMap];
   setDecision(value: DecisionTypeMap[keyof DecisionTypeMap]): void;
@@ -268,6 +313,11 @@ export class PolicyCheckResponse extends jspb.Message {
   getApprovalRef(): string;
   setApprovalRef(value: string): void;
 
+  clearRemediationsList(): void;
+  getRemediationsList(): Array<PolicyRemediation>;
+  setRemediationsList(value: Array<PolicyRemediation>): void;
+  addRemediations(value?: PolicyRemediation, index?: number): PolicyRemediation;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PolicyCheckResponse.AsObject;
   static toObject(includeInstance: boolean, msg: PolicyCheckResponse): PolicyCheckResponse.AsObject;
@@ -288,6 +338,7 @@ export namespace PolicyCheckResponse {
     constraints?: PolicyConstraints.AsObject,
     approvalRequired: boolean,
     approvalRef: string,
+    remediationsList: Array<PolicyRemediation.AsObject>,
   }
 }
 

@@ -426,6 +426,8 @@ export interface JobStatusMap {
   JOB_STATUS_CANCELLED: 7;
   JOB_STATUS_DENIED: 8;
   JOB_STATUS_TIMEOUT: 9;
+  JOB_STATUS_FAILED_RETRYABLE: 10;
+  JOB_STATUS_FAILED_FATAL: 11;
 }
 
 export const JobStatus: JobStatusMap;

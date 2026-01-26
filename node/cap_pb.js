@@ -878,6 +878,8 @@ $root.cordum = (function() {
              * @property {number} JOB_STATUS_CANCELLED=7 JOB_STATUS_CANCELLED value
              * @property {number} JOB_STATUS_DENIED=8 JOB_STATUS_DENIED value
              * @property {number} JOB_STATUS_TIMEOUT=9 JOB_STATUS_TIMEOUT value
+             * @property {number} JOB_STATUS_FAILED_RETRYABLE=10 JOB_STATUS_FAILED_RETRYABLE value
+             * @property {number} JOB_STATUS_FAILED_FATAL=11 JOB_STATUS_FAILED_FATAL value
              */
             v1.JobStatus = (function() {
                 var valuesById = {}, values = Object.create(valuesById);
@@ -891,6 +893,8 @@ $root.cordum = (function() {
                 values[valuesById[7] = "JOB_STATUS_CANCELLED"] = 7;
                 values[valuesById[8] = "JOB_STATUS_DENIED"] = 8;
                 values[valuesById[9] = "JOB_STATUS_TIMEOUT"] = 9;
+                values[valuesById[10] = "JOB_STATUS_FAILED_RETRYABLE"] = 10;
+                values[valuesById[11] = "JOB_STATUS_FAILED_FATAL"] = 11;
                 return values;
             })();
 
@@ -3544,6 +3548,8 @@ $root.cordum = (function() {
                         case 7:
                         case 8:
                         case 9:
+                        case 10:
+                        case 11:
                             break;
                         }
                     if (message.resultPtr != null && message.hasOwnProperty("resultPtr"))
@@ -3631,6 +3637,14 @@ $root.cordum = (function() {
                     case "JOB_STATUS_TIMEOUT":
                     case 9:
                         message.status = 9;
+                        break;
+                    case "JOB_STATUS_FAILED_RETRYABLE":
+                    case 10:
+                        message.status = 10;
+                        break;
+                    case "JOB_STATUS_FAILED_FATAL":
+                    case 11:
+                        message.status = 11;
                         break;
                     }
                     if (object.resultPtr != null)
@@ -4005,6 +4019,8 @@ $root.cordum = (function() {
                         case 7:
                         case 8:
                         case 9:
+                        case 10:
+                        case 11:
                             break;
                         }
                     return null;
@@ -4085,6 +4101,14 @@ $root.cordum = (function() {
                     case "JOB_STATUS_TIMEOUT":
                     case 9:
                         message.status = 9;
+                        break;
+                    case "JOB_STATUS_FAILED_RETRYABLE":
+                    case 10:
+                        message.status = 10;
+                        break;
+                    case "JOB_STATUS_FAILED_FATAL":
+                    case 11:
+                        message.status = 11;
                         break;
                     }
                     return message;

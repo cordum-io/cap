@@ -1,6 +1,6 @@
 {
   "name": "cap-sdk-node",
-  "version": "2.0.15",
+  "version": "2.0.16",
   "description": "CAP (Cordum Agent Protocol) SDK for Node/TypeScript",
   "main": "dist/index.js",
   "scripts": {

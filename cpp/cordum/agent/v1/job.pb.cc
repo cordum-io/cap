@@ -499,23 +499,25 @@ const char descriptor_table_protodef_cordum_2fagent_2fv1_2fjob_2eproto[] PROTOBU
   "\n\014requested_by\030\003 \001(\t*|\n\013JobPriority\022\034\n\030J"
   "OB_PRIORITY_UNSPECIFIED\020\000\022\034\n\030JOB_PRIORIT"
   "Y_INTERACTIVE\020\001\022\026\n\022JOB_PRIORITY_BATCH\020\002\022"
-  "\031\n\025JOB_PRIORITY_CRITICAL\020\003*\206\002\n\tJobStatus"
+  "\031\n\025JOB_PRIORITY_CRITICAL\020\003*\304\002\n\tJobStatus"
   "\022\032\n\026JOB_STATUS_UNSPECIFIED\020\000\022\026\n\022JOB_STAT"
   "US_PENDING\020\001\022\030\n\024JOB_STATUS_SCHEDULED\020\002\022\031"
   "\n\025JOB_STATUS_DISPATCHED\020\003\022\026\n\022JOB_STATUS_"
   "RUNNING\020\004\022\030\n\024JOB_STATUS_SUCCEEDED\020\005\022\025\n\021J"
   "OB_STATUS_FAILED\020\006\022\030\n\024JOB_STATUS_CANCELL"
   "ED\020\007\022\025\n\021JOB_STATUS_DENIED\020\010\022\026\n\022JOB_STATU"
-  "S_TIMEOUT\020\t*U\n\tActorType\022\032\n\026ACTOR_TYPE_U"
-  "NSPECIFIED\020\000\022\024\n\020ACTOR_TYPE_HUMAN\020\001\022\026\n\022AC"
-  "TOR_TYPE_SERVICE\020\002B\177\n\026io.cordum.cap.agen"
-  "t.v1P\001Z+github.com/cordum-io/cap/v2/cord"
-  "um/agent/v1\252\002\017Cordum.Agent.V1\312\002\017cordum\\A"
-  "gent\\V1\352\002\021Cordum::Agent::V1b\006proto3"
+  "S_TIMEOUT\020\t\022\037\n\033JOB_STATUS_FAILED_RETRYAB"
+  "LE\020\n\022\033\n\027JOB_STATUS_FAILED_FATAL\020\013*U\n\tAct"
+  "orType\022\032\n\026ACTOR_TYPE_UNSPECIFIED\020\000\022\024\n\020AC"
+  "TOR_TYPE_HUMAN\020\001\022\026\n\022ACTOR_TYPE_SERVICE\020\002"
+  "B\177\n\026io.cordum.cap.agent.v1P\001Z+github.com"
+  "/cordum-io/cap/v2/cordum/agent/v1\252\002\017Cord"
+  "um.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::"
+  "Agent::V1b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto = {
-    false, false, 2795, descriptor_table_protodef_cordum_2fagent_2fv1_2fjob_2eproto,
+    false, false, 2857, descriptor_table_protodef_cordum_2fagent_2fv1_2fjob_2eproto,
     "cordum/agent/v1/job.proto",
     &descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto_once, nullptr, 0, 13,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fjob_2eproto::offsets,
@@ -563,6 +565,8 @@ bool JobStatus_IsValid(int value) {
     case 7:
     case 8:
     case 9:
+    case 10:
+    case 11:
       return true;
     default:
       return false;

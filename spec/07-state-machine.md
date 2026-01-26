@@ -9,6 +9,8 @@ CAP standardizes job lifecycle states to keep schedulers and workers interoperab
 - `RUNNING`
 - `SUCCEEDED`
 - `FAILED`
+- `FAILED_RETRYABLE`
+- `FAILED_FATAL`
 - `CANCELLED`
 - `DENIED`
 - `TIMEOUT`
@@ -22,6 +24,8 @@ stateDiagram-v2
     DISPATCHED --> RUNNING : worker starts execution
     RUNNING --> SUCCEEDED : worker emits JobResult status=SUCCEEDED
     RUNNING --> FAILED : worker emits JobResult status=FAILED
+    RUNNING --> FAILED_RETRYABLE : transient failure, safe to retry
+    RUNNING --> FAILED_FATAL : fatal failure, trigger rollback
     RUNNING --> TIMEOUT : reconciler marks stale
     DISPATCHED --> TIMEOUT : worker never starts
     SCHEDULED --> DENIED : safety rejects
@@ -45,6 +49,10 @@ stateDiagram-v2
 - A `JobResult` that conflicts with an existing terminal state SHOULD be logged and ignored unless override policy is explicit.
 - `CANCELLED` MAY be set from any non-terminal state.
 - Timeouts SHOULD be configurable per pool or tenant.
+- `FAILED_RETRYABLE` SHOULD be treated as non-terminal by orchestrators that implement retry loops.
+- `FAILED_FATAL` SHOULD be treated as terminal and MAY trigger saga rollback when a compensation stack exists.
+
+Tags: `job-status`, `retry`, `fatal`.
 
 ## Metadata Expectations
 - Store `context_ptr`, `result_ptr`, `worker_id`, `execution_ms`, safety decisions, and timestamps for each transition.

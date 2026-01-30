@@ -1,5 +1,6 @@
 import { NatsConnection } from "nats";
 import { loadRoot, DEFAULT_PROTOCOL_VERSION, SUBJECT_SUBMIT } from "./protos";
+import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import * as crypto from "crypto";
 
 export async function submitJob(
@@ -23,12 +24,7 @@ export async function submitJob(
   });
 
   if (privateKey) {
-    // Serialize the packet without the signature for signing
-    const unsignedPayload: any = BusPacket.fromObject(payload.toJSON());
-    unsignedPayload.signature = Buffer.from([]); // Ensure signature field is empty for hashing
-    const unsignedData = BusPacket.encode(unsignedPayload).finish();
-
-    // Sign the data
+    const unsignedData = encodeUnsignedForSignature(BusPacket, payload);
     const sign = crypto.createSign("sha256");
     sign.update(unsignedData);
     const signature = sign.sign(privateKey);
@@ -36,6 +32,6 @@ export async function submitJob(
     (payload as any).signature = signature;
   }
 
-  const data = BusPacket.encode(payload).finish();
+  const data = encodeDeterministic(BusPacket, payload);
   await nc.publish(SUBJECT_SUBMIT, data);
 }

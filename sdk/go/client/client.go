@@ -3,14 +3,12 @@ package client
 import (
 	"context"
 	"crypto/ecdsa"
-	"crypto/rand"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"log"
 
-	"github.com/cordum-io/cap/v2/sdk/go"
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+	"github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -43,22 +41,12 @@ func (c *Client) Submit(ctx context.Context, req *agentv1.JobRequest, traceID, s
 	}
 
 	if key != nil {
-		// Marshal the packet without the signature for signing
-		unsignedData, err := proto.Marshal(packet)
-		if err != nil {
-			return fmt.Errorf("marshal unsigned packet: %w", err)
+		if err := capsdk.SignPacket(packet, key); err != nil {
+			return err
 		}
-
-		// Sign the data
-		hash := sha256.Sum256(unsignedData)
-		signature, err := ecdsa.SignASN1(rand.Reader, key, hash[:])
-		if err != nil {
-			return fmt.Errorf("sign packet: %w", err)
-		}
-		packet.Signature = signature
 	}
 
-	data, err := proto.Marshal(packet)
+	data, err := capsdk.MarshalDeterministic(packet)
 	if err != nil {
 		return fmt.Errorf("marshal packet: %w", err)
 	}
@@ -93,16 +81,12 @@ func (c *Client) Subscribe(subject string, handler Handler) (*nats.Subscription,
 				return
 			}
 
-			signature := packet.Signature
-			packet.Signature = nil
-			unsignedData, err := proto.Marshal(&packet)
-			if err != nil {
-				log.Printf("client: could not marshal unsigned packet for verification: %v", err)
+			if len(packet.GetSignature()) == 0 {
+				log.Printf("client: missing signature for packet from sender: %s", packet.GetSenderId())
 				return
 			}
-			hash := sha256.Sum256(unsignedData)
-			if !ecdsa.VerifyASN1(pubKey, hash[:], signature) {
-				log.Printf("client: invalid signature for packet from sender: %s", packet.GetSenderId())
+			if err := capsdk.VerifyPacketSignature(&packet, pubKey); err != nil {
+				log.Printf("client: signature verification failed for sender %s: %v", packet.GetSenderId(), err)
 				return
 			}
 		}
@@ -129,22 +113,12 @@ func Submit(ctx context.Context, pub Publisher, req *agentv1.JobRequest, traceID
 	}
 
 	if key != nil {
-		// Marshal the packet without the signature for signing
-		unsignedData, err := proto.Marshal(packet)
-		if err != nil {
-			return fmt.Errorf("marshal unsigned packet: %w", err)
+		if err := capsdk.SignPacket(packet, key); err != nil {
+			return err
 		}
-
-		// Sign the data
-		hash := sha256.Sum256(unsignedData)
-		signature, err := ecdsa.SignASN1(rand.Reader, key, hash[:])
-		if err != nil {
-			return fmt.Errorf("sign packet: %w", err)
-		}
-		packet.Signature = signature
 	}
 
-	data, err := proto.Marshal(packet)
+	data, err := capsdk.MarshalDeterministic(packet)
 	if err != nil {
 		return fmt.Errorf("marshal packet: %w", err)
 	}

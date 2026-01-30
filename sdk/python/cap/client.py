@@ -26,8 +26,8 @@ async def submit_job(
     packet.job_request.CopyFrom(job_request)
 
     if private_key:
-        unsigned_data = packet.SerializeToString()
+        unsigned_data = packet.SerializeToString(deterministic=True)
         signature = private_key.sign(unsigned_data, ec.ECDSA(hashes.SHA256()))
         packet.signature = signature
 
-    await nc.publish(SUBJECT_SUBMIT, packet.SerializeToString())
+    await nc.publish(SUBJECT_SUBMIT, packet.SerializeToString(deterministic=True))

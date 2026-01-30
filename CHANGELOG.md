@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.17 — 2026-01-30
+- Added deterministic signing helpers and conformance fixtures for cross-SDK verification (Go/Node/Python).
+- Standardized signature serialization rules in spec/wiki and SDK docs.
+- Added CI workflow to run Go/Node/Python tests, govulncheck, and fixture drift checks.
+
 ## v2.0.16 — 2026-01-26
 - Added `FAILED_RETRYABLE` and `FAILED_FATAL` to `JobStatus` for explicit retry vs rollback handling.
 - Updated state machine/spec/docs and examples for the new failure semantics.

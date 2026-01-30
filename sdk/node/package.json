@@ -1,13 +1,13 @@
 {
   "name": "cap-sdk-node",
-  "version": "2.0.16",
+  "version": "2.0.17",
   "description": "CAP (Cordum Agent Protocol) SDK for Node/TypeScript",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc -p .",
     "lint": "echo \"add linter\"",
     "sample:worker": "node dist/sample-worker.js",
-    "test": "tsc -p tsconfig.json --outDir dist && mocha dist/test/sdk.test.js"
+    "test": "tsc -p tsconfig.json --outDir dist && mocha dist/test/*.test.js"
   },
   "dependencies": {
     "@types/chai": "^5.2.3",

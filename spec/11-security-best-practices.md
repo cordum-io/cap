@@ -29,6 +29,7 @@ While transport-level encryption (TLS) protects data in transit on the bus, the 
 To prevent message spoofing and tampering, all `BusPacket` envelopes SHOULD be digitally signed.
 
 - **Mechanism:** `BusPacket` includes a `signature` field. The sender serializes the packet with the `signature` field cleared, signs the serialized data with its private key, and then sets the `signature` field. The receiver clears the field, recomputes the hash, and verifies using the sender's public key.
+- **Deterministic Encoding:** Signatures MUST be computed over deterministic protobuf serialization. Map entries MUST be ordered by key so all SDKs produce identical bytes for signature verification.
 
 ```proto
 message BusPacket {

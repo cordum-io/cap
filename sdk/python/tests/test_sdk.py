@@ -93,7 +93,7 @@ class TestSDK(unittest.TestCase):
             result_packet.ParseFromString(data)
             signature = result_packet.signature
             result_packet.ClearField("signature")
-            unsigned_data = result_packet.SerializeToString()
+            unsigned_data = result_packet.SerializeToString(deterministic=True)
             worker_key.public_key().verify(signature, unsigned_data, ec.ECDSA(hashes.SHA256()))
 
             worker_task.cancel()

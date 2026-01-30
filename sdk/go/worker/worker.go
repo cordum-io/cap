@@ -3,8 +3,6 @@ package worker
 import (
 	"context"
 	"crypto/ecdsa"
-	"crypto/rand"
-	"crypto/sha256"
 	"errors"
 	"fmt"
 	"log"
@@ -66,16 +64,12 @@ func (w *Worker) Start() error {
 				return
 			}
 
-			signature := packet.Signature
-			packet.Signature = nil
-			unsignedData, err := proto.Marshal(&packet)
-			if err != nil {
-				log.Printf("worker: could not marshal unsigned packet for verification: %v", err)
+			if len(packet.GetSignature()) == 0 {
+				log.Printf("worker: missing signature for packet from sender: %s", packet.GetSenderId())
 				return
 			}
-			hash := sha256.Sum256(unsignedData)
-			if !ecdsa.VerifyASN1(pubKey, hash[:], signature) {
-				log.Printf("worker: invalid signature for packet from sender: %s", packet.GetSenderId())
+			if err := capsdk.VerifyPacketSignature(&packet, pubKey); err != nil {
+				log.Printf("worker: signature verification failed for sender %s: %v", packet.GetSenderId(), err)
 				return
 			}
 		}
@@ -121,21 +115,13 @@ func (w *Worker) Start() error {
 
 		// Sign the outgoing packet
 		if w.PrivateKey != nil {
-			unsignedData, err := proto.Marshal(out)
-			if err != nil {
-				log.Printf("worker: could not marshal outgoing packet for signing: %v", err)
-				return
-			}
-			hash := sha256.Sum256(unsignedData)
-			signature, err := ecdsa.SignASN1(rand.Reader, w.PrivateKey, hash[:])
-			if err != nil {
+			if err := capsdk.SignPacket(out, w.PrivateKey); err != nil {
 				log.Printf("worker: could not sign outgoing packet: %v", err)
 				return
 			}
-			out.Signature = signature
 		}
 
-		data, mErr := proto.Marshal(out)
+		data, mErr := capsdk.MarshalDeterministic(out)
 		if mErr != nil {
 			return
 		}
@@ -176,7 +162,7 @@ func HeartbeatPayloadWithProgress(workerID, pool string, activeJobs, maxParallel
 			},
 		},
 	}
-	return proto.Marshal(hb)
+	return capsdk.MarshalDeterministic(hb)
 }
 
 // EmitHeartbeat publishes a heartbeat once. Call repeatedly on a ticker.

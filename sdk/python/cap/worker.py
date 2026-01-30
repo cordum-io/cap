@@ -38,7 +38,8 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
 
             signature = packet.signature
             packet.ClearField("signature")
-            unsigned_data = packet.SerializeToString()
+            unsigned_data = packet.SerializeToString(deterministic=True)
+            packet.signature = signature
             try:
                 public_key.verify(signature, unsigned_data, ec.ECDSA(hashes.SHA256()))
             except Exception:
@@ -76,11 +77,11 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
         out.job_result.CopyFrom(res)
 
         if private_key:
-            unsigned_data = out.SerializeToString()
+            unsigned_data = out.SerializeToString(deterministic=True)
             signature = private_key.sign(unsigned_data, ec.ECDSA(hashes.SHA256()))
             out.signature = signature
 
-        await nc.publish(SUBJECT_RESULT, out.SerializeToString())
+        await nc.publish(SUBJECT_RESULT, out.SerializeToString(deterministic=True))
 
     await nc.subscribe(subject, queue=subject, cb=on_msg)
     try:

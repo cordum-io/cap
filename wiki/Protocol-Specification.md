@@ -7,13 +7,18 @@ This folder contains the normative specification for the Cordum Agent Protocol (
 - Compatibility is append-only: existing fields are never renumbered or repurposed.
 - Implementations are compliant when they honor message shapes, state machine rules, and safety hooks defined here.
 
+## Conformance Suite
+Tags: `conformance`, `fixtures`, `testing`.
+- Binary fixtures live in `spec/conformance/fixtures`.
+- SDK tests load fixtures to validate wire compatibility across languages.
+
 ## Versioning
 - `protocol_version` in `BusPacket` is used for wire negotiation. Current wire version: `1` (schema 1.0.0).
 - Protobuf evolution is append-only: add new fields with new numbers; do not delete or reuse.
-- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.16`) for reproducibility.
+- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.17`) for reproducibility.
 - Protocol vs SDK:
   - Protocol wire schema: 1.0.0 (stable).
-  - Repository/SDK: 2.0.16 (may add helpers, docs, and generated stubs without wire breaks).
+  - Repository/SDK: 2.0.17 (may add helpers, docs, and generated stubs without wire breaks).
 
 ## Table of Contents
 - [01 Overview](01-overview.md)
@@ -152,6 +157,7 @@ message BusPacket {
 - Consumers SHOULD treat unknown fields as optional and ignore them.
 - Bus-level metadata (headers) MAY be used for auth or routing, but message-level fields remain canonical.
 - When signatures are enabled, verify the signature with the field cleared before trusting the packet.
+- Signatures MUST be computed over deterministic protobuf serialization with map entries ordered by key.
 # Job Protocol
 
 CAP jobs are the core unit of work. Gateways submit `JobRequest` packets, workers emit `JobResult`, and schedulers move jobs through the state machine.

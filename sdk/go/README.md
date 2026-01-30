@@ -62,6 +62,7 @@ if err := client.Submit(context.Background(), nc, req, "trace-1", "client-go", p
 
 ## Signing
 - `client.Submit` and `worker.Worker` sign envelopes when you pass a non-nil ECDSA private key (P-256); configure `PublicKeys` to verify incoming packets when you want authenticity enforcement.
+- Signatures are computed over deterministic protobuf serialization (map entries ordered by key) to ensure cross-SDK verification.
 - Generate a keypair in Go:
   ```go
   priv, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)

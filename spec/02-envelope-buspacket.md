@@ -43,3 +43,4 @@ message BusPacket {
 - Consumers SHOULD treat unknown fields as optional and ignore them.
 - Bus-level metadata (headers) MAY be used for auth or routing, but message-level fields remain canonical.
 - When signatures are enabled, verify the `signature` against the serialized packet with the field zeroed; drop or flag packets that fail verification.
+- Signatures MUST be computed over deterministic protobuf serialization. Map entries MUST be ordered by key. Implementations SHOULD use deterministic/protobuf-canonical encoding when signing/verifying (e.g., Go `proto.MarshalOptions{Deterministic: true}`, Python `SerializeToString(deterministic=True)`, or protobufjs with map keys sorted before encode).

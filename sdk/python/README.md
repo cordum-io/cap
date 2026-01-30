@@ -66,7 +66,7 @@ Asyncio-first SDK with NATS helpers for CAP workers and clients.
 ## Defaults
 - Subjects: `sys.job.submit`, `sys.job.result`, `sys.heartbeat`.
 - Protocol version: `1`.
-- Signing: `submit_job` and `run_worker` sign envelopes when given an `ec.EllipticCurvePrivateKey`. Generate a keypair with `cryptography`:
+- Signing: `submit_job` and `run_worker` sign envelopes when given an `ec.EllipticCurvePrivateKey`. Signatures use deterministic protobuf serialization (map entries ordered by key) for cross-SDK verification. Generate a keypair with `cryptography`:
   ```python
   from cryptography.hazmat.primitives.asymmetric import ec
   priv = ec.generate_private_key(ec.SECP256R1())

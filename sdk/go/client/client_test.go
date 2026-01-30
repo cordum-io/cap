@@ -5,10 +5,10 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/sha256"
 	"testing"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+	"github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 )
@@ -58,16 +58,7 @@ func TestSubmitSigned(t *testing.T) {
 	if packet.Signature == nil {
 		t.Fatal("Signature is nil")
 	}
-
-	signature := packet.Signature
-	packet.Signature = nil
-	unsignedData, err := proto.Marshal(&packet)
-	if err != nil {
-		t.Fatalf("Failed to marshal unsigned packet: %v", err)
-	}
-
-	hash := sha256.Sum256(unsignedData)
-	if !ecdsa.VerifyASN1(&privateKey.PublicKey, hash[:], signature) {
-		t.Fatal("Signature verification failed")
+	if err := capsdk.VerifyPacketSignature(&packet, &privateKey.PublicKey); err != nil {
+		t.Fatalf("Signature verification failed: %v", err)
 	}
 }

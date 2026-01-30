@@ -9,16 +9,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cordum-io/cap/v2/sdk/go"
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+	"github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type mockNATSConn struct {
-	published      chan *nats.Msg
-	subscriptions  map[string]nats.MsgHandler
+	published     chan *nats.Msg
+	subscriptions map[string]nats.MsgHandler
 }
 
 func (m *mockNATSConn) Publish(subject string, data []byte) error {
@@ -49,9 +49,9 @@ func TestWorkerE2E(t *testing.T) {
 	}
 
 	worker := &Worker{
-		NATS:       nc,
-		Subject:    "test.worker",
-		SenderID:   "test-worker",
+		NATS:     nc,
+		Subject:  "test.worker",
+		SenderID: "test-worker",
 		Handler: func(ctx context.Context, req *agentv1.JobRequest) (*agentv1.JobResult, error) {
 			return &agentv1.JobResult{Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED}, nil
 		},
@@ -75,7 +75,7 @@ func TestWorkerE2E(t *testing.T) {
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}
-	unsignedData, err := proto.Marshal(packet)
+	unsignedData, err := capsdk.MarshalDeterministic(packet)
 	if err != nil {
 		t.Fatalf("Failed to marshal unsigned packet: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestWorkerE2E(t *testing.T) {
 		t.Fatalf("Failed to sign packet: %v", err)
 	}
 	packet.Signature = signature
-	signedData, err := proto.Marshal(packet)
+	signedData, err := capsdk.MarshalDeterministic(packet)
 	if err != nil {
 		t.Fatalf("Failed to marshal signed packet: %v", err)
 	}
@@ -110,16 +110,8 @@ func TestWorkerE2E(t *testing.T) {
 		t.Fatalf("Failed to unmarshal result packet: %v", err)
 	}
 
-	// Verify the signature of the result packet
-	resultSignature := resultPacket.Signature
-	resultPacket.Signature = nil
-	unsignedResultData, err := proto.Marshal(&resultPacket)
-	if err != nil {
-		t.Fatalf("Failed to marshal unsigned result packet: %v", err)
-	}
-	resultHash := sha256.Sum256(unsignedResultData)
-	if !ecdsa.VerifyASN1(&workerKey.PublicKey, resultHash[:], resultSignature) {
-		t.Fatal("Result signature verification failed")
+	if err := capsdk.VerifyPacketSignature(&resultPacket, &workerKey.PublicKey); err != nil {
+		t.Fatalf("Result signature verification failed: %v", err)
 	}
 
 	if resultPacket.GetJobResult().GetStatus() != agentv1.JobStatus_JOB_STATUS_SUCCEEDED {

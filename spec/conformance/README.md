@@ -1,5 +1,5 @@
 # CAP Conformance Fixtures
-Tags: `conformance`, `fixtures`, `testing`.
+Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 
 This directory contains binary fixtures used by SDK conformance tests. Fixtures are serialized `cordum.agent.v1.BusPacket` messages that cover each payload type.
 
@@ -13,6 +13,8 @@ This directory contains binary fixtures used by SDK conformance tests. Fixtures 
 
 ## Signature
 Each fixture includes a `signature` computed over the serialized `BusPacket` with the `signature` field cleared. The public key for verification is stored in `public_key.pem`.
+
+Fixtures are signed deterministically (RFC 6979 via Go's `crypto.Signer` path) to keep fixture bytes stable across Go patch releases.
 
 ## Regenerating
 To regenerate fixtures (and public key), run:

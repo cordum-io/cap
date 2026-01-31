@@ -91,6 +91,66 @@ Canonical protobuf definitions live under `proto/cordum/agent/v1/`:
 - `examples/heartbeat.json` — standalone heartbeat sample.
 - `examples/README.md` — quick pointers to all flows.
 
+## High-Level Runtime SDKs
+The runtime layer hides NATS/Redis plumbing and gives you typed handlers.
+
+Python:
+```python
+import asyncio
+from pydantic import BaseModel
+from cap.runtime import Agent, Context
+
+class Input(BaseModel):
+    prompt: str
+
+class Output(BaseModel):
+    summary: str
+
+agent = Agent(retries=2)
+
+@agent.job("job.summarize", input_model=Input, output_model=Output)
+async def summarize(ctx: Context, data: Input) -> Output:
+    return Output(summary=data.prompt[:140])
+
+asyncio.run(agent.run())
+```
+
+Node/TypeScript:
+```ts
+import { z } from "zod";
+import { Agent } from "./runtime";
+
+const Input = z.object({ prompt: z.string() });
+const Output = z.object({ summary: z.string() });
+
+const agent = new Agent({ retries: 2 });
+agent.job("job.summarize", Input, async (_ctx, data) => {
+  return { summary: data.prompt.slice(0, 140) };
+}, { outputSchema: Output });
+
+agent.run().catch(console.error);
+```
+
+Go:
+```go
+type Input struct {
+    Prompt string `json:"prompt"`
+}
+
+type Output struct {
+    Summary string `json:"summary"`
+}
+
+agent := &runtime.Agent{Retries: 2}
+runtime.Register(agent, "job.summarize", func(ctx runtime.Context, input Input) (Output, error) {
+    return Output{Summary: input.Prompt[:140]}, nil
+})
+if err := agent.Start(); err != nil {
+    log.Fatal(err)
+}
+select {}
+```
+
 ## Hello Worker (Go, 20 lines)
 ```go
 package main

@@ -6,7 +6,7 @@ toolchain go1.24.12
 
 require (
 	github.com/nats-io/nats.go v1.48.0
-	github.com/redis/go-redis/v9 v9.6.3
+	github.com/redis/go-redis/v9 v9.7.3
 	google.golang.org/grpc v1.64.1
 	google.golang.org/protobuf v1.33.0
 )

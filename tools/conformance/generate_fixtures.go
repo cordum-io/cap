@@ -22,31 +22,32 @@ import (
 type detReader struct {
 	seed    [32]byte
 	counter uint64
+	block   [32]byte
+	offset  int
 }
 
 func (d *detReader) Read(p []byte) (int, error) {
-	buf := make([]byte, 0, len(p))
-	for len(buf) < len(p) {
-		block := sha256.New()
-		block.Write(d.seed[:])
-		var ctrBytes [8]byte
-		binary.LittleEndian.PutUint64(ctrBytes[:], d.counter)
-		block.Write(ctrBytes[:])
-		sum := block.Sum(nil)
-		need := len(p) - len(buf)
-		if need > len(sum) {
-			need = len(sum)
+	for i := range p {
+		if d.offset >= len(d.block) {
+			block := sha256.New()
+			block.Write(d.seed[:])
+			var ctrBytes [8]byte
+			binary.LittleEndian.PutUint64(ctrBytes[:], d.counter)
+			block.Write(ctrBytes[:])
+			sum := block.Sum(nil)
+			copy(d.block[:], sum)
+			d.counter++
+			d.offset = 0
 		}
-		buf = append(buf, sum[:need]...)
-		d.counter++
+		p[i] = d.block[d.offset]
+		d.offset++
 	}
-	copy(p, buf[:len(p)])
 	return len(p), nil
 }
 
 func seededReader(name string) *detReader {
 	sum := sha256.Sum256([]byte(name))
-	return &detReader{seed: sum}
+	return &detReader{seed: sum, offset: len(sum)}
 }
 
 func testPrivateKey() *ecdsa.PrivateKey {

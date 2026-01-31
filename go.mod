@@ -2,11 +2,11 @@ module github.com/cordum-io/cap/v2
 
 go 1.24.0
 
-toolchain go1.24.11
+toolchain go1.24.12
 
 require (
 	github.com/nats-io/nats.go v1.48.0
-	github.com/redis/go-redis/v9 v9.6.1
+	github.com/redis/go-redis/v9 v9.7.3
 	google.golang.org/grpc v1.64.1
 	google.golang.org/protobuf v1.33.0
 )

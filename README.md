@@ -6,6 +6,7 @@
 - Safety is built-in: schedulers call a Safety Kernel to allow/deny/throttle before dispatch.
 - Works with any pub/sub that supports subjects and competing consumers (NATS by default, Kafka acceptable).
 - Compatible with workers, orchestrators, gateways, schedulers, and external clients in mixed deployments.
+- CAP is the Translator and the Guard. It forces the chaotic, creative LLM to behave like a reliable, boring software component.
 
 ## Status
 - Protocol (wire): CAP 1.0.0 — Stable; append-only changes only.

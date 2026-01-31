@@ -1,5 +1,11 @@
 # Changelog
 
+## v2.0.18 — 2026-01-31
+- Added high-level runtime layers for Go/Node/Python SDKs with typed handlers, Redis pointer hydration, retries, and size/timeouts defaults.
+- Added runtime docs and tests across SDKs.
+- Added runtime dependencies (go-redis, zod, redis, pydantic) for developer-friendly validation and storage access.
+- Regenerated conformance fixtures with deterministic signing.
+
 ## v2.0.17 — 2026-01-30
 - Added deterministic signing helpers and conformance fixtures for cross-SDK verification (Go/Node/Python).
 - Standardized signature serialization rules in spec/wiki and SDK docs.

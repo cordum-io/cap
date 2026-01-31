@@ -23,6 +23,36 @@ Go SDK with NATS helpers for workers and clients. Uses generated protobuf stubs 
 
 ## Usage
 
+### Runtime (High-Level SDK)
+The runtime hides NATS/Redis plumbing and gives you typed handlers.
+
+```go
+type Input struct {
+    Prompt string `json:"prompt"`
+}
+
+type Output struct {
+    Summary string `json:"summary"`
+}
+
+agent := &runtime.Agent{
+    Retries: 2,
+}
+
+runtime.Register(agent, "job.summarize", func(ctx runtime.Context, input Input) (Output, error) {
+    return Output{Summary: input.Prompt[:140]}, nil
+})
+
+if err := agent.Start(); err != nil {
+    log.Fatal(err)
+}
+select {}
+```
+
+Environment:
+- `NATS_URL` (default `nats://127.0.0.1:4222`)
+- `REDIS_URL` (default `redis://127.0.0.1:6379/0`)
+
 ### Heartbeats
 - `HeartbeatPayload` builds a heartbeat with CPU load only.
 - `HeartbeatPayloadWithMemory` includes both CPU and memory utilization.

@@ -77,3 +77,30 @@ Asyncio-first SDK with NATS helpers for CAP workers and clients.
 - Pass `private_key=None` to `submit_job` if you want to send unsigned envelopes.
 
 Swap out `cap.bus` if you need a different transport.
+
+## Runtime (High-Level SDK)
+The runtime hides NATS/Redis plumbing and gives you typed handlers.
+
+```python
+import asyncio
+from pydantic import BaseModel
+from cap.runtime import Agent, Context
+
+class Input(BaseModel):
+    prompt: str
+
+class Output(BaseModel):
+    summary: str
+
+agent = Agent(retries=2)
+
+@agent.job("job.summarize", input_model=Input, output_model=Output)
+async def summarize(ctx: Context, data: Input) -> Output:
+    return Output(summary=data.prompt[:140])
+
+asyncio.run(agent.run())
+```
+
+### Environment
+- `NATS_URL` (default `nats://127.0.0.1:4222`)
+- `REDIS_URL` (default `redis://127.0.0.1:6379/0`)

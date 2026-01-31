@@ -1,11 +1,11 @@
 package main
 
 import (
+	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/sha256"
 	"crypto/x509"
-	"encoding/binary"
 	"encoding/pem"
 	"fmt"
 	"math/big"
@@ -19,37 +19,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-type detReader struct {
-	seed    [32]byte
-	counter uint64
-	block   [32]byte
-	offset  int
-}
-
-func (d *detReader) Read(p []byte) (int, error) {
-	for i := range p {
-		if d.offset >= len(d.block) {
-			block := sha256.New()
-			block.Write(d.seed[:])
-			var ctrBytes [8]byte
-			binary.LittleEndian.PutUint64(ctrBytes[:], d.counter)
-			block.Write(ctrBytes[:])
-			sum := block.Sum(nil)
-			copy(d.block[:], sum)
-			d.counter++
-			d.offset = 0
-		}
-		p[i] = d.block[d.offset]
-		d.offset++
-	}
-	return len(p), nil
-}
-
-func seededReader(name string) *detReader {
-	sum := sha256.Sum256([]byte(name))
-	return &detReader{seed: sum, offset: len(sum)}
-}
-
 func testPrivateKey() *ecdsa.PrivateKey {
 	curve := elliptic.P256()
 	d := big.NewInt(1)
@@ -61,7 +30,7 @@ func marshalDeterministic(msg proto.Message) ([]byte, error) {
 	return proto.MarshalOptions{Deterministic: true}.Marshal(msg)
 }
 
-func signPacket(pkt *agentv1.BusPacket, priv *ecdsa.PrivateKey, reader *detReader) error {
+func signPacket(pkt *agentv1.BusPacket, priv *ecdsa.PrivateKey) error {
 	clone := proto.Clone(pkt).(*agentv1.BusPacket)
 	clone.Signature = nil
 	unsigned, err := marshalDeterministic(clone)
@@ -69,7 +38,7 @@ func signPacket(pkt *agentv1.BusPacket, priv *ecdsa.PrivateKey, reader *detReade
 		return fmt.Errorf("marshal unsigned: %w", err)
 	}
 	hash := sha256.Sum256(unsigned)
-	sig, err := ecdsa.SignASN1(reader, priv, hash[:])
+	sig, err := priv.Sign(nil, hash[:], crypto.SHA256)
 	if err != nil {
 		return fmt.Errorf("sign: %w", err)
 	}
@@ -77,8 +46,8 @@ func signPacket(pkt *agentv1.BusPacket, priv *ecdsa.PrivateKey, reader *detReade
 	return nil
 }
 
-func writePacket(path string, pkt *agentv1.BusPacket, priv *ecdsa.PrivateKey, reader *detReader) error {
-	if err := signPacket(pkt, priv, reader); err != nil {
+func writePacket(path string, pkt *agentv1.BusPacket, priv *ecdsa.PrivateKey) error {
+	if err := signPacket(pkt, priv); err != nil {
 		return err
 	}
 	data, err := marshalDeterministic(pkt)
@@ -309,8 +278,7 @@ func main() {
 
 	for _, fixture := range fixtures {
 		outPath := filepath.Join(outDir, fixture.Name)
-		reader := seededReader(fixture.Name)
-		if err := writePacket(outPath, fixture.Packet, priv, reader); err != nil {
+		if err := writePacket(outPath, fixture.Packet, priv); err != nil {
 			fatal(err)
 		}
 	}

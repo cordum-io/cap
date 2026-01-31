@@ -1,5 +1,10 @@
 # Changelog
 
+## v2.0.19 — 2026-01-31
+- Stabilized conformance fixture signatures across Go patch releases.
+- Updated Go toolchain to 1.24.12 for stdlib security fixes.
+- Bumped go-redis to v9.7.3 for vulnerability remediation.
+
 ## v2.0.18 — 2026-01-31
 - Added high-level runtime layers for Go/Node/Python SDKs with typed handlers, Redis pointer hydration, retries, and size/timeouts defaults.
 - Added runtime docs and tests across SDKs.

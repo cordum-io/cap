@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cordum-guard"
+version = "0.1.0"
+description = "Cordum Safety Guard — @guard decorator for LangChain, LlamaIndex, and plain Python functions"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+dependencies = [
+  "httpx>=0.25.0",
+  "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+langchain = ["langchain-core>=0.1.0"]
+llamaindex = ["llama-index-core>=0.10.0"]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "respx>=0.21"]
+
+[project.urls]
+Homepage = "https://github.com/cordum-io/cap"
+Documentation = "https://docs.cordum.io/sdk/python-guard"
+
+[tool.setuptools.packages.find]
+where = ["."]

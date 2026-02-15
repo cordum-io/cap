@@ -6,9 +6,15 @@ import (
 
 // DefaultSubject names for CAP. These match the transport profile in the spec.
 const (
-	SubjectSubmit   = "sys.job.submit"
-	SubjectResult   = "sys.job.result"
-	SubjectHeartbeat = "sys.heartbeat"
+	SubjectSubmit        = "sys.job.submit"
+	SubjectResult        = "sys.job.result"
+	SubjectHeartbeat     = "sys.heartbeat"
+	SubjectAlert         = "sys.alert"
+	SubjectProgress      = "sys.job.progress"
+	SubjectCancel        = "sys.job.cancel"
+	SubjectDLQ           = "sys.job.dlq"
+	SubjectWorkflowEvent = "sys.workflow.event"
+	SubjectHandshake     = "sys.handshake"
 )
 
 // DefaultProtocolVersion is the current CAP wire version.

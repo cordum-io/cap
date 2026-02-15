@@ -6,8 +6,9 @@ from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 
+from cap.subjects import SUBJECT_RESULT
+
 DEFAULT_PROTOCOL_VERSION = 1
-SUBJECT_RESULT = "sys.job.result"
 
 
 async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.JobRequest], Awaitable[job_pb2.JobResult]],

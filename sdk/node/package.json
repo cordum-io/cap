@@ -35,18 +35,18 @@
     "test": "tsc -p tsconfig.json --outDir dist && mocha dist/test/*.test.js"
   },
   "dependencies": {
+    "nats": "^2.16.0",
+    "protobufjs": "^7.2.5",
+    "redis": "^4.7.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
     "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.10",
     "chai": "^6.2.1",
     "mocha": "^11.7.5",
-    "nats": "^2.16.0",
-    "protobufjs": "^7.2.5",
-    "redis": "^4.7.0",
     "ts-mocha": "^11.1.0",
     "tsconfig-paths": "^4.2.0",
-    "zod": "^3.24.0"
-  },
-  "devDependencies": {
     "typescript": "^5.4.0"
   },
   "overrides": {

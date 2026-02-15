@@ -56,6 +56,40 @@ enum ActorType {
     ACTOR_TYPE_SERVICE = 2;
 }
 
+// ErrorCode provides structured error classification for JobResult.
+// See spec/13-error-codes.md for the normative registry and usage guidance.
+enum ErrorCode {
+    ERROR_CODE_UNSPECIFIED = 0;
+
+    // Protocol errors (100-199)
+    ERROR_CODE_PROTOCOL_VERSION_MISMATCH  = 100;
+    ERROR_CODE_PROTOCOL_MALFORMED_PACKET  = 101;
+    ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD   = 102;
+    ERROR_CODE_PROTOCOL_SIGNATURE_INVALID = 103;
+    ERROR_CODE_PROTOCOL_SIGNATURE_MISSING = 104;
+
+    // Job errors (200-299)
+    ERROR_CODE_JOB_TIMEOUT            = 200;
+    ERROR_CODE_JOB_RESOURCE_EXHAUSTED = 201;
+    ERROR_CODE_JOB_PERMISSION_DENIED  = 202;
+    ERROR_CODE_JOB_INVALID_INPUT      = 203;
+    ERROR_CODE_JOB_NOT_FOUND          = 204;
+    ERROR_CODE_JOB_DUPLICATE          = 205;
+    ERROR_CODE_JOB_WORKER_UNAVAILABLE = 206;
+
+    // Safety errors (300-399)
+    ERROR_CODE_SAFETY_DENIED           = 300;
+    ERROR_CODE_SAFETY_POLICY_VIOLATION = 301;
+    ERROR_CODE_SAFETY_RISK_TAG_BLOCKED = 302;
+
+    // Transport errors (400-499)
+    ERROR_CODE_TRANSPORT_PUBLISH_FAILED   = 400;
+    ERROR_CODE_TRANSPORT_SUBSCRIBE_FAILED = 401;
+    ERROR_CODE_TRANSPORT_CONNECTION_LOST  = 402;
+
+    // 1000-9999: reserved for application-specific codes
+}
+
 // JobMetadata captures structured identity and capability metadata.
 message JobMetadata {
     string tenant_id = 1;
@@ -117,6 +151,7 @@ message JobResult {
     string error_code = 6;        // optional machine-readable error
     string error_message = 7;     // optional human-readable error
     repeated string artifact_ptrs = 8; // pointers to artifacts (logs/diffs/evidence)
+    ErrorCode error_code_enum = 9;     // structured error code (preferred over string error_code)
 }
 
 // JobProgress conveys incremental progress for a job.

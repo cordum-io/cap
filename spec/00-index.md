@@ -35,3 +35,4 @@ Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 - [10 Security and Observability](10-security-observability.md)
 - [11 Security Best Practices](11-security-best-practices.md)
 - [12 Glossary](12-glossary.md)
+- [13 Error Codes](13-error-codes.md)

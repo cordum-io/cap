@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package cordum.agent.v1;
+
+option go_package = "github.com/cordum-io/cap/v2/cordum/agent/v1";
+option java_package = "io.cordum.cap.agent.v1";
+option java_multiple_files = true;
+option csharp_namespace = "Cordum.Agent.V1";
+option php_namespace = "cordum\\Agent\\V1";
+option ruby_package = "Cordum::Agent::V1";
+
+// ComponentRole identifies the role of a component in the CAP topology.
+enum ComponentRole {
+    COMPONENT_ROLE_UNSPECIFIED = 0;
+    COMPONENT_ROLE_GATEWAY = 1;
+    COMPONENT_ROLE_SCHEDULER = 2;
+    COMPONENT_ROLE_WORKER = 3;
+    COMPONENT_ROLE_ORCHESTRATOR = 4;
+    COMPONENT_ROLE_CONTROLLER = 5;
+}
+
+// Handshake is published by components on connect to advertise their
+// role, supported protocol versions, and capabilities.
+message Handshake {
+    string component_id = 1;               // unique ID of the connecting component
+    ComponentRole role = 2;                // component's role
+    repeated int32 supported_versions = 3; // wire versions this component supports
+    map<string, bool> capabilities = 4;    // feature flags (signatures, compensation, progress, cancel, etc.)
+    string sdk_version = 5;                // optional SDK version string
+}

@@ -7,7 +7,7 @@ All CAP traffic is wrapped in a `BusPacket`. The envelope provides tracing, send
 - `sender_id`: stable identifier for the emitting component (gateway, scheduler, worker, orchestrator, controller).
 - `created_at`: timestamp of emission.
 - `protocol_version`: CAP wire version. Consumers MAY reject packets with unsupported versions.
-- `payload`: exactly one of `JobRequest`, `JobResult`, `Heartbeat`, or `SystemAlert`.
+- `payload`: exactly one of `JobRequest`, `JobResult`, `Heartbeat`, `SystemAlert`, `JobProgress`, `JobCancel`, or `Handshake`. Old consumers that do not recognize a variant will ignore it per standard protobuf oneof behavior.
 - `signature` (optional but recommended): digital signature of the serialized `BusPacket` for authenticity and integrity. Producers SHOULD sign; consumers SHOULD verify when configured with public keys.
 
 ## Canonical Proto (see `proto/cordum/agent/v1/buspacket.proto`)
@@ -23,6 +23,9 @@ message BusPacket {
     JobResult job_result = 11;
     Heartbeat heartbeat = 12;
     SystemAlert alert = 13;
+    JobProgress job_progress = 15;
+    JobCancel job_cancel = 16;
+    Handshake handshake = 17;
   }
 
   bytes signature = 14; // digital signature of the serialized BusPacket
@@ -34,6 +37,7 @@ message BusPacket {
 - Results: publish `BusPacket{JobResult}` to `sys.job.result`.
 - Heartbeats: publish `BusPacket{Heartbeat}` to `sys.heartbeat` (often with queue groups disabled so all schedulers can see them).
 - Alerts: publish `BusPacket{SystemAlert}` to `sys.alert`.
+- Handshake: publish `BusPacket{Handshake}` to `sys.handshake` on connect or reconnect (see [14 Capability Negotiation](14-capability-negotiation.md)).
 - Work pools: workers subscribe to `job.<pool>` subjects (e.g., `job.code.llm`, `job.tools`, `job.image`).
 
 ## Envelope Rules

@@ -24,6 +24,7 @@ except Exception:  # pragma: no cover - optional until runtime used
 
 
 from cap.subjects import SUBJECT_RESULT
+from cap.metrics import MetricsHook, NoopMetrics
 
 DEFAULT_PROTOCOL_VERSION = 1
 
@@ -156,6 +157,7 @@ class Agent:
         max_result_bytes: Optional[int] = 2 * 1024 * 1024,
         connect_fn: Optional[Callable[..., Awaitable[Any]]] = None,
         logger: Optional[logging.Logger] = None,
+        metrics: Optional[MetricsHook] = None,
     ) -> None:
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
@@ -169,6 +171,7 @@ class Agent:
         self._max_result_bytes = max_result_bytes if max_result_bytes and max_result_bytes > 0 else None
         self._connect_fn = connect_fn
         self._logger = logger or _default_logger()
+        self._metrics: MetricsHook = metrics or NoopMetrics()
         self._handlers: Dict[str, HandlerSpec] = {}
         self._nc = None
 

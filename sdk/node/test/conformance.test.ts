@@ -135,4 +135,51 @@ describe("CAP conformance fixtures", () => {
     assert.strictEqual(alert.level, "WARN");
     assert.strictEqual(alert.component, "scheduler");
   });
+
+  it("decodes handshake fixture", async () => {
+    const root = await loadRoot();
+    const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+    const data = fs.readFileSync(fixturePath("buspacket_handshake.bin"));
+    const pkt = BusPacket.decode(data) as any;
+    verifySignature(pkt, BusPacket);
+
+    assert.strictEqual(pkt.traceId, "trace-handshake");
+    assert.strictEqual(pkt.senderId, "worker-1");
+    assert.strictEqual(pkt.protocolVersion, 1);
+
+    const hs = pkt.handshake;
+    assert.ok(hs);
+    assert.strictEqual(hs.componentId, "worker-1");
+    assert.strictEqual(hs.role, 3); // COMPONENT_ROLE_WORKER
+    assert.deepStrictEqual(hs.supportedVersions, [1]);
+    assert.strictEqual(hs.capabilities.signatures, true);
+    assert.strictEqual(hs.capabilities.progress, true);
+    assert.strictEqual(hs.capabilities.cancel, true);
+    assert.strictEqual(hs.capabilities.compensation, false);
+    assert.strictEqual(hs.sdkVersion, "2.0.19");
+  });
+
+  it("decodes enhanced alert fixture", async () => {
+    const root = await loadRoot();
+    const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+    const data = fs.readFileSync(fixturePath("buspacket_alert_enhanced.bin"));
+    const pkt = BusPacket.decode(data) as any;
+    verifySignature(pkt, BusPacket);
+
+    assert.strictEqual(pkt.traceId, "trace-alert-enhanced");
+
+    const alert = pkt.alert;
+    assert.ok(alert);
+    // Legacy fields
+    assert.strictEqual(alert.level, "CRITICAL");
+    assert.strictEqual(alert.component, "scheduler");
+    assert.strictEqual(alert.code, "SIGNATURE_INVALID");
+    // Enhanced fields
+    assert.strictEqual(alert.severity, 4); // ALERT_SEVERITY_CRITICAL
+    assert.strictEqual(alert.errorCodeEnum, 103); // ERROR_CODE_PROTOCOL_SIGNATURE_INVALID
+    assert.strictEqual(alert.sourceComponent, "scheduler-1");
+    assert.strictEqual(alert.details.sender, "worker-bad");
+    assert.strictEqual(alert.details.subject, "sys.job.result");
+    assert.strictEqual(alert.traceId, "trace-offending-packet");
+  });
 });

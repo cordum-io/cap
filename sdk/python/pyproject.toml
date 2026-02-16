@@ -20,6 +20,9 @@ dependencies = [
   "redis>=5.0.0",
 ]
 
+[project.optional-dependencies]
+dev = ["pdoc>=14.0"]
+
 [project.urls]
 Homepage = "https://github.com/cordum-io/cap"
 Repository = "https://github.com/cordum-io/cap"

@@ -5,6 +5,8 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/cordum-io/cap/v2.svg)](https://pkg.go.dev/github.com/cordum-io/cap/v2)
 [![Discord](https://img.shields.io/discord/cordum?label=Discord&logo=discord)](https://discord.gg/U4NpXtjP)
 
+> **New to CAP?** Follow the [Getting Started in 5 Minutes](docs/getting-started.md) guide to go from zero to a running job.
+
 ## TL;DR
 - Cluster-native job protocol for AI agents: standard envelopes, jobs, heartbeats, and workflows over a bus.
 - Keeps payloads off the wire via `context_ptr` and `result_ptr` so the bus stays lean and secure.

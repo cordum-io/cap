@@ -9,10 +9,26 @@ option csharp_namespace = "Cordum.Agent.V1";
 option php_namespace = "cordum\\Agent\\V1";
 option ruby_package = "Cordum::Agent::V1";
 
+import "cordum/agent/v1/job.proto";
+
+// AlertSeverity represents the severity of a system alert.
+enum AlertSeverity {
+    ALERT_SEVERITY_UNSPECIFIED = 0;
+    ALERT_SEVERITY_INFO = 1;
+    ALERT_SEVERITY_WARNING = 2;
+    ALERT_SEVERITY_ERROR = 3;
+    ALERT_SEVERITY_CRITICAL = 4;
+}
+
 // SystemAlert is a lightweight signal for system-level issues.
 message SystemAlert {
-    string level = 1;     // INFO, WARN, CRITICAL
-    string message = 2;   // human-readable detail
-    string component = 3; // emitting component name
-    string code = 4;      // optional machine-readable code
+    string level = 1;                      // DEPRECATED: use severity enum
+    string message = 2;                    // human-readable detail
+    string component = 3;                  // DEPRECATED: use source_component
+    string code = 4;                       // DEPRECATED: use error_code_enum
+    AlertSeverity severity = 5;            // structured severity level
+    ErrorCode error_code_enum = 6;         // structured error code from ErrorCode registry
+    string source_component = 7;           // component ID that emitted the alert
+    map<string, string> details = 8;       // structured key-value context
+    string trace_id = 9;                   // optional correlation to a specific BusPacket
 }

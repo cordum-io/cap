@@ -11,7 +11,7 @@ sys.path = [p for p in sys.path if not p.rstrip("/").endswith("python")]
 sys.path.insert(0, _sdk_root)
 sys.path.append(os.path.join(_sdk_root, "cap", "pb"))
 
-from cap.pb.cordum.agent.v1 import buspacket_pb2
+from cap.pb.cordum.agent.v1 import alert_pb2, buspacket_pb2, handshake_pb2, job_pb2
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -103,6 +103,35 @@ class TestConformanceFixtures(unittest.TestCase):
         alert = pkt.alert
         self.assertEqual(alert.level, "WARN")
         self.assertEqual(alert.component, "scheduler")
+
+    def test_handshake_fixture(self):
+        pkt = load_packet("buspacket_handshake.bin")
+        self._assert_common(pkt, "trace-handshake", "worker-1")
+        hs = pkt.handshake
+        self.assertEqual(hs.component_id, "worker-1")
+        self.assertEqual(hs.role, handshake_pb2.COMPONENT_ROLE_WORKER)
+        self.assertEqual(list(hs.supported_versions), [1])
+        self.assertTrue(hs.capabilities["signatures"])
+        self.assertTrue(hs.capabilities["progress"])
+        self.assertTrue(hs.capabilities["cancel"])
+        self.assertFalse(hs.capabilities["compensation"])
+        self.assertEqual(hs.sdk_version, "2.0.19")
+
+    def test_alert_enhanced_fixture(self):
+        pkt = load_packet("buspacket_alert_enhanced.bin")
+        self._assert_common(pkt, "trace-alert-enhanced", "scheduler-1")
+        alert = pkt.alert
+        # Legacy fields
+        self.assertEqual(alert.level, "CRITICAL")
+        self.assertEqual(alert.component, "scheduler")
+        self.assertEqual(alert.code, "SIGNATURE_INVALID")
+        # Enhanced fields
+        self.assertEqual(alert.severity, alert_pb2.ALERT_SEVERITY_CRITICAL)
+        self.assertEqual(alert.error_code_enum, job_pb2.ERROR_CODE_PROTOCOL_SIGNATURE_INVALID)
+        self.assertEqual(alert.source_component, "scheduler-1")
+        self.assertEqual(alert.details["sender"], "worker-bad")
+        self.assertEqual(alert.details["subject"], "sys.job.result")
+        self.assertEqual(alert.trace_id, "trace-offending-packet")
 
 
 if __name__ == "__main__":

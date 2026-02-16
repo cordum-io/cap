@@ -68,6 +68,29 @@ agent.run().catch(console.error);
 - `NATS_URL` (default `nats://127.0.0.1:4222`)
 - `REDIS_URL` (default `redis://127.0.0.1:6379/0`)
 
+## Middleware
+
+Add cross-cutting concerns (logging, auth, metrics) without modifying handlers:
+
+```ts
+import { loggingMiddleware, Middleware } from "cap-sdk-node";
+
+// Built-in logging middleware
+agent.use(loggingMiddleware());
+
+// Custom middleware
+const timing: Middleware = async (ctx, next) => {
+  const start = Date.now();
+  const result = await next();
+  console.log(`job ${ctx.jobId} took ${Date.now() - start}ms`);
+  return result;
+};
+agent.use(timing);
+```
+
+Middleware executes in registration order (FIFO). Each can inspect context,
+measure timing, or short-circuit by returning without calling `next`.
+
 ## Notes
 - Subjects: `sys.job.submit`, `job.<pool>`, `sys.job.result`, `sys.heartbeat`.
 - Protocol version: `1`.

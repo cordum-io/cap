@@ -300,6 +300,8 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 		return
 	}
 
+	a.Metrics.OnJobReceived(req.GetJobId(), req.GetTopic())
+
 	ctxLogger := a.Logger.With(
 		"job_id", req.GetJobId(),
 		"trace_id", packet.GetTraceId(),
@@ -362,6 +364,7 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 		WorkerId:    a.SenderID,
 		ExecutionMs: execMs,
 	}
+	a.Metrics.OnJobCompleted(req.GetJobId(), execMs, "SUCCEEDED")
 	a.publishResult(ctx, result)
 }
 
@@ -395,6 +398,7 @@ func (a *Agent) storeResult(key string, data []byte) error {
 }
 
 func (a *Agent) publishFailure(ctx Context, req *agentv1.JobRequest, errorMsg string, execMs int64) {
+	a.Metrics.OnJobFailed(req.GetJobId(), errorMsg)
 	result := &agentv1.JobResult{
 		JobId:        req.GetJobId(),
 		Status:       agentv1.JobStatus_JOB_STATUS_FAILED,

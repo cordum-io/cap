@@ -33,6 +33,7 @@ type Worker struct {
 	PrivateKey *ecdsa.PrivateKey
 	SenderID   string
 	Logger     *slog.Logger
+	Metrics    capsdk.MetricsHook
 }
 
 // Start begins consuming and handling JobRequests. It returns after the subscription is created.
@@ -51,6 +52,9 @@ func (w *Worker) Start() error {
 	}
 	if w.Logger == nil {
 		w.Logger = slog.Default()
+	}
+	if w.Metrics == nil {
+		w.Metrics = capsdk.NoopMetrics
 	}
 	_, err := w.NATS.QueueSubscribe(w.Subject, w.Subject, func(msg *nats.Msg) {
 		ctx := context.Background()
@@ -82,11 +86,13 @@ func (w *Worker) Start() error {
 		if req == nil {
 			return
 		}
+		w.Metrics.OnJobReceived(req.GetJobId(), req.GetTopic())
 		jobLogger := w.Logger.With(
 			"job_id", req.GetJobId(),
 			"trace_id", packet.GetTraceId(),
 			"sender_id", packet.GetSenderId(),
 		)
+		start := time.Now()
 		res, err := w.Handler(ctx, req)
 		if err != nil {
 			res = &agentv1.JobResult{
@@ -109,8 +115,14 @@ func (w *Worker) Start() error {
 		if res.WorkerId == "" {
 			res.WorkerId = w.SenderID
 		}
+		execMs := time.Since(start).Milliseconds()
 		if res.ExecutionMs == 0 {
-			res.ExecutionMs = 0
+			res.ExecutionMs = execMs
+		}
+		if res.Status == agentv1.JobStatus_JOB_STATUS_FAILED {
+			w.Metrics.OnJobFailed(res.JobId, res.ErrorMessage)
+		} else {
+			w.Metrics.OnJobCompleted(res.JobId, execMs, res.Status.String())
 		}
 		out := &agentv1.BusPacket{
 			TraceId:         packet.GetTraceId(),

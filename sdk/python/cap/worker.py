@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from typing import Callable, Awaitable, Dict, Optional
 
 from google.protobuf import timestamp_pb2
@@ -9,6 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 
 from cap.subjects import SUBJECT_RESULT
+from cap.metrics import MetricsHook, NoopMetrics
 
 DEFAULT_PROTOCOL_VERSION = 1
 
@@ -18,10 +20,13 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
                      private_key: ec.EllipticCurvePrivateKey = None,
                      sender_id: str = "cap-worker",
                      connect_fn: Callable = None,
-                     logger: Optional[logging.Logger] = None):
+                     logger: Optional[logging.Logger] = None,
+                     metrics: Optional[MetricsHook] = None):
 
     if logger is None:
         logger = logging.getLogger("cap.worker")
+    if metrics is None:
+        metrics = NoopMetrics()
 
     # Allow injection for tests; defaults to nats.connect.
     if connect_fn is None:
@@ -56,6 +61,8 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
         req = packet.job_request
         if not req.job_id:
             return
+        metrics.on_job_received(req.job_id, req.topic)
+        start_time = time.monotonic()
         try:
             res = await handler(req)
             if res is None:
@@ -74,6 +81,11 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
             res.job_id = req.job_id
         if not res.worker_id:
             res.worker_id = sender_id
+        elapsed_ms = int((time.monotonic() - start_time) * 1000)
+        if res.status == job_pb2.JOB_STATUS_FAILED:
+            metrics.on_job_failed(res.job_id, res.error_message)
+        else:
+            metrics.on_job_completed(res.job_id, elapsed_ms, "SUCCEEDED")
         ts = timestamp_pb2.Timestamp()
         ts.GetCurrentTime()
         out = buspacket_pb2.BusPacket()

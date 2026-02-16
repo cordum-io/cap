@@ -9,6 +9,7 @@ node_modules/
 venv/
 .venv/
 __pycache__/
+*.egg-info/
 dist/
 tmp/
 temp/

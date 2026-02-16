@@ -5,6 +5,7 @@ import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import * as crypto from "crypto";
 
+/** Minimal logger interface accepted by {@link Agent}. Defaults to `console`. */
 export interface Logger {
   info: (...args: any[]) => void;
   warn: (...args: any[]) => void;
@@ -16,12 +17,14 @@ const DEFAULT_REDIS_URL = "redis://127.0.0.1:6379/0";
 const DEFAULT_TIMEOUT_MS = 5000;
 const DEFAULT_MAX_BYTES = 2 * 1024 * 1024;
 
+/** Abstraction over payload storage (Redis, in-memory, etc.). */
 export interface BlobStore {
   get(key: string): Promise<Buffer | null>;
   set(key: string, data: Buffer): Promise<void>;
   close(): Promise<void>;
 }
 
+/** Redis-backed {@link BlobStore} implementation. */
 export class RedisBlobStore implements BlobStore {
   private readonly client: RedisClientType;
   private readonly ready: Promise<void>;
@@ -51,6 +54,7 @@ export class RedisBlobStore implements BlobStore {
   }
 }
 
+/** In-memory {@link BlobStore} for testing without external infrastructure. */
 export class InMemoryBlobStore implements BlobStore {
   private readonly data = new Map<string, Buffer>();
 
@@ -67,9 +71,13 @@ export class InMemoryBlobStore implements BlobStore {
   }
 }
 
+/** Per-request context passed to every job handler. */
 export interface Context {
+  /** The decoded JobRequest protobuf. */
   job: any;
+  /** The full BusPacket envelope. */
   packet: any;
+  /** Scoped logger with job/trace metadata. */
   log: Logger;
   jobId: string;
   traceId: string;
@@ -85,6 +93,7 @@ interface HandlerSpec {
   retries: number;
 }
 
+/** Options for constructing an {@link Agent}. */
 export interface AgentOptions {
   natsUrl?: string;
   redisUrl?: string;
@@ -100,6 +109,7 @@ export interface AgentOptions {
   logger?: Logger;
 }
 
+/** Per-handler options for {@link Agent.job}. */
 export interface JobOptions<TOut = any> {
   outputSchema?: z.ZodType<TOut>;
   retries?: number;
@@ -152,6 +162,11 @@ async function withTimeout<T>(promise: Promise<T>, ms: number | undefined, label
   });
 }
 
+/**
+ * High-level runtime that manages typed job handlers, blob storage, and NATS subscriptions.
+ *
+ * Register handlers with {@link Agent.job}, then call {@link Agent.run} to start processing.
+ */
 export class Agent {
   private readonly natsUrl: string;
   private readonly redisUrl: string;

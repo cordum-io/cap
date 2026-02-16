@@ -5,10 +5,10 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
-	"github.com/cordum-io/cap/v2/sdk/go"
+	capsdk "github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -21,6 +21,7 @@ type Handler func(context.Context, *agentv1.BusPacket)
 type Client struct {
 	NATS       *nats.Conn
 	PublicKeys map[string]*ecdsa.PublicKey
+	Logger     *slog.Logger
 }
 
 // Publisher is an interface that can publish a message to a subject.
@@ -65,11 +66,15 @@ func (c *Client) Subscribe(subject string, handler Handler) (*nats.Subscription,
 		return nil, errors.New("client: handler is required")
 	}
 
+	logger := c.Logger
+	if logger == nil {
+		logger = slog.Default()
+	}
 	sub, err := c.NATS.Subscribe(subject, func(msg *nats.Msg) {
 		ctx := context.Background()
 		var packet agentv1.BusPacket
 		if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-			log.Printf("client: could not decode packet: %v", err)
+			logger.Error("could not decode packet", "error", err)
 			return
 		}
 
@@ -77,16 +82,16 @@ func (c *Client) Subscribe(subject string, handler Handler) (*nats.Subscription,
 		if c.PublicKeys != nil {
 			pubKey, ok := c.PublicKeys[packet.GetSenderId()]
 			if !ok {
-				log.Printf("client: no public key found for sender: %s", packet.GetSenderId())
+				logger.Warn("no public key found", "sender_id", packet.GetSenderId())
 				return
 			}
 
 			if len(packet.GetSignature()) == 0 {
-				log.Printf("client: missing signature for packet from sender: %s", packet.GetSenderId())
+				logger.Warn("missing signature", "sender_id", packet.GetSenderId())
 				return
 			}
 			if err := capsdk.VerifyPacketSignature(&packet, pubKey); err != nil {
-				log.Printf("client: signature verification failed for sender %s: %v", packet.GetSenderId(), err)
+				logger.Warn("signature verification failed", "sender_id", packet.GetSenderId(), "error", err)
 				return
 			}
 		}

@@ -78,6 +78,27 @@ Asyncio-first SDK with NATS helpers for CAP workers and clients.
 
 Swap out `cap.bus` if you need a different transport.
 
+## Testing
+
+The `cap.testing` module lets you test handlers without running NATS or Redis.
+
+```python
+from cap.testing import run_handler
+from cap.pb.cordum.agent.v1 import job_pb2
+
+async def test_echo():
+    result = await run_handler(
+        lambda ctx, data: {"echo": data["prompt"]},
+        {"prompt": "hello"},
+        topic="job.echo",
+    )
+    assert result.status == job_pb2.JOB_STATUS_SUCCEEDED
+```
+
+- `run_handler(handler, input, **options)` — runs a single handler invocation and returns the `JobResult`.
+- `create_test_agent(**options)` — returns `(agent, mock_nats, store)` pre-wired with `MockNATS` + `InMemoryBlobStore`.
+- `MockNATS` — in-memory NATS mock for custom test setups.
+
 ## Runtime (High-Level SDK)
 The runtime hides NATS/Redis plumbing and gives you typed handlers.
 

@@ -68,6 +68,27 @@ agent.run().catch(console.error);
 - `NATS_URL` (default `nats://127.0.0.1:4222`)
 - `REDIS_URL` (default `redis://127.0.0.1:6379/0`)
 
+## Testing
+
+The `testing` module lets you test handlers without running NATS or Redis.
+
+```ts
+import { testHandler } from "cap-sdk-node";
+
+it("runs echo handler without NATS", async () => {
+  const result = await testHandler(
+    async (_ctx, data: { prompt: string }) => ({ echo: data.prompt }),
+    { prompt: "hello" },
+    { topic: "job.echo" }
+  );
+  expect(result.status).to.equal(5); // JOB_STATUS_SUCCEEDED
+});
+```
+
+- `testHandler(handler, input, options?)` — runs a single handler invocation and returns the result.
+- `createTestAgent(options?)` — returns `{ agent, bus, store }` pre-wired with `MockNatsConnection` + `InMemoryBlobStore`.
+- `MockNatsConnection` — in-memory NATS mock for custom test setups.
+
 ## Notes
 - Subjects: `sys.job.submit`, `job.<pool>`, `sys.job.result`, `sys.heartbeat`.
 - Protocol version: `1`.

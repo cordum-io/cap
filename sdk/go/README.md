@@ -90,6 +90,33 @@ if err := client.Submit(context.Background(), nc, req, "trace-1", "client-go", p
 }
 ```
 
+## Testing
+
+The `testing` package lets you test handlers without running NATS or Redis.
+
+```go
+import (
+    "testing"
+    agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+    captesting "github.com/cordum-io/cap/v2/sdk/go/testing"
+)
+
+func TestEchoHandler(t *testing.T) {
+    req := &agentv1.JobRequest{JobId: "test-1", Topic: "job.echo"}
+    result, err := captesting.SubmitAndWait(myHandler, req)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if result.Status != agentv1.JobStatus_JOB_STATUS_SUCCEEDED {
+        t.Fatalf("unexpected status: %v", result.Status)
+    }
+}
+```
+
+- `captesting.InMemoryBus` — implements `NATSConn` without NATS.
+- `captesting.SubmitAndWait(handler, request)` — runs a low-level worker handler and returns the result.
+- `captesting.SubmitToRuntime(bus, request)` — sends a request to a runtime `Agent` wired to an `InMemoryBus`.
+
 ## Signing
 - `client.Submit` and `worker.Worker` sign envelopes when you pass a non-nil ECDSA private key (P-256); configure `PublicKeys` to verify incoming packets when you want authenticity enforcement.
 - Signatures are computed over deterministic protobuf serialization (map entries ordered by key) to ensure cross-SDK verification.

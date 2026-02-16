@@ -36,3 +36,5 @@ Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 - [11 Security Best Practices](11-security-best-practices.md)
 - [12 Glossary](12-glossary.md)
 - [13 Error Codes](13-error-codes.md)
+- [14 Capability Negotiation](14-capability-negotiation.md)
+- [15 Conformance Levels](15-conformance-levels.md)

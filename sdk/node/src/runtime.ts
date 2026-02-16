@@ -3,6 +3,7 @@ import { createClient, RedisClientType } from "redis";
 import { z, ZodTypeAny } from "zod";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
+import type { Middleware } from "./middleware";
 import * as crypto from "crypto";
 
 export interface Logger {
@@ -166,6 +167,7 @@ export class Agent {
   private readonly connectFn: (opts: any) => Promise<NatsConnection>;
   private readonly logger: Logger;
   private readonly handlers = new Map<string, HandlerSpec>();
+  private readonly middlewares: Middleware[] = [];
   private nc?: NatsConnection;
   private busPacketType?: any;
   private jobResultType?: any;
@@ -193,6 +195,11 @@ export class Agent {
           : undefined;
     this.connectFn = options.connectFn ?? connect;
     this.logger = options.logger ?? console;
+  }
+
+  /** Appends middleware to the agent. Middleware executes in registration order before the handler. */
+  use(...mw: Middleware[]): void {
+    this.middlewares.push(...mw);
   }
 
   job<TIn, TOut>(
@@ -379,12 +386,21 @@ export class Agent {
       return;
     }
 
+    // Build middleware chain: outermost first, terminal calls handler.
+    const terminal = () => spec.handler(ctx, inputData);
+    let chain = terminal;
+    for (let i = this.middlewares.length - 1; i >= 0; i--) {
+      const mw = this.middlewares[i];
+      const next = chain;
+      chain = () => mw(ctx, next);
+    }
+
     const start = Date.now();
     let output: any;
     let error: string | null = null;
     for (let attempt = 0; attempt <= spec.retries; attempt += 1) {
       try {
-        output = await spec.handler(ctx, inputData);
+        output = await chain();
         output = spec.outputSchema ? spec.outputSchema.parse(output) : output;
         error = null;
         break;

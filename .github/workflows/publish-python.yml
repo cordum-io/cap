@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write # Required for OIDC (if you switch to it later)
+      id-token: write
     defaults:
       run:
         shell: bash
@@ -130,8 +130,5 @@ jobs:
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          # Note: packages-dir is relative to REPO ROOT, not working-directory
           packages-dir: sdk/python/dist
           skip-existing: true
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}

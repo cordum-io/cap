@@ -48,3 +48,9 @@ message BusPacket {
 - Bus-level metadata (headers) MAY be used for auth or routing, but message-level fields remain canonical.
 - When signatures are enabled, verify the `signature` against the serialized packet with the field zeroed; drop or flag packets that fail verification.
 - Signatures MUST be computed over deterministic protobuf serialization. Map entries MUST be ordered by key. Implementations SHOULD use deterministic/protobuf-canonical encoding when signing/verifying (e.g., Go `proto.MarshalOptions{Deterministic: true}`, Python `SerializeToString(deterministic=True)`, or protobufjs with map keys sorted before encode).
+
+## Protocol Error Handling
+- When a consumer receives a BusPacket with an unsupported `protocol_version`, it SHOULD publish a `SystemAlert` with `error_code_enum = PROTOCOL_VERSION_MISMATCH` and `severity = ERROR` to `sys.alert`.
+- When signature verification fails, the consumer SHOULD publish a `SystemAlert` with `error_code_enum = PROTOCOL_SIGNATURE_INVALID` and `severity = CRITICAL`.
+- When a BusPacket fails to deserialize, the consumer SHOULD publish a `SystemAlert` with `error_code_enum = PROTOCOL_MALFORMED_PACKET` and `severity = ERROR`.
+- See [16 Protocol Errors](16-protocol-errors.md) for the full error reporting specification.

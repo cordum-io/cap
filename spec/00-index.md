@@ -38,3 +38,4 @@ Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 - [13 Error Codes](13-error-codes.md)
 - [14 Capability Negotiation](14-capability-negotiation.md)
 - [15 Conformance Levels](15-conformance-levels.md)
+- [16 Protocol Errors](16-protocol-errors.md)

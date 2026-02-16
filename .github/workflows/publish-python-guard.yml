@@ -101,5 +101,3 @@ jobs:
         with:
           packages-dir: sdk/python-guard/dist
           skip-existing: true
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN_GUARD }}

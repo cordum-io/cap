@@ -1,3 +1,9 @@
+"""CAP (Cordum Agent Protocol) SDK for Python.
+
+Provides helpers for submitting jobs, running workers, and building
+high-level agents on the CAP bus.
+"""
+
 import sys
 import types
 

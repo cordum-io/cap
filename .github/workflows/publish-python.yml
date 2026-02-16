@@ -104,16 +104,17 @@ jobs:
           PYTHON_BIN: python
         run: |
           mkdir -p cap/pb
-          touch cap/pb/__init__.py  # FIX: Ensure package is importable
-          
+
           "$PYTHON_BIN" -m grpc_tools.protoc \
             -I../../proto \
             --python_out=./cap/pb \
             --grpc_python_out=./cap/pb \
             ../../proto/cordum/agent/v1/*.proto
 
-          # Ensure package hierarchy is importable (namespace packages are optional but explicit is safer).
-          touch cap/pb/cordum/__init__.py \
+          # grpc_tools.protoc does not generate __init__.py files;
+          # create them so the pb package hierarchy is importable.
+          touch cap/pb/__init__.py \
+            cap/pb/cordum/__init__.py \
             cap/pb/cordum/agent/__init__.py \
             cap/pb/cordum/agent/v1/__init__.py
 

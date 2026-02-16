@@ -72,3 +72,23 @@ jobs:
 
       - name: Run tests
         run: python -m unittest discover -s sdk/python/tests
+
+  python-guard:
+    name: Python Guard SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "sdk/python-guard[dev]"
+
+      - name: Run tests
+        working-directory: sdk/python-guard
+        run: pytest

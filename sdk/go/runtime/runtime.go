@@ -271,7 +271,7 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 	start := time.Now()
 	var packet agentv1.BusPacket
 	if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-		a.Logger.Printf("runtime: decode failed: %v", err)
+		a.Logger.Printf("runtime: %v", capsdk.NewMalformedPacketError(err.Error()))
 		return
 	}
 
@@ -282,11 +282,11 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 			return
 		}
 		if len(packet.GetSignature()) == 0 {
-			a.Logger.Printf("runtime: missing signature for sender %s", packet.GetSenderId())
+			a.Logger.Printf("runtime: %v", capsdk.NewSignatureMissingError("sender "+packet.GetSenderId()))
 			return
 		}
 		if err := capsdk.VerifyPacketSignature(&packet, pub); err != nil {
-			a.Logger.Printf("runtime: invalid signature from sender %s: %v", packet.GetSenderId(), err)
+			a.Logger.Printf("runtime: %v", capsdk.NewSignatureInvalidError("sender "+packet.GetSenderId()+": "+err.Error()))
 			return
 		}
 	}
@@ -314,7 +314,7 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 
 	input, err := spec.decode(payload)
 	if err != nil {
-		a.publishFailure(ctx, req, fmt.Sprintf("input validation failed: %v", err), 0)
+		a.publishFailure(ctx, req, capsdk.NewInvalidInputError(err.Error()).Error(), 0)
 		return
 	}
 

@@ -4,6 +4,7 @@ import { z, ZodTypeAny } from "zod";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import * as crypto from "crypto";
+import { MalformedPacketError, SignatureInvalidError, SignatureMissingError, InvalidInputError } from "./errors";
 
 export interface Logger {
   info: (...args: any[]) => void;
@@ -113,14 +114,14 @@ function pointerForKey(key: string): string {
 
 function keyFromPointer(ptr: string): string {
   if (!ptr) {
-    throw new Error("empty pointer");
+    throw new InvalidInputError("empty pointer");
   }
   if (!ptr.startsWith("redis://")) {
-    throw new Error("unsupported pointer scheme");
+    throw new InvalidInputError("unsupported pointer scheme");
   }
   const key = ptr.slice("redis://".length);
   if (!key) {
-    throw new Error("missing pointer key");
+    throw new InvalidInputError("missing pointer key");
   }
   return key;
 }
@@ -311,7 +312,7 @@ export class Agent {
     try {
       packet = this.busPacketType.decode(msg.data);
     } catch (err) {
-      this.logger.error("runtime: decode failed:", err);
+      this.logger.error("runtime:", new MalformedPacketError(err instanceof Error ? err.message : String(err)));
       return;
     }
 
@@ -323,14 +324,14 @@ export class Agent {
         return;
       }
       if (!signature || signature.length === 0) {
-        this.logger.warn(`runtime: missing signature for sender ${senderId}`);
+        this.logger.warn(new SignatureMissingError(`sender ${senderId}`).message);
         return;
       }
       const unsignedData = encodeUnsignedForSignature(this.busPacketType, packet);
       const verify = crypto.createVerify("sha256");
       verify.update(unsignedData);
       if (!verify.verify(this.publicKeyMap[senderId], signature)) {
-        this.logger.warn(`runtime: invalid signature from sender ${senderId}`);
+        this.logger.warn(new SignatureInvalidError(`sender ${senderId}`).message);
         return;
       }
     }

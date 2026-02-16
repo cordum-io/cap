@@ -1,13 +1,17 @@
 import asyncio
+import logging
 from typing import Callable, Awaitable, Dict
 
 from google.protobuf import timestamp_pb2
+
+logger = logging.getLogger(__name__)
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 
+from cap.subjects import SUBJECT_RESULT
+
 DEFAULT_PROTOCOL_VERSION = 1
-SUBJECT_RESULT = "sys.job.result"
 
 
 async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.JobRequest], Awaitable[job_pb2.JobResult]],
@@ -33,7 +37,7 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
         if public_keys:
             public_key = public_keys.get(packet.sender_id)
             if not public_key:
-                print(f"worker: no public key found for sender: {packet.sender_id}")
+                logger.warning("no public key found for sender: %s", packet.sender_id)
                 return
 
             signature = packet.signature
@@ -43,7 +47,7 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
             try:
                 public_key.verify(signature, unsigned_data, ec.ECDSA(hashes.SHA256()))
             except Exception:
-                print(f"worker: invalid signature from sender: {packet.sender_id}")
+                logger.warning("invalid signature from sender: %s", packet.sender_id)
                 return
 
         req = packet.job_request

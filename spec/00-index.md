@@ -20,6 +20,7 @@ Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 - Protocol vs SDK:
   - Protocol wire schema: 1.0.0 (stable).
   - Repository/SDK: 2.0.19 (may add helpers, docs, and generated stubs without wire breaks).
+- For the full versioning policy, see [17 Versioning Policy](17-versioning-policy.md).
 
 ## Table of Contents
 - [01 Overview](01-overview.md)
@@ -35,3 +36,8 @@ Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 - [10 Security and Observability](10-security-observability.md)
 - [11 Security Best Practices](11-security-best-practices.md)
 - [12 Glossary](12-glossary.md)
+- [13 Error Codes](13-error-codes.md)
+- [14 Capability Negotiation](14-capability-negotiation.md)
+- [15 Conformance Levels](15-conformance-levels.md)
+- [16 Protocol Errors](16-protocol-errors.md)
+- [17 Versioning Policy](17-versioning-policy.md)

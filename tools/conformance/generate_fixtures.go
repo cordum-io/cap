@@ -274,6 +274,50 @@ func main() {
 				}},
 			},
 		},
+		{
+			Name: "buspacket_handshake.bin",
+			Packet: &agentv1.BusPacket{
+				TraceId:         "trace-handshake",
+				SenderId:        "worker-1",
+				CreatedAt:       timestamp,
+				ProtocolVersion: 1,
+				Payload: &agentv1.BusPacket_Handshake{Handshake: &agentv1.Handshake{
+					ComponentId:       "worker-1",
+					Role:              agentv1.ComponentRole_COMPONENT_ROLE_WORKER,
+					SupportedVersions: []int32{1},
+					Capabilities: map[string]bool{
+						"signatures":   true,
+						"progress":     true,
+						"cancel":       true,
+						"compensation": false,
+					},
+					SdkVersion: "2.0.19",
+				}},
+			},
+		},
+		{
+			Name: "buspacket_alert_enhanced.bin",
+			Packet: &agentv1.BusPacket{
+				TraceId:         "trace-alert-enhanced",
+				SenderId:        "scheduler-1",
+				CreatedAt:       timestamp,
+				ProtocolVersion: 1,
+				Payload: &agentv1.BusPacket_Alert{Alert: &agentv1.SystemAlert{
+					Level:           "CRITICAL",
+					Message:         "invalid signature from worker",
+					Component:       "scheduler",
+					Code:            "SIGNATURE_INVALID",
+					Severity:        agentv1.AlertSeverity_ALERT_SEVERITY_CRITICAL,
+					ErrorCodeEnum:   agentv1.ErrorCode_ERROR_CODE_PROTOCOL_SIGNATURE_INVALID,
+					SourceComponent: "scheduler-1",
+					Details: map[string]string{
+						"sender":  "worker-bad",
+						"subject": "sys.job.result",
+					},
+					TraceId: "trace-offending-packet",
+				}},
+			},
+		},
 	}
 
 	for _, fixture := range fixtures {

@@ -24,7 +24,8 @@ CAP jobs are the core unit of work. Gateways submit `JobRequest` packets, worker
 - `result_ptr`: pointer to output payload; MAY be empty on failure but SHOULD be set when output exists.
 - `worker_id`: identifier of the emitting worker.
 - `execution_ms`: elapsed processing time measured by the worker.
-- `error_code` / `error_message`: optional diagnostics for failures or denials.
+- `error_code` / `error_message`: optional diagnostics for failures or denials. The string `error_code` is retained for backward compatibility; prefer `error_code_enum` for new implementations (see [13 Error Codes](13-error-codes.md)).
+- `error_code_enum`: preferred structured error classification (see [13 Error Codes](13-error-codes.md)). When set, SHOULD take precedence over the freeform `error_code` string.
 - Use `FAILED_RETRYABLE` for transient errors (rate limits, temporary network), and `FAILED_FATAL` for non-recoverable errors that should trigger rollback.
 
 ## Job Lifecycle Diagram

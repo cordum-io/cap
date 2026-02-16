@@ -13,6 +13,7 @@ import "google/protobuf/timestamp.proto";
 import "cordum/agent/v1/job.proto";
 import "cordum/agent/v1/heartbeat.proto";
 import "cordum/agent/v1/alert.proto";
+import "cordum/agent/v1/handshake.proto";
 
 // BusPacket is the envelope for all traffic on the bus.
 message BusPacket {
@@ -28,6 +29,7 @@ message BusPacket {
         SystemAlert alert = 13;
         JobProgress job_progress = 15;
         JobCancel job_cancel = 16;
+        Handshake handshake = 17;
     }
     bytes signature = 14;                   // digital signature of the serialized BusPacket
 }

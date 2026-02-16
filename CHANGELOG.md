@@ -1,58 +1,84 @@
 # Changelog
 
+All notable changes to the Cordum Agent Protocol and its SDKs are documented here.
+
+Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
+
+## Unreleased — Protocol Hardening
+
+- **[WIRE]** Added `ErrorCode` enum and `error_code_enum` field to `JobResult` for structured error classification.
+- **[WIRE]** Enhanced `SystemAlert` with `AlertSeverity` enum and structured fields (`severity`, `source_component`, `details`, `trace_id`).
+- **[WIRE]** Added `Handshake` message for capability negotiation.
+- Added error code registry (spec/13), capability negotiation (spec/14), conformance levels (spec/15), protocol errors (spec/16), and versioning policy (spec/17).
+- Added input validation helpers to Go, Node, and Python SDKs (`ValidateJobRequest`, `ValidateJobResult`, `ValidateBusPacket`).
+- Added `cordum-guard` Python SDK with `@guard` decorator for LangChain, LlamaIndex, and plain Python functions.
+- Hardened SDK packaging: metadata, test exclusion, dependency separation, publish workflows.
+- Added python-guard CI test job.
+
 ## v2.0.19 — 2026-01-31
+
 - Stabilized conformance fixture signatures across Go patch releases.
 - Updated Go toolchain to 1.24.12 for stdlib security fixes.
 - Bumped go-redis to v9.7.3 for vulnerability remediation.
 
 ## v2.0.18 — 2026-01-31
+
 - Added high-level runtime layers for Go/Node/Python SDKs with typed handlers, Redis pointer hydration, retries, and size/timeouts defaults.
 - Added runtime docs and tests across SDKs.
 - Added runtime dependencies (go-redis, zod, redis, pydantic) for developer-friendly validation and storage access.
 - Regenerated conformance fixtures with deterministic signing.
 
 ## v2.0.17 — 2026-01-30
+
 - Added deterministic signing helpers and conformance fixtures for cross-SDK verification (Go/Node/Python).
 - Standardized signature serialization rules in spec/wiki and SDK docs.
 - Added CI workflow to run Go/Node/Python tests, govulncheck, and fixture drift checks.
 
 ## v2.0.16 — 2026-01-26
-- Added `FAILED_RETRYABLE` and `FAILED_FATAL` to `JobStatus` for explicit retry vs rollback handling.
+
+- **[WIRE]** Added `FAILED_RETRYABLE` and `FAILED_FATAL` to `JobStatus` for explicit retry vs rollback handling.
 - Updated state machine/spec/docs and examples for the new failure semantics.
 
 ## v2.0.15 — 2026-01-26
+
 - Updated Go toolchain to 1.24.11 and bumped Go deps (grpc/x/*) to address vulnerability reports.
 - Fixed Node SDK proto path resolution for built artifacts and added npm override to remediate diff advisory.
 
 ## v2.0.14 — 2026-01-26
-- Added `JobRequest.compensation` template for rollback semantics.
-- Added heartbeat checkpoint fields `progress_pct` and `last_memo`.
+
+- **[WIRE]** Added `JobRequest.compensation` template for rollback semantics.
+- **[WIRE]** Added heartbeat checkpoint fields `progress_pct` and `last_memo`.
 - Regenerated stubs across Go/C++/Node/Python and updated Go heartbeat helper.
 
 ## v2.0.13 — 2026-01-23
-- Added `memory_load` to worker Heartbeats for memory utilization telemetry.
+
+- **[WIRE]** Added `memory_load` to worker Heartbeats for memory utilization telemetry.
 - Regenerated Go/C++ stubs and added Go SDK heartbeat helper with memory.
-# Changelog
 
 ## v2.0.9 — 2026-01-09
+
 - Release bump for published tag.
 
 ## v2.0.8 — 2026-01-09
+
 - Rebranded CAP to Cordum: module path, proto package, and namespace updates across SDKs.
 - Regenerated Go/C++/Node/Python stubs under `cordum/agent/v1`.
 
 ## v2.0.7 — 2026-01-03
-- Added policy budget constraint `max_concurrent_jobs`.
+
+- **[WIRE]** Added policy budget constraint `max_concurrent_jobs`.
 - Confirmed CAP bus payloads include `JobProgress` and `JobCancel` for worker control events.
 
 ## v2.0.6 — 2026-01-03
-- Added `JobRequest.meta` for structured pack-ready identity/capability metadata.
+
+- **[WIRE]** Added `JobRequest.meta` for structured pack-ready identity/capability metadata.
 - SafetyKernel: expanded PolicyCheckResponse with policy snapshots, rule IDs, and structured constraints; added Evaluate/Explain/Simulate/ListSnapshots RPCs.
 - Go: canonical protobuf import path `github.com/cordum-io/cap/v2/cordum/agent/v1`; removed duplicate `/go` stubs and updated generation defaults.
 - Go SDK moved under the root module (`github.com/cordum-io/cap/v2/sdk/go`) for unified versioning.
 - Regenerated stubs across Go/C++/Python/Node for the updated contracts.
 
 ## v2.0.5 — 2026-01-02
+
 - Fixed Python signing/verification to use raw packet bytes for ECDSA, matching Go/Node behavior.
 - Node SDK: corrected proto root resolution, handled handler errors, and defaulted missing `jobId`/`workerId` in results.
 - Go SDK: allow unsigned submits and handle nil handler results without panicking.
@@ -60,14 +86,16 @@
 - Expanded examples and SDK docs, including Python/Node simple-echo walkthroughs.
 
 ## v2.0.0 — 2025-12-12
+
 - Clarified versioning (protocol wire 1.0.0 with `protocol_version=1`; repo/SDK release 2.0.0).
-- Added first-class context/memory semantics: `memory_id`, `context_hints`, and a dedicated spec page.
-- Added budgeting and multi-tenant metadata to JobRequest (budget, tenant/principal, labels) and Safety inputs.
+- **[WIRE]** Added first-class context/memory semantics: `memory_id`, `context_hints`, and a dedicated spec page.
+- **[WIRE]** Added budgeting and multi-tenant metadata to JobRequest (budget, tenant/principal, labels) and Safety inputs.
 - Expanded observability/tracing guidance (workflow parent/child semantics, stable `trace_id`) and transport/idempotency recommendations.
 - Regenerated Go/Python/C++ stubs with new fields; fixed Node proto loading and E2E tests; C++ build uses vendored stubs.
 
 ## v0.1.0 — 2025-12-11
-- First public draft of the Cordum Agent Protocol (CAP): BusPacket, JobRequest/JobResult, Heartbeat, SafetyKernel, and Alert protobuf contracts under `proto/cordum/agent/v1`.
+
+- **[WIRE]** First public draft of the Cordum Agent Protocol (CAP): BusPacket, JobRequest/JobResult, Heartbeat, SafetyKernel, and Alert protobuf contracts under `proto/cordum/agent/v1`.
 - Transport profile documented for NATS with canonical subjects (`sys.job.submit`, `sys.job.result`, `sys.heartbeat`) and pointer semantics (`context_ptr`, `result_ptr`, `redacted_context_ptr`).
 - SDKs: Go (`github.com/cordum-io/cap/v2/cordum/agent/v1` import path via `/cordum/agent/v1` stubs), Python (asyncio + NATS), and Node/TypeScript (protobufjs loader) aligned to the same contracts.
 - Tooling: `tools/make_protos.sh` to generate Go/Python stubs into `/cordum/agent/v1` and `/python`; Python virtualenv support via `PYTHON_BIN`.

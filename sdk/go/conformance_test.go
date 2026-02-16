@@ -208,4 +208,61 @@ func TestConformanceFixtures(t *testing.T) {
 			t.Fatalf("unexpected alert fields: %#v", alert)
 		}
 	})
+
+	t.Run("handshake", func(t *testing.T) {
+		pkt := loadPacket(t, "buspacket_handshake.bin")
+		verifySignature(t, pkt, pub)
+		assertTimestamp(t, pkt)
+		hs := pkt.GetHandshake()
+		if hs == nil {
+			t.Fatal("missing handshake")
+		}
+		if hs.GetComponentId() != "worker-1" {
+			t.Fatalf("unexpected component_id: %s", hs.GetComponentId())
+		}
+		if hs.GetRole() != agentv1.ComponentRole_COMPONENT_ROLE_WORKER {
+			t.Fatalf("unexpected role: %v", hs.GetRole())
+		}
+		if len(hs.GetSupportedVersions()) != 1 || hs.GetSupportedVersions()[0] != 1 {
+			t.Fatalf("unexpected supported_versions: %v", hs.GetSupportedVersions())
+		}
+		caps := hs.GetCapabilities()
+		if !caps["signatures"] || !caps["progress"] || !caps["cancel"] || caps["compensation"] {
+			t.Fatalf("unexpected capabilities: %v", caps)
+		}
+		if hs.GetSdkVersion() != "2.0.19" {
+			t.Fatalf("unexpected sdk_version: %s", hs.GetSdkVersion())
+		}
+	})
+
+	t.Run("alert_enhanced", func(t *testing.T) {
+		pkt := loadPacket(t, "buspacket_alert_enhanced.bin")
+		verifySignature(t, pkt, pub)
+		assertTimestamp(t, pkt)
+		alert := pkt.GetAlert()
+		if alert == nil {
+			t.Fatal("missing alert")
+		}
+		// Legacy fields
+		if alert.GetLevel() != "CRITICAL" || alert.GetComponent() != "scheduler" || alert.GetCode() != "SIGNATURE_INVALID" {
+			t.Fatalf("unexpected legacy alert fields: level=%s component=%s code=%s", alert.GetLevel(), alert.GetComponent(), alert.GetCode())
+		}
+		// Enhanced fields
+		if alert.GetSeverity() != agentv1.AlertSeverity_ALERT_SEVERITY_CRITICAL {
+			t.Fatalf("unexpected severity: %v", alert.GetSeverity())
+		}
+		if alert.GetErrorCodeEnum() != agentv1.ErrorCode_ERROR_CODE_PROTOCOL_SIGNATURE_INVALID {
+			t.Fatalf("unexpected error_code_enum: %v", alert.GetErrorCodeEnum())
+		}
+		if alert.GetSourceComponent() != "scheduler-1" {
+			t.Fatalf("unexpected source_component: %s", alert.GetSourceComponent())
+		}
+		details := alert.GetDetails()
+		if details["sender"] != "worker-bad" || details["subject"] != "sys.job.result" {
+			t.Fatalf("unexpected details: %v", details)
+		}
+		if alert.GetTraceId() != "trace-offending-packet" {
+			t.Fatalf("unexpected trace_id: %s", alert.GetTraceId())
+		}
+	})
 }

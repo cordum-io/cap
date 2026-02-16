@@ -12,6 +12,7 @@ const PROTO_BASE_DIR =
 const PROTOS = [
   "alert.proto",
   "buspacket.proto",
+  "handshake.proto",
   "heartbeat.proto",
   "job.proto",
   "safety.proto",
@@ -37,4 +38,10 @@ export async function loadRoot(): Promise<Root> {
 export const SUBJECT_SUBMIT = "sys.job.submit";
 export const SUBJECT_RESULT = "sys.job.result";
 export const SUBJECT_HEARTBEAT = "sys.heartbeat";
+export const SUBJECT_ALERT = "sys.alert";
+export const SUBJECT_PROGRESS = "sys.job.progress";
+export const SUBJECT_CANCEL = "sys.job.cancel";
+export const SUBJECT_DLQ = "sys.job.dlq";
+export const SUBJECT_WORKFLOW_EVENT = "sys.workflow.event";
+export const SUBJECT_HANDSHAKE = "sys.handshake";
 export const DEFAULT_PROTOCOL_VERSION = 1;

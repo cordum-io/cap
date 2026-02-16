@@ -23,8 +23,9 @@ except Exception:  # pragma: no cover - optional until runtime used
     ValidationError = Exception
 
 
+from cap.subjects import SUBJECT_RESULT
+
 DEFAULT_PROTOCOL_VERSION = 1
-SUBJECT_RESULT = "sys.job.result"
 
 
 class BlobStore(Protocol):

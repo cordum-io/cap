@@ -5,8 +5,9 @@ from cryptography.hazmat.primitives import hashes
 from typing import Optional
 
 
+from cap.subjects import SUBJECT_SUBMIT
+
 DEFAULT_PROTOCOL_VERSION = 1
-SUBJECT_SUBMIT = "sys.job.submit"
 
 
 async def submit_job(

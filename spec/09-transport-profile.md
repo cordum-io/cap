@@ -3,11 +3,21 @@
 CAP is transport-agnostic but assumes a pub/sub fabric with subjects/topics and queue groups (competing consumers). This profile provides a recommended mapping for common transports.
 
 ## Subject/Topic Conventions
-- Submission: `sys.job.submit`
-- Results: `sys.job.result`
-- Heartbeats: `sys.heartbeat`
-- Alerts: `sys.alert`
-- Work pools: `job.<pool>` (e.g., `job.code.llm`, `job.tools`, `job.image`)
+
+| Subject | Payload | Direction | Description |
+|---|---|---|---|
+| `sys.job.submit` | `JobRequest` | Gateway → Scheduler | Job submission |
+| `sys.job.result` | `JobResult` | Worker → Scheduler | Job completion |
+| `sys.heartbeat` | `Heartbeat` | Worker → Scheduler | Liveness signal |
+| `sys.alert` | `SystemAlert` | Any → All | System-level alerts |
+| `sys.job.progress` | `JobProgress` | Worker → Scheduler | Incremental progress |
+| `sys.job.cancel` | `JobCancel` | Scheduler → Worker | Cancellation request |
+| `sys.job.dlq` | `BusPacket` | Scheduler → DLQ | Dead letter queue |
+| `sys.workflow.event` | `BusPacket` | Orchestrator → Scheduler | Workflow lifecycle events |
+| `sys.handshake` | `Handshake` | Any → Schedulers/Controllers | Capability negotiation |
+| `job.<pool>` | `JobRequest` | Scheduler → Workers | Work pool dispatch (e.g., `job.code.llm`, `job.tools`, `job.image`) |
+
+All `sys.*` subjects are protocol-defined. The `job.<pool>` pattern is application-defined.
 
 ## NATS Profile (recommended default)
 - Use queue groups for pool subjects so multiple workers share load.

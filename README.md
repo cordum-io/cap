@@ -1,5 +1,10 @@
 # Cordum Agent Protocol (CAP)
 
+[![CI](https://github.com/cordum-io/cap/actions/workflows/ci.yml/badge.svg)](https://github.com/cordum-io/cap/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Go Reference](https://pkg.go.dev/badge/github.com/cordum-io/cap/v2.svg)](https://pkg.go.dev/github.com/cordum-io/cap/v2)
+[![Discord](https://img.shields.io/discord/cordum?label=Discord&logo=discord)](https://discord.gg/U4NpXtjP)
+
 ## TL;DR
 - Cluster-native job protocol for AI agents: standard envelopes, jobs, heartbeats, and workflows over a bus.
 - Keeps payloads off the wire via `context_ptr` and `result_ptr` so the bus stays lean and secure.
@@ -216,10 +221,9 @@ func main() {
 - Go module path: `github.com/cordum-io/cap/v2` (see `go.mod`).
 
 ## Community
-- **Discord:** [Join our Discord server!](https://discord.gg/your-invite-link)
-- **GitHub Discussions:** [Ask questions and share ideas](https://github.com/your-repo/discussions)
-- **Mailing List:** [Subscribe to our mailing list](https://example.com/subscribe)
-- **Email US:** admin@cordum.io
+- **Discord:** [Join our Discord server](https://discord.gg/U4NpXtjP)
+- **GitHub Discussions:** [Ask questions and share ideas](https://github.com/cordum-io/cap/discussions)
+- **Email:** admin@cordum.io
 
 ## Compatibility and Contributing
 - Wire evolution is append-only: never renumber or repurpose existing protobuf fields.

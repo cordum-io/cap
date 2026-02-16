@@ -11,7 +11,7 @@
 
 We take all security bugs in CAP seriously. Thank you for improving the security of our project. We appreciate your efforts and responsible disclosure and will make every effort to acknowledge your contributions.
 
-To report a security vulnerability, please email us at [INSERT EMAIL ADDRESS].
+To report a security vulnerability, please email us at security@cordum.io.
 
 All security vulnerabilities will be promptly addressed. We will send a response indicating the next steps in handling your report. After the initial reply to your report, the security team will keep you informed of the progress towards a fix and full announcement, and may ask for additional information or guidance.
 

@@ -2,7 +2,32 @@
   "name": "cap-sdk-node",
   "version": "2.0.18",
   "description": "CAP (Cordum Agent Protocol) SDK for Node/TypeScript",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "files": [
+    "dist/src/**/*",
+    "!dist/src/sample-worker.*",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cordum-io/cap.git",
+    "directory": "sdk/node"
+  },
+  "homepage": "https://github.com/cordum-io/cap#readme",
+  "bugs": {
+    "url": "https://github.com/cordum-io/cap/issues"
+  },
+  "keywords": [
+    "cap",
+    "cordum",
+    "agent",
+    "protocol",
+    "sdk",
+    "ai"
+  ],
   "scripts": {
     "build": "tsc -p .",
     "lint": "echo \"add linter\"",

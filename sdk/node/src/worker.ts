@@ -5,6 +5,9 @@ import * as crypto from "crypto";
 
 type Handler = (jobRequest: any) => Promise<any>;
 
+/** Middleware wraps a worker Handler, returning a new Handler. */
+export type WorkerMiddleware = (next: Handler) => Handler;
+
 export interface WorkerConfig {
   nc: NatsConnection;
   subject: string;
@@ -13,6 +16,8 @@ export interface WorkerConfig {
   publicKeyMap?: { [senderId: string]: string }; // senderId -> public key in PEM format
   privateKey?: string; // private key in PEM format for signing outgoing messages
   senderId: string;
+  /** Optional middleware applied in FIFO order before the handler. */
+  middlewares?: WorkerMiddleware[];
 }
 
 export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
@@ -48,9 +53,16 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
 
       const jr = packet.jobRequest;
       if (!jr) return;
+      // Apply middleware chain
+      let wrappedHandler = cfg.handler;
+      if (cfg.middlewares) {
+        for (let i = cfg.middlewares.length - 1; i >= 0; i--) {
+          wrappedHandler = cfg.middlewares[i](wrappedHandler);
+        }
+      }
       let resObj: any;
       try {
-        resObj = await cfg.handler(jr);
+        resObj = await wrappedHandler(jr);
       } catch (err) {
         resObj = {
           jobId: jr.jobId,

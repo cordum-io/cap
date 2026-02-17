@@ -3,25 +3,28 @@ import { createClient, RedisClientType } from "redis";
 import { z, ZodTypeAny } from "zod";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
+import type { Middleware } from "./middleware";
 import * as crypto from "crypto";
+import { MalformedPacketError, SignatureInvalidError, SignatureMissingError, InvalidInputError } from "./errors";
+import type { Logger } from "./logger";
+import type { MetricsHook } from "./metrics";
+import { noopMetrics } from "./metrics";
 
-export interface Logger {
-  info: (...args: any[]) => void;
-  warn: (...args: any[]) => void;
-  error: (...args: any[]) => void;
-}
+export type { Logger } from "./logger";
 
 const DEFAULT_NATS_URL = "nats://127.0.0.1:4222";
 const DEFAULT_REDIS_URL = "redis://127.0.0.1:6379/0";
 const DEFAULT_TIMEOUT_MS = 5000;
 const DEFAULT_MAX_BYTES = 2 * 1024 * 1024;
 
+/** Abstraction over payload storage (Redis, in-memory, etc.). */
 export interface BlobStore {
   get(key: string): Promise<Buffer | null>;
   set(key: string, data: Buffer): Promise<void>;
   close(): Promise<void>;
 }
 
+/** Redis-backed {@link BlobStore} implementation. */
 export class RedisBlobStore implements BlobStore {
   private readonly client: RedisClientType;
   private readonly ready: Promise<void>;
@@ -51,6 +54,7 @@ export class RedisBlobStore implements BlobStore {
   }
 }
 
+/** In-memory {@link BlobStore} for testing without external infrastructure. */
 export class InMemoryBlobStore implements BlobStore {
   private readonly data = new Map<string, Buffer>();
 
@@ -67,9 +71,13 @@ export class InMemoryBlobStore implements BlobStore {
   }
 }
 
+/** Per-request context passed to every job handler. */
 export interface Context {
+  /** The decoded JobRequest protobuf. */
   job: any;
+  /** The full BusPacket envelope. */
   packet: any;
+  /** Scoped logger with job/trace metadata. */
   log: Logger;
   jobId: string;
   traceId: string;
@@ -85,6 +93,7 @@ interface HandlerSpec {
   retries: number;
 }
 
+/** Options for constructing an {@link Agent}. */
 export interface AgentOptions {
   natsUrl?: string;
   redisUrl?: string;
@@ -98,8 +107,10 @@ export interface AgentOptions {
   maxResultBytes?: number;
   connectFn?: (opts: any) => Promise<NatsConnection>;
   logger?: Logger;
+  metrics?: MetricsHook;
 }
 
+/** Per-handler options for {@link Agent.job}. */
 export interface JobOptions<TOut = any> {
   outputSchema?: z.ZodType<TOut>;
   retries?: number;
@@ -113,24 +124,29 @@ function pointerForKey(key: string): string {
 
 function keyFromPointer(ptr: string): string {
   if (!ptr) {
-    throw new Error("empty pointer");
+    throw new InvalidInputError("empty pointer");
   }
   if (!ptr.startsWith("redis://")) {
-    throw new Error("unsupported pointer scheme");
+    throw new InvalidInputError("unsupported pointer scheme");
   }
   const key = ptr.slice("redis://".length);
   if (!key) {
-    throw new Error("missing pointer key");
+    throw new InvalidInputError("missing pointer key");
   }
   return key;
 }
 
 function withContextLogger(base: Logger, meta: { jobId: string; traceId: string; topic: string }): Logger {
-  const prefix = `job_id=${meta.jobId} trace_id=${meta.traceId} topic=${meta.topic}`;
   return {
-    info: (...args: any[]) => base.info(prefix, ...args),
-    warn: (...args: any[]) => base.warn(prefix, ...args),
-    error: (...args: any[]) => base.error(prefix, ...args),
+    info(msg: string, fields?: Record<string, any>): void {
+      base.info(msg, { ...meta, ...fields });
+    },
+    warn(msg: string, fields?: Record<string, any>): void {
+      base.warn(msg, { ...meta, ...fields });
+    },
+    error(msg: string, fields?: Record<string, any>): void {
+      base.error(msg, { ...meta, ...fields });
+    },
   };
 }
 
@@ -152,6 +168,11 @@ async function withTimeout<T>(promise: Promise<T>, ms: number | undefined, label
   });
 }
 
+/**
+ * High-level runtime that manages typed job handlers, blob storage, and NATS subscriptions.
+ *
+ * Register handlers with {@link Agent.job}, then call {@link Agent.run} to start processing.
+ */
 export class Agent {
   private readonly natsUrl: string;
   private readonly redisUrl: string;
@@ -165,7 +186,9 @@ export class Agent {
   private readonly maxResultBytes?: number;
   private readonly connectFn: (opts: any) => Promise<NatsConnection>;
   private readonly logger: Logger;
+  private readonly metrics: MetricsHook;
   private readonly handlers = new Map<string, HandlerSpec>();
+  private readonly middlewares: Middleware[] = [];
   private nc?: NatsConnection;
   private busPacketType?: any;
   private jobResultType?: any;
@@ -193,6 +216,12 @@ export class Agent {
           : undefined;
     this.connectFn = options.connectFn ?? connect;
     this.logger = options.logger ?? console;
+    this.metrics = options.metrics ?? noopMetrics;
+  }
+
+  /** Appends middleware to the agent. Middleware executes in registration order before the handler. */
+  use(...mw: Middleware[]): void {
+    this.middlewares.push(...mw);
   }
 
   job<TIn, TOut>(
@@ -270,7 +299,7 @@ export class Agent {
             msg = args[0];
           }
           if (err) {
-            this.logger.error("runtime: subscribe error:", err);
+            this.logger.error("subscribe error", { error: String(err) });
             return;
           }
           if (!msg) {
@@ -299,11 +328,11 @@ export class Agent {
 
   private async onMessage(msg: any, spec: HandlerSpec): Promise<void> {
     if (!this.store) {
-      this.logger.error("runtime: blob store not initialized");
+      this.logger.error("blob store not initialized");
       return;
     }
     if (!this.busPacketType) {
-      this.logger.error("runtime: protobuf types not initialized");
+      this.logger.error("protobuf types not initialized");
       return;
     }
 
@@ -311,7 +340,7 @@ export class Agent {
     try {
       packet = this.busPacketType.decode(msg.data);
     } catch (err) {
-      this.logger.error("runtime: decode failed:", err);
+      this.logger.error("decode failed", { error: String(new MalformedPacketError(err instanceof Error ? err.message : String(err))) });
       return;
     }
 
@@ -319,18 +348,18 @@ export class Agent {
       const senderId = packet.senderId;
       const signature = packet.signature;
       if (!senderId || !this.publicKeyMap[senderId]) {
-        this.logger.warn(`runtime: no public key for sender ${senderId}`);
+        this.logger.warn("no public key for sender", { senderId });
         return;
       }
       if (!signature || signature.length === 0) {
-        this.logger.warn(`runtime: missing signature for sender ${senderId}`);
+        this.logger.warn("missing signature", { senderId, error: new SignatureMissingError(`sender ${senderId}`).message });
         return;
       }
       const unsignedData = encodeUnsignedForSignature(this.busPacketType, packet);
       const verify = crypto.createVerify("sha256");
       verify.update(unsignedData);
       if (!verify.verify(this.publicKeyMap[senderId], signature)) {
-        this.logger.warn(`runtime: invalid signature from sender ${senderId}`);
+        this.logger.warn("invalid signature", { senderId, error: new SignatureInvalidError(`sender ${senderId}`).message });
         return;
       }
     }
@@ -339,6 +368,8 @@ export class Agent {
     if (!req || !req.jobId) {
       return;
     }
+
+    this.metrics.onJobReceived(req.jobId, req.topic);
 
     const ctx: Context = {
       job: req,
@@ -379,18 +410,27 @@ export class Agent {
       return;
     }
 
+    // Build middleware chain: outermost first, terminal calls handler.
+    const terminal = () => spec.handler(ctx, inputData);
+    let chain = terminal;
+    for (let i = this.middlewares.length - 1; i >= 0; i--) {
+      const mw = this.middlewares[i];
+      const next = chain;
+      chain = () => mw(ctx, next);
+    }
+
     const start = Date.now();
     let output: any;
     let error: string | null = null;
     for (let attempt = 0; attempt <= spec.retries; attempt += 1) {
       try {
-        output = await spec.handler(ctx, inputData);
+        output = await chain();
         output = spec.outputSchema ? spec.outputSchema.parse(output) : output;
         error = null;
         break;
       } catch (err) {
         error = err instanceof Error ? err.message : String(err);
-        ctx.log.warn(`runtime: handler failed (attempt ${attempt + 1}/${spec.retries + 1}):`, err);
+        ctx.log.warn("handler failed", { attempt: attempt + 1, maxAttempts: spec.retries + 1, error: String(err) });
       }
     }
 
@@ -410,6 +450,7 @@ export class Agent {
       await withTimeout(this.store.set(resultKey, resultPayload), this.ioTimeoutMs, "result write");
       const resultPtr = pointerForKey(resultKey);
 
+      this.metrics.onJobCompleted(req.jobId, elapsedMs, "SUCCEEDED");
       await this.publishResult(ctx, req, resultPtr, elapsedMs);
     } catch (err) {
       await this.publishFailure(ctx, req, `result write failed: ${err}`, elapsedMs);
@@ -427,6 +468,7 @@ export class Agent {
   }
 
   private async publishFailure(ctx: Context, req: any, error: string, executionMs: number): Promise<void> {
+    this.metrics.onJobFailed(req.jobId, error);
     await this.publishResult(ctx, req, "", executionMs, {
       status: "JOB_STATUS_FAILED",
       errorMessage: error,
@@ -441,11 +483,11 @@ export class Agent {
     overrides: Record<string, any> = {}
   ): Promise<void> {
     if (!this.nc) {
-      ctx.log.error("runtime: NATS not initialized");
+      ctx.log.error("NATS not initialized");
       return;
     }
     if (!this.busPacketType || !this.jobResultType) {
-      ctx.log.error("runtime: protobuf types not initialized");
+      ctx.log.error("protobuf types not initialized");
       return;
     }
 

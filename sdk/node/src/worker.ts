@@ -1,10 +1,19 @@
 import { NatsConnection, Subscription } from "nats";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
+import type { Logger } from "./logger";
+import type { MetricsHook } from "./metrics";
+import { noopMetrics } from "./metrics";
 import * as crypto from "crypto";
+import { MalformedPacketError, SignatureInvalidError, SignatureMissingError } from "./errors";
 
+/** Callback that processes a decoded JobRequest and returns a JobResult. */
 type Handler = (jobRequest: any) => Promise<any>;
 
+/** Middleware wraps a worker Handler, returning a new Handler. */
+export type WorkerMiddleware = (next: Handler) => Handler;
+
+/** Configuration for {@link startWorker}. */
 export interface WorkerConfig {
   nc: NatsConnection;
   subject: string;
@@ -13,12 +22,26 @@ export interface WorkerConfig {
   publicKeyMap?: { [senderId: string]: string }; // senderId -> public key in PEM format
   privateKey?: string; // private key in PEM format for signing outgoing messages
   senderId: string;
+  /** Optional middleware applied in FIFO order before the handler. */
+  middlewares?: WorkerMiddleware[];
+  logger?: Logger;
+  metrics?: MetricsHook;
 }
 
+/**
+ * Subscribes to a NATS subject and dispatches incoming JobRequests to the handler.
+ *
+ * Results are wrapped in a signed BusPacket and published to the result subject.
+ *
+ * @param cfg - Worker configuration including NATS connection and handler.
+ * @returns The underlying NATS subscription.
+ */
 export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
   const JobResult = root.lookupType("cordum.agent.v1.JobResult");
+  const logger: Logger = cfg.logger ?? console;
+  const metrics: MetricsHook = cfg.metrics ?? noopMetrics;
 
   const onMessage = async (msg: any) => {
     try {
@@ -28,7 +51,7 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
       if (cfg.publicKeyMap && packet.senderId && packet.signature && packet.signature.length > 0) {
         const publicKey = cfg.publicKeyMap[packet.senderId];
         if (!publicKey) {
-          console.warn(`Worker: No public key found for sender ${packet.senderId}. Dropping message.`);
+          logger.warn("no public key found", { senderId: packet.senderId });
           return;
         }
 
@@ -38,19 +61,28 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
         const verify = crypto.createVerify("sha256");
         verify.update(unsignedData);
         if (!verify.verify(publicKey, receivedSignature)) {
-          console.warn(`Worker: Invalid signature from sender ${packet.senderId}. Dropping message.`);
+          logger.warn("invalid signature", { senderId: packet.senderId, error: new SignatureInvalidError(`sender ${packet.senderId}`).message });
           return;
         }
       } else if (cfg.publicKeyMap && (!packet.signature || packet.signature.length === 0)) {
-        console.warn(`Worker: Message from sender ${packet.senderId} has no signature but public keys are configured. Dropping message.`);
+        logger.warn("missing signature", { senderId: packet.senderId, error: new SignatureMissingError(`sender ${packet.senderId}`).message });
         return;
       }
 
       const jr = packet.jobRequest;
       if (!jr) return;
+      metrics.onJobReceived(jr.jobId, jr.topic);
+      const startTime = Date.now();
+      // Apply middleware chain
+      let wrappedHandler = cfg.handler;
+      if (cfg.middlewares) {
+        for (let i = cfg.middlewares.length - 1; i >= 0; i--) {
+          wrappedHandler = cfg.middlewares[i](wrappedHandler);
+        }
+      }
       let resObj: any;
       try {
-        resObj = await cfg.handler(jr);
+        resObj = await wrappedHandler(jr);
       } catch (err) {
         resObj = {
           jobId: jr.jobId,
@@ -70,6 +102,13 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
       }
       if (!resObj.workerId) {
         resObj.workerId = cfg.senderId;
+      }
+
+      const elapsedMs = Date.now() - startTime;
+      if (resObj.status === "JOB_STATUS_FAILED") {
+        metrics.onJobFailed(resObj.jobId, resObj.errorMessage ?? "");
+      } else {
+        metrics.onJobCompleted(resObj.jobId, elapsedMs, resObj.status ?? "JOB_STATUS_SUCCEEDED");
       }
 
       const jrMsg = JobResult.fromObject(resObj);
@@ -92,8 +131,7 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
       const data = encodeDeterministic(BusPacket, out);
       await cfg.nc.publish(SUBJECT_RESULT, data);
     } catch (err) {
-      // log and continue
-      console.error(err);
+      logger.error("worker error", { error: String(err) });
     }
   };
 

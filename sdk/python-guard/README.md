@@ -76,6 +76,9 @@ async def async_operation():
 | `api_key`     | —             | API key for authentication           |
 | `tenant_id`   | `"default"`   | Tenant identifier                    |
 | `timeout`     | `30.0`        | HTTP request timeout (seconds)       |
+| `cache_ttl`   | `0`           | Cache TTL in seconds (0 = disabled)  |
+| `cache_max_size` | `1000`     | Max cached policy entries             |
+| `on_error`    | `"closed"`    | Failure mode: `"closed"`, `"open"`, or callable |
 
 ### @guard decorator
 
@@ -96,6 +99,70 @@ async def async_operation():
 | `policy`     | `""`           | Policy name                          |
 | `risk_tags`  | `[]`           | Risk tags for all wrapped tools      |
 | `topic`      | `"job.guard"`  | NATS topic for evaluation            |
+
+## Testing
+
+Use `MockCordumClient` to test guarded code without a live gateway:
+
+```python
+from cordum_guard import guard, MockCordumClient, Decision
+
+mock = MockCordumClient(default_decision=Decision.ALLOW)
+mock.set_policy_response("dangerous-ops", Decision.DENY)
+
+@guard(mock, capability="safe-op")
+def safe_func():
+    return "works"
+
+@guard(mock, capability="dangerous-ops")
+def risky_func():
+    return "blocked"
+
+assert safe_func() == "works"
+# risky_func() raises CordumBlockedError
+
+# Inspect what was evaluated:
+assert len(mock.call_log) == 1
+assert mock.call_log[0].capability == "safe-op"
+```
+
+## Caching
+
+Enable TTL-based caching to reduce gateway round-trips:
+
+```python
+client = CordumClient(
+    gateway_url="http://localhost:8081",
+    api_key="my-key",
+    cache_ttl=30,       # cache decisions for 30s (0 = disabled)
+    cache_max_size=500,  # max cached entries
+)
+# ALLOW/DENY/THROTTLE cached; REQUIRE_APPROVAL always fresh
+# Bypass cache per-call: client.evaluate_policy(..., cache=False)
+# Clear cache: client.clear_cache()
+```
+
+## Failure Modes
+
+Configure what happens when the gateway is unreachable:
+
+```python
+# Default: fail-closed (raise CordumConnectionError)
+client = CordumClient("http://localhost:8081", api_key="key", on_error="closed")
+
+# Fail-open: allow operations when gateway is down
+client = CordumClient("http://localhost:8081", api_key="key", on_error="open")
+
+# Callback: custom logic per error
+def my_fallback(error):
+    if "critical" in str(error):
+        raise error  # fail closed for critical
+    return SafetyDecision(decision=Decision.ALLOW)
+
+client = CordumClient("http://localhost:8081", api_key="key", on_error=my_fallback)
+```
+
+Only connection/timeout errors trigger fail-open. Auth errors (401/403) and explicit DENY responses always propagate normally.
 
 ## License
 

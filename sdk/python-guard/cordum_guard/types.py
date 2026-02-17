@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Callable, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -55,3 +55,10 @@ class ApprovalEntry(BaseModel):
     capability: str = ""
     reason: str = ""
     created_at: Optional[str] = None
+
+
+# Type alias for the on_error callback parameter.
+OnErrorCallback = Callable[[Exception], "SafetyDecision"]
+
+# Union type for the on_error parameter (string literal or callback).
+OnErrorMode = Union[str, OnErrorCallback]

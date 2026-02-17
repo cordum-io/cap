@@ -90,6 +90,55 @@ if err := client.Submit(context.Background(), nc, req, "trace-1", "client-go", p
 }
 ```
 
+## Testing
+
+The `testing` package lets you test handlers without running NATS or Redis.
+
+```go
+import (
+    "testing"
+    agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+    captesting "github.com/cordum-io/cap/v2/sdk/go/testing"
+)
+
+func TestEchoHandler(t *testing.T) {
+    req := &agentv1.JobRequest{JobId: "test-1", Topic: "job.echo"}
+    result, err := captesting.SubmitAndWait(myHandler, req)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if result.Status != agentv1.JobStatus_JOB_STATUS_SUCCEEDED {
+        t.Fatalf("unexpected status: %v", result.Status)
+    }
+}
+```
+
+- `captesting.InMemoryBus` — implements `NATSConn` without NATS.
+- `captesting.SubmitAndWait(handler, request)` — runs a low-level worker handler and returns the result.
+- `captesting.SubmitToRuntime(bus, request)` — sends a request to a runtime `Agent` wired to an `InMemoryBus`.
+
+## Middleware
+
+Add cross-cutting concerns (logging, auth, metrics) without modifying handlers:
+
+```go
+// Built-in logging middleware
+agent.Use(runtime.LoggingMiddleware(logger))
+
+// Custom middleware
+agent.Use(func(next runtime.HandlerFunc) runtime.HandlerFunc {
+    return func(ctx runtime.Context, data any) (any, error) {
+        ctx.Logger.Printf("before job %s", ctx.Job.GetJobId())
+        out, err := next(ctx, data)
+        ctx.Logger.Printf("after job %s", ctx.Job.GetJobId())
+        return out, err
+    }
+})
+```
+
+Middleware executes in registration order (FIFO). Each can inspect context,
+measure timing, or short-circuit by returning without calling `next`.
+
 ## Signing
 - `client.Submit` and `worker.Worker` sign envelopes when you pass a non-nil ECDSA private key (P-256); configure `PublicKeys` to verify incoming packets when you want authenticity enforcement.
 - Signatures are computed over deterministic protobuf serialization (map entries ordered by key) to ensure cross-SDK verification.
@@ -99,6 +148,65 @@ if err := client.Submit(context.Background(), nc, req, "trace-1", "client-go", p
   pub := &priv.PublicKey
   ```
  - Pass `nil` as the private key to send unsigned envelopes.
+
+## Generating API Docs
+
+Go exports are automatically rendered on [pkg.go.dev](https://pkg.go.dev/github.com/cordum-io/cap/v2/sdk/go).
+To browse docs locally:
+
+```bash
+go doc ./sdk/go/...
+```
+
+## Observability
+
+### Structured Logging
+The runtime Agent and Worker use `*slog.Logger` (stdlib) for structured logging. All log calls include contextual fields (`job_id`, `trace_id`, `topic`, `sender_id`). Pass a custom logger or leave nil for the default:
+
+```go
+agent := &runtime.Agent{
+    Logger: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+}
+```
+
+### MetricsHook
+Implement `capsdk.MetricsHook` to integrate with Prometheus, OpenTelemetry, or any metrics system:
+
+```go
+type MetricsHook interface {
+    OnJobReceived(jobID, topic string)
+    OnJobCompleted(jobID string, durationMs int64, status string)
+    OnJobFailed(jobID string, errorMsg string)
+    OnHeartbeatSent(workerID string)
+}
+```
+
+The default is `NoopMetrics` (zero overhead). Example Prometheus integration:
+
+```go
+type promMetrics struct {
+    jobsReceived  *prometheus.CounterVec
+    jobDuration   *prometheus.HistogramVec
+}
+
+func (m *promMetrics) OnJobReceived(jobID, topic string) {
+    m.jobsReceived.WithLabelValues(topic).Inc()
+}
+func (m *promMetrics) OnJobCompleted(jobID string, durationMs int64, status string) {
+    m.jobDuration.WithLabelValues(status).Observe(float64(durationMs))
+}
+func (m *promMetrics) OnJobFailed(jobID, errorMsg string) {
+    m.jobsReceived.WithLabelValues("failed").Inc()
+}
+func (m *promMetrics) OnHeartbeatSent(workerID string) {}
+
+agent := &runtime.Agent{
+    Metrics: &promMetrics{...},
+}
+```
+
+The `trace_id` is propagated through all log and metrics calls for distributed tracing correlation.
+
 
 ## Notes
 - The protobuf `go_package` is `github.com/cordum-io/cap/v2/cordum/agent/v1`.

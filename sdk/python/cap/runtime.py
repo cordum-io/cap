@@ -24,11 +24,15 @@ except Exception:  # pragma: no cover - optional until runtime used
 
 
 from cap.subjects import SUBJECT_RESULT
+from cap.errors import InvalidInputError, MalformedPacketError, SignatureInvalidError, SignatureMissingError
+from cap.metrics import MetricsHook, NoopMetrics
 
 DEFAULT_PROTOCOL_VERSION = 1
 
 
 class BlobStore(Protocol):
+    """Abstraction over payload storage (Redis, in-memory, etc.)."""
+
     async def get(self, key: str) -> Optional[bytes]:
         ...
 
@@ -40,6 +44,8 @@ class BlobStore(Protocol):
 
 
 class RedisBlobStore:
+    """Redis-backed :class:`BlobStore` implementation."""
+
     def __init__(self, redis_url: str) -> None:
         if redis_async is None:
             raise RuntimeError("redis is required for RedisBlobStore")
@@ -57,6 +63,8 @@ class RedisBlobStore:
 
 
 class InMemoryBlobStore:
+    """In-memory :class:`BlobStore` for testing without external infrastructure."""
+
     def __init__(self) -> None:
         self._data: Dict[str, bytes] = {}
 
@@ -76,21 +84,36 @@ def pointer_for_key(key: str) -> str:
 
 def key_from_pointer(ptr: str) -> str:
     if not ptr:
-        raise ValueError("empty pointer")
+        raise InvalidInputError("empty pointer")
     if not ptr.startswith("redis://"):
-        raise ValueError("unsupported pointer scheme")
+        raise InvalidInputError("unsupported pointer scheme")
     key = ptr[len("redis://") :]
     if not key:
-        raise ValueError("missing pointer key")
+        raise InvalidInputError("missing pointer key")
     return key
+
+
+class _StructuredFormatter(logging.Formatter):
+    """Formatter that appends structured fields (job_id, trace_id, etc.) to log output."""
+    _EXTRA_FIELDS = ("job_id", "trace_id", "topic", "sender_id")
+
+    def format(self, record: logging.LogRecord) -> str:
+        base = f"{record.levelname} {record.getMessage()}"
+        extras = []
+        for field in self._EXTRA_FIELDS:
+            value = getattr(record, field, None)
+            if value:
+                extras.append(f"{field}={value}")
+        if extras:
+            return f"{base} {' '.join(extras)}"
+        return base
 
 
 def _default_logger() -> logging.Logger:
     logger = logging.getLogger("cap.runtime")
     if not logger.handlers:
         handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(levelname)s %(message)s")
-        handler.setFormatter(formatter)
+        handler.setFormatter(_StructuredFormatter())
         logger.addHandler(handler)
         logger.setLevel(logging.INFO)
     return logger
@@ -98,6 +121,8 @@ def _default_logger() -> logging.Logger:
 
 @dataclass
 class Context:
+    """Per-request context passed to every job handler."""
+
     job: job_pb2.JobRequest
     packet: buspacket_pb2.BusPacket
     logger: logging.LoggerAdapter
@@ -126,6 +151,11 @@ class HandlerSpec:
 
 
 class Agent:
+    """High-level runtime that manages typed job handlers, blob storage, and NATS subscriptions.
+
+    Register handlers with :meth:`job`, then call :meth:`run` to start processing.
+    """
+
     def __init__(
         self,
         *,
@@ -141,6 +171,7 @@ class Agent:
         max_result_bytes: Optional[int] = 2 * 1024 * 1024,
         connect_fn: Optional[Callable[..., Awaitable[Any]]] = None,
         logger: Optional[logging.Logger] = None,
+        metrics: Optional[MetricsHook] = None,
     ) -> None:
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
@@ -154,8 +185,14 @@ class Agent:
         self._max_result_bytes = max_result_bytes if max_result_bytes and max_result_bytes > 0 else None
         self._connect_fn = connect_fn
         self._logger = logger or _default_logger()
+        self._metrics: MetricsHook = metrics or NoopMetrics()
         self._handlers: Dict[str, HandlerSpec] = {}
+        self._middlewares: list = []
         self._nc = None
+
+    def use(self, *middlewares) -> None:
+        """Append middleware to the agent. Middleware executes in registration order before the handler."""
+        self._middlewares.extend(middlewares)
 
     def job(
         self,
@@ -168,6 +205,14 @@ class Agent:
         [Callable[[Context, Any], Union[Awaitable[Any], Any]]],
         Callable[[Context, Any], Union[Awaitable[Any], Any]],
     ]:
+        """Decorator that registers a handler for *topic*.
+
+        Args:
+            topic: NATS subject the handler subscribes to.
+            input_model: Optional Pydantic model or callable for input validation.
+            output_model: Optional Pydantic model or callable for output validation.
+            retries: Override the default retry count for this handler.
+        """
         def decorator(func: Callable[[Context, Any], Union[Awaitable[Any], Any]]):
             spec = HandlerSpec(
                 topic=topic,
@@ -182,6 +227,7 @@ class Agent:
         return decorator
 
     async def start(self) -> None:
+        """Connect to NATS/Redis and register subscriptions for all handlers."""
         if not self._handlers:
             raise RuntimeError("no handlers registered")
         if self._connect_fn is None:
@@ -202,12 +248,14 @@ class Agent:
             await self._nc.subscribe(topic, queue=topic, cb=lambda msg, s=spec: asyncio.create_task(self._on_msg(msg, s)))
 
     async def close(self) -> None:
+        """Drain the NATS connection and close the blob store."""
         if self._nc is not None:
             await self._nc.drain()
         if self._store is not None:
             await self._store.close()
 
     async def run(self) -> None:
+        """Start the agent and block until interrupted."""
         await self.start()
         try:
             while True:
@@ -220,16 +268,16 @@ class Agent:
         try:
             packet.ParseFromString(msg.data)
         except Exception as exc:
-            self._logger.error("runtime: decode failed: %s", exc)
+            self._logger.error("decode failed: %s", MalformedPacketError(str(exc)))
             return
 
         if self._public_keys is not None:
             sender_key = self._public_keys.get(packet.sender_id)
             if not sender_key:
-                self._logger.warning("runtime: no public key for sender %s", packet.sender_id)
+                self._logger.warning("no public key for sender", extra={"sender_id": packet.sender_id})
                 return
             if not packet.signature:
-                self._logger.warning("runtime: missing signature for sender %s", packet.sender_id)
+                self._logger.warning("missing signature: %s", SignatureMissingError(f"sender {packet.sender_id}"), extra={"sender_id": packet.sender_id})
                 return
             signature = packet.signature
             packet.ClearField("signature")
@@ -238,12 +286,14 @@ class Agent:
             try:
                 sender_key.verify(signature, unsigned, ec.ECDSA(hashes.SHA256()))
             except Exception:
-                self._logger.warning("runtime: invalid signature from sender %s", packet.sender_id)
+                self._logger.warning("invalid signature: %s", SignatureInvalidError(f"sender {packet.sender_id}"), extra={"sender_id": packet.sender_id})
                 return
 
         req = packet.job_request
         if not req.job_id:
             return
+
+        self._metrics.on_job_received(req.job_id, req.topic)
 
         ctx_logger = logging.LoggerAdapter(
             self._logger,
@@ -251,13 +301,14 @@ class Agent:
                 "job_id": req.job_id,
                 "trace_id": packet.trace_id,
                 "topic": req.topic,
+                "sender_id": packet.sender_id,
             },
         )
         ctx = Context(job=req, packet=packet, logger=ctx_logger)
 
         store = self._store
         if store is None:
-            ctx_logger.error("runtime: blob store not initialized")
+            ctx_logger.error("blob store not initialized")
             return
 
         try:
@@ -283,20 +334,30 @@ class Agent:
             await self._publish_failure(ctx, req, f"input validation failed: {exc}", execution_ms=0)
             return
 
+        # Build middleware chain: outermost first, terminal calls handler.
+        async def _terminal(c: Context, d: Any) -> Any:
+            result = spec.func(c, d)
+            if asyncio.iscoroutine(result):
+                result = await result
+            return result
+
+        chain = _terminal
+        for mw in reversed(self._middlewares):
+            _next = chain
+            chain = (lambda m, n: (lambda c, d: m(c, d, n)))(mw, _next)
+
         start_time = time.monotonic()
         error: Optional[str] = None
         output: Any = None
         for attempt in range(spec.retries + 1):
             try:
-                output = spec.func(ctx, input_data)
-                if asyncio.iscoroutine(output):
-                    output = await output
+                output = await chain(ctx, input_data)
                 output = self._validate_output(spec, output)
                 error = None
                 break
             except Exception as exc:
                 error = str(exc)
-                ctx_logger.warning("runtime: handler failed (attempt %d/%d): %s", attempt + 1, spec.retries + 1, exc)
+                ctx_logger.warning("handler failed (attempt %d/%d): %s", attempt + 1, spec.retries + 1, exc)
                 if attempt >= spec.retries:
                     break
 
@@ -316,6 +377,7 @@ class Agent:
             await self._publish_failure(ctx, req, f"result write failed: {exc}", execution_ms=elapsed_ms)
             return
 
+        self._metrics.on_job_completed(req.job_id, elapsed_ms, "SUCCEEDED")
         result = job_pb2.JobResult(
             job_id=req.job_id,
             status=job_pb2.JOB_STATUS_SUCCEEDED,
@@ -355,6 +417,7 @@ class Agent:
         error: str,
         execution_ms: int,
     ) -> None:
+        self._metrics.on_job_failed(req.job_id, error)
         result = job_pb2.JobResult(
             job_id=req.job_id,
             status=job_pb2.JOB_STATUS_FAILED,
@@ -366,7 +429,7 @@ class Agent:
 
     async def _publish_result(self, ctx: Context, result: job_pb2.JobResult) -> None:
         if self._nc is None:
-            ctx.logger.error("runtime: NATS not initialized")
+            ctx.logger.error("NATS not initialized")
             return
         packet = buspacket_pb2.BusPacket()
         packet.trace_id = ctx.packet.trace_id

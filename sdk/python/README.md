@@ -101,6 +101,31 @@ async def summarize(ctx: Context, data: Input) -> Output:
 asyncio.run(agent.run())
 ```
 
+### Middleware
+
+Add cross-cutting concerns (logging, auth, metrics) without modifying handlers:
+
+```python
+from cap.middleware import logging_middleware
+
+# Built-in logging middleware
+agent.use(logging_middleware())
+
+# Custom middleware
+async def timing(ctx, data, next_fn):
+    import time
+    start = time.monotonic()
+    result = await next_fn(ctx, data)
+    elapsed = time.monotonic() - start
+    print(f"job {ctx.job_id} took {elapsed:.3f}s")
+    return result
+
+agent.use(timing)
+```
+
+Middleware executes in registration order (FIFO). Each can inspect context,
+measure timing, or short-circuit by returning without calling `next_fn`.
+
 ### Environment
 - `NATS_URL` (default `nats://127.0.0.1:4222`)
 - `REDIS_URL` (default `redis://127.0.0.1:6379/0`)

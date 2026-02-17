@@ -89,6 +89,29 @@ it("runs echo handler without NATS", async () => {
 - `createTestAgent(options?)` — returns `{ agent, bus, store }` pre-wired with `MockNatsConnection` + `InMemoryBlobStore`.
 - `MockNatsConnection` — in-memory NATS mock for custom test setups.
 
+## Middleware
+
+Add cross-cutting concerns (logging, auth, metrics) without modifying handlers:
+
+```ts
+import { loggingMiddleware, Middleware } from "cap-sdk-node";
+
+// Built-in logging middleware
+agent.use(loggingMiddleware());
+
+// Custom middleware
+const timing: Middleware = async (ctx, next) => {
+  const start = Date.now();
+  const result = await next();
+  console.log(`job ${ctx.jobId} took ${Date.now() - start}ms`);
+  return result;
+};
+agent.use(timing);
+```
+
+Middleware executes in registration order (FIFO). Each can inspect context,
+measure timing, or short-circuit by returning without calling `next`.
+
 ## Generating API Docs
 
 Generate HTML API reference locally using [TypeDoc](https://typedoc.org/):

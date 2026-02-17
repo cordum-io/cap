@@ -117,6 +117,28 @@ func TestEchoHandler(t *testing.T) {
 - `captesting.SubmitAndWait(handler, request)` — runs a low-level worker handler and returns the result.
 - `captesting.SubmitToRuntime(bus, request)` — sends a request to a runtime `Agent` wired to an `InMemoryBus`.
 
+## Middleware
+
+Add cross-cutting concerns (logging, auth, metrics) without modifying handlers:
+
+```go
+// Built-in logging middleware
+agent.Use(runtime.LoggingMiddleware(logger))
+
+// Custom middleware
+agent.Use(func(next runtime.HandlerFunc) runtime.HandlerFunc {
+    return func(ctx runtime.Context, data any) (any, error) {
+        ctx.Logger.Printf("before job %s", ctx.Job.GetJobId())
+        out, err := next(ctx, data)
+        ctx.Logger.Printf("after job %s", ctx.Job.GetJobId())
+        return out, err
+    }
+})
+```
+
+Middleware executes in registration order (FIFO). Each can inspect context,
+measure timing, or short-circuit by returning without calling `next`.
+
 ## Signing
 - `client.Submit` and `worker.Worker` sign envelopes when you pass a non-nil ECDSA private key (P-256); configure `PublicKeys` to verify incoming packets when you want authenticity enforcement.
 - Signatures are computed over deterministic protobuf serialization (map entries ordered by key) to ensure cross-SDK verification.

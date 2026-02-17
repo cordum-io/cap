@@ -33,6 +33,7 @@ from .client import submit_job
 from .worker import run_worker
 from .bus import connect_nats
 from .runtime import Agent, Context, BlobStore, RedisBlobStore, InMemoryBlobStore
+from .middleware import Middleware, NextFn, logging_middleware
 from .validate import (
     ValidationError,
     validate_job_request,
@@ -81,6 +82,9 @@ __all__ = [
     "BlobStore",
     "RedisBlobStore",
     "InMemoryBlobStore",
+    "Middleware",
+    "NextFn",
+    "logging_middleware",
     "ValidationError",
     "validate_job_request",
     "validate_job_result",

@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import time
-from typing import Any, Optional
+from typing import Any, Callable, Optional, Union
 
 import httpx
 
@@ -18,6 +19,14 @@ from .types import ApprovalEntry, Decision, JobResponse, JobStatus, SafetyDecisi
 _TERMINAL_STATES = frozenset({
     "succeeded", "failed", "cancelled", "denied",
 })
+
+_logger = logging.getLogger("cordum_guard")
+
+# Type for the on_error callback.
+OnErrorCallback = Callable[
+    [Exception],
+    SafetyDecision,
+]
 
 
 def _base_url(url: str) -> str:
@@ -43,6 +52,7 @@ class CordumClient:
         api_key: str,
         tenant_id: str = "default",
         timeout: float = 30.0,
+        on_error: Union[str, OnErrorCallback] = "closed",
     ) -> None:
         self.base_url = _base_url(gateway_url)
         self._http = httpx.Client(
@@ -54,6 +64,7 @@ class CordumClient:
             },
             timeout=timeout,
         )
+        self._on_error = on_error
 
     def close(self) -> None:
         self._http.close()
@@ -123,6 +134,9 @@ class CordumClient:
         """Evaluate a policy against the Safety Kernel.
 
         Returns a :class:`SafetyDecision` with the kernel's verdict.
+
+        Connection/timeout errors are handled according to the ``on_error``
+        setting. Auth errors and explicit DENY responses are never affected.
         """
         body: dict[str, Any] = {"topic": topic}
         meta: dict[str, Any] = {}
@@ -136,8 +150,28 @@ class CordumClient:
             body["meta"] = meta
         if job_id:
             body["job_id"] = job_id
-        resp = self._request("POST", "/api/v1/policy/evaluate", json=body)
+        try:
+            resp = self._request("POST", "/api/v1/policy/evaluate", json=body)
+        except (CordumConnectionError, CordumTimeoutError) as exc:
+            return self._handle_error(exc)
         return _parse_safety_decision(resp)
+
+    def _handle_error(self, exc: Exception) -> SafetyDecision:
+        """Apply the on_error policy to a connection/timeout error."""
+        if self._on_error == "closed":
+            raise exc
+        if self._on_error == "open":
+            _logger.warning(
+                "fail-open: gateway unreachable, allowing operation",
+                exc_info=exc,
+            )
+            return SafetyDecision(
+                decision=Decision.ALLOW,
+                reason="fail-open: gateway unreachable",
+            )
+        if callable(self._on_error):
+            return self._on_error(exc)
+        raise exc
 
     # ------------------------------------------------------------------
     # Approvals

@@ -34,6 +34,7 @@ from .worker import run_worker
 from .bus import connect_nats
 from .runtime import Agent, Context, BlobStore, RedisBlobStore, InMemoryBlobStore
 from .middleware import Middleware, NextFn, logging_middleware
+from .metrics import MetricsHook, NoopMetrics
 from .validate import (
     ValidationError,
     validate_job_request,
@@ -85,6 +86,8 @@ __all__ = [
     "Middleware",
     "NextFn",
     "logging_middleware",
+    "MetricsHook",
+    "NoopMetrics",
     "ValidationError",
     "validate_job_request",
     "validate_job_result",

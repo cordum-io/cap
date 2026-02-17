@@ -5,11 +5,11 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
-	"github.com/cordum-io/cap/v2/sdk/go"
+	capsdk "github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -36,6 +36,8 @@ type Worker struct {
 	PublicKeys  map[string]*ecdsa.PublicKey
 	PrivateKey  *ecdsa.PrivateKey
 	SenderID    string
+	Logger      *slog.Logger
+	Metrics     capsdk.MetricsHook
 	middlewares []WorkerMiddleware
 }
 
@@ -59,11 +61,17 @@ func (w *Worker) Start() error {
 	if w.SenderID == "" {
 		return errors.New("worker: SenderID is required")
 	}
+	if w.Logger == nil {
+		w.Logger = slog.Default()
+	}
+	if w.Metrics == nil {
+		w.Metrics = capsdk.NoopMetrics
+	}
 	_, err := w.NATS.QueueSubscribe(w.Subject, w.Subject, func(msg *nats.Msg) {
 		ctx := context.Background()
 		var packet agentv1.BusPacket
 		if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-			log.Printf("worker: %v", capsdk.NewMalformedPacketError(err.Error()))
+			w.Logger.Error("could not decode packet", "error", capsdk.NewMalformedPacketError(err.Error()))
 			return
 		}
 
@@ -71,16 +79,16 @@ func (w *Worker) Start() error {
 		if w.PublicKeys != nil {
 			pubKey, ok := w.PublicKeys[packet.GetSenderId()]
 			if !ok {
-				log.Printf("worker: no public key found for sender: %s", packet.GetSenderId())
+				w.Logger.Warn("no public key found", "sender_id", packet.GetSenderId())
 				return
 			}
 
 			if len(packet.GetSignature()) == 0 {
-				log.Printf("worker: %v", capsdk.NewSignatureMissingError("packet from sender: "+packet.GetSenderId()))
+				w.Logger.Warn("missing signature", "error", capsdk.NewSignatureMissingError("packet from sender: "+packet.GetSenderId()), "sender_id", packet.GetSenderId())
 				return
 			}
 			if err := capsdk.VerifyPacketSignature(&packet, pubKey); err != nil {
-				log.Printf("worker: %v", capsdk.NewSignatureInvalidError("sender "+packet.GetSenderId()+": "+err.Error()))
+				w.Logger.Warn("signature verification failed", "error", capsdk.NewSignatureInvalidError("sender "+packet.GetSenderId()+": "+err.Error()), "sender_id", packet.GetSenderId())
 				return
 			}
 		}
@@ -89,6 +97,13 @@ func (w *Worker) Start() error {
 		if req == nil {
 			return
 		}
+		w.Metrics.OnJobReceived(req.GetJobId(), req.GetTopic())
+		jobLogger := w.Logger.With(
+			"job_id", req.GetJobId(),
+			"trace_id", packet.GetTraceId(),
+			"sender_id", packet.GetSenderId(),
+		)
+		start := time.Now()
 		handler := w.Handler
 		for i := len(w.middlewares) - 1; i >= 0; i-- {
 			handler = w.middlewares[i](handler)
@@ -115,8 +130,14 @@ func (w *Worker) Start() error {
 		if res.WorkerId == "" {
 			res.WorkerId = w.SenderID
 		}
+		execMs := time.Since(start).Milliseconds()
 		if res.ExecutionMs == 0 {
-			res.ExecutionMs = 0
+			res.ExecutionMs = execMs
+		}
+		if res.Status == agentv1.JobStatus_JOB_STATUS_FAILED {
+			w.Metrics.OnJobFailed(res.JobId, res.ErrorMessage)
+		} else {
+			w.Metrics.OnJobCompleted(res.JobId, execMs, res.Status.String())
 		}
 		out := &agentv1.BusPacket{
 			TraceId:         packet.GetTraceId(),
@@ -131,7 +152,7 @@ func (w *Worker) Start() error {
 		// Sign the outgoing packet
 		if w.PrivateKey != nil {
 			if err := capsdk.SignPacket(out, w.PrivateKey); err != nil {
-				log.Printf("worker: could not sign outgoing packet: %v", err)
+				jobLogger.Error("could not sign outgoing packet", "error", err)
 				return
 			}
 		}

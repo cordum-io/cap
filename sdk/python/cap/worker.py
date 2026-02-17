@@ -1,16 +1,17 @@
 import asyncio
 import logging
-from typing import Callable, Awaitable, Dict
+import time
+from typing import Callable, Awaitable, Dict, Optional
 
 from google.protobuf import timestamp_pb2
 
-logger = logging.getLogger(__name__)
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 
 from cap.subjects import SUBJECT_RESULT
 from cap.errors import MalformedPacketError, SignatureInvalidError
+from cap.metrics import MetricsHook, NoopMetrics
 
 DEFAULT_PROTOCOL_VERSION = 1
 
@@ -20,7 +21,9 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
                      private_key: ec.EllipticCurvePrivateKey = None,
                      sender_id: str = "cap-worker",
                      connect_fn: Callable = None,
-                     middlewares: list = None):
+                     middlewares: list = None,
+                     logger: Optional[logging.Logger] = None,
+                     metrics: Optional[MetricsHook] = None):
     """Subscribe to a NATS subject and dispatch incoming JobRequests to the handler.
 
     Results are wrapped in a signed BusPacket and published to the result subject.
@@ -36,7 +39,13 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
         sender_id: Identity reported in outgoing BusPacket envelopes.
         connect_fn: Override the NATS connect function (useful for testing).
         middlewares: Optional list of middleware functions applied in FIFO order.
+        logger: Optional logger instance (defaults to ``cap.worker`` logger).
+        metrics: Optional metrics hook (defaults to NoopMetrics).
     """
+    if logger is None:
+        logger = logging.getLogger("cap.worker")
+    if metrics is None:
+        metrics = NoopMetrics()
 
     # Allow injection for tests; defaults to nats.connect.
     if connect_fn is None:
@@ -59,7 +68,7 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
         if public_keys:
             public_key = public_keys.get(packet.sender_id)
             if not public_key:
-                logger.warning("no public key found for sender: %s", packet.sender_id)
+                logger.warning("no public key found", extra={"sender_id": packet.sender_id})
                 return
 
             signature = packet.signature
@@ -69,12 +78,14 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
             try:
                 public_key.verify(signature, unsigned_data, ec.ECDSA(hashes.SHA256()))
             except Exception:
-                logger.warning("%s", SignatureInvalidError(f"sender {packet.sender_id}"))
+                logger.warning("invalid signature: %s", SignatureInvalidError(f"sender {packet.sender_id}"), extra={"sender_id": packet.sender_id})
                 return
 
         req = packet.job_request
         if not req.job_id:
             return
+        metrics.on_job_received(req.job_id, req.topic)
+        start_time = time.monotonic()
         # Apply middleware chain
         wrapped = handler
         if middlewares:
@@ -99,6 +110,11 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
             res.job_id = req.job_id
         if not res.worker_id:
             res.worker_id = sender_id
+        elapsed_ms = int((time.monotonic() - start_time) * 1000)
+        if res.status == job_pb2.JOB_STATUS_FAILED:
+            metrics.on_job_failed(res.job_id, res.error_message)
+        else:
+            metrics.on_job_completed(res.job_id, elapsed_ms, "SUCCEEDED")
         ts = timestamp_pb2.Timestamp()
         ts.GetCurrentTime()
         out = buspacket_pb2.BusPacket()

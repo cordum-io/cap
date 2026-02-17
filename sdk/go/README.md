@@ -158,6 +158,56 @@ To browse docs locally:
 go doc ./sdk/go/...
 ```
 
+## Observability
+
+### Structured Logging
+The runtime Agent and Worker use `*slog.Logger` (stdlib) for structured logging. All log calls include contextual fields (`job_id`, `trace_id`, `topic`, `sender_id`). Pass a custom logger or leave nil for the default:
+
+```go
+agent := &runtime.Agent{
+    Logger: slog.New(slog.NewJSONHandler(os.Stdout, nil)),
+}
+```
+
+### MetricsHook
+Implement `capsdk.MetricsHook` to integrate with Prometheus, OpenTelemetry, or any metrics system:
+
+```go
+type MetricsHook interface {
+    OnJobReceived(jobID, topic string)
+    OnJobCompleted(jobID string, durationMs int64, status string)
+    OnJobFailed(jobID string, errorMsg string)
+    OnHeartbeatSent(workerID string)
+}
+```
+
+The default is `NoopMetrics` (zero overhead). Example Prometheus integration:
+
+```go
+type promMetrics struct {
+    jobsReceived  *prometheus.CounterVec
+    jobDuration   *prometheus.HistogramVec
+}
+
+func (m *promMetrics) OnJobReceived(jobID, topic string) {
+    m.jobsReceived.WithLabelValues(topic).Inc()
+}
+func (m *promMetrics) OnJobCompleted(jobID string, durationMs int64, status string) {
+    m.jobDuration.WithLabelValues(status).Observe(float64(durationMs))
+}
+func (m *promMetrics) OnJobFailed(jobID, errorMsg string) {
+    m.jobsReceived.WithLabelValues("failed").Inc()
+}
+func (m *promMetrics) OnHeartbeatSent(workerID string) {}
+
+agent := &runtime.Agent{
+    Metrics: &promMetrics{...},
+}
+```
+
+The `trace_id` is propagated through all log and metrics calls for distributed tracing correlation.
+
+
 ## Notes
 - The protobuf `go_package` is `github.com/cordum-io/cap/v2/cordum/agent/v1`.
 - Swap the NATS adapter if you prefer another bus; only `bus/` needs to change.

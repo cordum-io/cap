@@ -18,13 +18,12 @@ Go from zero to a running CAP job in under 5 minutes. This guide covers the **lo
 
 ## Go
 
-### 1. Install
+### 1. Create the Worker
 
 ```bash
-go get github.com/cordum-io/cap/v2@latest
+mkdir worker && cd worker
+go mod init echo-worker
 ```
-
-### 2. Create the Worker
 
 Create `worker/main.go`:
 
@@ -70,7 +69,21 @@ func main() {
 }
 ```
 
-### 3. Create the Client
+Then pull dependencies:
+
+```bash
+go mod tidy
+```
+
+### 2. Create the Client
+
+Go back to the parent directory and set up the client module:
+
+```bash
+cd ..
+mkdir client && cd client
+go mod init echo-client
+```
 
 Create `client/main.go`:
 
@@ -106,14 +119,22 @@ func main() {
 }
 ```
 
-### 4. Run It
+Then pull dependencies:
+
+```bash
+go mod tidy
+```
+
+### 3. Run It
 
 ```bash
 # Terminal 1 — start the worker
-cd worker && go run .
+cd worker
+go run .
 
 # Terminal 2 — submit a job
-cd client && go run .
+cd client
+go run .
 ```
 
 You should see the worker log: `Received job my-echo-job`.

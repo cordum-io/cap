@@ -78,6 +78,7 @@ async def async_operation():
 | `timeout`     | `30.0`        | HTTP request timeout (seconds)       |
 | `cache_ttl`   | `0`           | Cache TTL in seconds (0 = disabled)  |
 | `cache_max_size` | `1000`     | Max cached policy entries             |
+| `on_error`    | `"closed"`    | Failure mode: `"closed"`, `"open"`, or callable |
 
 ### @guard decorator
 
@@ -140,6 +141,28 @@ client = CordumClient(
 # Bypass cache per-call: client.evaluate_policy(..., cache=False)
 # Clear cache: client.clear_cache()
 ```
+
+## Failure Modes
+
+Configure what happens when the gateway is unreachable:
+
+```python
+# Default: fail-closed (raise CordumConnectionError)
+client = CordumClient("http://localhost:8081", api_key="key", on_error="closed")
+
+# Fail-open: allow operations when gateway is down
+client = CordumClient("http://localhost:8081", api_key="key", on_error="open")
+
+# Callback: custom logic per error
+def my_fallback(error):
+    if "critical" in str(error):
+        raise error  # fail closed for critical
+    return SafetyDecision(decision=Decision.ALLOW)
+
+client = CordumClient("http://localhost:8081", api_key="key", on_error=my_fallback)
+```
+
+Only connection/timeout errors trigger fail-open. Auth errors (401/403) and explicit DENY responses always propagate normally.
 
 ## License
 

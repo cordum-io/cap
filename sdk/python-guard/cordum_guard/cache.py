@@ -5,6 +5,7 @@ Uses only stdlib — no external dependencies.
 
 from __future__ import annotations
 
+import collections
 import threading
 import time
 from typing import Optional
@@ -32,8 +33,8 @@ class PolicyCache:
     def __init__(self, max_size: int = 1000, ttl_seconds: float = 60.0) -> None:
         self._max_size = max_size
         self._ttl = ttl_seconds
-        # Insertion-ordered dict: {key: (SafetyDecision, expiry_monotonic)}
-        self._store: dict[CacheKey, tuple[SafetyDecision, float]] = {}
+        # OrderedDict for LRU: {key: (SafetyDecision, expiry_monotonic)}
+        self._store: collections.OrderedDict[CacheKey, tuple[SafetyDecision, float]] = collections.OrderedDict()
         self._lock = threading.Lock()
 
     def get(self, key: CacheKey) -> Optional[SafetyDecision]:

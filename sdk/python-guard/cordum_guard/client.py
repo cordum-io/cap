@@ -7,6 +7,7 @@ from typing import Any, Optional
 
 import httpx
 
+from .cache import PolicyCache, make_cache_key
 from .exceptions import (
     CordumAuthError,
     CordumConnectionError,
@@ -43,6 +44,8 @@ class CordumClient:
         api_key: str,
         tenant_id: str = "default",
         timeout: float = 30.0,
+        cache_ttl: float = 0,
+        cache_max_size: int = 1000,
     ) -> None:
         self.base_url = _base_url(gateway_url)
         self._http = httpx.Client(
@@ -54,6 +57,9 @@ class CordumClient:
             },
             timeout=timeout,
         )
+        self._cache: PolicyCache | None = None
+        if cache_ttl > 0:
+            self._cache = PolicyCache(max_size=cache_max_size, ttl_seconds=cache_ttl)
 
     def close(self) -> None:
         self._http.close()
@@ -119,11 +125,23 @@ class CordumClient:
         risk_tags: Optional[list[str]] = None,
         labels: Optional[dict[str, str]] = None,
         job_id: str = "",
+        cache: bool = True,
     ) -> SafetyDecision:
         """Evaluate a policy against the Safety Kernel.
 
         Returns a :class:`SafetyDecision` with the kernel's verdict.
+
+        Args:
+            cache: When True (default) and caching is enabled, return a
+                cached decision if available. Set to False to bypass.
         """
+        cache_key = make_cache_key(topic, capability, risk_tags)
+
+        if cache and self._cache is not None:
+            cached = self._cache.get(cache_key)
+            if cached is not None:
+                return cached
+
         body: dict[str, Any] = {"topic": topic}
         meta: dict[str, Any] = {}
         if capability:
@@ -137,7 +155,17 @@ class CordumClient:
         if job_id:
             body["job_id"] = job_id
         resp = self._request("POST", "/api/v1/policy/evaluate", json=body)
-        return _parse_safety_decision(resp)
+        decision = _parse_safety_decision(resp)
+
+        if self._cache is not None:
+            self._cache.put(cache_key, decision)
+
+        return decision
+
+    def clear_cache(self) -> None:
+        """Purge all cached policy decisions."""
+        if self._cache is not None:
+            self._cache.clear()
 
     # ------------------------------------------------------------------
     # Approvals

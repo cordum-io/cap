@@ -2,6 +2,7 @@ import { NatsConnection, Subscription } from "nats";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import * as crypto from "crypto";
+import { MalformedPacketError, SignatureInvalidError, SignatureMissingError } from "./errors";
 
 type Handler = (jobRequest: any) => Promise<any>;
 
@@ -38,11 +39,11 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
         const verify = crypto.createVerify("sha256");
         verify.update(unsignedData);
         if (!verify.verify(publicKey, receivedSignature)) {
-          console.warn(`Worker: Invalid signature from sender ${packet.senderId}. Dropping message.`);
+          console.warn(new SignatureInvalidError(`sender ${packet.senderId}`).message);
           return;
         }
       } else if (cfg.publicKeyMap && (!packet.signature || packet.signature.length === 0)) {
-        console.warn(`Worker: Message from sender ${packet.senderId} has no signature but public keys are configured. Dropping message.`);
+        console.warn(new SignatureMissingError(`sender ${packet.senderId}`).message);
         return;
       }
 

@@ -97,6 +97,32 @@ async def async_operation():
 | `risk_tags`  | `[]`           | Risk tags for all wrapped tools      |
 | `topic`      | `"job.guard"`  | NATS topic for evaluation            |
 
+## Testing
+
+Use `MockCordumClient` to test guarded code without a live gateway:
+
+```python
+from cordum_guard import guard, MockCordumClient, Decision
+
+mock = MockCordumClient(default_decision=Decision.ALLOW)
+mock.set_policy_response("dangerous-ops", Decision.DENY)
+
+@guard(mock, capability="safe-op")
+def safe_func():
+    return "works"
+
+@guard(mock, capability="dangerous-ops")
+def risky_func():
+    return "blocked"
+
+assert safe_func() == "works"
+# risky_func() raises CordumBlockedError
+
+# Inspect what was evaluated:
+assert len(mock.call_log) == 1
+assert mock.call_log[0].capability == "safe-op"
+```
+
 ## License
 
 Apache-2.0

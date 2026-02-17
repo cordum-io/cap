@@ -69,7 +69,7 @@ func (c *Client) Subscribe(subject string, handler Handler) (*nats.Subscription,
 		ctx := context.Background()
 		var packet agentv1.BusPacket
 		if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-			log.Printf("client: could not decode packet: %v", err)
+			log.Printf("client: %v", capsdk.NewMalformedPacketError(err.Error()))
 			return
 		}
 
@@ -82,11 +82,11 @@ func (c *Client) Subscribe(subject string, handler Handler) (*nats.Subscription,
 			}
 
 			if len(packet.GetSignature()) == 0 {
-				log.Printf("client: missing signature for packet from sender: %s", packet.GetSenderId())
+				log.Printf("client: %v", capsdk.NewSignatureMissingError("packet from sender: "+packet.GetSenderId()))
 				return
 			}
 			if err := capsdk.VerifyPacketSignature(&packet, pubKey); err != nil {
-				log.Printf("client: signature verification failed for sender %s: %v", packet.GetSenderId(), err)
+				log.Printf("client: %v", capsdk.NewSignatureInvalidError("sender "+packet.GetSenderId()+": "+err.Error()))
 				return
 			}
 		}

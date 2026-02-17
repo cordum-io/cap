@@ -5,3 +5,4 @@ export * from "./protos";
 export * from "./runtime";
 export * from "./validate";
 export * from "./testing";
+export * from "./errors";

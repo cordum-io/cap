@@ -11,7 +11,7 @@ from .exceptions import (
     CordumTimeoutError,
 )
 from .guard import guard
-from .types import Decision, SafetyDecision
+from .types import Decision, OnErrorCallback, OnErrorMode, SafetyDecision
 
 __all__ = [
     "CordumClient",
@@ -21,6 +21,8 @@ __all__ = [
     "CordumError",
     "CordumTimeoutError",
     "Decision",
+    "OnErrorCallback",
+    "OnErrorMode",
     "SafetyDecision",
     "guard",
 ]

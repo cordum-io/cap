@@ -100,6 +100,15 @@ if err := client.Submit(context.Background(), nc, req, "trace-1", "client-go", p
   ```
  - Pass `nil` as the private key to send unsigned envelopes.
 
+## Generating API Docs
+
+Go exports are automatically rendered on [pkg.go.dev](https://pkg.go.dev/github.com/cordum-io/cap/v2/sdk/go).
+To browse docs locally:
+
+```bash
+go doc ./sdk/go/...
+```
+
 ## Notes
 - The protobuf `go_package` is `github.com/cordum-io/cap/v2/cordum/agent/v1`.
 - Swap the NATS adapter if you prefer another bus; only `bus/` needs to change.

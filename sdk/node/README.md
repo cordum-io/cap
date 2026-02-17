@@ -68,6 +68,16 @@ agent.run().catch(console.error);
 - `NATS_URL` (default `nats://127.0.0.1:4222`)
 - `REDIS_URL` (default `redis://127.0.0.1:6379/0`)
 
+## Generating API Docs
+
+Generate HTML API reference locally using [TypeDoc](https://typedoc.org/):
+
+```bash
+npm run docs
+```
+
+Output is written to `docs/` (gitignored). Open `docs/index.html` to browse.
+
 ## Notes
 - Subjects: `sys.job.submit`, `job.<pool>`, `sys.job.result`, `sys.heartbeat`.
 - Protocol version: `1`.

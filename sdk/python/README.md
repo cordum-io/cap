@@ -104,3 +104,14 @@ asyncio.run(agent.run())
 ### Environment
 - `NATS_URL` (default `nats://127.0.0.1:4222`)
 - `REDIS_URL` (default `redis://127.0.0.1:6379/0`)
+
+## Generating API Docs
+
+Generate HTML API reference locally using [pdoc](https://pdoc.dev/):
+
+```bash
+pip install cap-sdk-python[dev]
+pdoc ./cap --output-dir docs
+```
+
+Output is written to `docs/` (gitignored). Open `docs/index.html` to browse.

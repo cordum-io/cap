@@ -76,6 +76,8 @@ async def async_operation():
 | `api_key`     | —             | API key for authentication           |
 | `tenant_id`   | `"default"`   | Tenant identifier                    |
 | `timeout`     | `30.0`        | HTTP request timeout (seconds)       |
+| `cache_ttl`   | `0`           | Cache TTL in seconds (0 = disabled)  |
+| `cache_max_size` | `1000`     | Max cached policy entries             |
 
 ### @guard decorator
 
@@ -96,6 +98,22 @@ async def async_operation():
 | `policy`     | `""`           | Policy name                          |
 | `risk_tags`  | `[]`           | Risk tags for all wrapped tools      |
 | `topic`      | `"job.guard"`  | NATS topic for evaluation            |
+
+## Caching
+
+Enable TTL-based caching to reduce gateway round-trips:
+
+```python
+client = CordumClient(
+    gateway_url="http://localhost:8081",
+    api_key="my-key",
+    cache_ttl=30,       # cache decisions for 30s (0 = disabled)
+    cache_max_size=500,  # max cached entries
+)
+# ALLOW/DENY/THROTTLE cached; REQUIRE_APPROVAL always fresh
+# Bypass cache per-call: client.evaluate_policy(..., cache=False)
+# Clear cache: client.clear_cache()
+```
 
 ## License
 

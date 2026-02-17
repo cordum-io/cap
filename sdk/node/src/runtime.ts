@@ -5,6 +5,8 @@ import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import * as crypto from "crypto";
 import type { Logger } from "./logger";
+import type { MetricsHook } from "./metrics";
+import { noopMetrics } from "./metrics";
 
 export type { Logger } from "./logger";
 
@@ -95,6 +97,7 @@ export interface AgentOptions {
   maxResultBytes?: number;
   connectFn?: (opts: any) => Promise<NatsConnection>;
   logger?: Logger;
+  metrics?: MetricsHook;
 }
 
 export interface JobOptions<TOut = any> {
@@ -167,6 +170,7 @@ export class Agent {
   private readonly maxResultBytes?: number;
   private readonly connectFn: (opts: any) => Promise<NatsConnection>;
   private readonly logger: Logger;
+  private readonly metrics: MetricsHook;
   private readonly handlers = new Map<string, HandlerSpec>();
   private nc?: NatsConnection;
   private busPacketType?: any;
@@ -195,6 +199,7 @@ export class Agent {
           : undefined;
     this.connectFn = options.connectFn ?? connect;
     this.logger = options.logger ?? console;
+    this.metrics = options.metrics ?? noopMetrics;
   }
 
   job<TIn, TOut>(

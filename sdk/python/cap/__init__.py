@@ -27,6 +27,7 @@ from .client import submit_job
 from .worker import run_worker
 from .bus import connect_nats
 from .runtime import Agent, Context, BlobStore, RedisBlobStore, InMemoryBlobStore
+from .metrics import MetricsHook, NoopMetrics
 from .validate import (
     ValidationError,
     validate_job_request,
@@ -54,6 +55,8 @@ __all__ = [
     "BlobStore",
     "RedisBlobStore",
     "InMemoryBlobStore",
+    "MetricsHook",
+    "NoopMetrics",
     "ValidationError",
     "validate_job_request",
     "validate_job_result",

@@ -152,6 +152,7 @@ type Agent struct {
 	MaxContextBytes int
 	MaxResultBytes  int
 	Logger          *slog.Logger
+	Metrics         MetricsHook
 
 	handlers map[string]handlerSpec
 }
@@ -201,6 +202,9 @@ func (a *Agent) Start() error {
 	}
 	if a.Logger == nil {
 		a.Logger = slog.Default()
+	}
+	if a.Metrics == nil {
+		a.Metrics = NoopMetrics
 	}
 	if a.IOTTimeout == 0 {
 		a.IOTTimeout = defaultTimeout

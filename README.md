@@ -99,7 +99,7 @@ Canonical protobuf definitions live under `proto/cordum/agent/v1/`:
 - `examples/README.md` — quick pointers to all flows.
 
 ## High-Level Runtime SDKs
-The runtime layer hides NATS/Redis plumbing and gives you typed handlers.
+The runtime layer hides NATS/Redis plumbing and gives you typed handlers. Not sure which SDK? See the [SDK Comparison Matrix](docs/sdk-comparison.md).
 
 Python:
 ```python
@@ -216,6 +216,7 @@ func main() {
 - `examples/` - JSON and sequence flows for common scenarios.
 - `tools/` - helper scripts for proto generation (optional).
 - `sdk/` - starter SDKs for Go, Python, Node/TS, and C++ with NATS helpers.
+- `docs/sdk-comparison.md` - SDK comparison matrix: which SDK to use and when.
 - `cordum/` - Go protobuf stubs (import path `github.com/cordum-io/cap/v2/cordum/agent/v1`).
 - `python/` - Python protobuf stubs (enable with `CAP_RUN_PY=1`).
 - `cpp/` - C++ protobuf stubs (vendored headers/sources).

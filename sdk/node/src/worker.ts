@@ -1,6 +1,7 @@
 import { NatsConnection, Subscription } from "nats";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
+import type { Logger } from "./logger";
 import * as crypto from "crypto";
 
 type Handler = (jobRequest: any) => Promise<any>;
@@ -13,12 +14,14 @@ export interface WorkerConfig {
   publicKeyMap?: { [senderId: string]: string }; // senderId -> public key in PEM format
   privateKey?: string; // private key in PEM format for signing outgoing messages
   senderId: string;
+  logger?: Logger;
 }
 
 export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
   const JobResult = root.lookupType("cordum.agent.v1.JobResult");
+  const logger: Logger = cfg.logger ?? console;
 
   const onMessage = async (msg: any) => {
     try {
@@ -28,7 +31,7 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
       if (cfg.publicKeyMap && packet.senderId && packet.signature && packet.signature.length > 0) {
         const publicKey = cfg.publicKeyMap[packet.senderId];
         if (!publicKey) {
-          console.warn(`Worker: No public key found for sender ${packet.senderId}. Dropping message.`);
+          logger.warn("no public key found", { senderId: packet.senderId });
           return;
         }
 
@@ -38,11 +41,11 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
         const verify = crypto.createVerify("sha256");
         verify.update(unsignedData);
         if (!verify.verify(publicKey, receivedSignature)) {
-          console.warn(`Worker: Invalid signature from sender ${packet.senderId}. Dropping message.`);
+          logger.warn("invalid signature", { senderId: packet.senderId });
           return;
         }
       } else if (cfg.publicKeyMap && (!packet.signature || packet.signature.length === 0)) {
-        console.warn(`Worker: Message from sender ${packet.senderId} has no signature but public keys are configured. Dropping message.`);
+        logger.warn("missing signature", { senderId: packet.senderId });
         return;
       }
 
@@ -92,8 +95,7 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
       const data = encodeDeterministic(BusPacket, out);
       await cfg.nc.publish(SUBJECT_RESULT, data);
     } catch (err) {
-      // log and continue
-      console.error(err);
+      logger.error("worker error", { error: String(err) });
     }
   };
 

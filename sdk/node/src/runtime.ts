@@ -4,12 +4,9 @@ import { z, ZodTypeAny } from "zod";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import * as crypto from "crypto";
+import type { Logger } from "./logger";
 
-export interface Logger {
-  info: (...args: any[]) => void;
-  warn: (...args: any[]) => void;
-  error: (...args: any[]) => void;
-}
+export type { Logger } from "./logger";
 
 const DEFAULT_NATS_URL = "nats://127.0.0.1:4222";
 const DEFAULT_REDIS_URL = "redis://127.0.0.1:6379/0";
@@ -126,11 +123,16 @@ function keyFromPointer(ptr: string): string {
 }
 
 function withContextLogger(base: Logger, meta: { jobId: string; traceId: string; topic: string }): Logger {
-  const prefix = `job_id=${meta.jobId} trace_id=${meta.traceId} topic=${meta.topic}`;
   return {
-    info: (...args: any[]) => base.info(prefix, ...args),
-    warn: (...args: any[]) => base.warn(prefix, ...args),
-    error: (...args: any[]) => base.error(prefix, ...args),
+    info(msg: string, fields?: Record<string, any>): void {
+      base.info(msg, { ...meta, ...fields });
+    },
+    warn(msg: string, fields?: Record<string, any>): void {
+      base.warn(msg, { ...meta, ...fields });
+    },
+    error(msg: string, fields?: Record<string, any>): void {
+      base.error(msg, { ...meta, ...fields });
+    },
   };
 }
 
@@ -270,7 +272,7 @@ export class Agent {
             msg = args[0];
           }
           if (err) {
-            this.logger.error("runtime: subscribe error:", err);
+            this.logger.error("subscribe error", { error: String(err) });
             return;
           }
           if (!msg) {
@@ -299,11 +301,11 @@ export class Agent {
 
   private async onMessage(msg: any, spec: HandlerSpec): Promise<void> {
     if (!this.store) {
-      this.logger.error("runtime: blob store not initialized");
+      this.logger.error("blob store not initialized");
       return;
     }
     if (!this.busPacketType) {
-      this.logger.error("runtime: protobuf types not initialized");
+      this.logger.error("protobuf types not initialized");
       return;
     }
 
@@ -311,7 +313,7 @@ export class Agent {
     try {
       packet = this.busPacketType.decode(msg.data);
     } catch (err) {
-      this.logger.error("runtime: decode failed:", err);
+      this.logger.error("decode failed", { error: String(err) });
       return;
     }
 
@@ -319,18 +321,18 @@ export class Agent {
       const senderId = packet.senderId;
       const signature = packet.signature;
       if (!senderId || !this.publicKeyMap[senderId]) {
-        this.logger.warn(`runtime: no public key for sender ${senderId}`);
+        this.logger.warn("no public key for sender", { senderId });
         return;
       }
       if (!signature || signature.length === 0) {
-        this.logger.warn(`runtime: missing signature for sender ${senderId}`);
+        this.logger.warn("missing signature", { senderId });
         return;
       }
       const unsignedData = encodeUnsignedForSignature(this.busPacketType, packet);
       const verify = crypto.createVerify("sha256");
       verify.update(unsignedData);
       if (!verify.verify(this.publicKeyMap[senderId], signature)) {
-        this.logger.warn(`runtime: invalid signature from sender ${senderId}`);
+        this.logger.warn("invalid signature", { senderId });
         return;
       }
     }
@@ -390,7 +392,7 @@ export class Agent {
         break;
       } catch (err) {
         error = err instanceof Error ? err.message : String(err);
-        ctx.log.warn(`runtime: handler failed (attempt ${attempt + 1}/${spec.retries + 1}):`, err);
+        ctx.log.warn("handler failed", { attempt: attempt + 1, maxAttempts: spec.retries + 1, error: String(err) });
       }
     }
 
@@ -441,11 +443,11 @@ export class Agent {
     overrides: Record<string, any> = {}
   ): Promise<void> {
     if (!this.nc) {
-      ctx.log.error("runtime: NATS not initialized");
+      ctx.log.error("NATS not initialized");
       return;
     }
     if (!this.busPacketType || !this.jobResultType) {
-      ctx.log.error("runtime: protobuf types not initialized");
+      ctx.log.error("protobuf types not initialized");
       return;
     }
 

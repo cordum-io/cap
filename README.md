@@ -221,9 +221,13 @@ func main() {
 - `python/` - Python protobuf stubs (enable with `CAP_RUN_PY=1`).
 - `cpp/` - C++ protobuf stubs (vendored headers/sources).
 - `node/` - Node JS protobuf stubs (CommonJS, binary wire format).
+- `docs/troubleshooting.md` - common issues and solutions.
 - Go module path: `github.com/cordum-io/cap/v2` (see `go.mod`).
 
 ## Community
+
+Having issues? Check the [Troubleshooting Guide](docs/troubleshooting.md).
+
 - **Discord:** [Join our Discord server](https://discord.gg/U4NpXtjP)
 - **GitHub Discussions:** [Ask questions and share ideas](https://github.com/cordum-io/cap/discussions)
 - **Email:** admin@cordum.io

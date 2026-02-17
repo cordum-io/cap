@@ -52,7 +52,7 @@ func (w *Worker) Start() error {
 		ctx := context.Background()
 		var packet agentv1.BusPacket
 		if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-			log.Printf("worker: could not decode packet: %v", err)
+			log.Printf("worker: %v", capsdk.NewMalformedPacketError(err.Error()))
 			return
 		}
 
@@ -65,11 +65,11 @@ func (w *Worker) Start() error {
 			}
 
 			if len(packet.GetSignature()) == 0 {
-				log.Printf("worker: missing signature for packet from sender: %s", packet.GetSenderId())
+				log.Printf("worker: %v", capsdk.NewSignatureMissingError("packet from sender: "+packet.GetSenderId()))
 				return
 			}
 			if err := capsdk.VerifyPacketSignature(&packet, pubKey); err != nil {
-				log.Printf("worker: signature verification failed for sender %s: %v", packet.GetSenderId(), err)
+				log.Printf("worker: %v", capsdk.NewSignatureInvalidError("sender "+packet.GetSenderId()+": "+err.Error()))
 				return
 			}
 		}

@@ -24,6 +24,7 @@ except Exception:  # pragma: no cover - optional until runtime used
 
 
 from cap.subjects import SUBJECT_RESULT
+from cap.errors import InvalidInputError, MalformedPacketError, SignatureInvalidError, SignatureMissingError
 
 DEFAULT_PROTOCOL_VERSION = 1
 
@@ -76,12 +77,12 @@ def pointer_for_key(key: str) -> str:
 
 def key_from_pointer(ptr: str) -> str:
     if not ptr:
-        raise ValueError("empty pointer")
+        raise InvalidInputError("empty pointer")
     if not ptr.startswith("redis://"):
-        raise ValueError("unsupported pointer scheme")
+        raise InvalidInputError("unsupported pointer scheme")
     key = ptr[len("redis://") :]
     if not key:
-        raise ValueError("missing pointer key")
+        raise InvalidInputError("missing pointer key")
     return key
 
 
@@ -220,7 +221,7 @@ class Agent:
         try:
             packet.ParseFromString(msg.data)
         except Exception as exc:
-            self._logger.error("runtime: decode failed: %s", exc)
+            self._logger.error("runtime: %s", MalformedPacketError(str(exc)))
             return
 
         if self._public_keys is not None:
@@ -229,7 +230,7 @@ class Agent:
                 self._logger.warning("runtime: no public key for sender %s", packet.sender_id)
                 return
             if not packet.signature:
-                self._logger.warning("runtime: missing signature for sender %s", packet.sender_id)
+                self._logger.warning("runtime: %s", SignatureMissingError(f"sender {packet.sender_id}"))
                 return
             signature = packet.signature
             packet.ClearField("signature")
@@ -238,7 +239,7 @@ class Agent:
             try:
                 sender_key.verify(signature, unsigned, ec.ECDSA(hashes.SHA256()))
             except Exception:
-                self._logger.warning("runtime: invalid signature from sender %s", packet.sender_id)
+                self._logger.warning("runtime: %s", SignatureInvalidError(f"sender {packet.sender_id}"))
                 return
 
         req = packet.job_request

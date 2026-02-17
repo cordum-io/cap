@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 
 from cap.subjects import SUBJECT_RESULT
+from cap.errors import MalformedPacketError, SignatureInvalidError
 
 DEFAULT_PROTOCOL_VERSION = 1
 
@@ -32,7 +33,11 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
 
     async def on_msg(msg):
         packet = buspacket_pb2.BusPacket()
-        packet.ParseFromString(msg.data)
+        try:
+            packet.ParseFromString(msg.data)
+        except Exception as exc:
+            logger.warning("%s", MalformedPacketError(str(exc)))
+            return
 
         if public_keys:
             public_key = public_keys.get(packet.sender_id)
@@ -47,7 +52,7 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
             try:
                 public_key.verify(signature, unsigned_data, ec.ECDSA(hashes.SHA256()))
             except Exception:
-                logger.warning("invalid signature from sender: %s", packet.sender_id)
+                logger.warning("%s", SignatureInvalidError(f"sender {packet.sender_id}"))
                 return
 
         req = packet.job_request

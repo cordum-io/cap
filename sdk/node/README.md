@@ -89,6 +89,16 @@ it("runs echo handler without NATS", async () => {
 - `createTestAgent(options?)` — returns `{ agent, bus, store }` pre-wired with `MockNatsConnection` + `InMemoryBlobStore`.
 - `MockNatsConnection` — in-memory NATS mock for custom test setups.
 
+## Generating API Docs
+
+Generate HTML API reference locally using [TypeDoc](https://typedoc.org/):
+
+```bash
+npm run docs
+```
+
+Output is written to `docs/` (gitignored). Open `docs/index.html` to browse.
+
 ## Notes
 - Subjects: `sys.job.submit`, `job.<pool>`, `sys.job.result`, `sys.heartbeat`.
 - Protocol version: `1`.

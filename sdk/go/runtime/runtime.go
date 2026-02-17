@@ -76,6 +76,7 @@ func NewInMemoryBlobStore() *InMemoryBlobStore {
 	return &InMemoryBlobStore{data: make(map[string][]byte)}
 }
 
+// Get returns the payload stored under key, or redis.Nil if not found.
 func (s *InMemoryBlobStore) Get(_ context.Context, key string) ([]byte, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -88,6 +89,7 @@ func (s *InMemoryBlobStore) Get(_ context.Context, key string) ([]byte, error) {
 	return out, nil
 }
 
+// Set stores data under the given key.
 func (s *InMemoryBlobStore) Set(_ context.Context, key string, data []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -97,6 +99,7 @@ func (s *InMemoryBlobStore) Set(_ context.Context, key string, data []byte) erro
 	return nil
 }
 
+// Close is a no-op for the in-memory store.
 func (s *InMemoryBlobStore) Close() error {
 	return nil
 }

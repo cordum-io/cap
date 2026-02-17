@@ -3,6 +3,15 @@ import { loadRoot, DEFAULT_PROTOCOL_VERSION, SUBJECT_SUBMIT } from "./protos";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import * as crypto from "crypto";
 
+/**
+ * Publishes a JobRequest onto the CAP submit subject.
+ *
+ * @param nc - An active NATS connection.
+ * @param jobRequest - Plain object conforming to the JobRequest protobuf schema.
+ * @param traceId - Distributed trace identifier propagated through the bus.
+ * @param senderId - Identity of the sender (used in the BusPacket envelope).
+ * @param privateKey - Optional PEM-encoded ECDSA private key for signing.
+ */
 export async function submitJob(
   nc: NatsConnection,
   jobRequest: Record<string, unknown>,

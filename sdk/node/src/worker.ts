@@ -4,8 +4,10 @@ import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import * as crypto from "crypto";
 import { MalformedPacketError, SignatureInvalidError, SignatureMissingError } from "./errors";
 
+/** Callback that processes a decoded JobRequest and returns a JobResult. */
 type Handler = (jobRequest: any) => Promise<any>;
 
+/** Configuration for {@link startWorker}. */
 export interface WorkerConfig {
   nc: NatsConnection;
   subject: string;
@@ -16,6 +18,14 @@ export interface WorkerConfig {
   senderId: string;
 }
 
+/**
+ * Subscribes to a NATS subject and dispatches incoming JobRequests to the handler.
+ *
+ * Results are wrapped in a signed BusPacket and published to the result subject.
+ *
+ * @param cfg - Worker configuration including NATS connection and handler.
+ * @returns The underlying NATS subscription.
+ */
 export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");

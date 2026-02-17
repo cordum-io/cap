@@ -5,8 +5,11 @@
  * an array of validation errors. An empty array means the message is valid.
  */
 
+/** A single validation failure returned by the `validate*` functions. */
 export interface ValidationError {
+  /** Protobuf field path that failed validation (e.g. `"job_id"`). */
   field: string;
+  /** Human-readable description of the failure. */
   message: string;
 }
 

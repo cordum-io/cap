@@ -3,6 +3,8 @@ from typing import Optional
 
 
 class NATSConfig:
+    """NATS connection configuration."""
+
     def __init__(
         self,
         url: str,
@@ -19,6 +21,17 @@ class NATSConfig:
 
 
 async def connect_nats(cfg: NATSConfig):
+    """Open a NATS connection using the provided configuration.
+
+    Args:
+        cfg: Connection settings.
+
+    Returns:
+        A connected NATS client.
+
+    Raises:
+        RuntimeError: If the ``nats-py`` package is not installed.
+    """
     try:
         import nats  # type: ignore
     except ImportError as exc:

@@ -24,14 +24,25 @@ type NATSConn interface {
 	QueueSubscribe(subj, queue string, cb nats.MsgHandler) (*nats.Subscription, error)
 }
 
+// WorkerMiddleware wraps a Handler, returning a new Handler.
+// Middleware is applied in FIFO order: the first registered middleware is the outermost.
+type WorkerMiddleware func(next Handler) Handler
+
 // Worker subscribes to a pool subject and handles jobs.
 type Worker struct {
-	NATS       NATSConn
-	Subject    string
-	Handler    Handler
-	PublicKeys map[string]*ecdsa.PublicKey
-	PrivateKey *ecdsa.PrivateKey
-	SenderID   string
+	NATS        NATSConn
+	Subject     string
+	Handler     Handler
+	PublicKeys  map[string]*ecdsa.PublicKey
+	PrivateKey  *ecdsa.PrivateKey
+	SenderID    string
+	middlewares []WorkerMiddleware
+}
+
+// Use appends middleware to the Worker. Middleware executes in registration order
+// before the handler.
+func (w *Worker) Use(mw ...WorkerMiddleware) {
+	w.middlewares = append(w.middlewares, mw...)
 }
 
 // Start begins consuming and handling JobRequests. It returns after the subscription is created.
@@ -78,7 +89,11 @@ func (w *Worker) Start() error {
 		if req == nil {
 			return
 		}
-		res, err := w.Handler(ctx, req)
+		handler := w.Handler
+		for i := len(w.middlewares) - 1; i >= 0; i-- {
+			handler = w.middlewares[i](handler)
+		}
+		res, err := handler(ctx, req)
 		if err != nil {
 			res = &agentv1.JobResult{
 				JobId:        req.GetJobId(),

@@ -156,7 +156,8 @@ type Agent struct {
 	MaxResultBytes  int
 	Logger          *log.Logger
 
-	handlers map[string]handlerSpec
+	handlers    map[string]handlerSpec
+	middlewares []Middleware
 }
 
 // Register registers a typed handler for a topic.
@@ -321,10 +322,12 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 		return
 	}
 
+	wrapped := applyMiddleware(spec.handler, a.middlewares)
+
 	var output any
 	var failure error
 	for attempt := 0; attempt <= spec.retries; attempt++ {
-		output, failure = spec.handler(ctx, input)
+		output, failure = wrapped(ctx, input)
 		if failure == nil {
 			break
 		}

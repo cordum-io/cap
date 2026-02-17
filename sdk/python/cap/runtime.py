@@ -169,7 +169,12 @@ class Agent:
         self._connect_fn = connect_fn
         self._logger = logger or _default_logger()
         self._handlers: Dict[str, HandlerSpec] = {}
+        self._middlewares: list = []
         self._nc = None
+
+    def use(self, *middlewares) -> None:
+        """Append middleware to the agent. Middleware executes in registration order before the handler."""
+        self._middlewares.extend(middlewares)
 
     def job(
         self,
@@ -308,14 +313,24 @@ class Agent:
             await self._publish_failure(ctx, req, f"input validation failed: {exc}", execution_ms=0)
             return
 
+        # Build middleware chain: outermost first, terminal calls handler.
+        async def _terminal(c: Context, d: Any) -> Any:
+            result = spec.func(c, d)
+            if asyncio.iscoroutine(result):
+                result = await result
+            return result
+
+        chain = _terminal
+        for mw in reversed(self._middlewares):
+            _next = chain
+            chain = (lambda m, n: (lambda c, d: m(c, d, n)))(mw, _next)
+
         start_time = time.monotonic()
         error: Optional[str] = None
         output: Any = None
         for attempt in range(spec.retries + 1):
             try:
-                output = spec.func(ctx, input_data)
-                if asyncio.iscoroutine(output):
-                    output = await output
+                output = await chain(ctx, input_data)
                 output = self._validate_output(spec, output)
                 error = None
                 break

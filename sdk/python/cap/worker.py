@@ -19,7 +19,8 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
                      public_keys: Dict[str, ec.EllipticCurvePublicKey] = None,
                      private_key: ec.EllipticCurvePrivateKey = None,
                      sender_id: str = "cap-worker",
-                     connect_fn: Callable = None):
+                     connect_fn: Callable = None,
+                     middlewares: list = None):
     """Subscribe to a NATS subject and dispatch incoming JobRequests to the handler.
 
     Results are wrapped in a signed BusPacket and published to the result subject.
@@ -34,6 +35,7 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
         private_key: Optional ECDSA private key for signing outgoing packets.
         sender_id: Identity reported in outgoing BusPacket envelopes.
         connect_fn: Override the NATS connect function (useful for testing).
+        middlewares: Optional list of middleware functions applied in FIFO order.
     """
 
     # Allow injection for tests; defaults to nats.connect.
@@ -73,8 +75,14 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
         req = packet.job_request
         if not req.job_id:
             return
+        # Apply middleware chain
+        wrapped = handler
+        if middlewares:
+            for mw in reversed(middlewares):
+                _next = wrapped
+                wrapped = (lambda m, n: (lambda r: m(r, n)))(mw, _next)
         try:
-            res = await handler(req)
+            res = await wrapped(req)
             if res is None:
                 res = job_pb2.JobResult(
                     job_id=req.job_id,

@@ -11,6 +11,7 @@ from .exceptions import (
     CordumTimeoutError,
 )
 from .guard import guard
+from .mock import MockCordumClient
 from .types import Decision, SafetyDecision
 
 __all__ = [
@@ -21,6 +22,7 @@ __all__ = [
     "CordumError",
     "CordumTimeoutError",
     "Decision",
+    "MockCordumClient",
     "SafetyDecision",
     "guard",
 ]

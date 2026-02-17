@@ -122,6 +122,54 @@ npm run docs
 
 Output is written to `docs/` (gitignored). Open `docs/index.html` to browse.
 
+## Observability
+
+### Structured Logging
+The runtime Agent and Worker accept a `Logger` for structured logging. All log calls include contextual fields (`jobId`, `traceId`, `topic`, `senderId`). Pass a custom logger or leave undefined for the built-in JSON logger:
+
+```ts
+import { Agent, Logger } from "cap-sdk-node";
+
+const agent = new Agent({
+  logger: {
+    info(msg, fields) { console.info(JSON.stringify({ level: "info", msg, ...fields })); },
+    warn(msg, fields) { console.warn(JSON.stringify({ level: "warn", msg, ...fields })); },
+    error(msg, fields) { console.error(JSON.stringify({ level: "error", msg, ...fields })); },
+  },
+});
+```
+
+### MetricsHook
+Implement `MetricsHook` to integrate with Prometheus, OpenTelemetry, or any metrics system:
+
+```ts
+import { MetricsHook } from "cap-sdk-node";
+
+interface MetricsHook {
+  onJobReceived(jobId: string, topic: string): void;
+  onJobCompleted(jobId: string, durationMs: number, status: string): void;
+  onJobFailed(jobId: string, errorMsg: string): void;
+  onHeartbeatSent(workerId: string): void;
+}
+```
+
+The default is `noopMetrics` (zero overhead). Example integration:
+
+```ts
+import { Agent } from "cap-sdk-node";
+
+const metrics: MetricsHook = {
+  onJobReceived(jobId, topic) { jobCounter.inc({ topic }); },
+  onJobCompleted(jobId, durationMs, status) { durationHist.observe({ status }, durationMs); },
+  onJobFailed(jobId, errorMsg) { failCounter.inc(); },
+  onHeartbeatSent(workerId) {},
+};
+
+const agent = new Agent({ metrics });
+```
+
+The `traceId` is propagated through all log and metrics calls for distributed tracing correlation.
+
 ## Notes
 - Subjects: `sys.job.submit`, `job.<pool>`, `sys.job.result`, `sys.heartbeat`.
 - Protocol version: `1`.

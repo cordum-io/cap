@@ -25,6 +25,7 @@ except Exception:  # pragma: no cover - optional until runtime used
 
 from cap.subjects import SUBJECT_RESULT
 from cap.errors import InvalidInputError, MalformedPacketError, SignatureInvalidError, SignatureMissingError
+from cap.metrics import MetricsHook, NoopMetrics
 
 DEFAULT_PROTOCOL_VERSION = 1
 
@@ -92,12 +93,27 @@ def key_from_pointer(ptr: str) -> str:
     return key
 
 
+class _StructuredFormatter(logging.Formatter):
+    """Formatter that appends structured fields (job_id, trace_id, etc.) to log output."""
+    _EXTRA_FIELDS = ("job_id", "trace_id", "topic", "sender_id")
+
+    def format(self, record: logging.LogRecord) -> str:
+        base = f"{record.levelname} {record.getMessage()}"
+        extras = []
+        for field in self._EXTRA_FIELDS:
+            value = getattr(record, field, None)
+            if value:
+                extras.append(f"{field}={value}")
+        if extras:
+            return f"{base} {' '.join(extras)}"
+        return base
+
+
 def _default_logger() -> logging.Logger:
     logger = logging.getLogger("cap.runtime")
     if not logger.handlers:
         handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(levelname)s %(message)s")
-        handler.setFormatter(formatter)
+        handler.setFormatter(_StructuredFormatter())
         logger.addHandler(handler)
         logger.setLevel(logging.INFO)
     return logger
@@ -155,6 +171,7 @@ class Agent:
         max_result_bytes: Optional[int] = 2 * 1024 * 1024,
         connect_fn: Optional[Callable[..., Awaitable[Any]]] = None,
         logger: Optional[logging.Logger] = None,
+        metrics: Optional[MetricsHook] = None,
     ) -> None:
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
@@ -168,6 +185,7 @@ class Agent:
         self._max_result_bytes = max_result_bytes if max_result_bytes and max_result_bytes > 0 else None
         self._connect_fn = connect_fn
         self._logger = logger or _default_logger()
+        self._metrics: MetricsHook = metrics or NoopMetrics()
         self._handlers: Dict[str, HandlerSpec] = {}
         self._middlewares: list = []
         self._nc = None
@@ -250,16 +268,16 @@ class Agent:
         try:
             packet.ParseFromString(msg.data)
         except Exception as exc:
-            self._logger.error("runtime: %s", MalformedPacketError(str(exc)))
+            self._logger.error("decode failed: %s", MalformedPacketError(str(exc)))
             return
 
         if self._public_keys is not None:
             sender_key = self._public_keys.get(packet.sender_id)
             if not sender_key:
-                self._logger.warning("runtime: no public key for sender %s", packet.sender_id)
+                self._logger.warning("no public key for sender", extra={"sender_id": packet.sender_id})
                 return
             if not packet.signature:
-                self._logger.warning("runtime: %s", SignatureMissingError(f"sender {packet.sender_id}"))
+                self._logger.warning("missing signature: %s", SignatureMissingError(f"sender {packet.sender_id}"), extra={"sender_id": packet.sender_id})
                 return
             signature = packet.signature
             packet.ClearField("signature")
@@ -268,12 +286,14 @@ class Agent:
             try:
                 sender_key.verify(signature, unsigned, ec.ECDSA(hashes.SHA256()))
             except Exception:
-                self._logger.warning("runtime: %s", SignatureInvalidError(f"sender {packet.sender_id}"))
+                self._logger.warning("invalid signature: %s", SignatureInvalidError(f"sender {packet.sender_id}"), extra={"sender_id": packet.sender_id})
                 return
 
         req = packet.job_request
         if not req.job_id:
             return
+
+        self._metrics.on_job_received(req.job_id, req.topic)
 
         ctx_logger = logging.LoggerAdapter(
             self._logger,
@@ -281,13 +301,14 @@ class Agent:
                 "job_id": req.job_id,
                 "trace_id": packet.trace_id,
                 "topic": req.topic,
+                "sender_id": packet.sender_id,
             },
         )
         ctx = Context(job=req, packet=packet, logger=ctx_logger)
 
         store = self._store
         if store is None:
-            ctx_logger.error("runtime: blob store not initialized")
+            ctx_logger.error("blob store not initialized")
             return
 
         try:
@@ -336,7 +357,7 @@ class Agent:
                 break
             except Exception as exc:
                 error = str(exc)
-                ctx_logger.warning("runtime: handler failed (attempt %d/%d): %s", attempt + 1, spec.retries + 1, exc)
+                ctx_logger.warning("handler failed (attempt %d/%d): %s", attempt + 1, spec.retries + 1, exc)
                 if attempt >= spec.retries:
                     break
 
@@ -356,6 +377,7 @@ class Agent:
             await self._publish_failure(ctx, req, f"result write failed: {exc}", execution_ms=elapsed_ms)
             return
 
+        self._metrics.on_job_completed(req.job_id, elapsed_ms, "SUCCEEDED")
         result = job_pb2.JobResult(
             job_id=req.job_id,
             status=job_pb2.JOB_STATUS_SUCCEEDED,
@@ -395,6 +417,7 @@ class Agent:
         error: str,
         execution_ms: int,
     ) -> None:
+        self._metrics.on_job_failed(req.job_id, error)
         result = job_pb2.JobResult(
             job_id=req.job_id,
             status=job_pb2.JOB_STATUS_FAILED,
@@ -406,7 +429,7 @@ class Agent:
 
     async def _publish_result(self, ctx: Context, result: job_pb2.JobResult) -> None:
         if self._nc is None:
-            ctx.logger.error("runtime: NATS not initialized")
+            ctx.logger.error("NATS not initialized")
             return
         packet = buspacket_pb2.BusPacket()
         packet.trace_id = ctx.packet.trace_id

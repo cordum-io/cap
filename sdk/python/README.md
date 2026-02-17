@@ -161,3 +161,53 @@ pdoc ./cap --output-dir docs
 ```
 
 Output is written to `docs/` (gitignored). Open `docs/index.html` to browse.
+
+## Observability
+
+### Structured Logging
+The runtime Agent and Worker use `logging.Logger` (stdlib) for structured logging. All log calls include contextual fields (`job_id`, `trace_id`, `topic`, `sender_id`). Pass a custom logger or leave as default:
+
+```python
+import logging
+from cap.runtime import Agent
+
+logger = logging.getLogger("my-agent")
+logger.setLevel(logging.DEBUG)
+agent = Agent(logger=logger)
+```
+
+### MetricsHook
+Implement the `MetricsHook` protocol to integrate with Prometheus, OpenTelemetry, or any metrics system:
+
+```python
+from cap.metrics import MetricsHook
+
+class MetricsHook(Protocol):
+    def on_job_received(self, job_id: str, topic: str) -> None: ...
+    def on_job_completed(self, job_id: str, duration_ms: int, status: str) -> None: ...
+    def on_job_failed(self, job_id: str, error_msg: str) -> None: ...
+    def on_heartbeat_sent(self, worker_id: str) -> None: ...
+```
+
+The default is `NoopMetrics` (zero overhead). Example Prometheus integration:
+
+```python
+from cap.runtime import Agent
+
+class PromMetrics:
+    def on_job_received(self, job_id, topic):
+        jobs_received.labels(topic=topic).inc()
+
+    def on_job_completed(self, job_id, duration_ms, status):
+        job_duration.labels(status=status).observe(duration_ms)
+
+    def on_job_failed(self, job_id, error_msg):
+        jobs_failed.inc()
+
+    def on_heartbeat_sent(self, worker_id):
+        pass
+
+agent = Agent(metrics=PromMetrics())
+```
+
+The `trace_id` is propagated through all log and metrics calls for distributed tracing correlation.

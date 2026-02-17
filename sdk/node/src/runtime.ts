@@ -347,6 +347,8 @@ export class Agent {
       return;
     }
 
+    this.metrics.onJobReceived(req.jobId, req.topic);
+
     const ctx: Context = {
       job: req,
       packet,
@@ -417,6 +419,7 @@ export class Agent {
       await withTimeout(this.store.set(resultKey, resultPayload), this.ioTimeoutMs, "result write");
       const resultPtr = pointerForKey(resultKey);
 
+      this.metrics.onJobCompleted(req.jobId, elapsedMs, "SUCCEEDED");
       await this.publishResult(ctx, req, resultPtr, elapsedMs);
     } catch (err) {
       await this.publishFailure(ctx, req, `result write failed: ${err}`, elapsedMs);
@@ -434,6 +437,7 @@ export class Agent {
   }
 
   private async publishFailure(ctx: Context, req: any, error: string, executionMs: number): Promise<void> {
+    this.metrics.onJobFailed(req.jobId, error);
     await this.publishResult(ctx, req, "", executionMs, {
       status: "JOB_STATUS_FAILED",
       errorMessage: error,

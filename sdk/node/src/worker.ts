@@ -2,6 +2,8 @@ import { NatsConnection, Subscription } from "nats";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import type { Logger } from "./logger";
+import type { MetricsHook } from "./metrics";
+import { noopMetrics } from "./metrics";
 import * as crypto from "crypto";
 
 type Handler = (jobRequest: any) => Promise<any>;
@@ -15,6 +17,7 @@ export interface WorkerConfig {
   privateKey?: string; // private key in PEM format for signing outgoing messages
   senderId: string;
   logger?: Logger;
+  metrics?: MetricsHook;
 }
 
 export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
@@ -22,6 +25,7 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
   const JobResult = root.lookupType("cordum.agent.v1.JobResult");
   const logger: Logger = cfg.logger ?? console;
+  const metrics: MetricsHook = cfg.metrics ?? noopMetrics;
 
   const onMessage = async (msg: any) => {
     try {
@@ -51,6 +55,8 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
 
       const jr = packet.jobRequest;
       if (!jr) return;
+      metrics.onJobReceived(jr.jobId, jr.topic);
+      const startTime = Date.now();
       let resObj: any;
       try {
         resObj = await cfg.handler(jr);
@@ -73,6 +79,13 @@ export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
       }
       if (!resObj.workerId) {
         resObj.workerId = cfg.senderId;
+      }
+
+      const elapsedMs = Date.now() - startTime;
+      if (resObj.status === "JOB_STATUS_FAILED") {
+        metrics.onJobFailed(resObj.jobId, resObj.errorMessage ?? "");
+      } else {
+        metrics.onJobCompleted(resObj.jobId, elapsedMs, resObj.status ?? "JOB_STATUS_SUCCEEDED");
       }
 
       const jrMsg = JobResult.fromObject(resObj);

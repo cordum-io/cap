@@ -263,6 +263,8 @@ class Agent:
         if not req.job_id:
             return
 
+        self._metrics.on_job_received(req.job_id, req.topic)
+
         ctx_logger = logging.LoggerAdapter(
             self._logger,
             {
@@ -335,6 +337,7 @@ class Agent:
             await self._publish_failure(ctx, req, f"result write failed: {exc}", execution_ms=elapsed_ms)
             return
 
+        self._metrics.on_job_completed(req.job_id, elapsed_ms, "SUCCEEDED")
         result = job_pb2.JobResult(
             job_id=req.job_id,
             status=job_pb2.JOB_STATUS_SUCCEEDED,
@@ -374,6 +377,7 @@ class Agent:
         error: str,
         execution_ms: int,
     ) -> None:
+        self._metrics.on_job_failed(req.job_id, error)
         result = job_pb2.JobResult(
             job_id=req.job_id,
             status=job_pb2.JOB_STATUS_FAILED,

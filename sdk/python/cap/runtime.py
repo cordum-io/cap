@@ -85,12 +85,27 @@ def key_from_pointer(ptr: str) -> str:
     return key
 
 
+class _StructuredFormatter(logging.Formatter):
+    """Formatter that appends structured fields (job_id, trace_id, etc.) to log output."""
+    _EXTRA_FIELDS = ("job_id", "trace_id", "topic", "sender_id")
+
+    def format(self, record: logging.LogRecord) -> str:
+        base = f"{record.levelname} {record.getMessage()}"
+        extras = []
+        for field in self._EXTRA_FIELDS:
+            value = getattr(record, field, None)
+            if value:
+                extras.append(f"{field}={value}")
+        if extras:
+            return f"{base} {' '.join(extras)}"
+        return base
+
+
 def _default_logger() -> logging.Logger:
     logger = logging.getLogger("cap.runtime")
     if not logger.handlers:
         handler = logging.StreamHandler()
-        formatter = logging.Formatter("%(levelname)s %(message)s")
-        handler.setFormatter(formatter)
+        handler.setFormatter(_StructuredFormatter())
         logger.addHandler(handler)
         logger.setLevel(logging.INFO)
     return logger
@@ -220,16 +235,16 @@ class Agent:
         try:
             packet.ParseFromString(msg.data)
         except Exception as exc:
-            self._logger.error("runtime: decode failed: %s", exc)
+            self._logger.error("decode failed: %s", exc)
             return
 
         if self._public_keys is not None:
             sender_key = self._public_keys.get(packet.sender_id)
             if not sender_key:
-                self._logger.warning("runtime: no public key for sender %s", packet.sender_id)
+                self._logger.warning("no public key for sender", extra={"sender_id": packet.sender_id})
                 return
             if not packet.signature:
-                self._logger.warning("runtime: missing signature for sender %s", packet.sender_id)
+                self._logger.warning("missing signature", extra={"sender_id": packet.sender_id})
                 return
             signature = packet.signature
             packet.ClearField("signature")
@@ -238,7 +253,7 @@ class Agent:
             try:
                 sender_key.verify(signature, unsigned, ec.ECDSA(hashes.SHA256()))
             except Exception:
-                self._logger.warning("runtime: invalid signature from sender %s", packet.sender_id)
+                self._logger.warning("invalid signature", extra={"sender_id": packet.sender_id})
                 return
 
         req = packet.job_request
@@ -251,13 +266,14 @@ class Agent:
                 "job_id": req.job_id,
                 "trace_id": packet.trace_id,
                 "topic": req.topic,
+                "sender_id": packet.sender_id,
             },
         )
         ctx = Context(job=req, packet=packet, logger=ctx_logger)
 
         store = self._store
         if store is None:
-            ctx_logger.error("runtime: blob store not initialized")
+            ctx_logger.error("blob store not initialized")
             return
 
         try:
@@ -296,7 +312,7 @@ class Agent:
                 break
             except Exception as exc:
                 error = str(exc)
-                ctx_logger.warning("runtime: handler failed (attempt %d/%d): %s", attempt + 1, spec.retries + 1, exc)
+                ctx_logger.warning("handler failed (attempt %d/%d): %s", attempt + 1, spec.retries + 1, exc)
                 if attempt >= spec.retries:
                     break
 
@@ -366,7 +382,7 @@ class Agent:
 
     async def _publish_result(self, ctx: Context, result: job_pb2.JobResult) -> None:
         if self._nc is None:
-            ctx.logger.error("runtime: NATS not initialized")
+            ctx.logger.error("NATS not initialized")
             return
         packet = buspacket_pb2.BusPacket()
         packet.trace_id = ctx.packet.trace_id

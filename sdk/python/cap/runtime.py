@@ -29,6 +29,8 @@ DEFAULT_PROTOCOL_VERSION = 1
 
 
 class BlobStore(Protocol):
+    """Abstraction over payload storage (Redis, in-memory, etc.)."""
+
     async def get(self, key: str) -> Optional[bytes]:
         ...
 
@@ -40,6 +42,8 @@ class BlobStore(Protocol):
 
 
 class RedisBlobStore:
+    """Redis-backed :class:`BlobStore` implementation."""
+
     def __init__(self, redis_url: str) -> None:
         if redis_async is None:
             raise RuntimeError("redis is required for RedisBlobStore")
@@ -57,6 +61,8 @@ class RedisBlobStore:
 
 
 class InMemoryBlobStore:
+    """In-memory :class:`BlobStore` for testing without external infrastructure."""
+
     def __init__(self) -> None:
         self._data: Dict[str, bytes] = {}
 
@@ -98,6 +104,8 @@ def _default_logger() -> logging.Logger:
 
 @dataclass
 class Context:
+    """Per-request context passed to every job handler."""
+
     job: job_pb2.JobRequest
     packet: buspacket_pb2.BusPacket
     logger: logging.LoggerAdapter
@@ -126,6 +134,11 @@ class HandlerSpec:
 
 
 class Agent:
+    """High-level runtime that manages typed job handlers, blob storage, and NATS subscriptions.
+
+    Register handlers with :meth:`job`, then call :meth:`run` to start processing.
+    """
+
     def __init__(
         self,
         *,
@@ -168,6 +181,14 @@ class Agent:
         [Callable[[Context, Any], Union[Awaitable[Any], Any]]],
         Callable[[Context, Any], Union[Awaitable[Any], Any]],
     ]:
+        """Decorator that registers a handler for *topic*.
+
+        Args:
+            topic: NATS subject the handler subscribes to.
+            input_model: Optional Pydantic model or callable for input validation.
+            output_model: Optional Pydantic model or callable for output validation.
+            retries: Override the default retry count for this handler.
+        """
         def decorator(func: Callable[[Context, Any], Union[Awaitable[Any], Any]]):
             spec = HandlerSpec(
                 topic=topic,
@@ -182,6 +203,7 @@ class Agent:
         return decorator
 
     async def start(self) -> None:
+        """Connect to NATS/Redis and register subscriptions for all handlers."""
         if not self._handlers:
             raise RuntimeError("no handlers registered")
         if self._connect_fn is None:
@@ -202,12 +224,14 @@ class Agent:
             await self._nc.subscribe(topic, queue=topic, cb=lambda msg, s=spec: asyncio.create_task(self._on_msg(msg, s)))
 
     async def close(self) -> None:
+        """Drain the NATS connection and close the blob store."""
         if self._nc is not None:
             await self._nc.drain()
         if self._store is not None:
             await self._store.close()
 
     async def run(self) -> None:
+        """Start the agent and block until interrupted."""
         await self.start()
         try:
             while True:

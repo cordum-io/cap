@@ -5,11 +5,11 @@ import (
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
-	"github.com/cordum-io/cap/v2/sdk/go"
+	capsdk "github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -24,14 +24,27 @@ type NATSConn interface {
 	QueueSubscribe(subj, queue string, cb nats.MsgHandler) (*nats.Subscription, error)
 }
 
+// WorkerMiddleware wraps a Handler, returning a new Handler.
+// Middleware is applied in FIFO order: the first registered middleware is the outermost.
+type WorkerMiddleware func(next Handler) Handler
+
 // Worker subscribes to a pool subject and handles jobs.
 type Worker struct {
-	NATS       NATSConn
-	Subject    string
-	Handler    Handler
-	PublicKeys map[string]*ecdsa.PublicKey
-	PrivateKey *ecdsa.PrivateKey
-	SenderID   string
+	NATS        NATSConn
+	Subject     string
+	Handler     Handler
+	PublicKeys  map[string]*ecdsa.PublicKey
+	PrivateKey  *ecdsa.PrivateKey
+	SenderID    string
+	Logger      *slog.Logger
+	Metrics     capsdk.MetricsHook
+	middlewares []WorkerMiddleware
+}
+
+// Use appends middleware to the Worker. Middleware executes in registration order
+// before the handler.
+func (w *Worker) Use(mw ...WorkerMiddleware) {
+	w.middlewares = append(w.middlewares, mw...)
 }
 
 // Start begins consuming and handling JobRequests. It returns after the subscription is created.
@@ -48,11 +61,17 @@ func (w *Worker) Start() error {
 	if w.SenderID == "" {
 		return errors.New("worker: SenderID is required")
 	}
+	if w.Logger == nil {
+		w.Logger = slog.Default()
+	}
+	if w.Metrics == nil {
+		w.Metrics = capsdk.NoopMetrics
+	}
 	_, err := w.NATS.QueueSubscribe(w.Subject, w.Subject, func(msg *nats.Msg) {
 		ctx := context.Background()
 		var packet agentv1.BusPacket
 		if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-			log.Printf("worker: could not decode packet: %v", err)
+			w.Logger.Error("could not decode packet", "error", capsdk.NewMalformedPacketError(err.Error()))
 			return
 		}
 
@@ -60,16 +79,16 @@ func (w *Worker) Start() error {
 		if w.PublicKeys != nil {
 			pubKey, ok := w.PublicKeys[packet.GetSenderId()]
 			if !ok {
-				log.Printf("worker: no public key found for sender: %s", packet.GetSenderId())
+				w.Logger.Warn("no public key found", "sender_id", packet.GetSenderId())
 				return
 			}
 
 			if len(packet.GetSignature()) == 0 {
-				log.Printf("worker: missing signature for packet from sender: %s", packet.GetSenderId())
+				w.Logger.Warn("missing signature", "error", capsdk.NewSignatureMissingError("packet from sender: "+packet.GetSenderId()), "sender_id", packet.GetSenderId())
 				return
 			}
 			if err := capsdk.VerifyPacketSignature(&packet, pubKey); err != nil {
-				log.Printf("worker: signature verification failed for sender %s: %v", packet.GetSenderId(), err)
+				w.Logger.Warn("signature verification failed", "error", capsdk.NewSignatureInvalidError("sender "+packet.GetSenderId()+": "+err.Error()), "sender_id", packet.GetSenderId())
 				return
 			}
 		}
@@ -78,7 +97,18 @@ func (w *Worker) Start() error {
 		if req == nil {
 			return
 		}
-		res, err := w.Handler(ctx, req)
+		w.Metrics.OnJobReceived(req.GetJobId(), req.GetTopic())
+		jobLogger := w.Logger.With(
+			"job_id", req.GetJobId(),
+			"trace_id", packet.GetTraceId(),
+			"sender_id", packet.GetSenderId(),
+		)
+		start := time.Now()
+		handler := w.Handler
+		for i := len(w.middlewares) - 1; i >= 0; i-- {
+			handler = w.middlewares[i](handler)
+		}
+		res, err := handler(ctx, req)
 		if err != nil {
 			res = &agentv1.JobResult{
 				JobId:        req.GetJobId(),
@@ -100,8 +130,14 @@ func (w *Worker) Start() error {
 		if res.WorkerId == "" {
 			res.WorkerId = w.SenderID
 		}
+		execMs := time.Since(start).Milliseconds()
 		if res.ExecutionMs == 0 {
-			res.ExecutionMs = 0
+			res.ExecutionMs = execMs
+		}
+		if res.Status == agentv1.JobStatus_JOB_STATUS_FAILED {
+			w.Metrics.OnJobFailed(res.JobId, res.ErrorMessage)
+		} else {
+			w.Metrics.OnJobCompleted(res.JobId, execMs, res.Status.String())
 		}
 		out := &agentv1.BusPacket{
 			TraceId:         packet.GetTraceId(),
@@ -116,7 +152,7 @@ func (w *Worker) Start() error {
 		// Sign the outgoing packet
 		if w.PrivateKey != nil {
 			if err := capsdk.SignPacket(out, w.PrivateKey); err != nil {
-				log.Printf("worker: could not sign outgoing packet: %v", err)
+				jobLogger.Error("could not sign outgoing packet", "error", err)
 				return
 			}
 		}

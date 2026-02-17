@@ -2,22 +2,33 @@
 
 from __future__ import annotations
 
+import logging
 import time
 from typing import Any, Optional
 
 import httpx
 
+from .cache import PolicyCache, make_cache_key
 from .exceptions import (
     CordumAuthError,
     CordumConnectionError,
     CordumError,
     CordumTimeoutError,
 )
-from .types import ApprovalEntry, Decision, JobResponse, JobStatus, SafetyDecision
+from .types import (
+    ApprovalEntry,
+    Decision,
+    JobResponse,
+    JobStatus,
+    OnErrorMode,
+    SafetyDecision,
+)
 
 _TERMINAL_STATES = frozenset({
     "succeeded", "failed", "cancelled", "denied",
 })
+
+_logger = logging.getLogger("cordum_guard")
 
 
 def _base_url(url: str) -> str:
@@ -43,6 +54,9 @@ class CordumClient:
         api_key: str,
         tenant_id: str = "default",
         timeout: float = 30.0,
+        cache_ttl: float = 0,
+        cache_max_size: int = 1000,
+        on_error: OnErrorMode = "closed",
     ) -> None:
         self.base_url = _base_url(gateway_url)
         self._http = httpx.Client(
@@ -54,6 +68,10 @@ class CordumClient:
             },
             timeout=timeout,
         )
+        self._cache: PolicyCache | None = None
+        if cache_ttl > 0:
+            self._cache = PolicyCache(max_size=cache_max_size, ttl_seconds=cache_ttl)
+        self._on_error = on_error
 
     def close(self) -> None:
         self._http.close()
@@ -119,11 +137,26 @@ class CordumClient:
         risk_tags: Optional[list[str]] = None,
         labels: Optional[dict[str, str]] = None,
         job_id: str = "",
+        cache: bool = True,
     ) -> SafetyDecision:
         """Evaluate a policy against the Safety Kernel.
 
         Returns a :class:`SafetyDecision` with the kernel's verdict.
+
+        Args:
+            cache: When True (default) and caching is enabled, return a
+                cached decision if available. Set to False to bypass.
+
+        Connection/timeout errors are handled according to the ``on_error``
+        setting. Auth errors and explicit DENY responses are never affected.
         """
+        cache_key = make_cache_key(topic, capability, risk_tags)
+
+        if cache and self._cache is not None:
+            cached = self._cache.get(cache_key)
+            if cached is not None:
+                return cached
+
         body: dict[str, Any] = {"topic": topic}
         meta: dict[str, Any] = {}
         if capability:
@@ -136,8 +169,38 @@ class CordumClient:
             body["meta"] = meta
         if job_id:
             body["job_id"] = job_id
-        resp = self._request("POST", "/api/v1/policy/evaluate", json=body)
-        return _parse_safety_decision(resp)
+        try:
+            resp = self._request("POST", "/api/v1/policy/evaluate", json=body)
+        except (CordumConnectionError, CordumTimeoutError) as exc:
+            return self._handle_error(exc)
+        decision = _parse_safety_decision(resp)
+
+        if self._cache is not None:
+            self._cache.put(cache_key, decision)
+
+        return decision
+
+    def clear_cache(self) -> None:
+        """Purge all cached policy decisions."""
+        if self._cache is not None:
+            self._cache.clear()
+
+    def _handle_error(self, exc: Exception) -> SafetyDecision:
+        """Apply the on_error policy to a connection/timeout error."""
+        if self._on_error == "closed":
+            raise exc
+        if self._on_error == "open":
+            _logger.warning(
+                "fail-open: gateway unreachable, allowing operation",
+                exc_info=exc,
+            )
+            return SafetyDecision(
+                decision=Decision.ALLOW,
+                reason="fail-open: gateway unreachable",
+            )
+        if callable(self._on_error):
+            return self._on_error(exc)
+        raise exc
 
     # ------------------------------------------------------------------
     # Approvals

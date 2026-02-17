@@ -1,3 +1,9 @@
+"""CAP (Cordum Agent Protocol) SDK for Python.
+
+Provides helpers for submitting jobs, running workers, and building
+high-level agents on the CAP bus.
+"""
+
 import sys
 import types
 
@@ -27,11 +33,34 @@ from .client import submit_job
 from .worker import run_worker
 from .bus import connect_nats
 from .runtime import Agent, Context, BlobStore, RedisBlobStore, InMemoryBlobStore
+from .middleware import Middleware, NextFn, logging_middleware
+from .metrics import MetricsHook, NoopMetrics
 from .validate import (
     ValidationError,
     validate_job_request,
     validate_job_result,
     validate_bus_packet,
+)
+from .errors import (
+    CAPError,
+    VersionMismatchError,
+    MalformedPacketError,
+    UnknownPayloadError,
+    SignatureInvalidError,
+    SignatureMissingError,
+    JobTimeoutError,
+    ResourceExhaustedError,
+    PermissionDeniedError,
+    InvalidInputError,
+    JobNotFoundError,
+    DuplicateJobError,
+    WorkerUnavailableError,
+    SafetyDeniedError,
+    PolicyViolationError,
+    RiskTagBlockedError,
+    PublishFailedError,
+    SubscribeFailedError,
+    ConnectionLostError,
 )
 from .subjects import (
     SUBJECT_SUBMIT,
@@ -54,6 +83,11 @@ __all__ = [
     "BlobStore",
     "RedisBlobStore",
     "InMemoryBlobStore",
+    "Middleware",
+    "NextFn",
+    "logging_middleware",
+    "MetricsHook",
+    "NoopMetrics",
     "ValidationError",
     "validate_job_request",
     "validate_job_result",
@@ -67,4 +101,23 @@ __all__ = [
     "SUBJECT_DLQ",
     "SUBJECT_WORKFLOW_EVENT",
     "SUBJECT_HANDSHAKE",
+    "CAPError",
+    "VersionMismatchError",
+    "MalformedPacketError",
+    "UnknownPayloadError",
+    "SignatureInvalidError",
+    "SignatureMissingError",
+    "JobTimeoutError",
+    "ResourceExhaustedError",
+    "PermissionDeniedError",
+    "InvalidInputError",
+    "JobNotFoundError",
+    "DuplicateJobError",
+    "WorkerUnavailableError",
+    "SafetyDeniedError",
+    "PolicyViolationError",
+    "RiskTagBlockedError",
+    "PublishFailedError",
+    "SubscribeFailedError",
+    "ConnectionLostError",
 ]

@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 	"sync"
@@ -76,6 +76,7 @@ func NewInMemoryBlobStore() *InMemoryBlobStore {
 	return &InMemoryBlobStore{data: make(map[string][]byte)}
 }
 
+// Get returns the payload stored under key, or redis.Nil if not found.
 func (s *InMemoryBlobStore) Get(_ context.Context, key string) ([]byte, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -88,6 +89,7 @@ func (s *InMemoryBlobStore) Get(_ context.Context, key string) ([]byte, error) {
 	return out, nil
 }
 
+// Set stores data under the given key.
 func (s *InMemoryBlobStore) Set(_ context.Context, key string, data []byte) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -97,6 +99,7 @@ func (s *InMemoryBlobStore) Set(_ context.Context, key string, data []byte) erro
 	return nil
 }
 
+// Close is a no-op for the in-memory store.
 func (s *InMemoryBlobStore) Close() error {
 	return nil
 }
@@ -105,7 +108,7 @@ func (s *InMemoryBlobStore) Close() error {
 type Context struct {
 	Job    *agentv1.JobRequest
 	Packet *agentv1.BusPacket
-	Logger *log.Logger
+	Logger *slog.Logger
 }
 
 // Handler processes a job payload.
@@ -151,9 +154,11 @@ type Agent struct {
 	IOTTimeout      time.Duration
 	MaxContextBytes int
 	MaxResultBytes  int
-	Logger          *log.Logger
+	Logger          *slog.Logger
+	Metrics         MetricsHook
 
-	handlers map[string]handlerSpec
+	handlers    map[string]handlerSpec
+	middlewares []Middleware
 }
 
 // Register registers a typed handler for a topic.
@@ -200,7 +205,10 @@ func (a *Agent) Start() error {
 		a.SenderID = defaultSenderID
 	}
 	if a.Logger == nil {
-		a.Logger = log.New(os.Stdout, "cap-runtime ", log.LstdFlags)
+		a.Logger = slog.Default()
+	}
+	if a.Metrics == nil {
+		a.Metrics = NoopMetrics
 	}
 	if a.IOTTimeout == 0 {
 		a.IOTTimeout = defaultTimeout
@@ -271,22 +279,22 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 	start := time.Now()
 	var packet agentv1.BusPacket
 	if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-		a.Logger.Printf("runtime: decode failed: %v", err)
+		a.Logger.Error("decode failed", "error", capsdk.NewMalformedPacketError(err.Error()))
 		return
 	}
 
 	if a.PublicKeys != nil {
 		pub, ok := a.PublicKeys[packet.GetSenderId()]
 		if !ok {
-			a.Logger.Printf("runtime: no public key for sender %s", packet.GetSenderId())
+			a.Logger.Warn("no public key for sender", "sender_id", packet.GetSenderId())
 			return
 		}
 		if len(packet.GetSignature()) == 0 {
-			a.Logger.Printf("runtime: missing signature for sender %s", packet.GetSenderId())
+			a.Logger.Warn("missing signature", "error", capsdk.NewSignatureMissingError("sender "+packet.GetSenderId()), "sender_id", packet.GetSenderId())
 			return
 		}
 		if err := capsdk.VerifyPacketSignature(&packet, pub); err != nil {
-			a.Logger.Printf("runtime: invalid signature from sender %s: %v", packet.GetSenderId(), err)
+			a.Logger.Warn("invalid signature", "error", capsdk.NewSignatureInvalidError("sender "+packet.GetSenderId()+": "+err.Error()), "sender_id", packet.GetSenderId())
 			return
 		}
 	}
@@ -296,9 +304,12 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 		return
 	}
 
-	ctxLogger := log.New(a.Logger.Writer(),
-		fmt.Sprintf("job_id=%s trace_id=%s topic=%s ", req.GetJobId(), packet.GetTraceId(), req.GetTopic()),
-		a.Logger.Flags(),
+	a.Metrics.OnJobReceived(req.GetJobId(), req.GetTopic())
+
+	ctxLogger := a.Logger.With(
+		"job_id", req.GetJobId(),
+		"trace_id", packet.GetTraceId(),
+		"topic", req.GetTopic(),
 	)
 	ctx := Context{Job: req, Packet: &packet, Logger: ctxLogger}
 
@@ -314,18 +325,20 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 
 	input, err := spec.decode(payload)
 	if err != nil {
-		a.publishFailure(ctx, req, fmt.Sprintf("input validation failed: %v", err), 0)
+		a.publishFailure(ctx, req, capsdk.NewInvalidInputError(err.Error()).Error(), 0)
 		return
 	}
+
+	wrapped := applyMiddleware(spec.handler, a.middlewares)
 
 	var output any
 	var failure error
 	for attempt := 0; attempt <= spec.retries; attempt++ {
-		output, failure = spec.handler(ctx, input)
+		output, failure = wrapped(ctx, input)
 		if failure == nil {
 			break
 		}
-		ctx.Logger.Printf("runtime: handler failed (attempt %d/%d): %v", attempt+1, spec.retries+1, failure)
+		ctx.Logger.Warn("handler failed", "attempt", attempt+1, "max_attempts", spec.retries+1, "error", failure)
 	}
 
 	execMs := time.Since(start).Milliseconds()
@@ -357,6 +370,7 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 		WorkerId:    a.SenderID,
 		ExecutionMs: execMs,
 	}
+	a.Metrics.OnJobCompleted(req.GetJobId(), execMs, "SUCCEEDED")
 	a.publishResult(ctx, result)
 }
 
@@ -390,6 +404,7 @@ func (a *Agent) storeResult(key string, data []byte) error {
 }
 
 func (a *Agent) publishFailure(ctx Context, req *agentv1.JobRequest, errorMsg string, execMs int64) {
+	a.Metrics.OnJobFailed(req.GetJobId(), errorMsg)
 	result := &agentv1.JobResult{
 		JobId:        req.GetJobId(),
 		Status:       agentv1.JobStatus_JOB_STATUS_FAILED,
@@ -412,17 +427,17 @@ func (a *Agent) publishResult(ctx Context, result *agentv1.JobResult) {
 	}
 	if a.PrivateKey != nil {
 		if err := capsdk.SignPacket(packet, a.PrivateKey); err != nil {
-			ctx.Logger.Printf("runtime: failed signing packet: %v", err)
+			ctx.Logger.Error("failed signing packet", "error", err)
 			return
 		}
 	}
 	data, err := capsdk.MarshalDeterministic(packet)
 	if err != nil {
-		ctx.Logger.Printf("runtime: failed encoding packet: %v", err)
+		ctx.Logger.Error("failed encoding packet", "error", err)
 		return
 	}
 	if err := a.NATS.Publish(capsdk.SubjectResult, data); err != nil {
-		ctx.Logger.Printf("runtime: publish failed: %v", err)
+		ctx.Logger.Error("publish failed", "error", err)
 		return
 	}
 	if flusher, ok := a.NATS.(interface{ FlushTimeout(time.Duration) error }); ok && a.IOTTimeout > 0 {

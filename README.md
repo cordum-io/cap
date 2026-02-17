@@ -5,6 +5,8 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/cordum-io/cap/v2.svg)](https://pkg.go.dev/github.com/cordum-io/cap/v2)
 [![Discord](https://img.shields.io/discord/cordum?label=Discord&logo=discord)](https://discord.gg/U4NpXtjP)
 
+> **New to CAP?** Follow the [Getting Started in 5 Minutes](docs/getting-started.md) guide to go from zero to a running job.
+
 ## TL;DR
 - Cluster-native job protocol for AI agents: standard envelopes, jobs, heartbeats, and workflows over a bus.
 - Keeps payloads off the wire via `context_ptr` and `result_ptr` so the bus stays lean and secure.
@@ -97,7 +99,7 @@ Canonical protobuf definitions live under `proto/cordum/agent/v1/`:
 - `examples/README.md` — quick pointers to all flows.
 
 ## High-Level Runtime SDKs
-The runtime layer hides NATS/Redis plumbing and gives you typed handlers.
+The runtime layer hides NATS/Redis plumbing and gives you typed handlers. Not sure which SDK? See the [SDK Comparison Matrix](docs/sdk-comparison.md).
 
 Python:
 ```python
@@ -214,13 +216,18 @@ func main() {
 - `examples/` - JSON and sequence flows for common scenarios.
 - `tools/` - helper scripts for proto generation (optional).
 - `sdk/` - starter SDKs for Go, Python, Node/TS, and C++ with NATS helpers.
+- `docs/sdk-comparison.md` - SDK comparison matrix: which SDK to use and when.
 - `cordum/` - Go protobuf stubs (import path `github.com/cordum-io/cap/v2/cordum/agent/v1`).
 - `python/` - Python protobuf stubs (enable with `CAP_RUN_PY=1`).
 - `cpp/` - C++ protobuf stubs (vendored headers/sources).
 - `node/` - Node JS protobuf stubs (CommonJS, binary wire format).
+- `docs/troubleshooting.md` - common issues and solutions.
 - Go module path: `github.com/cordum-io/cap/v2` (see `go.mod`).
 
 ## Community
+
+Having issues? Check the [Troubleshooting Guide](docs/troubleshooting.md).
+
 - **Discord:** [Join our Discord server](https://discord.gg/U4NpXtjP)
 - **GitHub Discussions:** [Ask questions and share ideas](https://github.com/cordum-io/cap/discussions)
 - **Email:** admin@cordum.io

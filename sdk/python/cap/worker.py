@@ -20,6 +20,21 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
                      private_key: ec.EllipticCurvePrivateKey = None,
                      sender_id: str = "cap-worker",
                      connect_fn: Callable = None):
+    """Subscribe to a NATS subject and dispatch incoming JobRequests to the handler.
+
+    Results are wrapped in a signed BusPacket and published to the result subject.
+    Runs indefinitely until cancelled.
+
+    Args:
+        nats_url: NATS server URL (e.g. ``nats://127.0.0.1:4222``).
+        subject: NATS subject to subscribe to.
+        handler: Async callable that receives a JobRequest and returns a JobResult.
+        public_keys: Optional mapping of sender IDs to ECDSA public keys for
+            signature verification.
+        private_key: Optional ECDSA private key for signing outgoing packets.
+        sender_id: Identity reported in outgoing BusPacket envelopes.
+        connect_fn: Override the NATS connect function (useful for testing).
+    """
 
     # Allow injection for tests; defaults to nats.connect.
     if connect_fn is None:

@@ -32,7 +32,8 @@
     "build": "tsc -p .",
     "lint": "echo \"add linter\"",
     "sample:worker": "node dist/sample-worker.js",
-    "test": "tsc -p tsconfig.test.json --outDir dist && mocha dist/test/*.test.js"
+    "test": "tsc -p tsconfig.test.json --outDir dist && mocha dist/test/*.test.js",
+    "docs": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
     "nats": "^2.16.0",
@@ -47,6 +48,7 @@
     "mocha": "^11.7.5",
     "ts-mocha": "^11.1.0",
     "tsconfig-paths": "^4.2.0",
+    "typedoc": "^0.28.17",
     "typescript": "^5.4.0"
   },
   "overrides": {

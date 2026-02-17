@@ -17,6 +17,15 @@ async def submit_job(
     sender_id: str,
     private_key: Optional[ec.EllipticCurvePrivateKey] = None,
 ):
+    """Publish a JobRequest onto the CAP submit subject.
+
+    Args:
+        nc: An active NATS connection.
+        job_request: A protobuf JobRequest message.
+        trace_id: Distributed trace identifier propagated through the bus.
+        sender_id: Identity of the sender (used in the BusPacket envelope).
+        private_key: Optional ECDSA private key for signing the packet.
+    """
     ts = timestamp_pb2.Timestamp()
     ts.GetCurrentTime()
     packet = buspacket_pb2.BusPacket()

@@ -15,6 +15,7 @@ def _make_client(on_error="closed"):
     client.base_url = "http://test:8081"
     client._http = MagicMock()
     client._on_error = on_error
+    client._cache = None
     return client
 
 

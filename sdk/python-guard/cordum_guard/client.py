@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Callable, Optional, Union
+from typing import Any, Optional
 
 import httpx
 
@@ -14,19 +14,20 @@ from .exceptions import (
     CordumError,
     CordumTimeoutError,
 )
-from .types import ApprovalEntry, Decision, JobResponse, JobStatus, SafetyDecision
+from .types import (
+    ApprovalEntry,
+    Decision,
+    JobResponse,
+    JobStatus,
+    OnErrorMode,
+    SafetyDecision,
+)
 
 _TERMINAL_STATES = frozenset({
     "succeeded", "failed", "cancelled", "denied",
 })
 
 _logger = logging.getLogger("cordum_guard")
-
-# Type for the on_error callback.
-OnErrorCallback = Callable[
-    [Exception],
-    SafetyDecision,
-]
 
 
 def _base_url(url: str) -> str:
@@ -52,7 +53,7 @@ class CordumClient:
         api_key: str,
         tenant_id: str = "default",
         timeout: float = 30.0,
-        on_error: Union[str, OnErrorCallback] = "closed",
+        on_error: OnErrorMode = "closed",
     ) -> None:
         self.base_url = _base_url(gateway_url)
         self._http = httpx.Client(

@@ -101,3 +101,10 @@ async def main():
 if __name__ == '__main__':
     asyncio.run(main())
 ```
+
+## In Progress
+
+The following features are being added to the Python SDK:
+
+- **Heartbeat helpers** — `heartbeat_payload()` constructors, `emit_heartbeat()`, `heartbeat_loop()` with async support.
+- **Progress/cancel helpers** — `emit_progress()` and `emit_cancel()` with proper BusPacket wrapping and signing.

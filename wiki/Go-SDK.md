@@ -143,3 +143,9 @@ func main() {
 	}
 }
 ```
+
+## In Progress
+
+The following features are being added to the Go SDK:
+
+- **Progress/cancel emission helpers** — `EmitProgress()` and `EmitCancel()` with proper BusPacket wrapping matching the existing `EmitHeartbeat()` pattern.

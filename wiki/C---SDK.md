@@ -119,5 +119,10 @@ class BusClient {
 ```
 
 ## Notes
-- No signing helpers are included in the C++ SDK yet; add them in your bus or worker layer if required.
 - Default subjects are defined in `sdk/cpp/include/cap/subjects.h`.
+
+### In Progress
+The following features are planned for the C++ SDK (tracked under the SDK Feature Parity epic):
+- **Packet signing/verification** — ECDSA P-256 with SHA-256 via OpenSSL (`SignPacket()`, `VerifyPacketSignature()`).
+- **Deterministic serialization** — `MarshalDeterministic()` using protobuf's `SetSerializationDeterministic(true)`, byte-identical to Go/Python/Node.
+- **Runtime/middleware/metrics** — Agent lifecycle (Register/Start/Close), composable middleware chain, pluggable MetricsHook callbacks, heartbeat helpers, progress/cancel emission helpers.

@@ -123,3 +123,10 @@ async function main() {
 
 main().catch((err) => console.error(err));
 ```
+
+## In Progress
+
+The following features are being added to the Node SDK:
+
+- **Heartbeat helpers** — `heartbeatPayload()` constructors, `emitHeartbeat()`, `heartbeatLoop()` with setInterval-based periodic emission.
+- **Progress/cancel helpers** — `emitProgress()` and `emitCancel()` with proper BusPacket wrapping and signing.

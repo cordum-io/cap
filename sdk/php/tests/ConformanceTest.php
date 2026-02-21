@@ -209,8 +209,7 @@ class ConformanceTest extends TestCase
             $this->assertNotEmpty($pkt->getSignature(), "{$fixture} has no signature");
 
             $unsignedBytes = Codec::marshalUnsignedForSignature($pkt);
-            $hash = hash('sha256', $unsignedBytes, true);
-            $verified = openssl_verify($hash, $pkt->getSignature(), $key, OPENSSL_ALGO_SHA256) === 1;
+            $verified = openssl_verify($unsignedBytes, $pkt->getSignature(), $key, OPENSSL_ALGO_SHA256) === 1;
             $this->assertTrue($verified, "{$fixture} signature verification failed");
         }
     }

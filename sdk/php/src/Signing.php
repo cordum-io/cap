@@ -25,10 +25,8 @@ final class Signing
     {
         $unsignedBytes = Codec::marshalUnsignedForSignature($packet);
 
-        $hash = hash('sha256', $unsignedBytes, true);
-
         $signature = '';
-        if (!openssl_sign($hash, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
+        if (!openssl_sign($unsignedBytes, $signature, $privateKey, OPENSSL_ALGO_SHA256)) {
             throw CapException::signatureInvalid('failed to sign packet: ' . openssl_error_string());
         }
 
@@ -51,9 +49,7 @@ final class Signing
 
         $unsignedBytes = Codec::marshalUnsignedForSignature($packet);
 
-        $hash = hash('sha256', $unsignedBytes, true);
-
-        return openssl_verify($hash, $sig, $publicKey, OPENSSL_ALGO_SHA256) === 1;
+        return openssl_verify($unsignedBytes, $sig, $publicKey, OPENSSL_ALGO_SHA256) === 1;
     }
 
     /**

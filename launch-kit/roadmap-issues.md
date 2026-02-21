@@ -16,6 +16,31 @@
 - [ ] GitHub Actions / GitLab Runner CAP workers
 - [ ] K8s ops worker (kubectl/helm) with safety guardrails
 
+## Milestone: SDK Feature Parity & Language Coverage
+Tracked in Moe epic `epic-c0e0dff4`.
+
+### Heartbeat Helper Parity (HIGH)
+- [ ] Add heartbeat helpers to Python SDK (HeartbeatPayload constructors, emit_heartbeat, heartbeat_loop)
+- [ ] Add heartbeat helpers to Node SDK (same API surface, TypeScript idiomatic)
+
+### Progress/Cancel Emission Helpers (HIGH)
+- [ ] Add progress/cancel emission helpers to Go SDK (EmitProgress, EmitCancel)
+- [ ] Add progress/cancel emission helpers to Python SDK (emit_progress, emit_cancel)
+- [ ] Add progress/cancel emission helpers to Node SDK (emitProgress, emitCancel)
+
+### C++ SDK Hardening (HIGH/MEDIUM)
+- [ ] Add ECDSA packet signing/verification to C++ SDK (OpenSSL)
+- [ ] Add deterministic serialization to C++ SDK (CodedOutputStream deterministic mode)
+- [ ] Add runtime/middleware/metrics layer to C++ SDK (Agent lifecycle, middleware chain, MetricsHook)
+
+### New Language SDKs (MEDIUM/LOW)
+Each includes: runtime, worker, client, bus transport, signing, deterministic serialization, heartbeat/progress/cancel helpers, middleware, metrics, validation, testing utilities, generated protobuf types, and tests.
+- [ ] Create Java SDK (io.cordum.cap.agent.v1, Maven/Gradle, nats.java)
+- [ ] Create Rust SDK (Cargo crate, tokio, async-nats, prost)
+- [ ] Create C#/.NET SDK (Cordum.Agent.V1, NuGet, NATS.Net, .NET 8+)
+- [ ] Create PHP SDK (cordum\Agent\V1, Composer, php-nats)
+- [ ] Create Ruby SDK (Cordum::Agent::V1, Gem, nats-pure)
+
 ## Milestone: Community + RFCs
 - [ ] Stand up `/rfcs` with template and first proposals (memory v2, agent discovery, streaming)
 - [ ] Create CAP working group (Slack/Discord) and publish meeting cadence

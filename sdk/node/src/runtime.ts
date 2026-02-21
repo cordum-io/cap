@@ -5,6 +5,7 @@ import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import type { Middleware } from "./middleware";
 import * as crypto from "crypto";
+import { heartbeatLoop, heartbeatPayload } from "./heartbeat";
 import { MalformedPacketError, SignatureInvalidError, SignatureMissingError, InvalidInputError } from "./errors";
 import type { Logger } from "./logger";
 import type { MetricsHook } from "./metrics";
@@ -108,6 +109,9 @@ export interface AgentOptions {
   connectFn?: (opts: any) => Promise<NatsConnection>;
   logger?: Logger;
   metrics?: MetricsHook;
+  heartbeatInterval?: number;
+  pool?: string;
+  maxParallel?: number;
 }
 
 /** Per-handler options for {@link Agent.job}. */
@@ -187,11 +191,16 @@ export class Agent {
   private readonly connectFn: (opts: any) => Promise<NatsConnection>;
   private readonly logger: Logger;
   private readonly metrics: MetricsHook;
+  private readonly heartbeatInterval: number;
+  private readonly pool: string;
+  private readonly maxParallel: number;
   private readonly handlers = new Map<string, HandlerSpec>();
   private readonly middlewares: Middleware[] = [];
   private nc?: NatsConnection;
   private busPacketType?: any;
   private jobResultType?: any;
+  private heartbeatHandle?: { stop: () => void };
+  private activeJobCount = 0;
 
   constructor(options: AgentOptions = {}) {
     this.natsUrl = options.natsUrl ?? process.env.NATS_URL ?? DEFAULT_NATS_URL;
@@ -217,6 +226,9 @@ export class Agent {
     this.connectFn = options.connectFn ?? connect;
     this.logger = options.logger ?? console;
     this.metrics = options.metrics ?? noopMetrics;
+    this.heartbeatInterval = options.heartbeatInterval ?? 5000;
+    this.pool = options.pool ?? "";
+    this.maxParallel = Math.max(1, options.maxParallel ?? 1);
   }
 
   /** Appends middleware to the agent. Middleware executes in registration order before the handler. */
@@ -309,9 +321,22 @@ export class Agent {
         }
       );
     }
+
+    this.heartbeatHandle = heartbeatLoop(
+      this.nc,
+      () => heartbeatPayload(this.senderId, this.pool, this.activeJobCount, this.maxParallel, 0),
+      {
+        interval: this.heartbeatInterval,
+        privateKey: this.privateKey,
+        metrics: this.metrics,
+        logger: this.logger,
+      }
+    );
   }
 
   async close(): Promise<void> {
+    this.heartbeatHandle?.stop();
+    this.heartbeatHandle = undefined;
     if (this.nc) {
       await this.nc.drain();
     }
@@ -369,91 +394,96 @@ export class Agent {
       return;
     }
 
-    this.metrics.onJobReceived(req.jobId, req.topic);
-
-    const ctx: Context = {
-      job: req,
-      packet,
-      log: withContextLogger(this.logger, { jobId: req.jobId, traceId: packet.traceId, topic: req.topic }),
-      jobId: req.jobId,
-      traceId: packet.traceId,
-    };
-
-    let payload: Buffer | null = null;
+    this.activeJobCount += 1;
     try {
-      const key = keyFromPointer(req.contextPtr);
-      payload = await withTimeout(this.store.get(key), this.ioTimeoutMs, "context fetch");
-      if (!payload) {
-        throw new Error("context not found");
-      }
-      if (this.maxContextBytes && payload.length > this.maxContextBytes) {
-        throw new Error("context exceeds max size");
-      }
-    } catch (err) {
-      await this.publishFailure(ctx, req, err instanceof Error ? err.message : String(err), 0);
-      return;
-    }
+      this.metrics.onJobReceived(req.jobId, req.topic);
 
-    let raw: any;
-    try {
-      raw = JSON.parse(payload.toString("utf-8"));
-    } catch (err) {
-      await this.publishFailure(ctx, req, `context decode failed: ${err}`, 0);
-      return;
-    }
+      const ctx: Context = {
+        job: req,
+        packet,
+        log: withContextLogger(this.logger, { jobId: req.jobId, traceId: packet.traceId, topic: req.topic }),
+        jobId: req.jobId,
+        traceId: packet.traceId,
+      };
 
-    let inputData: any;
-    try {
-      inputData = spec.inputSchema ? spec.inputSchema.parse(raw) : raw;
-    } catch (err) {
-      await this.publishFailure(ctx, req, `input validation failed: ${err}`, 0);
-      return;
-    }
-
-    // Build middleware chain: outermost first, terminal calls handler.
-    const terminal = () => spec.handler(ctx, inputData);
-    let chain = terminal;
-    for (let i = this.middlewares.length - 1; i >= 0; i--) {
-      const mw = this.middlewares[i];
-      const next = chain;
-      chain = () => mw(ctx, next);
-    }
-
-    const start = Date.now();
-    let output: any;
-    let error: string | null = null;
-    for (let attempt = 0; attempt <= spec.retries; attempt += 1) {
+      let payload: Buffer | null = null;
       try {
-        output = await chain();
-        output = spec.outputSchema ? spec.outputSchema.parse(output) : output;
-        error = null;
-        break;
+        const key = keyFromPointer(req.contextPtr);
+        payload = await withTimeout(this.store.get(key), this.ioTimeoutMs, "context fetch");
+        if (!payload) {
+          throw new Error("context not found");
+        }
+        if (this.maxContextBytes && payload.length > this.maxContextBytes) {
+          throw new Error("context exceeds max size");
+        }
       } catch (err) {
-        error = err instanceof Error ? err.message : String(err);
-        ctx.log.warn("handler failed", { attempt: attempt + 1, maxAttempts: spec.retries + 1, error: String(err) });
+        await this.publishFailure(ctx, req, err instanceof Error ? err.message : String(err), 0);
+        return;
       }
-    }
 
-    const elapsedMs = Date.now() - start;
-    if (error) {
-      await this.publishFailure(ctx, req, error, elapsedMs);
-      return;
-    }
-
-    let resultPayload: Buffer;
-    try {
-      resultPayload = this.serializeOutput(output);
-      if (this.maxResultBytes && resultPayload.length > this.maxResultBytes) {
-        throw new Error("result exceeds max size");
+      let raw: any;
+      try {
+        raw = JSON.parse(payload.toString("utf-8"));
+      } catch (err) {
+        await this.publishFailure(ctx, req, `context decode failed: ${err}`, 0);
+        return;
       }
-      const resultKey = `res:${req.jobId}`;
-      await withTimeout(this.store.set(resultKey, resultPayload), this.ioTimeoutMs, "result write");
-      const resultPtr = pointerForKey(resultKey);
 
-      this.metrics.onJobCompleted(req.jobId, elapsedMs, "SUCCEEDED");
-      await this.publishResult(ctx, req, resultPtr, elapsedMs);
-    } catch (err) {
-      await this.publishFailure(ctx, req, `result write failed: ${err}`, elapsedMs);
+      let inputData: any;
+      try {
+        inputData = spec.inputSchema ? spec.inputSchema.parse(raw) : raw;
+      } catch (err) {
+        await this.publishFailure(ctx, req, `input validation failed: ${err}`, 0);
+        return;
+      }
+
+      // Build middleware chain: outermost first, terminal calls handler.
+      const terminal = () => spec.handler(ctx, inputData);
+      let chain = terminal;
+      for (let i = this.middlewares.length - 1; i >= 0; i--) {
+        const mw = this.middlewares[i];
+        const next = chain;
+        chain = () => mw(ctx, next);
+      }
+
+      const start = Date.now();
+      let output: any;
+      let error: string | null = null;
+      for (let attempt = 0; attempt <= spec.retries; attempt += 1) {
+        try {
+          output = await chain();
+          output = spec.outputSchema ? spec.outputSchema.parse(output) : output;
+          error = null;
+          break;
+        } catch (err) {
+          error = err instanceof Error ? err.message : String(err);
+          ctx.log.warn("handler failed", { attempt: attempt + 1, maxAttempts: spec.retries + 1, error: String(err) });
+        }
+      }
+
+      const elapsedMs = Date.now() - start;
+      if (error) {
+        await this.publishFailure(ctx, req, error, elapsedMs);
+        return;
+      }
+
+      let resultPayload: Buffer;
+      try {
+        resultPayload = this.serializeOutput(output);
+        if (this.maxResultBytes && resultPayload.length > this.maxResultBytes) {
+          throw new Error("result exceeds max size");
+        }
+        const resultKey = `res:${req.jobId}`;
+        await withTimeout(this.store.set(resultKey, resultPayload), this.ioTimeoutMs, "result write");
+        const resultPtr = pointerForKey(resultKey);
+
+        this.metrics.onJobCompleted(req.jobId, elapsedMs, "SUCCEEDED");
+        await this.publishResult(ctx, req, resultPtr, elapsedMs);
+      } catch (err) {
+        await this.publishFailure(ctx, req, `result write failed: ${err}`, elapsedMs);
+      }
+    } finally {
+      this.activeJobCount = Math.max(0, this.activeJobCount - 1);
     }
   }
 

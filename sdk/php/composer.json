@@ -1,0 +1,34 @@
+{
+    "name": "cordum/cap-sdk",
+    "description": "PHP SDK for the Cordum Agent Protocol (CAP)",
+    "type": "library",
+    "license": "MIT",
+    "version": "2.5.3",
+    "require": {
+        "php": ">=8.1",
+        "google/protobuf": "^3.25",
+        "basis-company/nats": "^1.25",
+        "ext-openssl": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cordum\\Cap\\": "src/",
+            "Cordum\\Agent\\V1\\": "proto/Cordum/Agent/V1/",
+            "GPBMetadata\\Cordum\\Agent\\V1\\": "proto/GPBMetadata/Cordum/Agent/V1/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cordum\\Cap\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --configuration phpunit.xml"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

@@ -201,6 +201,51 @@ func HeartbeatPayloadWithProgress(workerID, pool string, activeJobs, maxParallel
 	return capsdk.MarshalDeterministic(hb)
 }
 
+// ProgressPayload returns a protobuf-encoded progress envelope.
+func ProgressPayload(senderID, jobID, stepID string, percent int32, message string) ([]byte, error) {
+	pkt := &agentv1.BusPacket{
+		SenderId:        senderID,
+		ProtocolVersion: capsdk.DefaultProtocolVersion,
+		CreatedAt:       timestamppb.Now(),
+		Payload: &agentv1.BusPacket_JobProgress{
+			JobProgress: &agentv1.JobProgress{
+				JobId:   jobID,
+				StepId:  stepID,
+				Percent: percent,
+				Message: message,
+			},
+		},
+	}
+	return capsdk.MarshalDeterministic(pkt)
+}
+
+// CancelPayload returns a protobuf-encoded cancel envelope.
+func CancelPayload(senderID, jobID, reason, requestedBy string) ([]byte, error) {
+	pkt := &agentv1.BusPacket{
+		SenderId:        senderID,
+		ProtocolVersion: capsdk.DefaultProtocolVersion,
+		CreatedAt:       timestamppb.Now(),
+		Payload: &agentv1.BusPacket_JobCancel{
+			JobCancel: &agentv1.JobCancel{
+				JobId:       jobID,
+				Reason:      reason,
+				RequestedBy: requestedBy,
+			},
+		},
+	}
+	return capsdk.MarshalDeterministic(pkt)
+}
+
+// EmitProgress publishes a progress packet once.
+func EmitProgress(nc *nats.Conn, payload []byte) error {
+	return nc.Publish(capsdk.SubjectProgress, payload)
+}
+
+// EmitCancel publishes a cancel packet once.
+func EmitCancel(nc *nats.Conn, payload []byte) error {
+	return nc.Publish(capsdk.SubjectCancel, payload)
+}
+
 // EmitHeartbeat publishes a heartbeat once. Call repeatedly on a ticker.
 func EmitHeartbeat(nc *nats.Conn, payload []byte) error {
 	return nc.Publish(capsdk.SubjectHeartbeat, payload)

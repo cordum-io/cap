@@ -35,6 +35,19 @@ from .bus import connect_nats
 from .runtime import Agent, Context, BlobStore, RedisBlobStore, InMemoryBlobStore
 from .middleware import Middleware, NextFn, logging_middleware
 from .metrics import MetricsHook, NoopMetrics
+from .heartbeat import (
+    heartbeat_payload,
+    heartbeat_payload_with_memory,
+    heartbeat_payload_with_progress,
+    emit_heartbeat,
+    heartbeat_loop,
+)
+from .progress import (
+    progress_payload,
+    cancel_payload,
+    emit_progress,
+    emit_cancel,
+)
 from .validate import (
     ValidationError,
     validate_job_request,
@@ -88,6 +101,15 @@ __all__ = [
     "logging_middleware",
     "MetricsHook",
     "NoopMetrics",
+    "heartbeat_payload",
+    "heartbeat_payload_with_memory",
+    "heartbeat_payload_with_progress",
+    "emit_heartbeat",
+    "heartbeat_loop",
+    "progress_payload",
+    "cancel_payload",
+    "emit_progress",
+    "emit_cancel",
     "ValidationError",
     "validate_job_request",
     "validate_job_result",

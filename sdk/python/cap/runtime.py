@@ -26,6 +26,7 @@ except Exception:  # pragma: no cover - optional until runtime used
 from cap.subjects import SUBJECT_RESULT
 from cap.errors import InvalidInputError, MalformedPacketError, SignatureInvalidError, SignatureMissingError
 from cap.metrics import MetricsHook, NoopMetrics
+from cap.heartbeat import heartbeat_loop, heartbeat_payload
 
 DEFAULT_PROTOCOL_VERSION = 1
 
@@ -165,6 +166,11 @@ class Agent:
         public_keys: Optional[Dict[str, ec.EllipticCurvePublicKey]] = None,
         private_key: Optional[ec.EllipticCurvePrivateKey] = None,
         sender_id: str = "cap-runtime",
+        worker_id: Optional[str] = None,
+        pool: str = "",
+        max_parallel: int = 1,
+        heartbeat_interval: float = 5.0,
+        heartbeat_payload_fn: Optional[Callable[[], bytes]] = None,
         retries: int = 0,
         io_timeout: Optional[float] = 5.0,
         max_context_bytes: Optional[int] = 2 * 1024 * 1024,
@@ -178,7 +184,11 @@ class Agent:
         self._store = store
         self._public_keys = public_keys
         self._private_key = private_key
-        self._sender_id = sender_id
+        self._sender_id = worker_id or sender_id
+        self._pool = pool
+        self._max_parallel = max(1, max_parallel)
+        self._heartbeat_interval = heartbeat_interval if heartbeat_interval > 0 else 5.0
+        self._heartbeat_payload_fn = heartbeat_payload_fn
         self._default_retries = max(0, retries)
         self._io_timeout = io_timeout if io_timeout and io_timeout > 0 else None
         self._max_context_bytes = max_context_bytes if max_context_bytes and max_context_bytes > 0 else None
@@ -189,6 +199,9 @@ class Agent:
         self._handlers: Dict[str, HandlerSpec] = {}
         self._middlewares: list = []
         self._nc = None
+        self._active_jobs: set[str] = set()
+        self._heartbeat_cancel_event: Optional[asyncio.Event] = None
+        self._heartbeat_task: Optional[asyncio.Task[Any]] = None
 
     def use(self, *middlewares) -> None:
         """Append middleware to the agent. Middleware executes in registration order before the handler."""
@@ -247,12 +260,44 @@ class Agent:
         for topic, spec in self._handlers.items():
             await self._nc.subscribe(topic, queue=topic, cb=lambda msg, s=spec: asyncio.create_task(self._on_msg(msg, s)))
 
+        if self._heartbeat_task is None or self._heartbeat_task.done():
+            self._heartbeat_cancel_event = asyncio.Event()
+            payload_fn = self._heartbeat_payload_fn or self._default_heartbeat_payload
+            self._heartbeat_task = asyncio.create_task(
+                heartbeat_loop(
+                    nc=self._nc,
+                    payload_fn=payload_fn,
+                    interval=self._heartbeat_interval,
+                    private_key=self._private_key,
+                    metrics=self._metrics,
+                    cancel_event=self._heartbeat_cancel_event,
+                )
+            )
+
     async def close(self) -> None:
         """Drain the NATS connection and close the blob store."""
+        if self._heartbeat_cancel_event is not None:
+            self._heartbeat_cancel_event.set()
+        if self._heartbeat_task is not None:
+            try:
+                await self._heartbeat_task
+            finally:
+                self._heartbeat_task = None
+                self._heartbeat_cancel_event = None
+
         if self._nc is not None:
             await self._nc.drain()
         if self._store is not None:
             await self._store.close()
+
+    def _default_heartbeat_payload(self) -> bytes:
+        return heartbeat_payload(
+            worker_id=self._sender_id,
+            pool=self._pool,
+            active_jobs=len(self._active_jobs),
+            max_parallel=self._max_parallel,
+            cpu_load=0.0,
+        )
 
     async def run(self) -> None:
         """Start the agent and block until interrupted."""
@@ -293,99 +338,103 @@ class Agent:
         if not req.job_id:
             return
 
-        self._metrics.on_job_received(req.job_id, req.topic)
-
-        ctx_logger = logging.LoggerAdapter(
-            self._logger,
-            {
-                "job_id": req.job_id,
-                "trace_id": packet.trace_id,
-                "topic": req.topic,
-                "sender_id": packet.sender_id,
-            },
-        )
-        ctx = Context(job=req, packet=packet, logger=ctx_logger)
-
-        store = self._store
-        if store is None:
-            ctx_logger.error("blob store not initialized")
-            return
-
+        self._active_jobs.add(req.job_id)
         try:
-            key = key_from_pointer(req.context_ptr)
-            payload = await self._with_timeout(store.get(key), "context fetch")
-            if payload is None:
-                raise ValueError("context not found")
-            if self._max_context_bytes is not None and len(payload) > self._max_context_bytes:
-                raise ValueError("context exceeds max size")
-        except Exception as exc:
-            await self._publish_failure(ctx, req, str(exc), execution_ms=0)
-            return
+            self._metrics.on_job_received(req.job_id, req.topic)
 
-        try:
-            raw = json.loads(payload.decode("utf-8"))
-        except Exception as exc:
-            await self._publish_failure(ctx, req, f"context decode failed: {exc}", execution_ms=0)
-            return
+            ctx_logger = logging.LoggerAdapter(
+                self._logger,
+                {
+                    "job_id": req.job_id,
+                    "trace_id": packet.trace_id,
+                    "topic": req.topic,
+                    "sender_id": packet.sender_id,
+                },
+            )
+            ctx = Context(job=req, packet=packet, logger=ctx_logger)
 
-        try:
-            input_data = self._validate_input(spec, raw)
-        except Exception as exc:
-            await self._publish_failure(ctx, req, f"input validation failed: {exc}", execution_ms=0)
-            return
+            store = self._store
+            if store is None:
+                ctx_logger.error("blob store not initialized")
+                return
 
-        # Build middleware chain: outermost first, terminal calls handler.
-        async def _terminal(c: Context, d: Any) -> Any:
-            result = spec.func(c, d)
-            if asyncio.iscoroutine(result):
-                result = await result
-            return result
-
-        chain = _terminal
-        for mw in reversed(self._middlewares):
-            _next = chain
-            chain = (lambda m, n: (lambda c, d: m(c, d, n)))(mw, _next)
-
-        start_time = time.monotonic()
-        error: Optional[str] = None
-        output: Any = None
-        for attempt in range(spec.retries + 1):
             try:
-                output = await chain(ctx, input_data)
-                output = self._validate_output(spec, output)
-                error = None
-                break
+                key = key_from_pointer(req.context_ptr)
+                payload = await self._with_timeout(store.get(key), "context fetch")
+                if payload is None:
+                    raise ValueError("context not found")
+                if self._max_context_bytes is not None and len(payload) > self._max_context_bytes:
+                    raise ValueError("context exceeds max size")
             except Exception as exc:
-                error = str(exc)
-                ctx_logger.warning("handler failed (attempt %d/%d): %s", attempt + 1, spec.retries + 1, exc)
-                if attempt >= spec.retries:
+                await self._publish_failure(ctx, req, str(exc), execution_ms=0)
+                return
+
+            try:
+                raw = json.loads(payload.decode("utf-8"))
+            except Exception as exc:
+                await self._publish_failure(ctx, req, f"context decode failed: {exc}", execution_ms=0)
+                return
+
+            try:
+                input_data = self._validate_input(spec, raw)
+            except Exception as exc:
+                await self._publish_failure(ctx, req, f"input validation failed: {exc}", execution_ms=0)
+                return
+
+            # Build middleware chain: outermost first, terminal calls handler.
+            async def _terminal(c: Context, d: Any) -> Any:
+                result = spec.func(c, d)
+                if asyncio.iscoroutine(result):
+                    result = await result
+                return result
+
+            chain = _terminal
+            for mw in reversed(self._middlewares):
+                _next = chain
+                chain = (lambda m, n: (lambda c, d: m(c, d, n)))(mw, _next)
+
+            start_time = time.monotonic()
+            error: Optional[str] = None
+            output: Any = None
+            for attempt in range(spec.retries + 1):
+                try:
+                    output = await chain(ctx, input_data)
+                    output = self._validate_output(spec, output)
+                    error = None
                     break
+                except Exception as exc:
+                    error = str(exc)
+                    ctx_logger.warning("handler failed (attempt %d/%d): %s", attempt + 1, spec.retries + 1, exc)
+                    if attempt >= spec.retries:
+                        break
 
-        elapsed_ms = int((time.monotonic() - start_time) * 1000)
-        if error is not None:
-            await self._publish_failure(ctx, req, error, execution_ms=elapsed_ms)
-            return
+            elapsed_ms = int((time.monotonic() - start_time) * 1000)
+            if error is not None:
+                await self._publish_failure(ctx, req, error, execution_ms=elapsed_ms)
+                return
 
-        try:
-            result_payload = self._serialize_output(output)
-            if self._max_result_bytes is not None and len(result_payload) > self._max_result_bytes:
-                raise ValueError("result exceeds max size")
-            result_key = f"res:{req.job_id}"
-            await self._with_timeout(store.set(result_key, result_payload), "result write")
-            result_ptr = pointer_for_key(result_key)
-        except Exception as exc:
-            await self._publish_failure(ctx, req, f"result write failed: {exc}", execution_ms=elapsed_ms)
-            return
+            try:
+                result_payload = self._serialize_output(output)
+                if self._max_result_bytes is not None and len(result_payload) > self._max_result_bytes:
+                    raise ValueError("result exceeds max size")
+                result_key = f"res:{req.job_id}"
+                await self._with_timeout(store.set(result_key, result_payload), "result write")
+                result_ptr = pointer_for_key(result_key)
+            except Exception as exc:
+                await self._publish_failure(ctx, req, f"result write failed: {exc}", execution_ms=elapsed_ms)
+                return
 
-        self._metrics.on_job_completed(req.job_id, elapsed_ms, "SUCCEEDED")
-        result = job_pb2.JobResult(
-            job_id=req.job_id,
-            status=job_pb2.JOB_STATUS_SUCCEEDED,
-            result_ptr=result_ptr,
-            worker_id=self._sender_id,
-            execution_ms=elapsed_ms,
-        )
-        await self._publish_result(ctx, result)
+            self._metrics.on_job_completed(req.job_id, elapsed_ms, "SUCCEEDED")
+            result = job_pb2.JobResult(
+                job_id=req.job_id,
+                status=job_pb2.JOB_STATUS_SUCCEEDED,
+                result_ptr=result_ptr,
+                worker_id=self._sender_id,
+                execution_ms=elapsed_ms,
+            )
+            await self._publish_result(ctx, result)
+        finally:
+            self._active_jobs.discard(req.job_id)
 
     def _validate_input(self, spec: HandlerSpec, data: Any) -> Any:
         if spec.input_model is None:

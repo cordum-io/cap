@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Cordum.Cap</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- NuGet package metadata -->
+    <PackageId>Cordum.Cap</PackageId>
+    <Version>2.5.3</Version>
+    <Authors>Cordum</Authors>
+    <Description>C#/.NET SDK for the Cordum Agent Protocol (CAP)</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/cordum-io/cap</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/cordum-io/cap</RepositoryUrl>
+    <PackageTags>cap;cordum;agent;protocol;nats</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.25.3" />
+    <PackageReference Include="Grpc.Tools" Version="2.62.0" PrivateAssets="All" />
+    <PackageReference Include="NATS.Net" Version="2.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="..\..\..\..\proto\cordum\agent\v1\*.proto"
+              ProtoRoot="..\..\..\..\proto"
+              GrpcServices="None" />
+  </ItemGroup>
+
+</Project>

@@ -1,4 +1,6 @@
 #include "cap/client.h"
+#include "cap/codec.h"
+#include "cap/signing.h"
 
 #include <google/protobuf/util/time_util.h>
 
@@ -16,11 +18,12 @@ bool Client::Submit(const std::string& trace_id,
   packet.set_protocol_version(protocol_version);
   *(packet.mutable_job_request()) = req;
 
-  const auto size = packet.ByteSizeLong();
-  std::vector<uint8_t> buffer(size);
-  if (!packet.SerializeToArray(buffer.data(), static_cast<int>(buffer.size()))) {
-    return false;
+  if (private_key_) {
+    if (!SignPacket(&packet, private_key_)) return false;
   }
+
+  auto buffer = MarshalDeterministic(packet);
+  if (buffer.empty() && packet.ByteSizeLong() > 0) return false;
   return bus_->Publish(kSubjectSubmit, buffer);
 }
 

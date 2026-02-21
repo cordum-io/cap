@@ -1,8 +1,11 @@
 #pragma once
 
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
+
+#include <openssl/evp.h>
 
 #include "cap/bus_interface.h"
 #include "cap/subjects.h"
@@ -19,12 +22,16 @@ class Worker {
          std::string subject,
          std::string sender_id,
          JobHandler handler,
-         int32_t protocol_version = 1)
+         int32_t protocol_version = 1,
+         EVP_PKEY* private_key = nullptr,
+         std::map<std::string, EVP_PKEY*> public_keys = {})
       : bus_(bus),
         subject_(std::move(subject)),
         sender_id_(std::move(sender_id)),
         handler_(std::move(handler)),
-        protocol_version_(protocol_version) {}
+        protocol_version_(protocol_version),
+        private_key_(private_key),
+        public_keys_(std::move(public_keys)) {}
 
   bool Start();
 
@@ -36,6 +43,8 @@ class Worker {
   std::string sender_id_;
   JobHandler handler_;
   int32_t protocol_version_;
+  EVP_PKEY* private_key_;
+  std::map<std::string, EVP_PKEY*> public_keys_;
   SubscriptionHandle sub_{nullptr};
 };
 

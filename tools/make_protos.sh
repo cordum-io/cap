@@ -130,4 +130,85 @@ else
   echo "CAP_RUN_PY not set to 1; skipping Python stubs"
 fi
 
+# Java stubs (requires protoc-gen-grpc-java for gRPC services).
+if [ "${CAP_RUN_JAVA:-0}" = "1" ]; then
+  OUT_JAVA="${CAP_OUT_JAVA:-$ROOT_DIR/sdk/java/src/main/java}"
+  OUT_JAVA="$(ensure_out_dir "$OUT_JAVA" /tmp/capgen/java)"
+  echo "Generating Java stubs..."
+  JAVA_GRPC_OPT=""
+  if command -v protoc-gen-grpc-java >/dev/null 2>&1; then
+    JAVA_GRPC_OPT="--grpc-java_out=$OUT_JAVA"
+  else
+    echo "protoc-gen-grpc-java not found; generating protobuf stubs only (no gRPC services)"
+  fi
+  protoc \
+    -I"$PROTO_DIR" \
+    --java_out="$OUT_JAVA" \
+    $JAVA_GRPC_OPT \
+    $(find "$PROTO_DIR" -name '*.proto')
+else
+  echo "CAP_RUN_JAVA not set to 1; skipping Java stubs"
+fi
+
+# C# stubs (Grpc.Tools NuGet handles this automatically during dotnet build,
+# but this block can be used for standalone generation).
+if [ "${CAP_RUN_CSHARP:-0}" = "1" ]; then
+  OUT_CSHARP="${CAP_OUT_CSHARP:-$ROOT_DIR/sdk/dotnet/src/Cordum.Cap/Proto}"
+  OUT_CSHARP="$(ensure_out_dir "$OUT_CSHARP" /tmp/capgen/csharp)"
+  echo "Generating C# stubs..."
+  CSHARP_GRPC_OPT=""
+  if command -v grpc_csharp_plugin >/dev/null 2>&1; then
+    CSHARP_GRPC_OPT="--grpc_out=$OUT_CSHARP --plugin=protoc-gen-grpc=$(which grpc_csharp_plugin)"
+  else
+    echo "grpc_csharp_plugin not found; generating protobuf stubs only (no gRPC services)"
+  fi
+  protoc \
+    -I"$PROTO_DIR" \
+    --csharp_out="$OUT_CSHARP" \
+    $CSHARP_GRPC_OPT \
+    $(find "$PROTO_DIR" -name '*.proto')
+else
+  echo "CAP_RUN_CSHARP not set to 1; skipping C# stubs"
+fi
+
+# PHP stubs (google/protobuf Composer package provides the runtime).
+if [ "${CAP_RUN_PHP:-0}" = "1" ]; then
+  OUT_PHP="${CAP_OUT_PHP:-$ROOT_DIR/sdk/php/proto}"
+  OUT_PHP="$(ensure_out_dir "$OUT_PHP" /tmp/capgen/php)"
+  echo "Generating PHP stubs..."
+  PHP_GRPC_OPT=""
+  if command -v grpc_php_plugin >/dev/null 2>&1; then
+    PHP_GRPC_OPT="--grpc_out=$OUT_PHP --plugin=protoc-gen-grpc=$(which grpc_php_plugin)"
+  else
+    echo "grpc_php_plugin not found; generating protobuf stubs only (no gRPC services)"
+  fi
+  protoc \
+    -I"$PROTO_DIR" \
+    --php_out="$OUT_PHP" \
+    $PHP_GRPC_OPT \
+    $(find "$PROTO_DIR" -name '*.proto')
+else
+  echo "CAP_RUN_PHP not set to 1; skipping PHP stubs"
+fi
+
+# Ruby stubs (google-protobuf gem provides the runtime).
+if [ "${CAP_RUN_RUBY:-0}" = "1" ]; then
+  OUT_RUBY="${CAP_OUT_RUBY:-$ROOT_DIR/sdk/ruby/proto}"
+  OUT_RUBY="$(ensure_out_dir "$OUT_RUBY" /tmp/capgen/ruby)"
+  echo "Generating Ruby stubs..."
+  RUBY_GRPC_OPT=""
+  if command -v grpc_ruby_plugin >/dev/null 2>&1; then
+    RUBY_GRPC_OPT="--grpc_out=$OUT_RUBY --plugin=protoc-gen-grpc=$(which grpc_ruby_plugin)"
+  else
+    echo "grpc_ruby_plugin not found; generating protobuf stubs only (no gRPC services)"
+  fi
+  protoc \
+    -I"$PROTO_DIR" \
+    --ruby_out="$OUT_RUBY" \
+    $RUBY_GRPC_OPT \
+    $(find "$PROTO_DIR" -name '*.proto')
+else
+  echo "CAP_RUN_RUBY not set to 1; skipping Ruby stubs"
+fi
+
 echo "Done. Artifacts are in $OUT_GO and $OUT_PY"

@@ -6,6 +6,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
+	"os"
 	"testing"
 	"time"
 
@@ -116,5 +117,248 @@ func TestWorkerE2E(t *testing.T) {
 
 	if resultPacket.GetJobResult().GetStatus() != agentv1.JobStatus_JOB_STATUS_SUCCEEDED {
 		t.Errorf("Unexpected job status: %v", resultPacket.GetJobResult().GetStatus())
+	}
+}
+
+func TestProgressPayload(t *testing.T) {
+	data, err := ProgressPayload("worker-1", "job-1", "step-1", 50, "halfway done")
+	if err != nil {
+		t.Fatalf("ProgressPayload failed: %v", err)
+	}
+
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	if pkt.GetSenderId() != "worker-1" {
+		t.Errorf("SenderId = %q, want %q", pkt.GetSenderId(), "worker-1")
+	}
+	if pkt.GetProtocolVersion() != capsdk.DefaultProtocolVersion {
+		t.Errorf("ProtocolVersion = %d, want %d", pkt.GetProtocolVersion(), capsdk.DefaultProtocolVersion)
+	}
+	if pkt.GetCreatedAt() == nil {
+		t.Error("CreatedAt is nil")
+	}
+
+	jp := pkt.GetJobProgress()
+	if jp == nil {
+		t.Fatal("JobProgress is nil")
+	}
+	if jp.GetJobId() != "job-1" {
+		t.Errorf("JobId = %q, want %q", jp.GetJobId(), "job-1")
+	}
+	if jp.GetStepId() != "step-1" {
+		t.Errorf("StepId = %q, want %q", jp.GetStepId(), "step-1")
+	}
+	if jp.GetPercent() != 50 {
+		t.Errorf("Percent = %d, want %d", jp.GetPercent(), 50)
+	}
+	if jp.GetMessage() != "halfway done" {
+		t.Errorf("Message = %q, want %q", jp.GetMessage(), "halfway done")
+	}
+}
+
+func TestProgressPayloadZeroPercent(t *testing.T) {
+	data, err := ProgressPayload("worker-1", "job-1", "step-1", 0, "")
+	if err != nil {
+		t.Fatalf("ProgressPayload failed: %v", err)
+	}
+
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	jp := pkt.GetJobProgress()
+	if jp == nil {
+		t.Fatal("JobProgress is nil")
+	}
+	if jp.GetPercent() != 0 {
+		t.Errorf("Percent = %d, want 0", jp.GetPercent())
+	}
+	if jp.GetMessage() != "" {
+		t.Errorf("Message = %q, want empty", jp.GetMessage())
+	}
+}
+
+func TestCancelPayload(t *testing.T) {
+	data, err := CancelPayload("worker-1", "job-1", "timeout", "user-7")
+	if err != nil {
+		t.Fatalf("CancelPayload failed: %v", err)
+	}
+
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	if pkt.GetSenderId() != "worker-1" {
+		t.Errorf("SenderId = %q, want %q", pkt.GetSenderId(), "worker-1")
+	}
+	if pkt.GetProtocolVersion() != capsdk.DefaultProtocolVersion {
+		t.Errorf("ProtocolVersion = %d, want %d", pkt.GetProtocolVersion(), capsdk.DefaultProtocolVersion)
+	}
+
+	jc := pkt.GetJobCancel()
+	if jc == nil {
+		t.Fatal("JobCancel is nil")
+	}
+	if jc.GetJobId() != "job-1" {
+		t.Errorf("JobId = %q, want %q", jc.GetJobId(), "job-1")
+	}
+	if jc.GetReason() != "timeout" {
+		t.Errorf("Reason = %q, want %q", jc.GetReason(), "timeout")
+	}
+	if jc.GetRequestedBy() != "user-7" {
+		t.Errorf("RequestedBy = %q, want %q", jc.GetRequestedBy(), "user-7")
+	}
+}
+
+func TestCancelPayloadEmptyReason(t *testing.T) {
+	data, err := CancelPayload("worker-1", "job-1", "", "")
+	if err != nil {
+		t.Fatalf("CancelPayload failed: %v", err)
+	}
+
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	jc := pkt.GetJobCancel()
+	if jc == nil {
+		t.Fatal("JobCancel is nil")
+	}
+	if jc.GetReason() != "" {
+		t.Errorf("Reason = %q, want empty", jc.GetReason())
+	}
+}
+
+func TestProgressSigningRoundtrip(t *testing.T) {
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey failed: %v", err)
+	}
+
+	data, err := ProgressPayload("worker-1", "job-1", "step-1", 50, "halfway")
+	if err != nil {
+		t.Fatalf("ProgressPayload failed: %v", err)
+	}
+
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	if err := capsdk.SignPacket(&pkt, key); err != nil {
+		t.Fatalf("SignPacket failed: %v", err)
+	}
+
+	if err := capsdk.VerifyPacketSignature(&pkt, &key.PublicKey); err != nil {
+		t.Fatalf("VerifyPacketSignature failed: %v", err)
+	}
+}
+
+func TestProgressCancelIntegrationNATS(t *testing.T) {
+	natsURL := os.Getenv("CAP_TEST_NATS_URL")
+	if natsURL == "" {
+		natsURL = "nats://127.0.0.1:4222"
+	}
+
+	nc, err := nats.Connect(natsURL, nats.Timeout(2*time.Second))
+	if err != nil {
+		t.Skipf("NATS unavailable at %s: %v", natsURL, err)
+	}
+	defer nc.Drain()
+
+	progressCh := make(chan *nats.Msg, 1)
+	cancelCh := make(chan *nats.Msg, 1)
+
+	if _, err := nc.Subscribe(capsdk.SubjectProgress, func(msg *nats.Msg) {
+		progressCh <- msg
+	}); err != nil {
+		t.Fatalf("Subscribe progress failed: %v", err)
+	}
+	if _, err := nc.Subscribe(capsdk.SubjectCancel, func(msg *nats.Msg) {
+		cancelCh <- msg
+	}); err != nil {
+		t.Fatalf("Subscribe cancel failed: %v", err)
+	}
+	if err := nc.Flush(); err != nil {
+		t.Fatalf("Flush failed: %v", err)
+	}
+
+	progData, err := ProgressPayload("worker-int", "job-int", "step-int", 42, "processing")
+	if err != nil {
+		t.Fatalf("ProgressPayload failed: %v", err)
+	}
+	if err := EmitProgress(nc, progData); err != nil {
+		t.Fatalf("EmitProgress failed: %v", err)
+	}
+
+	select {
+	case msg := <-progressCh:
+		var pkt agentv1.BusPacket
+		if err := proto.Unmarshal(msg.Data, &pkt); err != nil {
+			t.Fatalf("Unmarshal progress failed: %v", err)
+		}
+		if pkt.GetJobProgress().GetJobId() != "job-int" {
+			t.Errorf("JobId = %q, want %q", pkt.GetJobProgress().GetJobId(), "job-int")
+		}
+		if pkt.GetJobProgress().GetPercent() != 42 {
+			t.Errorf("Percent = %d, want 42", pkt.GetJobProgress().GetPercent())
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timed out waiting for progress message")
+	}
+
+	cancData, err := CancelPayload("worker-int", "job-int", "user-abort", "admin-int")
+	if err != nil {
+		t.Fatalf("CancelPayload failed: %v", err)
+	}
+	if err := EmitCancel(nc, cancData); err != nil {
+		t.Fatalf("EmitCancel failed: %v", err)
+	}
+
+	select {
+	case msg := <-cancelCh:
+		var pkt agentv1.BusPacket
+		if err := proto.Unmarshal(msg.Data, &pkt); err != nil {
+			t.Fatalf("Unmarshal cancel failed: %v", err)
+		}
+		if pkt.GetJobCancel().GetJobId() != "job-int" {
+			t.Errorf("JobId = %q, want %q", pkt.GetJobCancel().GetJobId(), "job-int")
+		}
+		if pkt.GetJobCancel().GetReason() != "user-abort" {
+			t.Errorf("Reason = %q, want %q", pkt.GetJobCancel().GetReason(), "user-abort")
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("Timed out waiting for cancel message")
+	}
+}
+
+func TestCancelSigningRoundtrip(t *testing.T) {
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey failed: %v", err)
+	}
+
+	data, err := CancelPayload("worker-1", "job-1", "timeout", "user-7")
+	if err != nil {
+		t.Fatalf("CancelPayload failed: %v", err)
+	}
+
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	if err := capsdk.SignPacket(&pkt, key); err != nil {
+		t.Fatalf("SignPacket failed: %v", err)
+	}
+
+	if err := capsdk.VerifyPacketSignature(&pkt, &key.PublicKey); err != nil {
+		t.Fatalf("VerifyPacketSignature failed: %v", err)
 	}
 }

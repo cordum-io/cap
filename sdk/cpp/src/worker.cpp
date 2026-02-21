@@ -1,4 +1,6 @@
 #include "cap/worker.h"
+#include "cap/codec.h"
+#include "cap/signing.h"
 
 #include <google/protobuf/util/time_util.h>
 
@@ -17,6 +19,16 @@ void Worker::OnMessage(const BusMessage& msg) {
   if (!packet.ParseFromArray(msg.data.data(), static_cast<int>(msg.data.size()))) {
     return;
   }
+
+  // Verify signature if public keys are configured.
+  if (!public_keys_.empty()) {
+    const std::string& sender = packet.sender_id();
+    auto it = public_keys_.find(sender);
+    if (it == public_keys_.end()) return;
+    if (packet.signature().empty()) return;
+    if (!VerifyPacketSignature(packet, it->second)) return;
+  }
+
   if (!packet.has_job_request()) {
     return;
   }
@@ -42,11 +54,12 @@ void Worker::OnMessage(const BusMessage& msg) {
   out.mutable_created_at()->CopyFrom(google::protobuf::util::TimeUtil::GetCurrentTime());
   *(out.mutable_job_result()) = *res;
 
-  const auto size = out.ByteSizeLong();
-  std::vector<uint8_t> buffer(size);
-  if (!out.SerializeToArray(buffer.data(), static_cast<int>(buffer.size()))) {
-    return;
+  if (private_key_) {
+    if (!SignPacket(&out, private_key_)) return;
   }
+
+  auto buffer = MarshalDeterministic(out);
+  if (buffer.empty() && out.ByteSizeLong() > 0) return;
   bus_->Publish(kSubjectResult, buffer);
 }
 

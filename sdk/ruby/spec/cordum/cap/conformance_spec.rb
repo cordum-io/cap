@@ -3,7 +3,7 @@
 require 'spec_helper'
 
 RSpec.describe 'Conformance' do
-  FIXTURES_DIR = File.expand_path('../../../../../../spec/conformance/fixtures', __dir__)
+  FIXTURES_DIR = File.expand_path('../../../../../spec/conformance/fixtures', __dir__)
 
   def load_fixture(name)
     path = File.join(FIXTURES_DIR, name)

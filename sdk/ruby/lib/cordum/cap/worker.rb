@@ -77,7 +77,11 @@ module Cordum
         begin
           result = handler.call(ctx, req)
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond) - start_time
-          @metrics.on_job_completed(req.job_id, elapsed, result.status.to_s)
+          if result.status == :JOB_STATUS_FAILED
+            @metrics.on_job_failed(result.job_id, result.error_message)
+          else
+            @metrics.on_job_completed(req.job_id, elapsed, result.status.to_s)
+          end
         rescue StandardError => e
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC, :millisecond) - start_time
           @metrics.on_job_failed(req.job_id, e.message)

@@ -11,7 +11,7 @@ public class ConformanceTests
     {
         // Navigate from sdk/dotnet/test/Cordum.Cap.Tests/ up to project root, then into spec/conformance/fixtures
         var dir = AppContext.BaseDirectory;
-        var root = Path.GetFullPath(Path.Combine(dir, "..", "..", "..", "..", "..", ".."));
+        var root = Path.GetFullPath(Path.Combine(dir, "..", "..", "..", "..", "..", "..", ".."));
         return Path.Combine(root, "spec", "conformance", "fixtures");
     }
 

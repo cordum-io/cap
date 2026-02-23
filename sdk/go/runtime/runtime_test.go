@@ -231,6 +231,29 @@ func TestRuntimeRetries(t *testing.T) {
 	}
 }
 
+func TestPingRedis_BadURL(t *testing.T) {
+	if err := PingRedis("not-a-url"); err == nil {
+		t.Fatal("expected error for invalid URL")
+	}
+}
+
+func TestValidateRedisURL(t *testing.T) {
+	tests := []struct {
+		url  string
+		want bool
+	}{
+		{"redis://:password@localhost:6379", true},
+		{"redis://user:pass@localhost:6379", true},
+		{"redis://localhost:6379", false},
+		{"redis://127.0.0.1:6379/0", false},
+	}
+	for _, tt := range tests {
+		if got := ValidateRedisURL(tt.url); got != tt.want {
+			t.Errorf("ValidateRedisURL(%q) = %v, want %v", tt.url, got, tt.want)
+		}
+	}
+}
+
 func nilContext() context.Context {
 	return context.Background()
 }

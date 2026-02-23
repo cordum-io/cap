@@ -502,7 +502,9 @@ func NewRedisBlobStoreWithPing(redisURL string) (*RedisBlobStore, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := PingRedis(redisURL); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+	if err := store.client.Ping(ctx).Err(); err != nil {
 		_ = store.Close()
 		return nil, fmt.Errorf("redis ping failed: %w", err)
 	}

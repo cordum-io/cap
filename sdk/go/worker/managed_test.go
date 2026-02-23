@@ -2,7 +2,7 @@ package worker
 
 import (
 	"context"
-	"os"
+	"fmt"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -51,7 +51,7 @@ func TestNewManagedWorker_ValidConfig(t *testing.T) {
 
 func TestNewManagedWorker_DefaultsApplied(t *testing.T) {
 	_, natsURL := startTestNATS(t)
-	os.Unsetenv("WORKER_ID")
+	t.Setenv("WORKER_ID", "")
 
 	cfg := ManagedConfig{
 		Type:    "processor",
@@ -313,7 +313,7 @@ func TestManagedWorker_Run_ConcurrencyLimit(t *testing.T) {
 
 	for i := 0; i < 5; i++ {
 		jobReq := &agentv1.JobRequest{
-			JobId: "concurrent-job-" + string(rune('0'+i)),
+			JobId: fmt.Sprintf("concurrent-job-%d", i),
 			Topic: "job.slow.submit",
 		}
 		packet := &agentv1.BusPacket{

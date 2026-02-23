@@ -473,6 +473,69 @@ func keyFromPointer(ptr string) (string, error) {
 	return key, nil
 }
 
+// NewRedisBlobStoreWithTLS creates a Redis-backed blob store that applies
+// REDIS_TLS_* environment variables (CA cert, client cert/key, server name).
+// This is required when Redis uses TLS with a custom CA (e.g. self-signed
+// certs). Without this, the rediss:// scheme provides only a basic TLS config
+// that trusts system CAs, which fails with custom CAs.
+func NewRedisBlobStoreWithTLS(redisURL string) (*RedisBlobStore, error) {
+	opts, err := redis.ParseURL(redisURL)
+	if err != nil {
+		return nil, fmt.Errorf("parse redis url: %w", err)
+	}
+	tlsCfg, tlsErr := capsdk.RedisTLSConfigFromEnv()
+	if tlsErr != nil {
+		return nil, fmt.Errorf("redis tls config: %w", tlsErr)
+	}
+	if tlsCfg != nil {
+		opts.TLSConfig = tlsCfg
+	}
+	client := redis.NewClient(opts)
+	return &RedisBlobStore{client: client}, nil
+}
+
+// NewRedisBlobStoreWithPing creates a Redis-backed blob store with TLS support
+// and immediately verifies the connection with a PING. This surfaces auth
+// and TLS failures (NOAUTH, certificate errors) at startup.
+func NewRedisBlobStoreWithPing(redisURL string) (*RedisBlobStore, error) {
+	store, err := NewRedisBlobStoreWithTLS(redisURL)
+	if err != nil {
+		return nil, err
+	}
+	if err := PingRedis(redisURL); err != nil {
+		_ = store.Close()
+		return nil, fmt.Errorf("redis ping failed: %w", err)
+	}
+	return store, nil
+}
+
+// PingRedis verifies connectivity and auth to a Redis instance.
+// It applies REDIS_TLS_* env vars when the URL uses the rediss:// scheme.
+func PingRedis(redisURL string) error {
+	opts, err := redis.ParseURL(redisURL)
+	if err != nil {
+		return fmt.Errorf("parse redis url: %w", err)
+	}
+	tlsCfg, tlsErr := capsdk.RedisTLSConfigFromEnv()
+	if tlsErr != nil {
+		return fmt.Errorf("redis tls config: %w", tlsErr)
+	}
+	if tlsCfg != nil {
+		opts.TLSConfig = tlsCfg
+	}
+	client := redis.NewClient(opts)
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
+	defer cancel()
+	return client.Ping(ctx).Err()
+}
+
+// ValidateRedisURL returns true if the URL appears to contain auth credentials.
+func ValidateRedisURL(redisURL string) bool {
+	return strings.Contains(redisURL, "@")
+}
+
 func max(a, b int) int {
 	if a > b {
 		return a

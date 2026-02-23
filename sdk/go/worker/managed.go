@@ -64,6 +64,7 @@ type ManagedWorker struct {
 
 	sem    chan struct{}
 	active int32
+	wg     sync.WaitGroup
 
 	subs []*nats.Subscription
 
@@ -178,7 +179,8 @@ func (w *ManagedWorker) Run(ctx context.Context, handler func(context.Context, *
 	return ctx.Err()
 }
 
-// Close drains the NATS connection.
+// Close cancels heartbeats, waits for in-flight handlers to finish, then
+// drains the NATS connection.
 func (w *ManagedWorker) Close() error {
 	w.cancelMu.Lock()
 	if w.cancel != nil {
@@ -186,6 +188,8 @@ func (w *ManagedWorker) Close() error {
 		w.cancel = nil
 	}
 	w.cancelMu.Unlock()
+
+	w.wg.Wait()
 
 	if w.conn != nil {
 		return w.conn.Drain()
@@ -197,12 +201,14 @@ func (w *ManagedWorker) dispatch(ctx context.Context, msg *nats.Msg, handler fun
 	if ctx.Err() != nil {
 		return
 	}
-	if w.sem != nil {
-		w.sem <- struct{}{}
-		atomic.AddInt32(&w.active, 1)
-	}
 
+	w.wg.Add(1)
 	go func() {
+		defer w.wg.Done()
+		if w.sem != nil {
+			w.sem <- struct{}{}
+			atomic.AddInt32(&w.active, 1)
+		}
 		defer func() {
 			if w.sem != nil {
 				<-w.sem

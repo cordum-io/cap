@@ -1,0 +1,2 @@
+cordum-guard[langchain]
+langchain-core>=0.1.0

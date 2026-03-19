@@ -63,3 +63,11 @@ tools/private/
 .tmp-go/
 production_gate_results.json
 *.go.[0-9]*
+
+# .NET build artifacts
+sdk/dotnet/**/obj/
+sdk/dotnet/**/bin/
+
+# Rust build artifacts
+sdk/rust/target/
+sdk/rust/Cargo.lock

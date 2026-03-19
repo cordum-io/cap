@@ -1,0 +1,2 @@
+cordum-guard
+pyautogen>=0.7.0

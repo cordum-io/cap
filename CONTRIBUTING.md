@@ -99,6 +99,10 @@ Look for issues labeled [`good-first-issue`](https://github.com/cordum-io/cap/la
 - Wire-level proto changes bump the wire version and get a `[WIRE]` prefix in the CHANGELOG.
 - See `spec/17-versioning-policy.md` for the full versioning policy.
 
+## Governance
+
+For details on project governance, decision-making processes, roles, and the RFC process for spec changes, see [GOVERNANCE.md](GOVERNANCE.md).
+
 ## Community
 
 - **Discord**: [Join us](https://discord.gg/U4NpXtjP)

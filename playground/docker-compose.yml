@@ -1,0 +1,25 @@
+services:
+  nats:
+    image: nats:alpine
+    ports:
+      - "4222:4222"
+
+  echo-worker:
+    build:
+      context: ..
+      dockerfile: playground/worker/Dockerfile
+    environment:
+      NATS_URL: nats://nats:4222
+    depends_on:
+      - nats
+    restart: on-failure
+
+  submit:
+    build:
+      context: ..
+      dockerfile: playground/submit/Dockerfile
+    environment:
+      NATS_URL: nats://nats:4222
+    depends_on:
+      - nats
+      - echo-worker

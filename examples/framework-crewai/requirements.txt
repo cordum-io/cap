@@ -1,0 +1,2 @@
+cordum-guard
+crewai>=0.108.0

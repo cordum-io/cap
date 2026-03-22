@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'Ruby SDK for the Cordum Agent Protocol (CAP)'
   spec.description   = 'Client and worker SDK for building agents on the Cordum Agent Protocol bus.'
   spec.homepage      = 'https://github.com/cordum-io/cap'
-  spec.license       = 'MIT'
+  spec.license       = 'Apache-2.0'
   spec.required_ruby_version = '>= 3.1'
 
   spec.files         = Dir['lib/**/*.rb', 'proto/**/*.rb', 'LICENSE', 'README.md']

@@ -2,7 +2,7 @@
     "name": "cordum/cap-sdk",
     "description": "PHP SDK for the Cordum Agent Protocol (CAP)",
     "type": "library",
-    "license": "MIT",
+    "license": "Apache-2.0",
     "version": "2.5.3",
     "require": {
         "php": ">=8.1",

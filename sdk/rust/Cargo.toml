@@ -3,7 +3,7 @@ name = "cap-sdk"
 version = "2.5.3"
 edition = "2021"
 description = "Rust SDK for the Cordum Agent Protocol"
-license = "MIT"
+license = "Apache-2.0"
 
 [dependencies]
 prost = "0.13"

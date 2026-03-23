@@ -44,13 +44,108 @@ class BlobStore(Protocol):
         ...
 
 
+def redis_ssl_context_from_env() -> Optional["ssl.SSLContext"]:
+    """Build an :class:`ssl.SSLContext` from ``REDIS_TLS_*`` env vars.
+
+    Matches the Go SDK's ``RedisTLSConfigFromEnv()`` pattern. Supports:
+
+    * ``REDIS_TLS_CA`` (or ``SSL_CERT_FILE`` fallback) -- CA certificate path
+    * ``REDIS_TLS_CERT`` + ``REDIS_TLS_KEY`` -- client certificate pair
+    * ``REDIS_TLS_SERVER_NAME`` -- SNI override
+    * ``REDIS_TLS_INSECURE`` -- skip certificate verification (dev/test only)
+
+    Returns ``None`` when no TLS env vars are set.
+    """
+    import ssl as _ssl
+
+    ca_path = (os.environ.get("REDIS_TLS_CA") or os.environ.get("SSL_CERT_FILE") or "").strip()
+    cert_path = os.environ.get("REDIS_TLS_CERT", "").strip()
+    key_path = os.environ.get("REDIS_TLS_KEY", "").strip()
+    server_name = os.environ.get("REDIS_TLS_SERVER_NAME", "").strip()
+    insecure = os.environ.get("REDIS_TLS_INSECURE", "").strip().lower() in ("1", "true")
+
+    if not ca_path and not cert_path and not key_path and not server_name and not insecure:
+        return None
+
+    if bool(cert_path) != bool(key_path):
+        raise ValueError("REDIS_TLS_CERT and REDIS_TLS_KEY must be set together")
+
+    if insecure:
+        ssl_ctx = _ssl.SSLContext(_ssl.PROTOCOL_TLS_CLIENT)
+        ssl_ctx.minimum_version = _ssl.TLSVersion.TLSv1_2
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = _ssl.CERT_NONE
+        logging.getLogger("cap.runtime").warning("REDIS_TLS_INSECURE enabled, skipping certificate verification")
+    elif ca_path:
+        if not os.path.isfile(ca_path):
+            raise FileNotFoundError(f"REDIS_TLS_CA file not found: {ca_path}")
+        ssl_ctx = _ssl.create_default_context(cafile=ca_path)
+        ssl_ctx.minimum_version = _ssl.TLSVersion.TLSv1_2
+    else:
+        ssl_ctx = _ssl.create_default_context()
+        ssl_ctx.minimum_version = _ssl.TLSVersion.TLSv1_2
+
+    if cert_path and key_path:
+        if not os.path.isfile(cert_path):
+            raise FileNotFoundError(f"REDIS_TLS_CERT file not found: {cert_path}")
+        if not os.path.isfile(key_path):
+            raise FileNotFoundError(f"REDIS_TLS_KEY file not found: {key_path}")
+        ssl_ctx.load_cert_chain(cert_path, key_path)
+
+    if server_name:
+        ssl_ctx.check_hostname = True
+        ssl_ctx.server_hostname = server_name  # type: ignore[attr-defined]
+
+    return ssl_ctx
+
+
+async def ping_redis(redis_url: str) -> None:
+    """Connect to Redis and run PING to verify auth and TLS at startup.
+
+    Raises on failure so connection issues surface immediately instead of
+    silently failing on the first blob store read/write.
+    """
+    if redis_async is None:
+        raise RuntimeError("redis is required")
+    kwargs: dict = {}
+    if redis_url.startswith("rediss://"):
+        ca = os.environ.get("REDIS_TLS_CA", "").strip()
+        cert = os.environ.get("REDIS_TLS_CERT", "").strip()
+        key = os.environ.get("REDIS_TLS_KEY", "").strip()
+        if ca:
+            kwargs["ssl_ca_certs"] = ca
+        if cert:
+            kwargs["ssl_certfile"] = cert
+        if key:
+            kwargs["ssl_keyfile"] = key
+    client = redis_async.from_url(redis_url, **kwargs)
+    try:
+        await client.ping()
+    finally:
+        await client.close()
+
+
 class RedisBlobStore:
     """Redis-backed :class:`BlobStore` implementation."""
 
     def __init__(self, redis_url: str) -> None:
         if redis_async is None:
             raise RuntimeError("redis is required for RedisBlobStore")
-        self._client = redis_async.from_url(redis_url)
+        kwargs: dict = {}
+        if redis_url.startswith("rediss://"):
+            ca = os.environ.get("REDIS_TLS_CA", "").strip()
+            cert = os.environ.get("REDIS_TLS_CERT", "").strip()
+            key = os.environ.get("REDIS_TLS_KEY", "").strip()
+            if ca:
+                kwargs["ssl_ca_certs"] = ca
+            if cert:
+                kwargs["ssl_certfile"] = cert
+            if key:
+                kwargs["ssl_keyfile"] = key
+            sname = os.environ.get("REDIS_TLS_SERVER_NAME", "").strip()
+            if sname:
+                kwargs["ssl_check_hostname"] = True
+        self._client = redis_async.from_url(redis_url, **kwargs)
 
     async def get(self, key: str) -> Optional[bytes]:
         value = await self._client.get(key)
@@ -258,7 +353,16 @@ class Agent:
             self._store = RedisBlobStore(self._redis_url)
 
         for topic, spec in self._handlers.items():
-            await self._nc.subscribe(topic, queue=topic, cb=lambda msg, s=spec: asyncio.create_task(self._on_msg(msg, s)))
+            async def _on_topic_msg(msg, s=spec):
+                asyncio.create_task(self._on_msg(msg, s))
+            await self._nc.subscribe(topic, queue=topic, cb=_on_topic_msg)
+
+        # Subscribe to direct worker subject (worker.<id>.jobs) for scheduler dispatch
+        if self._sender_id:
+            direct_subject = f"worker.{self._sender_id}.jobs"
+            async def _direct_cb(msg):
+                asyncio.create_task(self._on_direct_msg(msg))
+            await self._nc.subscribe(direct_subject, cb=_direct_cb)
 
         if self._heartbeat_task is None or self._heartbeat_task.done():
             self._heartbeat_cancel_event = asyncio.Event()
@@ -307,6 +411,20 @@ class Agent:
                 await asyncio.sleep(1)
         finally:
             await self.close()
+
+    async def _on_direct_msg(self, msg: Any) -> None:
+        """Route a direct worker message to the correct handler by topic."""
+        packet = buspacket_pb2.BusPacket()
+        try:
+            packet.ParseFromString(msg.data)
+        except Exception:
+            return
+        topic = packet.job_request.topic if packet.job_request else ""
+        spec = self._handlers.get(topic)
+        if spec is None:
+            self._logger.warning("no handler for topic %s on direct subject", topic)
+            return
+        await self._on_msg(msg, spec)
 
     async def _on_msg(self, msg: Any, spec: HandlerSpec) -> None:
         packet = buspacket_pb2.BusPacket()

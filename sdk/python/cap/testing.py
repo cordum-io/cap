@@ -22,7 +22,7 @@ class MockNATS:
     async def publish(self, subject: str, data: bytes) -> None:
         await self.published.put((subject, data))
 
-    async def subscribe(self, subject: str, queue: str, cb: Any) -> None:
+    async def subscribe(self, subject: str, queue: str = "", cb: Any = None) -> None:
         self.subscriptions[subject] = cb
 
     async def connect(self, servers: str, name: str) -> "MockNATS":

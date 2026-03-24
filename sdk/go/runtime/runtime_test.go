@@ -239,18 +239,39 @@ func TestPingRedis_BadURL(t *testing.T) {
 
 func TestValidateRedisURL(t *testing.T) {
 	tests := []struct {
+		name string
 		url  string
 		want bool
 	}{
-		{"redis://:password@localhost:6379", true},
-		{"redis://user:pass@localhost:6379", true},
-		{"redis://localhost:6379", false},
-		{"redis://127.0.0.1:6379/0", false},
+		// Valid auth
+		{"password only", "redis://:password@localhost:6379", true},
+		{"user and password", "redis://user:pass@localhost:6379", true},
+		{"user only", "redis://admin@localhost:6379", true},
+		{"rediss scheme", "rediss://user:pass@host:6379", true},
+		{"url-encoded password", "redis://user:p%40ss%3Dw0rd@host:6379", true},
+		{"with db", "redis://user:pass@host:6379/3", true},
+		{"empty password explicit", "redis://user:@host:6379", true},
+		{"ipv4", "redis://user:pass@192.168.1.1:6379", true},
+
+		// No auth
+		{"no auth", "redis://localhost:6379", false},
+		{"no auth with db", "redis://127.0.0.1:6379/0", false},
+		{"no auth with query", "redis://host:6379/0?timeout=5s", false},
+
+		// @ in non-auth position (the bug this fixes)
+		{"at in query param", "redis://host:6379/0?key=val@ue", false},
+
+		// Bad scheme
+		{"http scheme", "http://user:pass@host:6379", false},
+		{"empty string", "", false},
+		{"garbage", "not-a-url", false},
 	}
 	for _, tt := range tests {
-		if got := ValidateRedisURL(tt.url); got != tt.want {
-			t.Errorf("ValidateRedisURL(%q) = %v, want %v", tt.url, got, tt.want)
-		}
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ValidateRedisURL(tt.url); got != tt.want {
+				t.Errorf("ValidateRedisURL(%q) = %v, want %v", tt.url, got, tt.want)
+			}
+		})
 	}
 }
 

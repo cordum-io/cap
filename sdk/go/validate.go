@@ -25,6 +25,23 @@ var (
 	ErrEmptySender  = errors.New("capsdk: sender_id must not be empty")
 )
 
+// Bounds limits for repeated fields and budget integers.
+// Configurable via SetValidationLimits().
+var (
+	maxRepeatedFieldSize = 1000
+	maxBudgetTokens      int64 = 10_000_000_000 // 10 billion
+)
+
+// SetValidationLimits overrides the default bounds for repeated fields and budgets.
+func SetValidationLimits(maxRepeated int, maxTokens int64) {
+	if maxRepeated > 0 {
+		maxRepeatedFieldSize = maxRepeated
+	}
+	if maxTokens > 0 {
+		maxBudgetTokens = maxTokens
+	}
+}
+
 // ValidateJobRequest checks semantic constraints on a JobRequest.
 // It returns nil if the message is valid.
 func ValidateJobRequest(req *agentv1.JobRequest) error {
@@ -43,15 +60,37 @@ func ValidateJobRequest(req *agentv1.JobRequest) error {
 	if req.GetStepIndex() < 0 {
 		return &ValidationError{Field: "step_index", Message: "must not be negative"}
 	}
+	// Repeated field bounds — prevent DoS via oversized messages.
+	if m := req.GetMeta(); m != nil {
+		if len(m.GetRiskTags()) > maxRepeatedFieldSize {
+			return &ValidationError{Field: "meta.risk_tags", Message: fmt.Sprintf("exceeds max size (%d)", maxRepeatedFieldSize)}
+		}
+		if len(m.GetRequires()) > maxRepeatedFieldSize {
+			return &ValidationError{Field: "meta.requires", Message: fmt.Sprintf("exceeds max size (%d)", maxRepeatedFieldSize)}
+		}
+	}
+	if len(req.GetLabels()) > maxRepeatedFieldSize {
+		return &ValidationError{Field: "labels", Message: fmt.Sprintf("exceeds max size (%d)", maxRepeatedFieldSize)}
+	}
+
 	if b := req.GetBudget(); b != nil {
 		if b.GetMaxInputTokens() < 0 {
 			return &ValidationError{Field: "budget.max_input_tokens", Message: "must not be negative"}
 		}
+		if b.GetMaxInputTokens() > maxBudgetTokens {
+			return &ValidationError{Field: "budget.max_input_tokens", Message: fmt.Sprintf("exceeds max (%d)", maxBudgetTokens)}
+		}
 		if b.GetMaxOutputTokens() < 0 {
 			return &ValidationError{Field: "budget.max_output_tokens", Message: "must not be negative"}
 		}
+		if b.GetMaxOutputTokens() > maxBudgetTokens {
+			return &ValidationError{Field: "budget.max_output_tokens", Message: fmt.Sprintf("exceeds max (%d)", maxBudgetTokens)}
+		}
 		if b.GetMaxTotalTokens() < 0 {
 			return &ValidationError{Field: "budget.max_total_tokens", Message: "must not be negative"}
+		}
+		if b.GetMaxTotalTokens() > maxBudgetTokens {
+			return &ValidationError{Field: "budget.max_total_tokens", Message: fmt.Sprintf("exceeds max (%d)", maxBudgetTokens)}
 		}
 		if b.GetDeadlineMs() < 0 {
 			return &ValidationError{Field: "budget.deadline_ms", Message: "must not be negative"}

@@ -22,10 +22,10 @@ enum AlertSeverity {
 
 // SystemAlert is a lightweight signal for system-level issues.
 message SystemAlert {
-    string level = 1;                      // DEPRECATED: use severity enum
-    string message = 2;                    // human-readable detail
-    string component = 3;                  // DEPRECATED: use source_component
-    string code = 4;                       // DEPRECATED: use error_code_enum
+    string level = 1 [deprecated = true];   // Deprecated: use severity enum instead.
+    string message = 2;                    // Human-readable detail of the alert.
+    string component = 3 [deprecated = true]; // Deprecated: use source_component instead.
+    string code = 4 [deprecated = true];   // Deprecated: use error_code_enum instead.
     AlertSeverity severity = 5;            // structured severity level
     ErrorCode error_code_enum = 6;         // structured error code from ErrorCode registry
     string source_component = 7;           // component ID that emitted the alert

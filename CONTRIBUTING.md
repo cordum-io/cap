@@ -103,6 +103,20 @@ Look for issues labeled [`good-first-issue`](https://github.com/cordum-io/cap/la
 
 For details on project governance, decision-making processes, roles, and the RFC process for spec changes, see [GOVERNANCE.md](GOVERNANCE.md).
 
+## Language Conventions
+
+CAP SDKs follow each language's idiomatic naming conventions:
+
+| Language | Style | Example |
+|----------|-------|---------|
+| Go | CamelCase | `ValidateJobRequest`, `BusPacket` |
+| Python | snake_case | `validate_job_request`, `bus_packet` |
+| Node/TS | camelCase | `validateJobRequest`, `busPacket` |
+| Proto | snake_case | `job_request`, `bus_packet` |
+
+This is intentional. Each SDK should feel native to developers in that language.
+Generated protobuf code follows each language's code generator defaults.
+
 ## Community
 
 - **Discord**: [Join us](https://discord.gg/U4NpXtjP)

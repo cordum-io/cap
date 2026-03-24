@@ -12,6 +12,10 @@ from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 # Max known JobPriority enum value.
 _JOB_PRIORITY_MAX = job_pb2.JOB_PRIORITY_CRITICAL  # 3
 
+# Bounds limits for repeated fields and budget integers.
+MAX_REPEATED_FIELD_SIZE = 1000
+MAX_BUDGET_TOKENS = 10_000_000_000  # 10 billion
+
 
 @dataclass(frozen=True)
 class ValidationError:
@@ -37,19 +41,47 @@ def validate_job_request(msg: Any) -> List[ValidationError]:
         )
     if msg.step_index < 0:
         errors.append(ValidationError("step_index", "must not be negative"))
+    # Repeated field bounds — prevent DoS via oversized messages.
+    if msg.HasField("meta"):
+        m = msg.meta
+        if len(m.risk_tags) > MAX_REPEATED_FIELD_SIZE:
+            errors.append(
+                ValidationError("meta.risk_tags", f"exceeds max size ({MAX_REPEATED_FIELD_SIZE})")
+            )
+        if len(m.requires) > MAX_REPEATED_FIELD_SIZE:
+            errors.append(
+                ValidationError("meta.requires", f"exceeds max size ({MAX_REPEATED_FIELD_SIZE})")
+            )
+    if len(msg.labels) > MAX_REPEATED_FIELD_SIZE:
+        errors.append(
+            ValidationError("labels", f"exceeds max size ({MAX_REPEATED_FIELD_SIZE})")
+        )
+
     if msg.HasField("budget"):
         b = msg.budget
         if b.max_input_tokens < 0:
             errors.append(
                 ValidationError("budget.max_input_tokens", "must not be negative")
             )
+        if b.max_input_tokens > MAX_BUDGET_TOKENS:
+            errors.append(
+                ValidationError("budget.max_input_tokens", f"exceeds max ({MAX_BUDGET_TOKENS})")
+            )
         if b.max_output_tokens < 0:
             errors.append(
                 ValidationError("budget.max_output_tokens", "must not be negative")
             )
+        if b.max_output_tokens > MAX_BUDGET_TOKENS:
+            errors.append(
+                ValidationError("budget.max_output_tokens", f"exceeds max ({MAX_BUDGET_TOKENS})")
+            )
         if b.max_total_tokens < 0:
             errors.append(
                 ValidationError("budget.max_total_tokens", "must not be negative")
+            )
+        if b.max_total_tokens > MAX_BUDGET_TOKENS:
+            errors.append(
+                ValidationError("budget.max_total_tokens", f"exceeds max ({MAX_BUDGET_TOKENS})")
             )
         if b.deadline_ms < 0:
             errors.append(

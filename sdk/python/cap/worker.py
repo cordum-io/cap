@@ -11,9 +11,8 @@ from cryptography.hazmat.primitives import hashes
 
 from cap.subjects import SUBJECT_RESULT
 from cap.errors import MalformedPacketError, SignatureInvalidError
+from cap.constants import DEFAULT_PROTOCOL_VERSION
 from cap.metrics import MetricsHook, NoopMetrics
-
-DEFAULT_PROTOCOL_VERSION = 1
 
 
 async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.JobRequest], Awaitable[job_pb2.JobResult]],
@@ -100,7 +99,13 @@ async def run_worker(nats_url: str, subject: str, handler: Callable[[job_pb2.Job
                     status=job_pb2.JOB_STATUS_FAILED,
                     error_message="handler returned null",
                 )
-        except Exception as exc:  # noqa: BLE001
+        except (KeyboardInterrupt, SystemExit):
+            raise  # Let critical signals propagate
+        except Exception as exc:
+            # Top-level job handler: catch all to prevent worker crash.
+            # Individual exceptions are already handled in the call chain;
+            # this catches anything unexpected so the worker stays alive.
+            self.logger.warning("job handler failed: %s", exc, exc_info=True)
             res = job_pb2.JobResult(
                 job_id=req.job_id,
                 status=job_pb2.JOB_STATUS_FAILED,

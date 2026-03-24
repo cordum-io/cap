@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -267,7 +268,9 @@ func (a *Agent) Start() error {
 // Close drains NATS and closes the blob store if possible.
 func (a *Agent) Close() error {
 	if conn, ok := a.NATS.(*nats.Conn); ok {
-		_ = conn.Drain()
+		if err := conn.Drain(); err != nil {
+			slog.Warn("nats drain failed during close", "error", err)
+		}
 	}
 	if a.Store != nil {
 		return a.Store.Close()
@@ -441,7 +444,9 @@ func (a *Agent) publishResult(ctx Context, result *agentv1.JobResult) {
 		return
 	}
 	if flusher, ok := a.NATS.(interface{ FlushTimeout(time.Duration) error }); ok && a.IOTTimeout > 0 {
-		_ = flusher.FlushTimeout(a.IOTTimeout)
+		if err := flusher.FlushTimeout(a.IOTTimeout); err != nil {
+			ctx.Logger.Warn("flush timeout after result publish", "error", err)
+		}
 	}
 }
 
@@ -505,7 +510,9 @@ func NewRedisBlobStoreWithPing(redisURL string) (*RedisBlobStore, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultTimeout)
 	defer cancel()
 	if err := store.client.Ping(ctx).Err(); err != nil {
-		_ = store.Close()
+		if closeErr := store.Close(); closeErr != nil {
+			slog.Warn("redis store close failed after ping error", "error", closeErr)
+		}
 		return nil, fmt.Errorf("redis ping failed: %w", err)
 	}
 	return store, nil
@@ -533,9 +540,23 @@ func PingRedis(redisURL string) error {
 	return client.Ping(ctx).Err()
 }
 
-// ValidateRedisURL returns true if the URL appears to contain auth credentials.
+// ValidateRedisURL returns true if the URL contains valid auth credentials.
+// Uses proper URL parsing instead of substring matching to avoid false
+// positives from @ characters in non-auth positions (paths, query params).
 func ValidateRedisURL(redisURL string) bool {
-	return strings.Contains(redisURL, "@")
+	u, err := url.Parse(redisURL)
+	if err != nil {
+		return false
+	}
+	scheme := strings.ToLower(u.Scheme)
+	if scheme != "redis" && scheme != "rediss" {
+		return false
+	}
+	if u.User == nil {
+		return false
+	}
+	_, hasPassword := u.User.Password()
+	return u.User.Username() != "" || hasPassword
 }
 
 func max(a, b int) int {

@@ -7,10 +7,9 @@ import asyncio
 import json
 from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Type, Union
 
+from cap.constants import DEFAULT_PROTOCOL_VERSION
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cap.runtime import Agent, Context, InMemoryBlobStore
-
-DEFAULT_PROTOCOL_VERSION = 1
 
 
 class MockNATS:

@@ -28,7 +28,7 @@ from cap.errors import InvalidInputError, MalformedPacketError, SignatureInvalid
 from cap.metrics import MetricsHook, NoopMetrics
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
 
-DEFAULT_PROTOCOL_VERSION = 1
+from cap.constants import DEFAULT_PROTOCOL_VERSION  # noqa: E402 — must be after conditional imports
 
 
 class BlobStore(Protocol):
@@ -99,14 +99,12 @@ def redis_ssl_context_from_env() -> Optional["ssl.SSLContext"]:
     return ssl_ctx
 
 
-async def ping_redis(redis_url: str) -> None:
-    """Connect to Redis and run PING to verify auth and TLS at startup.
+def _redis_tls_kwargs(redis_url: str) -> dict:
+    """Build TLS kwargs for redis-py 7+ from environment variables.
 
-    Raises on failure so connection issues surface immediately instead of
-    silently failing on the first blob store read/write.
+    Uses ssl_ca_certs/ssl_certfile/ssl_keyfile kwargs (not ssl=SSLContext)
+    because redis-py 7 does not accept SSLContext via from_url().
     """
-    if redis_async is None:
-        raise RuntimeError("redis is required")
     kwargs: dict = {}
     if redis_url.startswith("rediss://"):
         ca = os.environ.get("REDIS_TLS_CA", "").strip()
@@ -118,6 +116,18 @@ async def ping_redis(redis_url: str) -> None:
             kwargs["ssl_certfile"] = cert
         if key:
             kwargs["ssl_keyfile"] = key
+    return kwargs
+
+
+async def ping_redis(redis_url: str) -> None:
+    """Connect to Redis and run PING to verify auth and TLS at startup.
+
+    Raises on failure so connection issues surface immediately instead of
+    silently failing on the first blob store read/write.
+    """
+    if redis_async is None:
+        raise RuntimeError("redis is required")
+    kwargs = _redis_tls_kwargs(redis_url)
     client = redis_async.from_url(redis_url, **kwargs)
     try:
         await client.ping()
@@ -131,20 +141,7 @@ class RedisBlobStore:
     def __init__(self, redis_url: str) -> None:
         if redis_async is None:
             raise RuntimeError("redis is required for RedisBlobStore")
-        kwargs: dict = {}
-        if redis_url.startswith("rediss://"):
-            ca = os.environ.get("REDIS_TLS_CA", "").strip()
-            cert = os.environ.get("REDIS_TLS_CERT", "").strip()
-            key = os.environ.get("REDIS_TLS_KEY", "").strip()
-            if ca:
-                kwargs["ssl_ca_certs"] = ca
-            if cert:
-                kwargs["ssl_certfile"] = cert
-            if key:
-                kwargs["ssl_keyfile"] = key
-            sname = os.environ.get("REDIS_TLS_SERVER_NAME", "").strip()
-            if sname:
-                kwargs["ssl_check_hostname"] = True
+        kwargs = _redis_tls_kwargs(redis_url)
         self._client = redis_async.from_url(redis_url, **kwargs)
 
     async def get(self, key: str) -> Optional[bytes]:

@@ -161,7 +161,9 @@ func (w *Worker) Start() error {
 		if mErr != nil {
 			return
 		}
-		_ = w.NATS.Publish(capsdk.SubjectResult, data)
+		if pubErr := w.NATS.Publish(capsdk.SubjectResult, data); pubErr != nil {
+			w.Logger.Error("result publish failed", "error", pubErr)
+		}
 	})
 	if err != nil {
 		return fmt.Errorf("subscribe: %w", err)
@@ -262,7 +264,9 @@ func HeartbeatLoop(ctx context.Context, nc *nats.Conn, payloadFn func() ([]byte,
 		case <-ticker.C:
 			payload, err := payloadFn()
 			if err == nil {
-				_ = EmitHeartbeat(nc, payload)
+				if hbErr := EmitHeartbeat(nc, payload); hbErr != nil {
+					slog.Warn("worker: heartbeat emit failed", "error", hbErr)
+				}
 			}
 		}
 	}

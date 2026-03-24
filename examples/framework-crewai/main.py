@@ -14,7 +14,10 @@ import sys
 
 # Suppress LiteLLM telemetry/warnings for a clean demo
 os.environ.setdefault("LITELLM_LOG", "ERROR")
-os.environ.setdefault("OPENAI_API_KEY", "sk-fake-key-for-demo")
+if not os.environ.get("OPENAI_API_KEY"):
+    print("Error: OPENAI_API_KEY environment variable is required.")
+    print("Set it with: export OPENAI_API_KEY='your-key-here'")
+    sys.exit(1)
 
 from cordum_guard.mock import MockCordumClient
 from cordum_guard.types import Decision

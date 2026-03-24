@@ -2,6 +2,7 @@ package capsdk
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
@@ -127,6 +128,61 @@ func TestValidateJobRequest(t *testing.T) {
 	t.Run("zero-value struct", func(t *testing.T) {
 		err := ValidateJobRequest(&agentv1.JobRequest{})
 		assertValidationError(t, err, "job_id")
+	})
+
+	t.Run("oversized risk_tags rejected", func(t *testing.T) {
+		req := validJobRequest()
+		tags := make([]string, maxRepeatedFieldSize+1)
+		for i := range tags {
+			tags[i] = "tag"
+		}
+		req.Meta = &agentv1.JobMetadata{RiskTags: tags}
+		err := ValidateJobRequest(req)
+		assertValidationError(t, err, "meta.risk_tags")
+	})
+
+	t.Run("max size risk_tags accepted", func(t *testing.T) {
+		req := validJobRequest()
+		tags := make([]string, maxRepeatedFieldSize)
+		for i := range tags {
+			tags[i] = "tag"
+		}
+		req.Meta = &agentv1.JobMetadata{RiskTags: tags}
+		if err := ValidateJobRequest(req); err != nil {
+			t.Fatalf("expected max-size risk_tags to pass, got: %v", err)
+		}
+	})
+
+	t.Run("oversized labels rejected", func(t *testing.T) {
+		req := validJobRequest()
+		req.Labels = make(map[string]string, maxRepeatedFieldSize+1)
+		for i := 0; i <= maxRepeatedFieldSize; i++ {
+			req.Labels[fmt.Sprintf("key-%d", i)] = "val"
+		}
+		err := ValidateJobRequest(req)
+		assertValidationError(t, err, "labels")
+	})
+
+	t.Run("budget overflow max_input_tokens rejected", func(t *testing.T) {
+		req := validJobRequest()
+		req.Budget = &agentv1.Budget{MaxInputTokens: maxBudgetTokens + 1}
+		err := ValidateJobRequest(req)
+		assertValidationError(t, err, "budget.max_input_tokens")
+	})
+
+	t.Run("budget overflow max_output_tokens rejected", func(t *testing.T) {
+		req := validJobRequest()
+		req.Budget = &agentv1.Budget{MaxOutputTokens: maxBudgetTokens + 1}
+		err := ValidateJobRequest(req)
+		assertValidationError(t, err, "budget.max_output_tokens")
+	})
+
+	t.Run("budget at max accepted", func(t *testing.T) {
+		req := validJobRequest()
+		req.Budget = &agentv1.Budget{MaxInputTokens: maxBudgetTokens}
+		if err := ValidateJobRequest(req); err != nil {
+			t.Fatalf("expected max budget to pass, got: %v", err)
+		}
 	})
 }
 

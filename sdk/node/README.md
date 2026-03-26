@@ -64,6 +64,22 @@ agent.job("job.summarize", Input, async (_ctx, data) => {
 agent.run().catch(console.error);
 ```
 
+### Validation
+The Node SDK provides opt-in validation helpers for CAP protobuf messages. Each function returns an array of `ValidationError` objects; an empty array means the message is valid.
+
+- `validateJobRequest(msg: any): ValidationError[]`
+- `validateJobResult(msg: any): ValidationError[]`
+- `validateBusPacket(msg: any): ValidationError[]` (recursively validates payloads)
+
+```ts
+import { validateJobRequest } from "cap-sdk-node";
+
+const errors = validateJobRequest(decodedMsg);
+if (errors.length > 0) {
+  console.error("Invalid job request:", errors);
+}
+```
+
 ### Environment
 - `NATS_URL` (default `nats://127.0.0.1:4222`)
 - `REDIS_URL` (default `redis://127.0.0.1:6379/0`)

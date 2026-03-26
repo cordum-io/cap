@@ -147,6 +147,13 @@ agent.use(timing)
 Middleware executes in registration order (FIFO). Each can inspect context,
 measure timing, or short-circuit by returning without calling `next_fn`.
 
+### Redis TLS
+The Python SDK provides `redis_ssl_context_from_env()` to build an `SSLContext` for secure Redis connections. It reads:
+- `REDIS_TLS_CA` (or `SSL_CERT_FILE` fallback): Path to CA certificate.
+- `REDIS_TLS_CERT` / `REDIS_TLS_KEY`: Path to client certificate/key pair.
+- `REDIS_TLS_SERVER_NAME`: SNI server name override.
+- `REDIS_TLS_INSECURE`: Set to `1` or `true` to skip certificate verification (dev only).
+
 ### Environment
 - `NATS_URL` (default `nats://127.0.0.1:4222`)
 - `REDIS_URL` (default `redis://127.0.0.1:6379/0`)

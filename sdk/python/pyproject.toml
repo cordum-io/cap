@@ -12,7 +12,7 @@ license = "Apache-2.0"
 authors = [{name = "Cordum", email = "eng@cordum.io"}]
 keywords = ["cap", "cordum", "agent", "protocol", "sdk", "ai"]
 dependencies = [
-  "protobuf>=4.25.0",
+  "protobuf>=6.31.0,<7.0.0",
   "grpcio>=1.59.0",
   "nats-py>=2.6.0",
   "cryptography>=41.0.0",

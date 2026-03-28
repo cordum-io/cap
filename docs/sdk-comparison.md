@@ -11,6 +11,9 @@ CAP ships four SDKs. Three are **CAP protocol SDKs** (Go, Node, Python) that spe
 | **Async model** | Goroutines | async/await | asyncio | sync + async |
 | **Validation** | Struct tags | Zod schemas | Pydantic models | Risk tags / labels |
 | **Runtime layer** | Yes | Yes | Yes | N/A (decorator) |
+| **ManagedWorker** | Yes | No | No | N/A |
+| **Message validation** | No | Yes (opt-in) | No | N/A |
+| **TLS helpers** | Yes (env-based) | No | Redis only | N/A |
 | **Signing** | ECDSA P-256 | ECDSA P-256 | ECDSA P-256 | API key |
 | **Blob store** | Redis | Redis | Redis | N/A |
 | **Install** | `go get github.com/cordum-io/cap/v2` | `npm install cap-sdk-node` | `pip install cap-sdk-python` | `pip install cordum-guard` |

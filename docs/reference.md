@@ -5,7 +5,7 @@ Deep technical content for implementers. For an overview, see the [README](../RE
 ## Status
 
 - Protocol (wire): CAP 1.0.0 — Stable; append-only changes only.
-- Implementation / SDK: cap v2.0.19 (tagged releases in this repo).
+- Implementation / SDK: cap v2.8.3 (tagged releases in this repo).
 - Transport profile: NATS-first; other buses experimental.
 - Reference implementation: Cordum.
 
@@ -14,7 +14,7 @@ Deep technical content for implementers. For an overview, see the [README](../RE
 | Component | Version | Notes |
 | --- | --- | --- |
 | Protocol wire schema | 1.0.0 | Append-only evolution; never renumber fields. |
-| Repo / SDKs | 2.0.19 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
+| Repo / SDKs | 2.8.3 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
 | `protocol_version` field | 1 | Used in `BusPacket` for negotiation. |
 
 ## Key Concepts
@@ -129,6 +129,7 @@ func main() {
 - `examples/` — JSON and sequence flows for common scenarios.
 - `tools/` — helper scripts for proto generation (optional).
 - `sdk/` — starter SDKs for Go, Python, Node/TS, and C++ with NATS helpers.
+- `launch-kit/` — marketing materials, diagrams, and brand assets.
 - `docs/sdk-comparison.md` — SDK comparison matrix: which SDK to use and when.
 - `cordum/` — Go protobuf stubs (import path `github.com/cordum-io/cap/v2/cordum/agent/v1`).
 - `python/` — Python protobuf stubs (enable with `CAP_RUN_PY=1`).

@@ -90,6 +90,56 @@ if err := client.Submit(context.Background(), nc, req, "trace-1", "client-go", p
 }
 ```
 
+### ManagedWorker (Batteries-Included)
+The `worker.ManagedWorker` is a higher-level abstraction than `worker.Worker`. It handles the full lifecycle:
+- **Auto-connect**: Connects to NATS with optional TLS from environment.
+- **Handshake**: Publishes capabilities to `sys.handshake` on startup.
+- **Heartbeats**: Maintains a background heartbeat loop on `sys.heartbeat`.
+- **Panic Recovery**: Recovers from handler panics and reports them as `JOB_STATUS_FAILED`.
+- **Concurrency**: Controls parallel job execution via `MaxParallelJobs`.
+- **Graceful Shutdown**: Drains NATS and waits for in-flight jobs to finish on `Close()`.
+
+```go
+mgr, _ := worker.NewManagedWorker(worker.ManagedConfig{
+    Type:            "summarizer",
+    MaxParallelJobs: 4,
+    Capabilities:    []string{"text-processing", "nlp"},
+})
+
+err := mgr.Run(ctx, func(ctx context.Context, req *agentv1.JobRequest) (*agentv1.JobResult, error) {
+    // handler logic
+    return &agentv1.JobResult{Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED}, nil
+})
+```
+
+ManagedWorker automatically calls `NATSTLSConfigFromEnv()` if `NATSTLSConfig` is not provided in the config.
+
+### TLS Helpers
+CAP Go SDK provides helpers to build `*tls.Config` from standard environment variables. These are used by `ManagedWorker` and the `runtime.Agent` by default.
+
+#### NATS TLS
+`NATSTLSConfigFromEnv()` reads:
+- `NATS_TLS_CA`: Path to CA certificate PEM.
+- `NATS_TLS_CERT` / `NATS_TLS_KEY`: Path to client certificate/key pair (must be set together).
+- `NATS_TLS_SERVER_NAME`: SNI server name override.
+- `NATS_TLS_INSECURE`: Set to `1` or `true` to skip certificate verification (dev only).
+
+#### Redis TLS
+`RedisTLSConfigFromEnv()` reads:
+- `REDIS_TLS_CA`: Path to CA certificate PEM.
+- `REDIS_TLS_CERT` / `REDIS_TLS_KEY`: Path to client certificate/key pair.
+- `REDIS_TLS_SERVER_NAME`: SNI server name override.
+- `REDIS_TLS_INSECURE`: Set to `1` or `true` to skip certificate verification.
+
+### Job Options
+The high-level `runtime` supports per-job configuration using the Option pattern:
+
+```go
+runtime.Register(agent, "job.risky", myHandler, runtime.WithRetries(5))
+```
+
+- `WithRetries(n)`: Overrides the agent's default retry count for a specific topic.
+
 ## Testing
 
 The `testing` package lets you test handlers without running NATS or Redis.

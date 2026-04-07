@@ -309,6 +309,9 @@ export class JobResult extends jspb.Message {
   setArtifactPtrsList(value: Array<string>): void;
   addArtifactPtrs(value: string, index?: number): string;
 
+  getErrorCodeEnum(): ErrorCodeMap[keyof ErrorCodeMap];
+  setErrorCodeEnum(value: ErrorCodeMap[keyof ErrorCodeMap]): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): JobResult.AsObject;
   static toObject(includeInstance: boolean, msg: JobResult): JobResult.AsObject;
@@ -329,6 +332,7 @@ export namespace JobResult {
     errorCode: string,
     errorMessage: string,
     artifactPtrsList: Array<string>,
+    errorCodeEnum: ErrorCodeMap[keyof ErrorCodeMap],
   }
 }
 
@@ -439,4 +443,28 @@ export interface ActorTypeMap {
 }
 
 export const ActorType: ActorTypeMap;
+
+export interface ErrorCodeMap {
+  ERROR_CODE_UNSPECIFIED: 0;
+  ERROR_CODE_PROTOCOL_VERSION_MISMATCH: 100;
+  ERROR_CODE_PROTOCOL_MALFORMED_PACKET: 101;
+  ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD: 102;
+  ERROR_CODE_PROTOCOL_SIGNATURE_INVALID: 103;
+  ERROR_CODE_PROTOCOL_SIGNATURE_MISSING: 104;
+  ERROR_CODE_JOB_TIMEOUT: 200;
+  ERROR_CODE_JOB_RESOURCE_EXHAUSTED: 201;
+  ERROR_CODE_JOB_PERMISSION_DENIED: 202;
+  ERROR_CODE_JOB_INVALID_INPUT: 203;
+  ERROR_CODE_JOB_NOT_FOUND: 204;
+  ERROR_CODE_JOB_DUPLICATE: 205;
+  ERROR_CODE_JOB_WORKER_UNAVAILABLE: 206;
+  ERROR_CODE_SAFETY_DENIED: 300;
+  ERROR_CODE_SAFETY_POLICY_VIOLATION: 301;
+  ERROR_CODE_SAFETY_RISK_TAG_BLOCKED: 302;
+  ERROR_CODE_TRANSPORT_PUBLISH_FAILED: 400;
+  ERROR_CODE_TRANSPORT_SUBSCRIBE_FAILED: 401;
+  ERROR_CODE_TRANSPORT_CONNECTION_LOST: 402;
+}
+
+export const ErrorCode: ErrorCodeMap;
 

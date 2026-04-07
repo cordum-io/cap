@@ -29,6 +29,7 @@ message Handshake {
     repeated int32 supported_versions = 3;
     map<string, bool> capabilities = 4;
     string sdk_version = 5;
+    repeated string ready_topics = 6;
 }
 ```
 
@@ -52,6 +53,17 @@ The `capabilities` map uses string keys with boolean values. A key set to `true`
 
 Implementations MAY define additional capability keys. Custom keys SHOULD use a namespaced prefix (e.g., `x-myorg-feature`) to avoid collisions with future protocol-defined keys.
 
+## Readiness Topics
+
+`ready_topics` lists the concrete job subjects/topics the worker is currently ready to serve. This is distinct from `capabilities`:
+
+- `capabilities` answers **what** the component can do.
+- `ready_topics` answers **where** the worker is currently available to receive work.
+
+Schedulers MAY use `ready_topics` as an additional dispatch filter before selecting a worker. This lets a worker advertise broad static capabilities while temporarily narrowing the set of routed topics during startup or reconfiguration.
+
+Workers SHOULD publish `ready_topics` in a stable order so registries and tests can compare handshake payloads deterministically. Older workers that omit `ready_topics` remain wire-compatible; schedulers SHOULD treat the field as unknown/unspecified rather than as an error.
+
 ## Version Negotiation
 
 Components advertise the wire versions they support via `supported_versions`. Schedulers SHOULD pick the highest version common to both the scheduler and the target component. If no common version exists, the scheduler SHOULD reject jobs to that component with `ERROR_CODE_PROTOCOL_VERSION_MISMATCH`.
@@ -63,6 +75,7 @@ Currently, the only defined wire version is `1`. Components SHOULD include `1` i
 - Components SHOULD re-publish their Handshake on every reconnect to the bus.
 - Schedulers MAY expire registry entries for components that have not sent a Heartbeat or Handshake within a configured timeout.
 - Components that never send a Handshake are assumed to support CORE-level capabilities only (backward compatibility with pre-handshake deployments). Schedulers SHOULD NOT require Handshake for basic job dispatch.
+- If `ready_topics` is absent, schedulers SHOULD fall back to legacy behavior and rely on the existing routing/heartbeat signals rather than rejecting the worker outright.
 
 ## Security
 

@@ -159,6 +159,26 @@ func TestProgressPayload(t *testing.T) {
 	}
 }
 
+func TestHeartbeatPayloadWithAuthToken(t *testing.T) {
+	data, err := HeartbeatPayload("worker-auth", "pool-auth", 1, 4, 42.0, WithAuthToken(" token-123 "))
+	if err != nil {
+		t.Fatalf("HeartbeatPayload failed: %v", err)
+	}
+
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	hb := pkt.GetHeartbeat()
+	if hb == nil {
+		t.Fatal("Heartbeat is nil")
+	}
+	if hb.GetAuthToken() != "token-123" {
+		t.Fatalf("AuthToken = %q, want %q", hb.GetAuthToken(), "token-123")
+	}
+}
+
 func TestProgressPayloadZeroPercent(t *testing.T) {
 	data, err := ProgressPayload("worker-1", "job-1", "step-1", 0, "")
 	if err != nil {

@@ -36,6 +36,26 @@ $root.cordum = (function() {
              */
             var v1 = {};
 
+            /**
+             * AlertSeverity enum.
+             * @name cordum.agent.v1.AlertSeverity
+             * @enum {number}
+             * @property {number} ALERT_SEVERITY_UNSPECIFIED=0 ALERT_SEVERITY_UNSPECIFIED value
+             * @property {number} ALERT_SEVERITY_INFO=1 ALERT_SEVERITY_INFO value
+             * @property {number} ALERT_SEVERITY_WARNING=2 ALERT_SEVERITY_WARNING value
+             * @property {number} ALERT_SEVERITY_ERROR=3 ALERT_SEVERITY_ERROR value
+             * @property {number} ALERT_SEVERITY_CRITICAL=4 ALERT_SEVERITY_CRITICAL value
+             */
+            v1.AlertSeverity = (function() {
+                var valuesById = {}, values = Object.create(valuesById);
+                values[valuesById[0] = "ALERT_SEVERITY_UNSPECIFIED"] = 0;
+                values[valuesById[1] = "ALERT_SEVERITY_INFO"] = 1;
+                values[valuesById[2] = "ALERT_SEVERITY_WARNING"] = 2;
+                values[valuesById[3] = "ALERT_SEVERITY_ERROR"] = 3;
+                values[valuesById[4] = "ALERT_SEVERITY_CRITICAL"] = 4;
+                return values;
+            })();
+
             v1.SystemAlert = (function() {
 
                 /**
@@ -46,6 +66,11 @@ $root.cordum = (function() {
                  * @property {string|null} [message] SystemAlert message
                  * @property {string|null} [component] SystemAlert component
                  * @property {string|null} [code] SystemAlert code
+                 * @property {cordum.agent.v1.AlertSeverity|null} [severity] SystemAlert severity
+                 * @property {cordum.agent.v1.ErrorCode|null} [errorCodeEnum] SystemAlert errorCodeEnum
+                 * @property {string|null} [sourceComponent] SystemAlert sourceComponent
+                 * @property {Object.<string,string>|null} [details] SystemAlert details
+                 * @property {string|null} [traceId] SystemAlert traceId
                  */
 
                 /**
@@ -57,6 +82,7 @@ $root.cordum = (function() {
                  * @param {cordum.agent.v1.ISystemAlert=} [properties] Properties to set
                  */
                 function SystemAlert(properties) {
+                    this.details = {};
                     if (properties)
                         for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null)
@@ -96,6 +122,46 @@ $root.cordum = (function() {
                 SystemAlert.prototype.code = "";
 
                 /**
+                 * SystemAlert severity.
+                 * @member {cordum.agent.v1.AlertSeverity} severity
+                 * @memberof cordum.agent.v1.SystemAlert
+                 * @instance
+                 */
+                SystemAlert.prototype.severity = 0;
+
+                /**
+                 * SystemAlert errorCodeEnum.
+                 * @member {cordum.agent.v1.ErrorCode} errorCodeEnum
+                 * @memberof cordum.agent.v1.SystemAlert
+                 * @instance
+                 */
+                SystemAlert.prototype.errorCodeEnum = 0;
+
+                /**
+                 * SystemAlert sourceComponent.
+                 * @member {string} sourceComponent
+                 * @memberof cordum.agent.v1.SystemAlert
+                 * @instance
+                 */
+                SystemAlert.prototype.sourceComponent = "";
+
+                /**
+                 * SystemAlert details.
+                 * @member {Object.<string,string>} details
+                 * @memberof cordum.agent.v1.SystemAlert
+                 * @instance
+                 */
+                SystemAlert.prototype.details = $util.emptyObject;
+
+                /**
+                 * SystemAlert traceId.
+                 * @member {string} traceId
+                 * @memberof cordum.agent.v1.SystemAlert
+                 * @instance
+                 */
+                SystemAlert.prototype.traceId = "";
+
+                /**
                  * Creates a new SystemAlert instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.SystemAlert
@@ -127,6 +193,17 @@ $root.cordum = (function() {
                         writer.uint32(/* id 3, wireType 2 =*/26).string(message.component);
                     if (message.code != null && Object.hasOwnProperty.call(message, "code"))
                         writer.uint32(/* id 4, wireType 2 =*/34).string(message.code);
+                    if (message.severity != null && Object.hasOwnProperty.call(message, "severity"))
+                        writer.uint32(/* id 5, wireType 0 =*/40).int32(message.severity);
+                    if (message.errorCodeEnum != null && Object.hasOwnProperty.call(message, "errorCodeEnum"))
+                        writer.uint32(/* id 6, wireType 0 =*/48).int32(message.errorCodeEnum);
+                    if (message.sourceComponent != null && Object.hasOwnProperty.call(message, "sourceComponent"))
+                        writer.uint32(/* id 7, wireType 2 =*/58).string(message.sourceComponent);
+                    if (message.details != null && Object.hasOwnProperty.call(message, "details"))
+                        for (var keys = Object.keys(message.details), i = 0; i < keys.length; ++i)
+                            writer.uint32(/* id 8, wireType 2 =*/66).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.details[keys[i]]).ldelim();
+                    if (message.traceId != null && Object.hasOwnProperty.call(message, "traceId"))
+                        writer.uint32(/* id 9, wireType 2 =*/74).string(message.traceId);
                     return writer;
                 };
 
@@ -157,7 +234,7 @@ $root.cordum = (function() {
                 SystemAlert.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.SystemAlert();
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.SystemAlert(), key, value;
                     while (reader.pos < end) {
                         var tag = reader.uint32();
                         if (tag === error)
@@ -177,6 +254,45 @@ $root.cordum = (function() {
                             }
                         case 4: {
                                 message.code = reader.string();
+                                break;
+                            }
+                        case 5: {
+                                message.severity = reader.int32();
+                                break;
+                            }
+                        case 6: {
+                                message.errorCodeEnum = reader.int32();
+                                break;
+                            }
+                        case 7: {
+                                message.sourceComponent = reader.string();
+                                break;
+                            }
+                        case 8: {
+                                if (message.details === $util.emptyObject)
+                                    message.details = {};
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = "";
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.string();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.details[key] = value;
+                                break;
+                            }
+                        case 9: {
+                                message.traceId = reader.string();
                                 break;
                             }
                         default:
@@ -226,6 +342,56 @@ $root.cordum = (function() {
                     if (message.code != null && message.hasOwnProperty("code"))
                         if (!$util.isString(message.code))
                             return "code: string expected";
+                    if (message.severity != null && message.hasOwnProperty("severity"))
+                        switch (message.severity) {
+                        default:
+                            return "severity: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                            break;
+                        }
+                    if (message.errorCodeEnum != null && message.hasOwnProperty("errorCodeEnum"))
+                        switch (message.errorCodeEnum) {
+                        default:
+                            return "errorCodeEnum: enum value expected";
+                        case 0:
+                        case 100:
+                        case 101:
+                        case 102:
+                        case 103:
+                        case 104:
+                        case 200:
+                        case 201:
+                        case 202:
+                        case 203:
+                        case 204:
+                        case 205:
+                        case 206:
+                        case 300:
+                        case 301:
+                        case 302:
+                        case 400:
+                        case 401:
+                        case 402:
+                            break;
+                        }
+                    if (message.sourceComponent != null && message.hasOwnProperty("sourceComponent"))
+                        if (!$util.isString(message.sourceComponent))
+                            return "sourceComponent: string expected";
+                    if (message.details != null && message.hasOwnProperty("details")) {
+                        if (!$util.isObject(message.details))
+                            return "details: object expected";
+                        var key = Object.keys(message.details);
+                        for (var i = 0; i < key.length; ++i)
+                            if (!$util.isString(message.details[key[i]]))
+                                return "details: string{k:string} expected";
+                    }
+                    if (message.traceId != null && message.hasOwnProperty("traceId"))
+                        if (!$util.isString(message.traceId))
+                            return "traceId: string expected";
                     return null;
                 };
 
@@ -249,6 +415,129 @@ $root.cordum = (function() {
                         message.component = String(object.component);
                     if (object.code != null)
                         message.code = String(object.code);
+                    switch (object.severity) {
+                    default:
+                        if (typeof object.severity === "number") {
+                            message.severity = object.severity;
+                            break;
+                        }
+                        break;
+                    case "ALERT_SEVERITY_UNSPECIFIED":
+                    case 0:
+                        message.severity = 0;
+                        break;
+                    case "ALERT_SEVERITY_INFO":
+                    case 1:
+                        message.severity = 1;
+                        break;
+                    case "ALERT_SEVERITY_WARNING":
+                    case 2:
+                        message.severity = 2;
+                        break;
+                    case "ALERT_SEVERITY_ERROR":
+                    case 3:
+                        message.severity = 3;
+                        break;
+                    case "ALERT_SEVERITY_CRITICAL":
+                    case 4:
+                        message.severity = 4;
+                        break;
+                    }
+                    switch (object.errorCodeEnum) {
+                    default:
+                        if (typeof object.errorCodeEnum === "number") {
+                            message.errorCodeEnum = object.errorCodeEnum;
+                            break;
+                        }
+                        break;
+                    case "ERROR_CODE_UNSPECIFIED":
+                    case 0:
+                        message.errorCodeEnum = 0;
+                        break;
+                    case "ERROR_CODE_PROTOCOL_VERSION_MISMATCH":
+                    case 100:
+                        message.errorCodeEnum = 100;
+                        break;
+                    case "ERROR_CODE_PROTOCOL_MALFORMED_PACKET":
+                    case 101:
+                        message.errorCodeEnum = 101;
+                        break;
+                    case "ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD":
+                    case 102:
+                        message.errorCodeEnum = 102;
+                        break;
+                    case "ERROR_CODE_PROTOCOL_SIGNATURE_INVALID":
+                    case 103:
+                        message.errorCodeEnum = 103;
+                        break;
+                    case "ERROR_CODE_PROTOCOL_SIGNATURE_MISSING":
+                    case 104:
+                        message.errorCodeEnum = 104;
+                        break;
+                    case "ERROR_CODE_JOB_TIMEOUT":
+                    case 200:
+                        message.errorCodeEnum = 200;
+                        break;
+                    case "ERROR_CODE_JOB_RESOURCE_EXHAUSTED":
+                    case 201:
+                        message.errorCodeEnum = 201;
+                        break;
+                    case "ERROR_CODE_JOB_PERMISSION_DENIED":
+                    case 202:
+                        message.errorCodeEnum = 202;
+                        break;
+                    case "ERROR_CODE_JOB_INVALID_INPUT":
+                    case 203:
+                        message.errorCodeEnum = 203;
+                        break;
+                    case "ERROR_CODE_JOB_NOT_FOUND":
+                    case 204:
+                        message.errorCodeEnum = 204;
+                        break;
+                    case "ERROR_CODE_JOB_DUPLICATE":
+                    case 205:
+                        message.errorCodeEnum = 205;
+                        break;
+                    case "ERROR_CODE_JOB_WORKER_UNAVAILABLE":
+                    case 206:
+                        message.errorCodeEnum = 206;
+                        break;
+                    case "ERROR_CODE_SAFETY_DENIED":
+                    case 300:
+                        message.errorCodeEnum = 300;
+                        break;
+                    case "ERROR_CODE_SAFETY_POLICY_VIOLATION":
+                    case 301:
+                        message.errorCodeEnum = 301;
+                        break;
+                    case "ERROR_CODE_SAFETY_RISK_TAG_BLOCKED":
+                    case 302:
+                        message.errorCodeEnum = 302;
+                        break;
+                    case "ERROR_CODE_TRANSPORT_PUBLISH_FAILED":
+                    case 400:
+                        message.errorCodeEnum = 400;
+                        break;
+                    case "ERROR_CODE_TRANSPORT_SUBSCRIBE_FAILED":
+                    case 401:
+                        message.errorCodeEnum = 401;
+                        break;
+                    case "ERROR_CODE_TRANSPORT_CONNECTION_LOST":
+                    case 402:
+                        message.errorCodeEnum = 402;
+                        break;
+                    }
+                    if (object.sourceComponent != null)
+                        message.sourceComponent = String(object.sourceComponent);
+                    if (object.details) {
+                        if (typeof object.details !== "object")
+                            throw TypeError(".cordum.agent.v1.SystemAlert.details: object expected");
+                        message.details = {};
+                        for (var keys = Object.keys(object.details), i = 0; i < keys.length; ++i)
+                            message.details[keys[i]] = String(object.details[keys[i]]);
+                    }
+                    if (object.traceId != null)
+                        message.traceId = String(object.traceId);
                     return message;
                 };
 
@@ -265,11 +554,17 @@ $root.cordum = (function() {
                     if (!options)
                         options = {};
                     var object = {};
+                    if (options.objects || options.defaults)
+                        object.details = {};
                     if (options.defaults) {
                         object.level = "";
                         object.message = "";
                         object.component = "";
                         object.code = "";
+                        object.severity = options.enums === String ? "ALERT_SEVERITY_UNSPECIFIED" : 0;
+                        object.errorCodeEnum = options.enums === String ? "ERROR_CODE_UNSPECIFIED" : 0;
+                        object.sourceComponent = "";
+                        object.traceId = "";
                     }
                     if (message.level != null && message.hasOwnProperty("level"))
                         object.level = message.level;
@@ -279,6 +574,20 @@ $root.cordum = (function() {
                         object.component = message.component;
                     if (message.code != null && message.hasOwnProperty("code"))
                         object.code = message.code;
+                    if (message.severity != null && message.hasOwnProperty("severity"))
+                        object.severity = options.enums === String ? $root.cordum.agent.v1.AlertSeverity[message.severity] === undefined ? message.severity : $root.cordum.agent.v1.AlertSeverity[message.severity] : message.severity;
+                    if (message.errorCodeEnum != null && message.hasOwnProperty("errorCodeEnum"))
+                        object.errorCodeEnum = options.enums === String ? $root.cordum.agent.v1.ErrorCode[message.errorCodeEnum] === undefined ? message.errorCodeEnum : $root.cordum.agent.v1.ErrorCode[message.errorCodeEnum] : message.errorCodeEnum;
+                    if (message.sourceComponent != null && message.hasOwnProperty("sourceComponent"))
+                        object.sourceComponent = message.sourceComponent;
+                    var keys2;
+                    if (message.details && (keys2 = Object.keys(message.details)).length) {
+                        object.details = {};
+                        for (var j = 0; j < keys2.length; ++j)
+                            object.details[keys2[j]] = message.details[keys2[j]];
+                    }
+                    if (message.traceId != null && message.hasOwnProperty("traceId"))
+                        object.traceId = message.traceId;
                     return object;
                 };
 
@@ -309,541 +618,6 @@ $root.cordum = (function() {
                 };
 
                 return SystemAlert;
-            })();
-
-            v1.BusPacket = (function() {
-
-                /**
-                 * Properties of a BusPacket.
-                 * @memberof cordum.agent.v1
-                 * @interface IBusPacket
-                 * @property {string|null} [traceId] BusPacket traceId
-                 * @property {string|null} [senderId] BusPacket senderId
-                 * @property {google.protobuf.ITimestamp|null} [createdAt] BusPacket createdAt
-                 * @property {number|null} [protocolVersion] BusPacket protocolVersion
-                 * @property {cordum.agent.v1.IJobRequest|null} [jobRequest] BusPacket jobRequest
-                 * @property {cordum.agent.v1.IJobResult|null} [jobResult] BusPacket jobResult
-                 * @property {cordum.agent.v1.IHeartbeat|null} [heartbeat] BusPacket heartbeat
-                 * @property {cordum.agent.v1.ISystemAlert|null} [alert] BusPacket alert
-                 * @property {cordum.agent.v1.IJobProgress|null} [jobProgress] BusPacket jobProgress
-                 * @property {cordum.agent.v1.IJobCancel|null} [jobCancel] BusPacket jobCancel
-                 * @property {Uint8Array|null} [signature] BusPacket signature
-                 */
-
-                /**
-                 * Constructs a new BusPacket.
-                 * @memberof cordum.agent.v1
-                 * @classdesc Represents a BusPacket.
-                 * @implements IBusPacket
-                 * @constructor
-                 * @param {cordum.agent.v1.IBusPacket=} [properties] Properties to set
-                 */
-                function BusPacket(properties) {
-                    if (properties)
-                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
-                                this[keys[i]] = properties[keys[i]];
-                }
-
-                /**
-                 * BusPacket traceId.
-                 * @member {string} traceId
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.traceId = "";
-
-                /**
-                 * BusPacket senderId.
-                 * @member {string} senderId
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.senderId = "";
-
-                /**
-                 * BusPacket createdAt.
-                 * @member {google.protobuf.ITimestamp|null|undefined} createdAt
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.createdAt = null;
-
-                /**
-                 * BusPacket protocolVersion.
-                 * @member {number} protocolVersion
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.protocolVersion = 0;
-
-                /**
-                 * BusPacket jobRequest.
-                 * @member {cordum.agent.v1.IJobRequest|null|undefined} jobRequest
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.jobRequest = null;
-
-                /**
-                 * BusPacket jobResult.
-                 * @member {cordum.agent.v1.IJobResult|null|undefined} jobResult
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.jobResult = null;
-
-                /**
-                 * BusPacket heartbeat.
-                 * @member {cordum.agent.v1.IHeartbeat|null|undefined} heartbeat
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.heartbeat = null;
-
-                /**
-                 * BusPacket alert.
-                 * @member {cordum.agent.v1.ISystemAlert|null|undefined} alert
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.alert = null;
-
-                /**
-                 * BusPacket jobProgress.
-                 * @member {cordum.agent.v1.IJobProgress|null|undefined} jobProgress
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.jobProgress = null;
-
-                /**
-                 * BusPacket jobCancel.
-                 * @member {cordum.agent.v1.IJobCancel|null|undefined} jobCancel
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.jobCancel = null;
-
-                /**
-                 * BusPacket signature.
-                 * @member {Uint8Array} signature
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                BusPacket.prototype.signature = $util.newBuffer([]);
-
-                // OneOf field names bound to virtual getters and setters
-                var $oneOfFields;
-
-                /**
-                 * BusPacket payload.
-                 * @member {"jobRequest"|"jobResult"|"heartbeat"|"alert"|"jobProgress"|"jobCancel"|undefined} payload
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 */
-                Object.defineProperty(BusPacket.prototype, "payload", {
-                    get: $util.oneOfGetter($oneOfFields = ["jobRequest", "jobResult", "heartbeat", "alert", "jobProgress", "jobCancel"]),
-                    set: $util.oneOfSetter($oneOfFields)
-                });
-
-                /**
-                 * Creates a new BusPacket instance using the specified properties.
-                 * @function create
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @static
-                 * @param {cordum.agent.v1.IBusPacket=} [properties] Properties to set
-                 * @returns {cordum.agent.v1.BusPacket} BusPacket instance
-                 */
-                BusPacket.create = function create(properties) {
-                    return new BusPacket(properties);
-                };
-
-                /**
-                 * Encodes the specified BusPacket message. Does not implicitly {@link cordum.agent.v1.BusPacket.verify|verify} messages.
-                 * @function encode
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @static
-                 * @param {cordum.agent.v1.IBusPacket} message BusPacket message or plain object to encode
-                 * @param {$protobuf.Writer} [writer] Writer to encode to
-                 * @returns {$protobuf.Writer} Writer
-                 */
-                BusPacket.encode = function encode(message, writer) {
-                    if (!writer)
-                        writer = $Writer.create();
-                    if (message.traceId != null && Object.hasOwnProperty.call(message, "traceId"))
-                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.traceId);
-                    if (message.senderId != null && Object.hasOwnProperty.call(message, "senderId"))
-                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.senderId);
-                    if (message.createdAt != null && Object.hasOwnProperty.call(message, "createdAt"))
-                        $root.google.protobuf.Timestamp.encode(message.createdAt, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
-                    if (message.protocolVersion != null && Object.hasOwnProperty.call(message, "protocolVersion"))
-                        writer.uint32(/* id 4, wireType 0 =*/32).int32(message.protocolVersion);
-                    if (message.jobRequest != null && Object.hasOwnProperty.call(message, "jobRequest"))
-                        $root.cordum.agent.v1.JobRequest.encode(message.jobRequest, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
-                    if (message.jobResult != null && Object.hasOwnProperty.call(message, "jobResult"))
-                        $root.cordum.agent.v1.JobResult.encode(message.jobResult, writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
-                    if (message.heartbeat != null && Object.hasOwnProperty.call(message, "heartbeat"))
-                        $root.cordum.agent.v1.Heartbeat.encode(message.heartbeat, writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
-                    if (message.alert != null && Object.hasOwnProperty.call(message, "alert"))
-                        $root.cordum.agent.v1.SystemAlert.encode(message.alert, writer.uint32(/* id 13, wireType 2 =*/106).fork()).ldelim();
-                    if (message.signature != null && Object.hasOwnProperty.call(message, "signature"))
-                        writer.uint32(/* id 14, wireType 2 =*/114).bytes(message.signature);
-                    if (message.jobProgress != null && Object.hasOwnProperty.call(message, "jobProgress"))
-                        $root.cordum.agent.v1.JobProgress.encode(message.jobProgress, writer.uint32(/* id 15, wireType 2 =*/122).fork()).ldelim();
-                    if (message.jobCancel != null && Object.hasOwnProperty.call(message, "jobCancel"))
-                        $root.cordum.agent.v1.JobCancel.encode(message.jobCancel, writer.uint32(/* id 16, wireType 2 =*/130).fork()).ldelim();
-                    return writer;
-                };
-
-                /**
-                 * Encodes the specified BusPacket message, length delimited. Does not implicitly {@link cordum.agent.v1.BusPacket.verify|verify} messages.
-                 * @function encodeDelimited
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @static
-                 * @param {cordum.agent.v1.IBusPacket} message BusPacket message or plain object to encode
-                 * @param {$protobuf.Writer} [writer] Writer to encode to
-                 * @returns {$protobuf.Writer} Writer
-                 */
-                BusPacket.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
-                };
-
-                /**
-                 * Decodes a BusPacket message from the specified reader or buffer.
-                 * @function decode
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @static
-                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @param {number} [length] Message length if known beforehand
-                 * @returns {cordum.agent.v1.BusPacket} BusPacket
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                BusPacket.decode = function decode(reader, length, error) {
-                    if (!(reader instanceof $Reader))
-                        reader = $Reader.create(reader);
-                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.BusPacket();
-                    while (reader.pos < end) {
-                        var tag = reader.uint32();
-                        if (tag === error)
-                            break;
-                        switch (tag >>> 3) {
-                        case 1: {
-                                message.traceId = reader.string();
-                                break;
-                            }
-                        case 2: {
-                                message.senderId = reader.string();
-                                break;
-                            }
-                        case 3: {
-                                message.createdAt = $root.google.protobuf.Timestamp.decode(reader, reader.uint32());
-                                break;
-                            }
-                        case 4: {
-                                message.protocolVersion = reader.int32();
-                                break;
-                            }
-                        case 10: {
-                                message.jobRequest = $root.cordum.agent.v1.JobRequest.decode(reader, reader.uint32());
-                                break;
-                            }
-                        case 11: {
-                                message.jobResult = $root.cordum.agent.v1.JobResult.decode(reader, reader.uint32());
-                                break;
-                            }
-                        case 12: {
-                                message.heartbeat = $root.cordum.agent.v1.Heartbeat.decode(reader, reader.uint32());
-                                break;
-                            }
-                        case 13: {
-                                message.alert = $root.cordum.agent.v1.SystemAlert.decode(reader, reader.uint32());
-                                break;
-                            }
-                        case 15: {
-                                message.jobProgress = $root.cordum.agent.v1.JobProgress.decode(reader, reader.uint32());
-                                break;
-                            }
-                        case 16: {
-                                message.jobCancel = $root.cordum.agent.v1.JobCancel.decode(reader, reader.uint32());
-                                break;
-                            }
-                        case 14: {
-                                message.signature = reader.bytes();
-                                break;
-                            }
-                        default:
-                            reader.skipType(tag & 7);
-                            break;
-                        }
-                    }
-                    return message;
-                };
-
-                /**
-                 * Decodes a BusPacket message from the specified reader or buffer, length delimited.
-                 * @function decodeDelimited
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @static
-                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @returns {cordum.agent.v1.BusPacket} BusPacket
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                BusPacket.decodeDelimited = function decodeDelimited(reader) {
-                    if (!(reader instanceof $Reader))
-                        reader = new $Reader(reader);
-                    return this.decode(reader, reader.uint32());
-                };
-
-                /**
-                 * Verifies a BusPacket message.
-                 * @function verify
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @static
-                 * @param {Object.<string,*>} message Plain object to verify
-                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
-                 */
-                BusPacket.verify = function verify(message) {
-                    if (typeof message !== "object" || message === null)
-                        return "object expected";
-                    var properties = {};
-                    if (message.traceId != null && message.hasOwnProperty("traceId"))
-                        if (!$util.isString(message.traceId))
-                            return "traceId: string expected";
-                    if (message.senderId != null && message.hasOwnProperty("senderId"))
-                        if (!$util.isString(message.senderId))
-                            return "senderId: string expected";
-                    if (message.createdAt != null && message.hasOwnProperty("createdAt")) {
-                        var error = $root.google.protobuf.Timestamp.verify(message.createdAt);
-                        if (error)
-                            return "createdAt." + error;
-                    }
-                    if (message.protocolVersion != null && message.hasOwnProperty("protocolVersion"))
-                        if (!$util.isInteger(message.protocolVersion))
-                            return "protocolVersion: integer expected";
-                    if (message.jobRequest != null && message.hasOwnProperty("jobRequest")) {
-                        properties.payload = 1;
-                        {
-                            var error = $root.cordum.agent.v1.JobRequest.verify(message.jobRequest);
-                            if (error)
-                                return "jobRequest." + error;
-                        }
-                    }
-                    if (message.jobResult != null && message.hasOwnProperty("jobResult")) {
-                        if (properties.payload === 1)
-                            return "payload: multiple values";
-                        properties.payload = 1;
-                        {
-                            var error = $root.cordum.agent.v1.JobResult.verify(message.jobResult);
-                            if (error)
-                                return "jobResult." + error;
-                        }
-                    }
-                    if (message.heartbeat != null && message.hasOwnProperty("heartbeat")) {
-                        if (properties.payload === 1)
-                            return "payload: multiple values";
-                        properties.payload = 1;
-                        {
-                            var error = $root.cordum.agent.v1.Heartbeat.verify(message.heartbeat);
-                            if (error)
-                                return "heartbeat." + error;
-                        }
-                    }
-                    if (message.alert != null && message.hasOwnProperty("alert")) {
-                        if (properties.payload === 1)
-                            return "payload: multiple values";
-                        properties.payload = 1;
-                        {
-                            var error = $root.cordum.agent.v1.SystemAlert.verify(message.alert);
-                            if (error)
-                                return "alert." + error;
-                        }
-                    }
-                    if (message.jobProgress != null && message.hasOwnProperty("jobProgress")) {
-                        if (properties.payload === 1)
-                            return "payload: multiple values";
-                        properties.payload = 1;
-                        {
-                            var error = $root.cordum.agent.v1.JobProgress.verify(message.jobProgress);
-                            if (error)
-                                return "jobProgress." + error;
-                        }
-                    }
-                    if (message.jobCancel != null && message.hasOwnProperty("jobCancel")) {
-                        if (properties.payload === 1)
-                            return "payload: multiple values";
-                        properties.payload = 1;
-                        {
-                            var error = $root.cordum.agent.v1.JobCancel.verify(message.jobCancel);
-                            if (error)
-                                return "jobCancel." + error;
-                        }
-                    }
-                    if (message.signature != null && message.hasOwnProperty("signature"))
-                        if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
-                            return "signature: buffer expected";
-                    return null;
-                };
-
-                /**
-                 * Creates a BusPacket message from a plain object. Also converts values to their respective internal types.
-                 * @function fromObject
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @static
-                 * @param {Object.<string,*>} object Plain object
-                 * @returns {cordum.agent.v1.BusPacket} BusPacket
-                 */
-                BusPacket.fromObject = function fromObject(object) {
-                    if (object instanceof $root.cordum.agent.v1.BusPacket)
-                        return object;
-                    var message = new $root.cordum.agent.v1.BusPacket();
-                    if (object.traceId != null)
-                        message.traceId = String(object.traceId);
-                    if (object.senderId != null)
-                        message.senderId = String(object.senderId);
-                    if (object.createdAt != null) {
-                        if (typeof object.createdAt !== "object")
-                            throw TypeError(".cordum.agent.v1.BusPacket.createdAt: object expected");
-                        message.createdAt = $root.google.protobuf.Timestamp.fromObject(object.createdAt);
-                    }
-                    if (object.protocolVersion != null)
-                        message.protocolVersion = object.protocolVersion | 0;
-                    if (object.jobRequest != null) {
-                        if (typeof object.jobRequest !== "object")
-                            throw TypeError(".cordum.agent.v1.BusPacket.jobRequest: object expected");
-                        message.jobRequest = $root.cordum.agent.v1.JobRequest.fromObject(object.jobRequest);
-                    }
-                    if (object.jobResult != null) {
-                        if (typeof object.jobResult !== "object")
-                            throw TypeError(".cordum.agent.v1.BusPacket.jobResult: object expected");
-                        message.jobResult = $root.cordum.agent.v1.JobResult.fromObject(object.jobResult);
-                    }
-                    if (object.heartbeat != null) {
-                        if (typeof object.heartbeat !== "object")
-                            throw TypeError(".cordum.agent.v1.BusPacket.heartbeat: object expected");
-                        message.heartbeat = $root.cordum.agent.v1.Heartbeat.fromObject(object.heartbeat);
-                    }
-                    if (object.alert != null) {
-                        if (typeof object.alert !== "object")
-                            throw TypeError(".cordum.agent.v1.BusPacket.alert: object expected");
-                        message.alert = $root.cordum.agent.v1.SystemAlert.fromObject(object.alert);
-                    }
-                    if (object.jobProgress != null) {
-                        if (typeof object.jobProgress !== "object")
-                            throw TypeError(".cordum.agent.v1.BusPacket.jobProgress: object expected");
-                        message.jobProgress = $root.cordum.agent.v1.JobProgress.fromObject(object.jobProgress);
-                    }
-                    if (object.jobCancel != null) {
-                        if (typeof object.jobCancel !== "object")
-                            throw TypeError(".cordum.agent.v1.BusPacket.jobCancel: object expected");
-                        message.jobCancel = $root.cordum.agent.v1.JobCancel.fromObject(object.jobCancel);
-                    }
-                    if (object.signature != null)
-                        if (typeof object.signature === "string")
-                            $util.base64.decode(object.signature, message.signature = $util.newBuffer($util.base64.length(object.signature)), 0);
-                        else if (object.signature.length >= 0)
-                            message.signature = object.signature;
-                    return message;
-                };
-
-                /**
-                 * Creates a plain object from a BusPacket message. Also converts values to other types if specified.
-                 * @function toObject
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @static
-                 * @param {cordum.agent.v1.BusPacket} message BusPacket
-                 * @param {$protobuf.IConversionOptions} [options] Conversion options
-                 * @returns {Object.<string,*>} Plain object
-                 */
-                BusPacket.toObject = function toObject(message, options) {
-                    if (!options)
-                        options = {};
-                    var object = {};
-                    if (options.defaults) {
-                        object.traceId = "";
-                        object.senderId = "";
-                        object.createdAt = null;
-                        object.protocolVersion = 0;
-                        if (options.bytes === String)
-                            object.signature = "";
-                        else {
-                            object.signature = [];
-                            if (options.bytes !== Array)
-                                object.signature = $util.newBuffer(object.signature);
-                        }
-                    }
-                    if (message.traceId != null && message.hasOwnProperty("traceId"))
-                        object.traceId = message.traceId;
-                    if (message.senderId != null && message.hasOwnProperty("senderId"))
-                        object.senderId = message.senderId;
-                    if (message.createdAt != null && message.hasOwnProperty("createdAt"))
-                        object.createdAt = $root.google.protobuf.Timestamp.toObject(message.createdAt, options);
-                    if (message.protocolVersion != null && message.hasOwnProperty("protocolVersion"))
-                        object.protocolVersion = message.protocolVersion;
-                    if (message.jobRequest != null && message.hasOwnProperty("jobRequest")) {
-                        object.jobRequest = $root.cordum.agent.v1.JobRequest.toObject(message.jobRequest, options);
-                        if (options.oneofs)
-                            object.payload = "jobRequest";
-                    }
-                    if (message.jobResult != null && message.hasOwnProperty("jobResult")) {
-                        object.jobResult = $root.cordum.agent.v1.JobResult.toObject(message.jobResult, options);
-                        if (options.oneofs)
-                            object.payload = "jobResult";
-                    }
-                    if (message.heartbeat != null && message.hasOwnProperty("heartbeat")) {
-                        object.heartbeat = $root.cordum.agent.v1.Heartbeat.toObject(message.heartbeat, options);
-                        if (options.oneofs)
-                            object.payload = "heartbeat";
-                    }
-                    if (message.alert != null && message.hasOwnProperty("alert")) {
-                        object.alert = $root.cordum.agent.v1.SystemAlert.toObject(message.alert, options);
-                        if (options.oneofs)
-                            object.payload = "alert";
-                    }
-                    if (message.signature != null && message.hasOwnProperty("signature"))
-                        object.signature = options.bytes === String ? $util.base64.encode(message.signature, 0, message.signature.length) : options.bytes === Array ? Array.prototype.slice.call(message.signature) : message.signature;
-                    if (message.jobProgress != null && message.hasOwnProperty("jobProgress")) {
-                        object.jobProgress = $root.cordum.agent.v1.JobProgress.toObject(message.jobProgress, options);
-                        if (options.oneofs)
-                            object.payload = "jobProgress";
-                    }
-                    if (message.jobCancel != null && message.hasOwnProperty("jobCancel")) {
-                        object.jobCancel = $root.cordum.agent.v1.JobCancel.toObject(message.jobCancel, options);
-                        if (options.oneofs)
-                            object.payload = "jobCancel";
-                    }
-                    return object;
-                };
-
-                /**
-                 * Converts this BusPacket to JSON.
-                 * @function toJSON
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @instance
-                 * @returns {Object.<string,*>} JSON object
-                 */
-                BusPacket.prototype.toJSON = function toJSON() {
-                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
-                };
-
-                /**
-                 * Gets the default type url for BusPacket
-                 * @function getTypeUrl
-                 * @memberof cordum.agent.v1.BusPacket
-                 * @static
-                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-                 * @returns {string} The default type url
-                 */
-                BusPacket.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
-                    if (typeUrlPrefix === undefined) {
-                        typeUrlPrefix = "type.googleapis.com";
-                    }
-                    return typeUrlPrefix + "/cordum.agent.v1.BusPacket";
-                };
-
-                return BusPacket;
             })();
 
             /**
@@ -1534,6 +1308,54 @@ $root.cordum = (function() {
                 values[valuesById[0] = "ACTOR_TYPE_UNSPECIFIED"] = 0;
                 values[valuesById[1] = "ACTOR_TYPE_HUMAN"] = 1;
                 values[valuesById[2] = "ACTOR_TYPE_SERVICE"] = 2;
+                return values;
+            })();
+
+            /**
+             * ErrorCode enum.
+             * @name cordum.agent.v1.ErrorCode
+             * @enum {number}
+             * @property {number} ERROR_CODE_UNSPECIFIED=0 ERROR_CODE_UNSPECIFIED value
+             * @property {number} ERROR_CODE_PROTOCOL_VERSION_MISMATCH=100 ERROR_CODE_PROTOCOL_VERSION_MISMATCH value
+             * @property {number} ERROR_CODE_PROTOCOL_MALFORMED_PACKET=101 ERROR_CODE_PROTOCOL_MALFORMED_PACKET value
+             * @property {number} ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD=102 ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD value
+             * @property {number} ERROR_CODE_PROTOCOL_SIGNATURE_INVALID=103 ERROR_CODE_PROTOCOL_SIGNATURE_INVALID value
+             * @property {number} ERROR_CODE_PROTOCOL_SIGNATURE_MISSING=104 ERROR_CODE_PROTOCOL_SIGNATURE_MISSING value
+             * @property {number} ERROR_CODE_JOB_TIMEOUT=200 ERROR_CODE_JOB_TIMEOUT value
+             * @property {number} ERROR_CODE_JOB_RESOURCE_EXHAUSTED=201 ERROR_CODE_JOB_RESOURCE_EXHAUSTED value
+             * @property {number} ERROR_CODE_JOB_PERMISSION_DENIED=202 ERROR_CODE_JOB_PERMISSION_DENIED value
+             * @property {number} ERROR_CODE_JOB_INVALID_INPUT=203 ERROR_CODE_JOB_INVALID_INPUT value
+             * @property {number} ERROR_CODE_JOB_NOT_FOUND=204 ERROR_CODE_JOB_NOT_FOUND value
+             * @property {number} ERROR_CODE_JOB_DUPLICATE=205 ERROR_CODE_JOB_DUPLICATE value
+             * @property {number} ERROR_CODE_JOB_WORKER_UNAVAILABLE=206 ERROR_CODE_JOB_WORKER_UNAVAILABLE value
+             * @property {number} ERROR_CODE_SAFETY_DENIED=300 ERROR_CODE_SAFETY_DENIED value
+             * @property {number} ERROR_CODE_SAFETY_POLICY_VIOLATION=301 ERROR_CODE_SAFETY_POLICY_VIOLATION value
+             * @property {number} ERROR_CODE_SAFETY_RISK_TAG_BLOCKED=302 ERROR_CODE_SAFETY_RISK_TAG_BLOCKED value
+             * @property {number} ERROR_CODE_TRANSPORT_PUBLISH_FAILED=400 ERROR_CODE_TRANSPORT_PUBLISH_FAILED value
+             * @property {number} ERROR_CODE_TRANSPORT_SUBSCRIBE_FAILED=401 ERROR_CODE_TRANSPORT_SUBSCRIBE_FAILED value
+             * @property {number} ERROR_CODE_TRANSPORT_CONNECTION_LOST=402 ERROR_CODE_TRANSPORT_CONNECTION_LOST value
+             */
+            v1.ErrorCode = (function() {
+                var valuesById = {}, values = Object.create(valuesById);
+                values[valuesById[0] = "ERROR_CODE_UNSPECIFIED"] = 0;
+                values[valuesById[100] = "ERROR_CODE_PROTOCOL_VERSION_MISMATCH"] = 100;
+                values[valuesById[101] = "ERROR_CODE_PROTOCOL_MALFORMED_PACKET"] = 101;
+                values[valuesById[102] = "ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD"] = 102;
+                values[valuesById[103] = "ERROR_CODE_PROTOCOL_SIGNATURE_INVALID"] = 103;
+                values[valuesById[104] = "ERROR_CODE_PROTOCOL_SIGNATURE_MISSING"] = 104;
+                values[valuesById[200] = "ERROR_CODE_JOB_TIMEOUT"] = 200;
+                values[valuesById[201] = "ERROR_CODE_JOB_RESOURCE_EXHAUSTED"] = 201;
+                values[valuesById[202] = "ERROR_CODE_JOB_PERMISSION_DENIED"] = 202;
+                values[valuesById[203] = "ERROR_CODE_JOB_INVALID_INPUT"] = 203;
+                values[valuesById[204] = "ERROR_CODE_JOB_NOT_FOUND"] = 204;
+                values[valuesById[205] = "ERROR_CODE_JOB_DUPLICATE"] = 205;
+                values[valuesById[206] = "ERROR_CODE_JOB_WORKER_UNAVAILABLE"] = 206;
+                values[valuesById[300] = "ERROR_CODE_SAFETY_DENIED"] = 300;
+                values[valuesById[301] = "ERROR_CODE_SAFETY_POLICY_VIOLATION"] = 301;
+                values[valuesById[302] = "ERROR_CODE_SAFETY_RISK_TAG_BLOCKED"] = 302;
+                values[valuesById[400] = "ERROR_CODE_TRANSPORT_PUBLISH_FAILED"] = 400;
+                values[valuesById[401] = "ERROR_CODE_TRANSPORT_SUBSCRIBE_FAILED"] = 401;
+                values[valuesById[402] = "ERROR_CODE_TRANSPORT_CONNECTION_LOST"] = 402;
                 return values;
             })();
 
@@ -3303,6 +3125,7 @@ $root.cordum = (function() {
                  * @property {string|null} [errorCode] JobResult errorCode
                  * @property {string|null} [errorMessage] JobResult errorMessage
                  * @property {Array.<string>|null} [artifactPtrs] JobResult artifactPtrs
+                 * @property {cordum.agent.v1.ErrorCode|null} [errorCodeEnum] JobResult errorCodeEnum
                  */
 
                 /**
@@ -3386,6 +3209,14 @@ $root.cordum = (function() {
                 JobResult.prototype.artifactPtrs = $util.emptyArray;
 
                 /**
+                 * JobResult errorCodeEnum.
+                 * @member {cordum.agent.v1.ErrorCode} errorCodeEnum
+                 * @memberof cordum.agent.v1.JobResult
+                 * @instance
+                 */
+                JobResult.prototype.errorCodeEnum = 0;
+
+                /**
                  * Creates a new JobResult instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.JobResult
@@ -3426,6 +3257,8 @@ $root.cordum = (function() {
                     if (message.artifactPtrs != null && message.artifactPtrs.length)
                         for (var i = 0; i < message.artifactPtrs.length; ++i)
                             writer.uint32(/* id 8, wireType 2 =*/66).string(message.artifactPtrs[i]);
+                    if (message.errorCodeEnum != null && Object.hasOwnProperty.call(message, "errorCodeEnum"))
+                        writer.uint32(/* id 9, wireType 0 =*/72).int32(message.errorCodeEnum);
                     return writer;
                 };
 
@@ -3494,6 +3327,10 @@ $root.cordum = (function() {
                                 if (!(message.artifactPtrs && message.artifactPtrs.length))
                                     message.artifactPtrs = [];
                                 message.artifactPtrs.push(reader.string());
+                                break;
+                            }
+                        case 9: {
+                                message.errorCodeEnum = reader.int32();
                                 break;
                             }
                         default:
@@ -3574,6 +3411,31 @@ $root.cordum = (function() {
                             if (!$util.isString(message.artifactPtrs[i]))
                                 return "artifactPtrs: string[] expected";
                     }
+                    if (message.errorCodeEnum != null && message.hasOwnProperty("errorCodeEnum"))
+                        switch (message.errorCodeEnum) {
+                        default:
+                            return "errorCodeEnum: enum value expected";
+                        case 0:
+                        case 100:
+                        case 101:
+                        case 102:
+                        case 103:
+                        case 104:
+                        case 200:
+                        case 201:
+                        case 202:
+                        case 203:
+                        case 204:
+                        case 205:
+                        case 206:
+                        case 300:
+                        case 301:
+                        case 302:
+                        case 400:
+                        case 401:
+                        case 402:
+                            break;
+                        }
                     return null;
                 };
 
@@ -3671,6 +3533,90 @@ $root.cordum = (function() {
                         for (var i = 0; i < object.artifactPtrs.length; ++i)
                             message.artifactPtrs[i] = String(object.artifactPtrs[i]);
                     }
+                    switch (object.errorCodeEnum) {
+                    default:
+                        if (typeof object.errorCodeEnum === "number") {
+                            message.errorCodeEnum = object.errorCodeEnum;
+                            break;
+                        }
+                        break;
+                    case "ERROR_CODE_UNSPECIFIED":
+                    case 0:
+                        message.errorCodeEnum = 0;
+                        break;
+                    case "ERROR_CODE_PROTOCOL_VERSION_MISMATCH":
+                    case 100:
+                        message.errorCodeEnum = 100;
+                        break;
+                    case "ERROR_CODE_PROTOCOL_MALFORMED_PACKET":
+                    case 101:
+                        message.errorCodeEnum = 101;
+                        break;
+                    case "ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD":
+                    case 102:
+                        message.errorCodeEnum = 102;
+                        break;
+                    case "ERROR_CODE_PROTOCOL_SIGNATURE_INVALID":
+                    case 103:
+                        message.errorCodeEnum = 103;
+                        break;
+                    case "ERROR_CODE_PROTOCOL_SIGNATURE_MISSING":
+                    case 104:
+                        message.errorCodeEnum = 104;
+                        break;
+                    case "ERROR_CODE_JOB_TIMEOUT":
+                    case 200:
+                        message.errorCodeEnum = 200;
+                        break;
+                    case "ERROR_CODE_JOB_RESOURCE_EXHAUSTED":
+                    case 201:
+                        message.errorCodeEnum = 201;
+                        break;
+                    case "ERROR_CODE_JOB_PERMISSION_DENIED":
+                    case 202:
+                        message.errorCodeEnum = 202;
+                        break;
+                    case "ERROR_CODE_JOB_INVALID_INPUT":
+                    case 203:
+                        message.errorCodeEnum = 203;
+                        break;
+                    case "ERROR_CODE_JOB_NOT_FOUND":
+                    case 204:
+                        message.errorCodeEnum = 204;
+                        break;
+                    case "ERROR_CODE_JOB_DUPLICATE":
+                    case 205:
+                        message.errorCodeEnum = 205;
+                        break;
+                    case "ERROR_CODE_JOB_WORKER_UNAVAILABLE":
+                    case 206:
+                        message.errorCodeEnum = 206;
+                        break;
+                    case "ERROR_CODE_SAFETY_DENIED":
+                    case 300:
+                        message.errorCodeEnum = 300;
+                        break;
+                    case "ERROR_CODE_SAFETY_POLICY_VIOLATION":
+                    case 301:
+                        message.errorCodeEnum = 301;
+                        break;
+                    case "ERROR_CODE_SAFETY_RISK_TAG_BLOCKED":
+                    case 302:
+                        message.errorCodeEnum = 302;
+                        break;
+                    case "ERROR_CODE_TRANSPORT_PUBLISH_FAILED":
+                    case 400:
+                        message.errorCodeEnum = 400;
+                        break;
+                    case "ERROR_CODE_TRANSPORT_SUBSCRIBE_FAILED":
+                    case 401:
+                        message.errorCodeEnum = 401;
+                        break;
+                    case "ERROR_CODE_TRANSPORT_CONNECTION_LOST":
+                    case 402:
+                        message.errorCodeEnum = 402;
+                        break;
+                    }
                     return message;
                 };
 
@@ -3701,6 +3647,7 @@ $root.cordum = (function() {
                             object.executionMs = options.longs === String ? "0" : 0;
                         object.errorCode = "";
                         object.errorMessage = "";
+                        object.errorCodeEnum = options.enums === String ? "ERROR_CODE_UNSPECIFIED" : 0;
                     }
                     if (message.jobId != null && message.hasOwnProperty("jobId"))
                         object.jobId = message.jobId;
@@ -3724,6 +3671,8 @@ $root.cordum = (function() {
                         for (var j = 0; j < message.artifactPtrs.length; ++j)
                             object.artifactPtrs[j] = message.artifactPtrs[j];
                     }
+                    if (message.errorCodeEnum != null && message.hasOwnProperty("errorCodeEnum"))
+                        object.errorCodeEnum = options.enums === String ? $root.cordum.agent.v1.ErrorCode[message.errorCodeEnum] === undefined ? message.errorCodeEnum : $root.cordum.agent.v1.ErrorCode[message.errorCodeEnum] : message.errorCodeEnum;
                     return object;
                 };
 
@@ -4438,6 +4387,599 @@ $root.cordum = (function() {
                 return JobCancel;
             })();
 
+            v1.BusPacket = (function() {
+
+                /**
+                 * Properties of a BusPacket.
+                 * @memberof cordum.agent.v1
+                 * @interface IBusPacket
+                 * @property {string|null} [traceId] BusPacket traceId
+                 * @property {string|null} [senderId] BusPacket senderId
+                 * @property {google.protobuf.ITimestamp|null} [createdAt] BusPacket createdAt
+                 * @property {number|null} [protocolVersion] BusPacket protocolVersion
+                 * @property {cordum.agent.v1.IJobRequest|null} [jobRequest] BusPacket jobRequest
+                 * @property {cordum.agent.v1.IJobResult|null} [jobResult] BusPacket jobResult
+                 * @property {cordum.agent.v1.IHeartbeat|null} [heartbeat] BusPacket heartbeat
+                 * @property {cordum.agent.v1.ISystemAlert|null} [alert] BusPacket alert
+                 * @property {cordum.agent.v1.IJobProgress|null} [jobProgress] BusPacket jobProgress
+                 * @property {cordum.agent.v1.IJobCancel|null} [jobCancel] BusPacket jobCancel
+                 * @property {cordum.agent.v1.IHandshake|null} [handshake] BusPacket handshake
+                 * @property {Uint8Array|null} [signature] BusPacket signature
+                 * @property {string|null} [authToken] BusPacket authToken
+                 */
+
+                /**
+                 * Constructs a new BusPacket.
+                 * @memberof cordum.agent.v1
+                 * @classdesc Represents a BusPacket.
+                 * @implements IBusPacket
+                 * @constructor
+                 * @param {cordum.agent.v1.IBusPacket=} [properties] Properties to set
+                 */
+                function BusPacket(properties) {
+                    if (properties)
+                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * BusPacket traceId.
+                 * @member {string} traceId
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.traceId = "";
+
+                /**
+                 * BusPacket senderId.
+                 * @member {string} senderId
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.senderId = "";
+
+                /**
+                 * BusPacket createdAt.
+                 * @member {google.protobuf.ITimestamp|null|undefined} createdAt
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.createdAt = null;
+
+                /**
+                 * BusPacket protocolVersion.
+                 * @member {number} protocolVersion
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.protocolVersion = 0;
+
+                /**
+                 * BusPacket jobRequest.
+                 * @member {cordum.agent.v1.IJobRequest|null|undefined} jobRequest
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.jobRequest = null;
+
+                /**
+                 * BusPacket jobResult.
+                 * @member {cordum.agent.v1.IJobResult|null|undefined} jobResult
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.jobResult = null;
+
+                /**
+                 * BusPacket heartbeat.
+                 * @member {cordum.agent.v1.IHeartbeat|null|undefined} heartbeat
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.heartbeat = null;
+
+                /**
+                 * BusPacket alert.
+                 * @member {cordum.agent.v1.ISystemAlert|null|undefined} alert
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.alert = null;
+
+                /**
+                 * BusPacket jobProgress.
+                 * @member {cordum.agent.v1.IJobProgress|null|undefined} jobProgress
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.jobProgress = null;
+
+                /**
+                 * BusPacket jobCancel.
+                 * @member {cordum.agent.v1.IJobCancel|null|undefined} jobCancel
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.jobCancel = null;
+
+                /**
+                 * BusPacket handshake.
+                 * @member {cordum.agent.v1.IHandshake|null|undefined} handshake
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.handshake = null;
+
+                /**
+                 * BusPacket signature.
+                 * @member {Uint8Array} signature
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.signature = $util.newBuffer([]);
+
+                /**
+                 * BusPacket authToken.
+                 * @member {string} authToken
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.authToken = "";
+
+                // OneOf field names bound to virtual getters and setters
+                var $oneOfFields;
+
+                /**
+                 * BusPacket payload.
+                 * @member {"jobRequest"|"jobResult"|"heartbeat"|"alert"|"jobProgress"|"jobCancel"|"handshake"|undefined} payload
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                Object.defineProperty(BusPacket.prototype, "payload", {
+                    get: $util.oneOfGetter($oneOfFields = ["jobRequest", "jobResult", "heartbeat", "alert", "jobProgress", "jobCancel", "handshake"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
+                 * Creates a new BusPacket instance using the specified properties.
+                 * @function create
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @static
+                 * @param {cordum.agent.v1.IBusPacket=} [properties] Properties to set
+                 * @returns {cordum.agent.v1.BusPacket} BusPacket instance
+                 */
+                BusPacket.create = function create(properties) {
+                    return new BusPacket(properties);
+                };
+
+                /**
+                 * Encodes the specified BusPacket message. Does not implicitly {@link cordum.agent.v1.BusPacket.verify|verify} messages.
+                 * @function encode
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @static
+                 * @param {cordum.agent.v1.IBusPacket} message BusPacket message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                BusPacket.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.traceId != null && Object.hasOwnProperty.call(message, "traceId"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.traceId);
+                    if (message.senderId != null && Object.hasOwnProperty.call(message, "senderId"))
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.senderId);
+                    if (message.createdAt != null && Object.hasOwnProperty.call(message, "createdAt"))
+                        $root.google.protobuf.Timestamp.encode(message.createdAt, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                    if (message.protocolVersion != null && Object.hasOwnProperty.call(message, "protocolVersion"))
+                        writer.uint32(/* id 4, wireType 0 =*/32).int32(message.protocolVersion);
+                    if (message.jobRequest != null && Object.hasOwnProperty.call(message, "jobRequest"))
+                        $root.cordum.agent.v1.JobRequest.encode(message.jobRequest, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
+                    if (message.jobResult != null && Object.hasOwnProperty.call(message, "jobResult"))
+                        $root.cordum.agent.v1.JobResult.encode(message.jobResult, writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
+                    if (message.heartbeat != null && Object.hasOwnProperty.call(message, "heartbeat"))
+                        $root.cordum.agent.v1.Heartbeat.encode(message.heartbeat, writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
+                    if (message.alert != null && Object.hasOwnProperty.call(message, "alert"))
+                        $root.cordum.agent.v1.SystemAlert.encode(message.alert, writer.uint32(/* id 13, wireType 2 =*/106).fork()).ldelim();
+                    if (message.signature != null && Object.hasOwnProperty.call(message, "signature"))
+                        writer.uint32(/* id 14, wireType 2 =*/114).bytes(message.signature);
+                    if (message.jobProgress != null && Object.hasOwnProperty.call(message, "jobProgress"))
+                        $root.cordum.agent.v1.JobProgress.encode(message.jobProgress, writer.uint32(/* id 15, wireType 2 =*/122).fork()).ldelim();
+                    if (message.jobCancel != null && Object.hasOwnProperty.call(message, "jobCancel"))
+                        $root.cordum.agent.v1.JobCancel.encode(message.jobCancel, writer.uint32(/* id 16, wireType 2 =*/130).fork()).ldelim();
+                    if (message.handshake != null && Object.hasOwnProperty.call(message, "handshake"))
+                        $root.cordum.agent.v1.Handshake.encode(message.handshake, writer.uint32(/* id 17, wireType 2 =*/138).fork()).ldelim();
+                    if (message.authToken != null && Object.hasOwnProperty.call(message, "authToken"))
+                        writer.uint32(/* id 18, wireType 2 =*/146).string(message.authToken);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified BusPacket message, length delimited. Does not implicitly {@link cordum.agent.v1.BusPacket.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @static
+                 * @param {cordum.agent.v1.IBusPacket} message BusPacket message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                BusPacket.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a BusPacket message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {cordum.agent.v1.BusPacket} BusPacket
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                BusPacket.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.BusPacket();
+                    while (reader.pos < end) {
+                        var tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.traceId = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.senderId = reader.string();
+                                break;
+                            }
+                        case 3: {
+                                message.createdAt = $root.google.protobuf.Timestamp.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 4: {
+                                message.protocolVersion = reader.int32();
+                                break;
+                            }
+                        case 10: {
+                                message.jobRequest = $root.cordum.agent.v1.JobRequest.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 11: {
+                                message.jobResult = $root.cordum.agent.v1.JobResult.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 12: {
+                                message.heartbeat = $root.cordum.agent.v1.Heartbeat.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 13: {
+                                message.alert = $root.cordum.agent.v1.SystemAlert.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 15: {
+                                message.jobProgress = $root.cordum.agent.v1.JobProgress.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 16: {
+                                message.jobCancel = $root.cordum.agent.v1.JobCancel.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 17: {
+                                message.handshake = $root.cordum.agent.v1.Handshake.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 14: {
+                                message.signature = reader.bytes();
+                                break;
+                            }
+                        case 18: {
+                                message.authToken = reader.string();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a BusPacket message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {cordum.agent.v1.BusPacket} BusPacket
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                BusPacket.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a BusPacket message.
+                 * @function verify
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                BusPacket.verify = function verify(message) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    var properties = {};
+                    if (message.traceId != null && message.hasOwnProperty("traceId"))
+                        if (!$util.isString(message.traceId))
+                            return "traceId: string expected";
+                    if (message.senderId != null && message.hasOwnProperty("senderId"))
+                        if (!$util.isString(message.senderId))
+                            return "senderId: string expected";
+                    if (message.createdAt != null && message.hasOwnProperty("createdAt")) {
+                        var error = $root.google.protobuf.Timestamp.verify(message.createdAt);
+                        if (error)
+                            return "createdAt." + error;
+                    }
+                    if (message.protocolVersion != null && message.hasOwnProperty("protocolVersion"))
+                        if (!$util.isInteger(message.protocolVersion))
+                            return "protocolVersion: integer expected";
+                    if (message.jobRequest != null && message.hasOwnProperty("jobRequest")) {
+                        properties.payload = 1;
+                        {
+                            var error = $root.cordum.agent.v1.JobRequest.verify(message.jobRequest);
+                            if (error)
+                                return "jobRequest." + error;
+                        }
+                    }
+                    if (message.jobResult != null && message.hasOwnProperty("jobResult")) {
+                        if (properties.payload === 1)
+                            return "payload: multiple values";
+                        properties.payload = 1;
+                        {
+                            var error = $root.cordum.agent.v1.JobResult.verify(message.jobResult);
+                            if (error)
+                                return "jobResult." + error;
+                        }
+                    }
+                    if (message.heartbeat != null && message.hasOwnProperty("heartbeat")) {
+                        if (properties.payload === 1)
+                            return "payload: multiple values";
+                        properties.payload = 1;
+                        {
+                            var error = $root.cordum.agent.v1.Heartbeat.verify(message.heartbeat);
+                            if (error)
+                                return "heartbeat." + error;
+                        }
+                    }
+                    if (message.alert != null && message.hasOwnProperty("alert")) {
+                        if (properties.payload === 1)
+                            return "payload: multiple values";
+                        properties.payload = 1;
+                        {
+                            var error = $root.cordum.agent.v1.SystemAlert.verify(message.alert);
+                            if (error)
+                                return "alert." + error;
+                        }
+                    }
+                    if (message.jobProgress != null && message.hasOwnProperty("jobProgress")) {
+                        if (properties.payload === 1)
+                            return "payload: multiple values";
+                        properties.payload = 1;
+                        {
+                            var error = $root.cordum.agent.v1.JobProgress.verify(message.jobProgress);
+                            if (error)
+                                return "jobProgress." + error;
+                        }
+                    }
+                    if (message.jobCancel != null && message.hasOwnProperty("jobCancel")) {
+                        if (properties.payload === 1)
+                            return "payload: multiple values";
+                        properties.payload = 1;
+                        {
+                            var error = $root.cordum.agent.v1.JobCancel.verify(message.jobCancel);
+                            if (error)
+                                return "jobCancel." + error;
+                        }
+                    }
+                    if (message.handshake != null && message.hasOwnProperty("handshake")) {
+                        if (properties.payload === 1)
+                            return "payload: multiple values";
+                        properties.payload = 1;
+                        {
+                            var error = $root.cordum.agent.v1.Handshake.verify(message.handshake);
+                            if (error)
+                                return "handshake." + error;
+                        }
+                    }
+                    if (message.signature != null && message.hasOwnProperty("signature"))
+                        if (!(message.signature && typeof message.signature.length === "number" || $util.isString(message.signature)))
+                            return "signature: buffer expected";
+                    if (message.authToken != null && message.hasOwnProperty("authToken"))
+                        if (!$util.isString(message.authToken))
+                            return "authToken: string expected";
+                    return null;
+                };
+
+                /**
+                 * Creates a BusPacket message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {cordum.agent.v1.BusPacket} BusPacket
+                 */
+                BusPacket.fromObject = function fromObject(object) {
+                    if (object instanceof $root.cordum.agent.v1.BusPacket)
+                        return object;
+                    var message = new $root.cordum.agent.v1.BusPacket();
+                    if (object.traceId != null)
+                        message.traceId = String(object.traceId);
+                    if (object.senderId != null)
+                        message.senderId = String(object.senderId);
+                    if (object.createdAt != null) {
+                        if (typeof object.createdAt !== "object")
+                            throw TypeError(".cordum.agent.v1.BusPacket.createdAt: object expected");
+                        message.createdAt = $root.google.protobuf.Timestamp.fromObject(object.createdAt);
+                    }
+                    if (object.protocolVersion != null)
+                        message.protocolVersion = object.protocolVersion | 0;
+                    if (object.jobRequest != null) {
+                        if (typeof object.jobRequest !== "object")
+                            throw TypeError(".cordum.agent.v1.BusPacket.jobRequest: object expected");
+                        message.jobRequest = $root.cordum.agent.v1.JobRequest.fromObject(object.jobRequest);
+                    }
+                    if (object.jobResult != null) {
+                        if (typeof object.jobResult !== "object")
+                            throw TypeError(".cordum.agent.v1.BusPacket.jobResult: object expected");
+                        message.jobResult = $root.cordum.agent.v1.JobResult.fromObject(object.jobResult);
+                    }
+                    if (object.heartbeat != null) {
+                        if (typeof object.heartbeat !== "object")
+                            throw TypeError(".cordum.agent.v1.BusPacket.heartbeat: object expected");
+                        message.heartbeat = $root.cordum.agent.v1.Heartbeat.fromObject(object.heartbeat);
+                    }
+                    if (object.alert != null) {
+                        if (typeof object.alert !== "object")
+                            throw TypeError(".cordum.agent.v1.BusPacket.alert: object expected");
+                        message.alert = $root.cordum.agent.v1.SystemAlert.fromObject(object.alert);
+                    }
+                    if (object.jobProgress != null) {
+                        if (typeof object.jobProgress !== "object")
+                            throw TypeError(".cordum.agent.v1.BusPacket.jobProgress: object expected");
+                        message.jobProgress = $root.cordum.agent.v1.JobProgress.fromObject(object.jobProgress);
+                    }
+                    if (object.jobCancel != null) {
+                        if (typeof object.jobCancel !== "object")
+                            throw TypeError(".cordum.agent.v1.BusPacket.jobCancel: object expected");
+                        message.jobCancel = $root.cordum.agent.v1.JobCancel.fromObject(object.jobCancel);
+                    }
+                    if (object.handshake != null) {
+                        if (typeof object.handshake !== "object")
+                            throw TypeError(".cordum.agent.v1.BusPacket.handshake: object expected");
+                        message.handshake = $root.cordum.agent.v1.Handshake.fromObject(object.handshake);
+                    }
+                    if (object.signature != null)
+                        if (typeof object.signature === "string")
+                            $util.base64.decode(object.signature, message.signature = $util.newBuffer($util.base64.length(object.signature)), 0);
+                        else if (object.signature.length >= 0)
+                            message.signature = object.signature;
+                    if (object.authToken != null)
+                        message.authToken = String(object.authToken);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a BusPacket message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @static
+                 * @param {cordum.agent.v1.BusPacket} message BusPacket
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                BusPacket.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    var object = {};
+                    if (options.defaults) {
+                        object.traceId = "";
+                        object.senderId = "";
+                        object.createdAt = null;
+                        object.protocolVersion = 0;
+                        if (options.bytes === String)
+                            object.signature = "";
+                        else {
+                            object.signature = [];
+                            if (options.bytes !== Array)
+                                object.signature = $util.newBuffer(object.signature);
+                        }
+                        object.authToken = "";
+                    }
+                    if (message.traceId != null && message.hasOwnProperty("traceId"))
+                        object.traceId = message.traceId;
+                    if (message.senderId != null && message.hasOwnProperty("senderId"))
+                        object.senderId = message.senderId;
+                    if (message.createdAt != null && message.hasOwnProperty("createdAt"))
+                        object.createdAt = $root.google.protobuf.Timestamp.toObject(message.createdAt, options);
+                    if (message.protocolVersion != null && message.hasOwnProperty("protocolVersion"))
+                        object.protocolVersion = message.protocolVersion;
+                    if (message.jobRequest != null && message.hasOwnProperty("jobRequest")) {
+                        object.jobRequest = $root.cordum.agent.v1.JobRequest.toObject(message.jobRequest, options);
+                        if (options.oneofs)
+                            object.payload = "jobRequest";
+                    }
+                    if (message.jobResult != null && message.hasOwnProperty("jobResult")) {
+                        object.jobResult = $root.cordum.agent.v1.JobResult.toObject(message.jobResult, options);
+                        if (options.oneofs)
+                            object.payload = "jobResult";
+                    }
+                    if (message.heartbeat != null && message.hasOwnProperty("heartbeat")) {
+                        object.heartbeat = $root.cordum.agent.v1.Heartbeat.toObject(message.heartbeat, options);
+                        if (options.oneofs)
+                            object.payload = "heartbeat";
+                    }
+                    if (message.alert != null && message.hasOwnProperty("alert")) {
+                        object.alert = $root.cordum.agent.v1.SystemAlert.toObject(message.alert, options);
+                        if (options.oneofs)
+                            object.payload = "alert";
+                    }
+                    if (message.signature != null && message.hasOwnProperty("signature"))
+                        object.signature = options.bytes === String ? $util.base64.encode(message.signature, 0, message.signature.length) : options.bytes === Array ? Array.prototype.slice.call(message.signature) : message.signature;
+                    if (message.jobProgress != null && message.hasOwnProperty("jobProgress")) {
+                        object.jobProgress = $root.cordum.agent.v1.JobProgress.toObject(message.jobProgress, options);
+                        if (options.oneofs)
+                            object.payload = "jobProgress";
+                    }
+                    if (message.jobCancel != null && message.hasOwnProperty("jobCancel")) {
+                        object.jobCancel = $root.cordum.agent.v1.JobCancel.toObject(message.jobCancel, options);
+                        if (options.oneofs)
+                            object.payload = "jobCancel";
+                    }
+                    if (message.handshake != null && message.hasOwnProperty("handshake")) {
+                        object.handshake = $root.cordum.agent.v1.Handshake.toObject(message.handshake, options);
+                        if (options.oneofs)
+                            object.payload = "handshake";
+                    }
+                    if (message.authToken != null && message.hasOwnProperty("authToken"))
+                        object.authToken = message.authToken;
+                    return object;
+                };
+
+                /**
+                 * Converts this BusPacket to JSON.
+                 * @function toJSON
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                BusPacket.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for BusPacket
+                 * @function getTypeUrl
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                BusPacket.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/cordum.agent.v1.BusPacket";
+                };
+
+                return BusPacket;
+            })();
+
             v1.Heartbeat = (function() {
 
                 /**
@@ -4457,6 +4999,7 @@ $root.cordum = (function() {
                  * @property {number|null} [memoryLoad] Heartbeat memoryLoad
                  * @property {number|null} [progressPct] Heartbeat progressPct
                  * @property {string|null} [lastMemo] Heartbeat lastMemo
+                 * @property {string|null} [authToken] Heartbeat authToken
                  */
 
                 /**
@@ -4581,6 +5124,14 @@ $root.cordum = (function() {
                 Heartbeat.prototype.lastMemo = "";
 
                 /**
+                 * Heartbeat authToken.
+                 * @member {string} authToken
+                 * @memberof cordum.agent.v1.Heartbeat
+                 * @instance
+                 */
+                Heartbeat.prototype.authToken = "";
+
+                /**
                  * Creates a new Heartbeat instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.Heartbeat
@@ -4632,6 +5183,8 @@ $root.cordum = (function() {
                         writer.uint32(/* id 15, wireType 0 =*/120).int32(message.progressPct);
                     if (message.lastMemo != null && Object.hasOwnProperty.call(message, "lastMemo"))
                         writer.uint32(/* id 16, wireType 2 =*/130).string(message.lastMemo);
+                    if (message.authToken != null && Object.hasOwnProperty.call(message, "authToken"))
+                        writer.uint32(/* id 18, wireType 2 =*/146).string(message.authToken);
                     return writer;
                 };
 
@@ -4741,6 +5294,10 @@ $root.cordum = (function() {
                                 message.lastMemo = reader.string();
                                 break;
                             }
+                        case 18: {
+                                message.authToken = reader.string();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7);
                             break;
@@ -4824,6 +5381,9 @@ $root.cordum = (function() {
                     if (message.lastMemo != null && message.hasOwnProperty("lastMemo"))
                         if (!$util.isString(message.lastMemo))
                             return "lastMemo: string expected";
+                    if (message.authToken != null && message.hasOwnProperty("authToken"))
+                        if (!$util.isString(message.authToken))
+                            return "authToken: string expected";
                     return null;
                 };
 
@@ -4875,6 +5435,8 @@ $root.cordum = (function() {
                         message.progressPct = object.progressPct | 0;
                     if (object.lastMemo != null)
                         message.lastMemo = String(object.lastMemo);
+                    if (object.authToken != null)
+                        message.authToken = String(object.authToken);
                     return message;
                 };
 
@@ -4907,6 +5469,7 @@ $root.cordum = (function() {
                         object.memoryLoad = 0;
                         object.progressPct = 0;
                         object.lastMemo = "";
+                        object.authToken = "";
                     }
                     if (message.workerId != null && message.hasOwnProperty("workerId"))
                         object.workerId = message.workerId;
@@ -4941,6 +5504,8 @@ $root.cordum = (function() {
                         object.progressPct = message.progressPct;
                     if (message.lastMemo != null && message.hasOwnProperty("lastMemo"))
                         object.lastMemo = message.lastMemo;
+                    if (message.authToken != null && message.hasOwnProperty("authToken"))
+                        object.authToken = message.authToken;
                     return object;
                 };
 
@@ -4971,6 +5536,466 @@ $root.cordum = (function() {
                 };
 
                 return Heartbeat;
+            })();
+
+            /**
+             * ComponentRole enum.
+             * @name cordum.agent.v1.ComponentRole
+             * @enum {number}
+             * @property {number} COMPONENT_ROLE_UNSPECIFIED=0 COMPONENT_ROLE_UNSPECIFIED value
+             * @property {number} COMPONENT_ROLE_GATEWAY=1 COMPONENT_ROLE_GATEWAY value
+             * @property {number} COMPONENT_ROLE_SCHEDULER=2 COMPONENT_ROLE_SCHEDULER value
+             * @property {number} COMPONENT_ROLE_WORKER=3 COMPONENT_ROLE_WORKER value
+             * @property {number} COMPONENT_ROLE_ORCHESTRATOR=4 COMPONENT_ROLE_ORCHESTRATOR value
+             * @property {number} COMPONENT_ROLE_CONTROLLER=5 COMPONENT_ROLE_CONTROLLER value
+             */
+            v1.ComponentRole = (function() {
+                var valuesById = {}, values = Object.create(valuesById);
+                values[valuesById[0] = "COMPONENT_ROLE_UNSPECIFIED"] = 0;
+                values[valuesById[1] = "COMPONENT_ROLE_GATEWAY"] = 1;
+                values[valuesById[2] = "COMPONENT_ROLE_SCHEDULER"] = 2;
+                values[valuesById[3] = "COMPONENT_ROLE_WORKER"] = 3;
+                values[valuesById[4] = "COMPONENT_ROLE_ORCHESTRATOR"] = 4;
+                values[valuesById[5] = "COMPONENT_ROLE_CONTROLLER"] = 5;
+                return values;
+            })();
+
+            v1.Handshake = (function() {
+
+                /**
+                 * Properties of a Handshake.
+                 * @memberof cordum.agent.v1
+                 * @interface IHandshake
+                 * @property {string|null} [componentId] Handshake componentId
+                 * @property {cordum.agent.v1.ComponentRole|null} [role] Handshake role
+                 * @property {Array.<number>|null} [supportedVersions] Handshake supportedVersions
+                 * @property {Object.<string,boolean>|null} [capabilities] Handshake capabilities
+                 * @property {string|null} [sdkVersion] Handshake sdkVersion
+                 * @property {Array.<string>|null} [readyTopics] Handshake readyTopics
+                 */
+
+                /**
+                 * Constructs a new Handshake.
+                 * @memberof cordum.agent.v1
+                 * @classdesc Represents a Handshake.
+                 * @implements IHandshake
+                 * @constructor
+                 * @param {cordum.agent.v1.IHandshake=} [properties] Properties to set
+                 */
+                function Handshake(properties) {
+                    this.supportedVersions = [];
+                    this.capabilities = {};
+                    this.readyTopics = [];
+                    if (properties)
+                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * Handshake componentId.
+                 * @member {string} componentId
+                 * @memberof cordum.agent.v1.Handshake
+                 * @instance
+                 */
+                Handshake.prototype.componentId = "";
+
+                /**
+                 * Handshake role.
+                 * @member {cordum.agent.v1.ComponentRole} role
+                 * @memberof cordum.agent.v1.Handshake
+                 * @instance
+                 */
+                Handshake.prototype.role = 0;
+
+                /**
+                 * Handshake supportedVersions.
+                 * @member {Array.<number>} supportedVersions
+                 * @memberof cordum.agent.v1.Handshake
+                 * @instance
+                 */
+                Handshake.prototype.supportedVersions = $util.emptyArray;
+
+                /**
+                 * Handshake capabilities.
+                 * @member {Object.<string,boolean>} capabilities
+                 * @memberof cordum.agent.v1.Handshake
+                 * @instance
+                 */
+                Handshake.prototype.capabilities = $util.emptyObject;
+
+                /**
+                 * Handshake sdkVersion.
+                 * @member {string} sdkVersion
+                 * @memberof cordum.agent.v1.Handshake
+                 * @instance
+                 */
+                Handshake.prototype.sdkVersion = "";
+
+                /**
+                 * Handshake readyTopics.
+                 * @member {Array.<string>} readyTopics
+                 * @memberof cordum.agent.v1.Handshake
+                 * @instance
+                 */
+                Handshake.prototype.readyTopics = $util.emptyArray;
+
+                /**
+                 * Creates a new Handshake instance using the specified properties.
+                 * @function create
+                 * @memberof cordum.agent.v1.Handshake
+                 * @static
+                 * @param {cordum.agent.v1.IHandshake=} [properties] Properties to set
+                 * @returns {cordum.agent.v1.Handshake} Handshake instance
+                 */
+                Handshake.create = function create(properties) {
+                    return new Handshake(properties);
+                };
+
+                /**
+                 * Encodes the specified Handshake message. Does not implicitly {@link cordum.agent.v1.Handshake.verify|verify} messages.
+                 * @function encode
+                 * @memberof cordum.agent.v1.Handshake
+                 * @static
+                 * @param {cordum.agent.v1.IHandshake} message Handshake message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                Handshake.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.componentId != null && Object.hasOwnProperty.call(message, "componentId"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.componentId);
+                    if (message.role != null && Object.hasOwnProperty.call(message, "role"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).int32(message.role);
+                    if (message.supportedVersions != null && message.supportedVersions.length) {
+                        writer.uint32(/* id 3, wireType 2 =*/26).fork();
+                        for (var i = 0; i < message.supportedVersions.length; ++i)
+                            writer.int32(message.supportedVersions[i]);
+                        writer.ldelim();
+                    }
+                    if (message.capabilities != null && Object.hasOwnProperty.call(message, "capabilities"))
+                        for (var keys = Object.keys(message.capabilities), i = 0; i < keys.length; ++i)
+                            writer.uint32(/* id 4, wireType 2 =*/34).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 0 =*/16).bool(message.capabilities[keys[i]]).ldelim();
+                    if (message.sdkVersion != null && Object.hasOwnProperty.call(message, "sdkVersion"))
+                        writer.uint32(/* id 5, wireType 2 =*/42).string(message.sdkVersion);
+                    if (message.readyTopics != null && message.readyTopics.length)
+                        for (var i = 0; i < message.readyTopics.length; ++i)
+                            writer.uint32(/* id 6, wireType 2 =*/50).string(message.readyTopics[i]);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified Handshake message, length delimited. Does not implicitly {@link cordum.agent.v1.Handshake.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof cordum.agent.v1.Handshake
+                 * @static
+                 * @param {cordum.agent.v1.IHandshake} message Handshake message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                Handshake.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a Handshake message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof cordum.agent.v1.Handshake
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {cordum.agent.v1.Handshake} Handshake
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                Handshake.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.Handshake(), key, value;
+                    while (reader.pos < end) {
+                        var tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.componentId = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.role = reader.int32();
+                                break;
+                            }
+                        case 3: {
+                                if (!(message.supportedVersions && message.supportedVersions.length))
+                                    message.supportedVersions = [];
+                                if ((tag & 7) === 2) {
+                                    var end2 = reader.uint32() + reader.pos;
+                                    while (reader.pos < end2)
+                                        message.supportedVersions.push(reader.int32());
+                                } else
+                                    message.supportedVersions.push(reader.int32());
+                                break;
+                            }
+                        case 4: {
+                                if (message.capabilities === $util.emptyObject)
+                                    message.capabilities = {};
+                                var end2 = reader.uint32() + reader.pos;
+                                key = "";
+                                value = false;
+                                while (reader.pos < end2) {
+                                    var tag2 = reader.uint32();
+                                    switch (tag2 >>> 3) {
+                                    case 1:
+                                        key = reader.string();
+                                        break;
+                                    case 2:
+                                        value = reader.bool();
+                                        break;
+                                    default:
+                                        reader.skipType(tag2 & 7);
+                                        break;
+                                    }
+                                }
+                                message.capabilities[key] = value;
+                                break;
+                            }
+                        case 5: {
+                                message.sdkVersion = reader.string();
+                                break;
+                            }
+                        case 6: {
+                                if (!(message.readyTopics && message.readyTopics.length))
+                                    message.readyTopics = [];
+                                message.readyTopics.push(reader.string());
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a Handshake message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof cordum.agent.v1.Handshake
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {cordum.agent.v1.Handshake} Handshake
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                Handshake.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a Handshake message.
+                 * @function verify
+                 * @memberof cordum.agent.v1.Handshake
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                Handshake.verify = function verify(message) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (message.componentId != null && message.hasOwnProperty("componentId"))
+                        if (!$util.isString(message.componentId))
+                            return "componentId: string expected";
+                    if (message.role != null && message.hasOwnProperty("role"))
+                        switch (message.role) {
+                        default:
+                            return "role: enum value expected";
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                        case 5:
+                            break;
+                        }
+                    if (message.supportedVersions != null && message.hasOwnProperty("supportedVersions")) {
+                        if (!Array.isArray(message.supportedVersions))
+                            return "supportedVersions: array expected";
+                        for (var i = 0; i < message.supportedVersions.length; ++i)
+                            if (!$util.isInteger(message.supportedVersions[i]))
+                                return "supportedVersions: integer[] expected";
+                    }
+                    if (message.capabilities != null && message.hasOwnProperty("capabilities")) {
+                        if (!$util.isObject(message.capabilities))
+                            return "capabilities: object expected";
+                        var key = Object.keys(message.capabilities);
+                        for (var i = 0; i < key.length; ++i)
+                            if (typeof message.capabilities[key[i]] !== "boolean")
+                                return "capabilities: boolean{k:string} expected";
+                    }
+                    if (message.sdkVersion != null && message.hasOwnProperty("sdkVersion"))
+                        if (!$util.isString(message.sdkVersion))
+                            return "sdkVersion: string expected";
+                    if (message.readyTopics != null && message.hasOwnProperty("readyTopics")) {
+                        if (!Array.isArray(message.readyTopics))
+                            return "readyTopics: array expected";
+                        for (var i = 0; i < message.readyTopics.length; ++i)
+                            if (!$util.isString(message.readyTopics[i]))
+                                return "readyTopics: string[] expected";
+                    }
+                    return null;
+                };
+
+                /**
+                 * Creates a Handshake message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof cordum.agent.v1.Handshake
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {cordum.agent.v1.Handshake} Handshake
+                 */
+                Handshake.fromObject = function fromObject(object) {
+                    if (object instanceof $root.cordum.agent.v1.Handshake)
+                        return object;
+                    var message = new $root.cordum.agent.v1.Handshake();
+                    if (object.componentId != null)
+                        message.componentId = String(object.componentId);
+                    switch (object.role) {
+                    default:
+                        if (typeof object.role === "number") {
+                            message.role = object.role;
+                            break;
+                        }
+                        break;
+                    case "COMPONENT_ROLE_UNSPECIFIED":
+                    case 0:
+                        message.role = 0;
+                        break;
+                    case "COMPONENT_ROLE_GATEWAY":
+                    case 1:
+                        message.role = 1;
+                        break;
+                    case "COMPONENT_ROLE_SCHEDULER":
+                    case 2:
+                        message.role = 2;
+                        break;
+                    case "COMPONENT_ROLE_WORKER":
+                    case 3:
+                        message.role = 3;
+                        break;
+                    case "COMPONENT_ROLE_ORCHESTRATOR":
+                    case 4:
+                        message.role = 4;
+                        break;
+                    case "COMPONENT_ROLE_CONTROLLER":
+                    case 5:
+                        message.role = 5;
+                        break;
+                    }
+                    if (object.supportedVersions) {
+                        if (!Array.isArray(object.supportedVersions))
+                            throw TypeError(".cordum.agent.v1.Handshake.supportedVersions: array expected");
+                        message.supportedVersions = [];
+                        for (var i = 0; i < object.supportedVersions.length; ++i)
+                            message.supportedVersions[i] = object.supportedVersions[i] | 0;
+                    }
+                    if (object.capabilities) {
+                        if (typeof object.capabilities !== "object")
+                            throw TypeError(".cordum.agent.v1.Handshake.capabilities: object expected");
+                        message.capabilities = {};
+                        for (var keys = Object.keys(object.capabilities), i = 0; i < keys.length; ++i)
+                            message.capabilities[keys[i]] = Boolean(object.capabilities[keys[i]]);
+                    }
+                    if (object.sdkVersion != null)
+                        message.sdkVersion = String(object.sdkVersion);
+                    if (object.readyTopics) {
+                        if (!Array.isArray(object.readyTopics))
+                            throw TypeError(".cordum.agent.v1.Handshake.readyTopics: array expected");
+                        message.readyTopics = [];
+                        for (var i = 0; i < object.readyTopics.length; ++i)
+                            message.readyTopics[i] = String(object.readyTopics[i]);
+                    }
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a Handshake message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof cordum.agent.v1.Handshake
+                 * @static
+                 * @param {cordum.agent.v1.Handshake} message Handshake
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                Handshake.toObject = function toObject(message, options) {
+                    if (!options)
+                        options = {};
+                    var object = {};
+                    if (options.arrays || options.defaults) {
+                        object.supportedVersions = [];
+                        object.readyTopics = [];
+                    }
+                    if (options.objects || options.defaults)
+                        object.capabilities = {};
+                    if (options.defaults) {
+                        object.componentId = "";
+                        object.role = options.enums === String ? "COMPONENT_ROLE_UNSPECIFIED" : 0;
+                        object.sdkVersion = "";
+                    }
+                    if (message.componentId != null && message.hasOwnProperty("componentId"))
+                        object.componentId = message.componentId;
+                    if (message.role != null && message.hasOwnProperty("role"))
+                        object.role = options.enums === String ? $root.cordum.agent.v1.ComponentRole[message.role] === undefined ? message.role : $root.cordum.agent.v1.ComponentRole[message.role] : message.role;
+                    if (message.supportedVersions && message.supportedVersions.length) {
+                        object.supportedVersions = [];
+                        for (var j = 0; j < message.supportedVersions.length; ++j)
+                            object.supportedVersions[j] = message.supportedVersions[j];
+                    }
+                    var keys2;
+                    if (message.capabilities && (keys2 = Object.keys(message.capabilities)).length) {
+                        object.capabilities = {};
+                        for (var j = 0; j < keys2.length; ++j)
+                            object.capabilities[keys2[j]] = message.capabilities[keys2[j]];
+                    }
+                    if (message.sdkVersion != null && message.hasOwnProperty("sdkVersion"))
+                        object.sdkVersion = message.sdkVersion;
+                    if (message.readyTopics && message.readyTopics.length) {
+                        object.readyTopics = [];
+                        for (var j = 0; j < message.readyTopics.length; ++j)
+                            object.readyTopics[j] = message.readyTopics[j];
+                    }
+                    return object;
+                };
+
+                /**
+                 * Converts this Handshake to JSON.
+                 * @function toJSON
+                 * @memberof cordum.agent.v1.Handshake
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                Handshake.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for Handshake
+                 * @function getTypeUrl
+                 * @memberof cordum.agent.v1.Handshake
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                Handshake.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/cordum.agent.v1.Handshake";
+                };
+
+                return Handshake;
             })();
 
             /**
@@ -5012,6 +6037,9 @@ $root.cordum = (function() {
                  * @property {string|null} [memoryId] PolicyCheckRequest memoryId
                  * @property {Uint8Array|null} [effectiveConfig] PolicyCheckRequest effectiveConfig
                  * @property {cordum.agent.v1.IJobMetadata|null} [meta] PolicyCheckRequest meta
+                 * @property {Uint8Array|null} [inputContent] PolicyCheckRequest inputContent
+                 * @property {string|null} [inputContentType] PolicyCheckRequest inputContentType
+                 * @property {number|Long|null} [inputSizeBytes] PolicyCheckRequest inputSizeBytes
                  */
 
                 /**
@@ -5119,6 +6147,30 @@ $root.cordum = (function() {
                 PolicyCheckRequest.prototype.meta = null;
 
                 /**
+                 * PolicyCheckRequest inputContent.
+                 * @member {Uint8Array} inputContent
+                 * @memberof cordum.agent.v1.PolicyCheckRequest
+                 * @instance
+                 */
+                PolicyCheckRequest.prototype.inputContent = $util.newBuffer([]);
+
+                /**
+                 * PolicyCheckRequest inputContentType.
+                 * @member {string} inputContentType
+                 * @memberof cordum.agent.v1.PolicyCheckRequest
+                 * @instance
+                 */
+                PolicyCheckRequest.prototype.inputContentType = "";
+
+                /**
+                 * PolicyCheckRequest inputSizeBytes.
+                 * @member {number|Long} inputSizeBytes
+                 * @memberof cordum.agent.v1.PolicyCheckRequest
+                 * @instance
+                 */
+                PolicyCheckRequest.prototype.inputSizeBytes = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+                /**
                  * Creates a new PolicyCheckRequest instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.PolicyCheckRequest
@@ -5165,6 +6217,12 @@ $root.cordum = (function() {
                         writer.uint32(/* id 10, wireType 2 =*/82).bytes(message.effectiveConfig);
                     if (message.meta != null && Object.hasOwnProperty.call(message, "meta"))
                         $root.cordum.agent.v1.JobMetadata.encode(message.meta, writer.uint32(/* id 11, wireType 2 =*/90).fork()).ldelim();
+                    if (message.inputContent != null && Object.hasOwnProperty.call(message, "inputContent"))
+                        writer.uint32(/* id 20, wireType 2 =*/162).bytes(message.inputContent);
+                    if (message.inputContentType != null && Object.hasOwnProperty.call(message, "inputContentType"))
+                        writer.uint32(/* id 21, wireType 2 =*/170).string(message.inputContentType);
+                    if (message.inputSizeBytes != null && Object.hasOwnProperty.call(message, "inputSizeBytes"))
+                        writer.uint32(/* id 22, wireType 0 =*/176).int64(message.inputSizeBytes);
                     return writer;
                 };
 
@@ -5264,6 +6322,18 @@ $root.cordum = (function() {
                                 message.meta = $root.cordum.agent.v1.JobMetadata.decode(reader, reader.uint32());
                                 break;
                             }
+                        case 20: {
+                                message.inputContent = reader.bytes();
+                                break;
+                            }
+                        case 21: {
+                                message.inputContentType = reader.string();
+                                break;
+                            }
+                        case 22: {
+                                message.inputSizeBytes = reader.int64();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7);
                             break;
@@ -5348,6 +6418,15 @@ $root.cordum = (function() {
                         if (error)
                             return "meta." + error;
                     }
+                    if (message.inputContent != null && message.hasOwnProperty("inputContent"))
+                        if (!(message.inputContent && typeof message.inputContent.length === "number" || $util.isString(message.inputContent)))
+                            return "inputContent: buffer expected";
+                    if (message.inputContentType != null && message.hasOwnProperty("inputContentType"))
+                        if (!$util.isString(message.inputContentType))
+                            return "inputContentType: string expected";
+                    if (message.inputSizeBytes != null && message.hasOwnProperty("inputSizeBytes"))
+                        if (!$util.isInteger(message.inputSizeBytes) && !(message.inputSizeBytes && $util.isInteger(message.inputSizeBytes.low) && $util.isInteger(message.inputSizeBytes.high)))
+                            return "inputSizeBytes: integer|Long expected";
                     return null;
                 };
 
@@ -5421,6 +6500,22 @@ $root.cordum = (function() {
                             throw TypeError(".cordum.agent.v1.PolicyCheckRequest.meta: object expected");
                         message.meta = $root.cordum.agent.v1.JobMetadata.fromObject(object.meta);
                     }
+                    if (object.inputContent != null)
+                        if (typeof object.inputContent === "string")
+                            $util.base64.decode(object.inputContent, message.inputContent = $util.newBuffer($util.base64.length(object.inputContent)), 0);
+                        else if (object.inputContent.length >= 0)
+                            message.inputContent = object.inputContent;
+                    if (object.inputContentType != null)
+                        message.inputContentType = String(object.inputContentType);
+                    if (object.inputSizeBytes != null)
+                        if ($util.Long)
+                            (message.inputSizeBytes = $util.Long.fromValue(object.inputSizeBytes)).unsigned = false;
+                        else if (typeof object.inputSizeBytes === "string")
+                            message.inputSizeBytes = parseInt(object.inputSizeBytes, 10);
+                        else if (typeof object.inputSizeBytes === "number")
+                            message.inputSizeBytes = object.inputSizeBytes;
+                        else if (typeof object.inputSizeBytes === "object")
+                            message.inputSizeBytes = new $util.LongBits(object.inputSizeBytes.low >>> 0, object.inputSizeBytes.high >>> 0).toNumber();
                     return message;
                 };
 
@@ -5456,6 +6551,19 @@ $root.cordum = (function() {
                                 object.effectiveConfig = $util.newBuffer(object.effectiveConfig);
                         }
                         object.meta = null;
+                        if (options.bytes === String)
+                            object.inputContent = "";
+                        else {
+                            object.inputContent = [];
+                            if (options.bytes !== Array)
+                                object.inputContent = $util.newBuffer(object.inputContent);
+                        }
+                        object.inputContentType = "";
+                        if ($util.Long) {
+                            var long = new $util.Long(0, 0, false);
+                            object.inputSizeBytes = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                        } else
+                            object.inputSizeBytes = options.longs === String ? "0" : 0;
                     }
                     if (message.jobId != null && message.hasOwnProperty("jobId"))
                         object.jobId = message.jobId;
@@ -5483,6 +6591,15 @@ $root.cordum = (function() {
                         object.effectiveConfig = options.bytes === String ? $util.base64.encode(message.effectiveConfig, 0, message.effectiveConfig.length) : options.bytes === Array ? Array.prototype.slice.call(message.effectiveConfig) : message.effectiveConfig;
                     if (message.meta != null && message.hasOwnProperty("meta"))
                         object.meta = $root.cordum.agent.v1.JobMetadata.toObject(message.meta, options);
+                    if (message.inputContent != null && message.hasOwnProperty("inputContent"))
+                        object.inputContent = options.bytes === String ? $util.base64.encode(message.inputContent, 0, message.inputContent.length) : options.bytes === Array ? Array.prototype.slice.call(message.inputContent) : message.inputContent;
+                    if (message.inputContentType != null && message.hasOwnProperty("inputContentType"))
+                        object.inputContentType = message.inputContentType;
+                    if (message.inputSizeBytes != null && message.hasOwnProperty("inputSizeBytes"))
+                        if (typeof message.inputSizeBytes === "number")
+                            object.inputSizeBytes = options.longs === String ? String(message.inputSizeBytes) : message.inputSizeBytes;
+                        else
+                            object.inputSizeBytes = options.longs === String ? $util.Long.prototype.toString.call(message.inputSizeBytes) : options.longs === Number ? new $util.LongBits(message.inputSizeBytes.low >>> 0, message.inputSizeBytes.high >>> 0).toNumber() : message.inputSizeBytes;
                     return object;
                 };
 

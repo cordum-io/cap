@@ -89,6 +89,7 @@ type Handshake struct {
 	SupportedVersions []int32                `protobuf:"varint,3,rep,packed,name=supported_versions,json=supportedVersions,proto3" json:"supported_versions,omitempty"`                                 // wire versions this component supports
 	Capabilities      map[string]bool        `protobuf:"bytes,4,rep,name=capabilities,proto3" json:"capabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"` // feature flags (signatures, compensation, progress, cancel, etc.)
 	SdkVersion        string                 `protobuf:"bytes,5,opt,name=sdk_version,json=sdkVersion,proto3" json:"sdk_version,omitempty"`                                                              // optional SDK version string
+	ReadyTopics       []string               `protobuf:"bytes,6,rep,name=ready_topics,json=readyTopics,proto3" json:"ready_topics,omitempty"`                                                           // topics this worker is ready to serve
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -158,18 +159,26 @@ func (x *Handshake) GetSdkVersion() string {
 	return ""
 }
 
+func (x *Handshake) GetReadyTopics() []string {
+	if x != nil {
+		return x.ReadyTopics
+	}
+	return nil
+}
+
 var File_cordum_agent_v1_handshake_proto protoreflect.FileDescriptor
 
 const file_cordum_agent_v1_handshake_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcordum/agent/v1/handshake.proto\x12\x0fcordum.agent.v1\"\xc5\x02\n" +
+	"\x1fcordum/agent/v1/handshake.proto\x12\x0fcordum.agent.v1\"\xe8\x02\n" +
 	"\tHandshake\x12!\n" +
 	"\fcomponent_id\x18\x01 \x01(\tR\vcomponentId\x122\n" +
 	"\x04role\x18\x02 \x01(\x0e2\x1e.cordum.agent.v1.ComponentRoleR\x04role\x12-\n" +
 	"\x12supported_versions\x18\x03 \x03(\x05R\x11supportedVersions\x12P\n" +
 	"\fcapabilities\x18\x04 \x03(\v2,.cordum.agent.v1.Handshake.CapabilitiesEntryR\fcapabilities\x12\x1f\n" +
 	"\vsdk_version\x18\x05 \x01(\tR\n" +
-	"sdkVersion\x1a?\n" +
+	"sdkVersion\x12!\n" +
+	"\fready_topics\x18\x06 \x03(\tR\vreadyTopics\x1a?\n" +
 	"\x11CapabilitiesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01*\xc4\x01\n" +

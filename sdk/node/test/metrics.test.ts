@@ -86,7 +86,7 @@ describe("MetricsHook", () => {
     const cb = mock.subscriptions.get("job.metrics")!;
     cb({ data });
 
-    await waitFor(() => mock.published.length > 0);
+    await waitFor(() => metrics.completed.length > 0);
 
     assert.strictEqual(metrics.received.length, 1);
     assert.strictEqual(metrics.received[0].jobId, jobId);
@@ -130,7 +130,7 @@ describe("MetricsHook", () => {
     const cb = mock.subscriptions.get("job.metrics.fail")!;
     cb({ data });
 
-    await waitFor(() => mock.published.length > 0);
+    await waitFor(() => metrics.failed.length > 0);
 
     assert.strictEqual(metrics.received.length, 1);
     assert.strictEqual(metrics.failed.length, 1);

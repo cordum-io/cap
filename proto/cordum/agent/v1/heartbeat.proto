@@ -25,4 +25,5 @@ message Heartbeat {
     float memory_load = 14;         // 0-100
     int32 progress_pct = 15;        // 0-100 task-level progress checkpoint (optional)
     string last_memo = 16;          // last successful internal step/memo (short string/hash)
+    string auth_token = 18;         // optional worker attestation credential
 }

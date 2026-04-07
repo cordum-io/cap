@@ -114,7 +114,10 @@ async def run_handler(
     msg = type("Msg", (object,), {"data": packet.SerializeToString(deterministic=True)})()
     await cb(msg)
 
-    subject, payload = await asyncio.wait_for(mock.published.get(), timeout=5.0)
+    while True:
+        subject, payload = await asyncio.wait_for(mock.published.get(), timeout=5.0)
+        if subject == "sys.job.result":
+            break
 
     result_packet = buspacket_pb2.BusPacket()
     result_packet.ParseFromString(payload)

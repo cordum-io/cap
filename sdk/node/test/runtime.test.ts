@@ -37,6 +37,17 @@ async function waitFor(fn: () => boolean, timeoutMs = 1000): Promise<void> {
   throw new Error("timeout waiting for condition");
 }
 
+async function waitForPublishedSubject(
+  mock: MockNatsConnection,
+  subject: string,
+  timeoutMs = 1000
+): Promise<{ subject: string; data: Uint8Array }> {
+  await waitFor(() => mock.published.some((entry) => entry.subject === subject), timeoutMs);
+  const match = mock.published.find((entry) => entry.subject === subject);
+  assert.ok(match);
+  return match!;
+}
+
 describe("CAP runtime (node)", () => {
   it("handles job success with validation and result storage", async () => {
     const store = new InMemoryBlobStore();
@@ -75,10 +86,8 @@ describe("CAP runtime (node)", () => {
     assert.ok(cb);
     cb?.({ data: payload });
 
-    await waitFor(() => mock.published.length > 0);
-
-    assert.strictEqual(mock.published[0].subject, "sys.job.result");
-    const resultPacket = BusPacket.decode(mock.published[0].data) as any;
+    const result = await waitForPublishedSubject(mock, "sys.job.result");
+    const resultPacket = BusPacket.decode(result.data) as any;
     assert.strictEqual(resultPacket.jobResult.status, 5); // JOB_STATUS_SUCCEEDED
 
     const resultData = await store.get(`res:${jobId}`);
@@ -125,8 +134,8 @@ describe("CAP runtime (node)", () => {
     assert.ok(cb);
     cb?.({ data: payload });
 
-    await waitFor(() => mock.published.length > 0);
-    const resultPacket = BusPacket.decode(mock.published[0].data) as any;
+    const result = await waitForPublishedSubject(mock, "sys.job.result");
+    const resultPacket = BusPacket.decode(result.data) as any;
     assert.strictEqual(resultPacket.jobResult.status, 6); // JOB_STATUS_FAILED
     assert.ok(String(resultPacket.jobResult.errorMessage).includes("input validation failed"));
 
@@ -175,8 +184,8 @@ describe("CAP runtime (node)", () => {
     assert.ok(cb);
     cb?.({ data: payload });
 
-    await waitFor(() => mock.published.length > 0);
-    const resultPacket = BusPacket.decode(mock.published[0].data) as any;
+    const result = await waitForPublishedSubject(mock, "sys.job.result");
+    const resultPacket = BusPacket.decode(result.data) as any;
     assert.strictEqual(resultPacket.jobResult.status, 5); // JOB_STATUS_SUCCEEDED
     assert.strictEqual(attempts, 2);
 

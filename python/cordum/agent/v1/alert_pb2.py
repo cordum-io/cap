@@ -22,9 +22,10 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
+from cordum.agent.v1 import job_pb2 as cordum_dot_agent_dot_v1_dot_job__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1b\x63ordum/agent/v1/alert.proto\x12\x0f\x63ordum.agent.v1\"N\n\x0bSystemAlert\x12\r\n\x05level\x18\x01 \x01(\t\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x11\n\tcomponent\x18\x03 \x01(\t\x12\x0c\n\x04\x63ode\x18\x04 \x01(\tB\x7f\n\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0f\x43ordum.Agent.V1\xca\x02\x0f\x63ordum\\Agent\\V1\xea\x02\x11\x43ordum::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1b\x63ordum/agent/v1/alert.proto\x12\x0f\x63ordum.agent.v1\x1a\x19\x63ordum/agent/v1/job.proto\"\xd9\x02\n\x0bSystemAlert\x12\x11\n\x05level\x18\x01 \x01(\tB\x02\x18\x01\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x15\n\tcomponent\x18\x03 \x01(\tB\x02\x18\x01\x12\x10\n\x04\x63ode\x18\x04 \x01(\tB\x02\x18\x01\x12\x30\n\x08severity\x18\x05 \x01(\x0e\x32\x1e.cordum.agent.v1.AlertSeverity\x12\x33\n\x0f\x65rror_code_enum\x18\x06 \x01(\x0e\x32\x1a.cordum.agent.v1.ErrorCode\x12\x18\n\x10source_component\x18\x07 \x01(\t\x12:\n\x07\x64\x65tails\x18\x08 \x03(\x0b\x32).cordum.agent.v1.SystemAlert.DetailsEntry\x12\x10\n\x08trace_id\x18\t \x01(\t\x1a.\n\x0c\x44\x65tailsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01*\x9b\x01\n\rAlertSeverity\x12\x1e\n\x1a\x41LERT_SEVERITY_UNSPECIFIED\x10\x00\x12\x17\n\x13\x41LERT_SEVERITY_INFO\x10\x01\x12\x1a\n\x16\x41LERT_SEVERITY_WARNING\x10\x02\x12\x18\n\x14\x41LERT_SEVERITY_ERROR\x10\x03\x12\x1b\n\x17\x41LERT_SEVERITY_CRITICAL\x10\x04\x42\x7f\n\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0f\x43ordum.Agent.V1\xca\x02\x0f\x63ordum\\Agent\\V1\xea\x02\x11\x43ordum::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,6 +33,18 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'cordum.agent.v1.alert_pb2',
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\n\026io.cordum.cap.agent.v1P\001Z+github.com/cordum-io/cap/v2/cordum/agent/v1\252\002\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent::V1'
-  _globals['_SYSTEMALERT']._serialized_start=48
-  _globals['_SYSTEMALERT']._serialized_end=126
+  _globals['_SYSTEMALERT_DETAILSENTRY']._loaded_options = None
+  _globals['_SYSTEMALERT_DETAILSENTRY']._serialized_options = b'8\001'
+  _globals['_SYSTEMALERT'].fields_by_name['level']._loaded_options = None
+  _globals['_SYSTEMALERT'].fields_by_name['level']._serialized_options = b'\030\001'
+  _globals['_SYSTEMALERT'].fields_by_name['component']._loaded_options = None
+  _globals['_SYSTEMALERT'].fields_by_name['component']._serialized_options = b'\030\001'
+  _globals['_SYSTEMALERT'].fields_by_name['code']._loaded_options = None
+  _globals['_SYSTEMALERT'].fields_by_name['code']._serialized_options = b'\030\001'
+  _globals['_ALERTSEVERITY']._serialized_start=424
+  _globals['_ALERTSEVERITY']._serialized_end=579
+  _globals['_SYSTEMALERT']._serialized_start=76
+  _globals['_SYSTEMALERT']._serialized_end=421
+  _globals['_SYSTEMALERT_DETAILSENTRY']._serialized_start=375
+  _globals['_SYSTEMALERT_DETAILSENTRY']._serialized_end=421
 # @@protoc_insertion_point(module_scope)

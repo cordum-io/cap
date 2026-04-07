@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -22,11 +23,11 @@ import (
 )
 
 const (
-	defaultNATSURL   = "nats://127.0.0.1:4222"
-	defaultRedisURL  = "redis://127.0.0.1:6379/0"
-	defaultTimeout   = 5 * time.Second
-	defaultMaxBytes  = 2 * 1024 * 1024
-	defaultSenderID  = "cap-runtime"
+	defaultNATSURL  = "nats://127.0.0.1:4222"
+	defaultRedisURL = "redis://127.0.0.1:6379/0"
+	defaultTimeout  = 5 * time.Second
+	defaultMaxBytes = 2 * 1024 * 1024
+	defaultSenderID = "cap-runtime"
 )
 
 // BlobStore abstracts payload storage.
@@ -262,7 +263,48 @@ func (a *Agent) Start() error {
 			return fmt.Errorf("subscribe %s: %w", handler.topic, err)
 		}
 	}
+	a.publishHandshake()
 	return nil
+}
+
+func (a *Agent) publishHandshake() {
+	caps := make(map[string]bool, len(a.handlers))
+	readyTopics := make([]string, 0, len(a.handlers))
+	for topic := range a.handlers {
+		caps[topic] = true
+		readyTopics = append(readyTopics, topic)
+	}
+	sort.Strings(readyTopics)
+
+	packet := &agentv1.BusPacket{
+		SenderId:        a.SenderID,
+		ProtocolVersion: capsdk.DefaultProtocolVersion,
+		CreatedAt:       timestamppb.Now(),
+		Payload: &agentv1.BusPacket_Handshake{
+			Handshake: &agentv1.Handshake{
+				ComponentId:       a.SenderID,
+				Role:              agentv1.ComponentRole_COMPONENT_ROLE_WORKER,
+				SupportedVersions: []int32{capsdk.DefaultProtocolVersion},
+				Capabilities:      caps,
+				ReadyTopics:       readyTopics,
+			},
+		},
+	}
+	if a.PrivateKey != nil {
+		if err := capsdk.SignPacket(packet, a.PrivateKey); err != nil {
+			a.Logger.Warn("sign handshake failed", "error", err)
+			return
+		}
+	}
+
+	data, err := capsdk.MarshalDeterministic(packet)
+	if err != nil {
+		a.Logger.Warn("marshal handshake failed", "error", err)
+		return
+	}
+	if err := a.NATS.Publish(capsdk.SubjectHandshake, data); err != nil {
+		a.Logger.Warn("publish handshake failed", "error", err)
+	}
 }
 
 // Close drains NATS and closes the blob store if possible.

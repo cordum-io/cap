@@ -6,6 +6,7 @@ import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/t
 import * as cordum_agent_v1_job_pb from "../../../cordum/agent/v1/job_pb";
 import * as cordum_agent_v1_heartbeat_pb from "../../../cordum/agent/v1/heartbeat_pb";
 import * as cordum_agent_v1_alert_pb from "../../../cordum/agent/v1/alert_pb";
+import * as cordum_agent_v1_handshake_pb from "../../../cordum/agent/v1/handshake_pb";
 
 export class BusPacket extends jspb.Message {
   getTraceId(): string;
@@ -52,10 +53,18 @@ export class BusPacket extends jspb.Message {
   getJobCancel(): cordum_agent_v1_job_pb.JobCancel | undefined;
   setJobCancel(value?: cordum_agent_v1_job_pb.JobCancel): void;
 
+  hasHandshake(): boolean;
+  clearHandshake(): void;
+  getHandshake(): cordum_agent_v1_handshake_pb.Handshake | undefined;
+  setHandshake(value?: cordum_agent_v1_handshake_pb.Handshake): void;
+
   getSignature(): Uint8Array | string;
   getSignature_asU8(): Uint8Array;
   getSignature_asB64(): string;
   setSignature(value: Uint8Array | string): void;
+
+  getAuthToken(): string;
+  setAuthToken(value: string): void;
 
   getPayloadCase(): BusPacket.PayloadCase;
   serializeBinary(): Uint8Array;
@@ -80,7 +89,9 @@ export namespace BusPacket {
     alert?: cordum_agent_v1_alert_pb.SystemAlert.AsObject,
     jobProgress?: cordum_agent_v1_job_pb.JobProgress.AsObject,
     jobCancel?: cordum_agent_v1_job_pb.JobCancel.AsObject,
+    handshake?: cordum_agent_v1_handshake_pb.Handshake.AsObject,
     signature: Uint8Array | string,
+    authToken: string,
   }
 
   export enum PayloadCase {
@@ -91,6 +102,7 @@ export namespace BusPacket {
     ALERT = 13,
     JOB_PROGRESS = 15,
     JOB_CANCEL = 16,
+    HANDSHAKE = 17,
   }
 }
 

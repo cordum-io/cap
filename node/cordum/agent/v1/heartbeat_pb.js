@@ -94,7 +94,8 @@ proto.cordum.agent.v1.Heartbeat.toObject = function(includeInstance, msg) {
     labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
     memoryLoad: jspb.Message.getFloatingPointFieldWithDefault(msg, 14, 0.0),
     progressPct: jspb.Message.getFieldWithDefault(msg, 15, 0),
-    lastMemo: jspb.Message.getFieldWithDefault(msg, 16, "")
+    lastMemo: jspb.Message.getFieldWithDefault(msg, 16, ""),
+    authToken: jspb.Message.getFieldWithDefault(msg, 18, "")
   };
 
   if (includeInstance) {
@@ -184,6 +185,10 @@ proto.cordum.agent.v1.Heartbeat.deserializeBinaryFromReader = function(msg, read
     case 16:
       var value = /** @type {string} */ (reader.readString());
       msg.setLastMemo(value);
+      break;
+    case 18:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAuthToken(value);
       break;
     default:
       reader.skipField();
@@ -299,6 +304,13 @@ proto.cordum.agent.v1.Heartbeat.serializeBinaryToWriter = function(message, writ
   if (f.length > 0) {
     writer.writeString(
       16,
+      f
+    );
+  }
+  f = message.getAuthToken();
+  if (f.length > 0) {
+    writer.writeString(
+      18,
       f
     );
   }
@@ -559,6 +571,24 @@ proto.cordum.agent.v1.Heartbeat.prototype.getLastMemo = function() {
  */
 proto.cordum.agent.v1.Heartbeat.prototype.setLastMemo = function(value) {
   return jspb.Message.setProto3StringField(this, 16, value);
+};
+
+
+/**
+ * optional string auth_token = 18;
+ * @return {string}
+ */
+proto.cordum.agent.v1.Heartbeat.prototype.getAuthToken = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 18, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.cordum.agent.v1.Heartbeat} returns this
+ */
+proto.cordum.agent.v1.Heartbeat.prototype.setAuthToken = function(value) {
+  return jspb.Message.setProto3StringField(this, 18, value);
 };
 
 

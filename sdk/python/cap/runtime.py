@@ -26,6 +26,7 @@ except Exception:  # pragma: no cover - optional until runtime used
 from cap.subjects import SUBJECT_RESULT
 from cap.errors import InvalidInputError, MalformedPacketError, SignatureInvalidError, SignatureMissingError
 from cap.metrics import MetricsHook, NoopMetrics
+from cap.handshake import publish_handshake
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
 
 from cap.constants import DEFAULT_PROTOCOL_VERSION  # noqa: E402 — must be after conditional imports
@@ -360,6 +361,21 @@ class Agent:
             async def _direct_cb(msg):
                 asyncio.create_task(self._on_direct_msg(msg))
             await self._nc.subscribe(direct_subject, cb=_direct_cb)
+
+        try:
+            await publish_handshake(
+                self._nc,
+                component_id=self._sender_id,
+                capabilities={topic: True for topic in self._handlers},
+                ready_topics=sorted(self._handlers),
+                private_key=self._private_key,
+                sender_id=self._sender_id,
+            )
+        except Exception as exc:
+            self._logger.warning(
+                "handshake publish failed",
+                extra={"sender_id": self._sender_id, "error": str(exc)},
+            )
 
         if self._heartbeat_task is None or self._heartbeat_task.done():
             self._heartbeat_cancel_event = asyncio.Event()

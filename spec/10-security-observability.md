@@ -6,6 +6,8 @@ Security and visibility are mandatory for production deployments of CAP. For a m
 - Bus connections MUST be authenticated (mTLS, tokens) and authorized per subject.
 - `sender_id` SHOULD map to an authenticated principal for auditability.
 - Gateways SHOULD validate client identity before accepting submissions.
+- Worker attestation SHOULD use a control-plane-issued worker credential. The worker presents the credential as `Heartbeat.auth_token`, and the scheduler validates it against the credential store before treating the worker identity as authoritative.
+- `auth_token` is sensitive. Implementations MUST NOT place it in heartbeat labels, logs, traces, or metrics dimensions.
 
 ## Data Protection
 - Keep payloads out of the bus; pointers SHOULD reference data protected by access control (scoped tokens, signed URLs, or per-tenant credentials).
@@ -22,6 +24,15 @@ Security and visibility are mandatory for production deployments of CAP. For a m
 - Workflow topology: include `workflow_id`, `parent_job_id`, and `step_index` as attributes to reconstruct DAGs without inspecting payloads.
 - Logging: log state transitions with `job_id`, `trace_id`, `status`, `worker_id`, `pool`, `decision`, and `latency_ms`.
 - Heartbeat monitoring: alert on missing heartbeats per pool/region; track utilization trends.
+- Attestation observability: record whether a heartbeat was attested, unattested, or invalid, but never record the raw `auth_token`. Handshake registries SHOULD also persist `ready_topics` so operators can distinguish “worker connected” from “worker ready for topic X”.
+
+## Worker Attestation Flow
+
+1. Control plane (for example pack install or external worker registration) creates a worker credential and stores only its hashed form in the credential store.
+2. The plaintext token is delivered out-of-band to the worker operator/process configuration.
+3. The worker includes that token in `Heartbeat.auth_token` on periodic heartbeats.
+4. The scheduler checks the presented token against the credential store before trusting the worker identity for routing and accounting.
+5. During migration, deployments MAY run in warn/off modes so older workers without `auth_token` continue to operate while operators roll out credentials.
 
 ## Compliance and Retention
 - Configure TTLs for contexts/results per tenant; purge expired data regularly.

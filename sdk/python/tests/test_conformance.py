@@ -81,6 +81,7 @@ class TestConformanceFixtures(unittest.TestCase):
         self.assertEqual(hb.pool, "job.tools")
         self.assertEqual(hb.labels["zone"], "us-east-1a")
         self.assertEqual(hb.progress_pct, 60)
+        self.assertEqual(hb.auth_token, "attest-worker-1")
 
     def test_job_progress_fixture(self):
         pkt = load_packet("buspacket_job_progress.bin")
@@ -116,6 +117,7 @@ class TestConformanceFixtures(unittest.TestCase):
         self.assertTrue(hs.capabilities["cancel"])
         self.assertFalse(hs.capabilities["compensation"])
         self.assertEqual(hs.sdk_version, "2.0.19")
+        self.assertEqual(list(hs.ready_topics), ["job.tools", "job.tools.bulk"])
 
     def test_alert_enhanced_fixture(self):
         pkt = load_packet("buspacket_alert_enhanced.bin")

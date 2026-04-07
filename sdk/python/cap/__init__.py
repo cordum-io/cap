@@ -42,6 +42,7 @@ from .heartbeat import (
     emit_heartbeat,
     heartbeat_loop,
 )
+from .handshake import handshake_payload, publish_handshake
 from .progress import (
     progress_payload,
     cancel_payload,
@@ -106,6 +107,8 @@ __all__ = [
     "heartbeat_payload_with_progress",
     "emit_heartbeat",
     "heartbeat_loop",
+    "handshake_payload",
+    "publish_handshake",
     "progress_payload",
     "cancel_payload",
     "emit_progress",

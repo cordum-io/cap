@@ -25,6 +25,7 @@ def heartbeat_payload(
     active_jobs: int,
     max_parallel: int,
     cpu_load: float,
+    auth_token: str = "",
 ) -> bytes:
     """Build a heartbeat payload with CPU utilization only."""
     return heartbeat_payload_with_progress(
@@ -33,6 +34,7 @@ def heartbeat_payload(
         active_jobs=active_jobs,
         max_parallel=max_parallel,
         cpu_load=cpu_load,
+        auth_token=auth_token,
     )
 
 
@@ -43,6 +45,7 @@ def heartbeat_payload_with_memory(
     max_parallel: int,
     cpu_load: float,
     memory_load: float,
+    auth_token: str = "",
 ) -> bytes:
     """Build a heartbeat payload including memory utilization."""
     return heartbeat_payload_with_progress(
@@ -52,6 +55,7 @@ def heartbeat_payload_with_memory(
         max_parallel=max_parallel,
         cpu_load=cpu_load,
         memory_load=memory_load,
+        auth_token=auth_token,
     )
 
 
@@ -64,10 +68,12 @@ def heartbeat_payload_with_progress(
     memory_load: float = 0.0,
     progress_pct: int = 0,
     last_memo: str = "",
+    auth_token: str = "",
 ) -> bytes:
     """Build a heartbeat payload including optional progress fields."""
     ts = timestamp_pb2.Timestamp()
     ts.GetCurrentTime()
+    auth_token = auth_token.strip()
 
     packet = buspacket_pb2.BusPacket()
     packet.sender_id = worker_id
@@ -83,6 +89,7 @@ def heartbeat_payload_with_progress(
             memory_load=memory_load,
             progress_pct=progress_pct,
             last_memo=last_memo,
+            auth_token=auth_token,
         )
     )
     return packet.SerializeToString(deterministic=True)

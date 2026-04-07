@@ -165,6 +165,9 @@ func TestConformanceFixtures(t *testing.T) {
 		if hb.GetLabels()["zone"] != "us-east-1a" {
 			t.Fatalf("unexpected heartbeat labels: %#v", hb.GetLabels())
 		}
+		if hb.GetAuthToken() != "attest-worker-1" {
+			t.Fatalf("unexpected heartbeat auth_token: %q", hb.GetAuthToken())
+		}
 	})
 
 	t.Run("job_progress", func(t *testing.T) {
@@ -232,6 +235,15 @@ func TestConformanceFixtures(t *testing.T) {
 		}
 		if hs.GetSdkVersion() != "2.0.19" {
 			t.Fatalf("unexpected sdk_version: %s", hs.GetSdkVersion())
+		}
+		if got, want := hs.GetReadyTopics(), []string{"job.tools", "job.tools.bulk"}; len(got) != len(want) {
+			t.Fatalf("unexpected ready_topics len: %v", got)
+		} else {
+			for i := range want {
+				if got[i] != want[i] {
+					t.Fatalf("unexpected ready_topics[%d]: got %q want %q", i, got[i], want[i])
+				}
+			}
 		}
 	})
 

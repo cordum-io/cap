@@ -41,6 +41,12 @@ class TestMiddleware(unittest.IsolatedAsyncioTestCase):
         self.store = InMemoryBlobStore()
         self.mock = MockNATS()
 
+    async def _next_published(self, expected_subject: str):
+        while True:
+            subject, payload = await asyncio.wait_for(self.mock.published.get(), timeout=1)
+            if subject == expected_subject:
+                return payload
+
     async def _send_job(self, job_id: str, topic: str, context_ptr: str):
         req = job_pb2.JobRequest(job_id=job_id, topic=topic, context_ptr=context_ptr)
         packet = buspacket_pb2.BusPacket()
@@ -83,8 +89,7 @@ class TestMiddleware(unittest.IsolatedAsyncioTestCase):
         await agent.start()
         await self._send_job(job_id, "job.mw", f"redis://{ctx_key}")
 
-        subject, payload = await asyncio.wait_for(self.mock.published.get(), timeout=1)
-        self.assertEqual(subject, "sys.job.result")
+        await self._next_published("sys.job.result")
         self.assertEqual(order, ["A-before", "B-before", "handler", "B-after", "A-after"])
 
         await agent.close()
@@ -111,8 +116,7 @@ class TestMiddleware(unittest.IsolatedAsyncioTestCase):
         await agent.start()
         await self._send_job(job_id, "job.short", f"redis://{ctx_key}")
 
-        subject, payload = await asyncio.wait_for(self.mock.published.get(), timeout=1)
-        self.assertEqual(subject, "sys.job.result")
+        await self._next_published("sys.job.result")
         self.assertFalse(handler_called["value"])
 
         result_data = await self.store.get(f"res:{job_id}")
@@ -148,8 +152,7 @@ class TestMiddleware(unittest.IsolatedAsyncioTestCase):
         await agent.start()
         await self._send_job(job_id, "job.log", f"redis://{ctx_key}")
 
-        subject, payload = await asyncio.wait_for(self.mock.published.get(), timeout=1)
-        self.assertEqual(subject, "sys.job.result")
+        await self._next_published("sys.job.result")
 
         log_output = "\n".join(log_records)
         self.assertIn(job_id, log_output)

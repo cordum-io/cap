@@ -286,7 +286,10 @@ proto.cordum.agent.v1.PolicyCheckRequest.toObject = function(includeInstance, ms
     labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
     memoryId: jspb.Message.getFieldWithDefault(msg, 9, ""),
     effectiveConfig: msg.getEffectiveConfig_asB64(),
-    meta: (f = msg.getMeta()) && cordum_agent_v1_job_pb.JobMetadata.toObject(includeInstance, f)
+    meta: (f = msg.getMeta()) && cordum_agent_v1_job_pb.JobMetadata.toObject(includeInstance, f),
+    inputContent: msg.getInputContent_asB64(),
+    inputContentType: jspb.Message.getFieldWithDefault(msg, 21, ""),
+    inputSizeBytes: jspb.Message.getFieldWithDefault(msg, 22, 0)
   };
 
   if (includeInstance) {
@@ -370,6 +373,18 @@ proto.cordum.agent.v1.PolicyCheckRequest.deserializeBinaryFromReader = function(
       var value = new cordum_agent_v1_job_pb.JobMetadata;
       reader.readMessage(value,cordum_agent_v1_job_pb.JobMetadata.deserializeBinaryFromReader);
       msg.setMeta(value);
+      break;
+    case 20:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setInputContent(value);
+      break;
+    case 21:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setInputContentType(value);
+      break;
+    case 22:
+      var value = /** @type {number} */ (reader.readInt64());
+      msg.setInputSizeBytes(value);
       break;
     default:
       reader.skipField();
@@ -474,6 +489,27 @@ proto.cordum.agent.v1.PolicyCheckRequest.serializeBinaryToWriter = function(mess
       11,
       f,
       cordum_agent_v1_job_pb.JobMetadata.serializeBinaryToWriter
+    );
+  }
+  f = message.getInputContent_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      20,
+      f
+    );
+  }
+  f = message.getInputContentType();
+  if (f.length > 0) {
+    writer.writeString(
+      21,
+      f
+    );
+  }
+  f = message.getInputSizeBytes();
+  if (f !== 0) {
+    writer.writeInt64(
+      22,
+      f
     );
   }
 };
@@ -740,6 +776,84 @@ proto.cordum.agent.v1.PolicyCheckRequest.prototype.clearMeta = function() {
  */
 proto.cordum.agent.v1.PolicyCheckRequest.prototype.hasMeta = function() {
   return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional bytes input_content = 20;
+ * @return {!(string|Uint8Array)}
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.getInputContent = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 20, ""));
+};
+
+
+/**
+ * optional bytes input_content = 20;
+ * This is a type-conversion wrapper around `getInputContent()`
+ * @return {string}
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.getInputContent_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getInputContent()));
+};
+
+
+/**
+ * optional bytes input_content = 20;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getInputContent()`
+ * @return {!Uint8Array}
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.getInputContent_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getInputContent()));
+};
+
+
+/**
+ * @param {!(string|Uint8Array)} value
+ * @return {!proto.cordum.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.setInputContent = function(value) {
+  return jspb.Message.setProto3BytesField(this, 20, value);
+};
+
+
+/**
+ * optional string input_content_type = 21;
+ * @return {string}
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.getInputContentType = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 21, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.cordum.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.setInputContentType = function(value) {
+  return jspb.Message.setProto3StringField(this, 21, value);
+};
+
+
+/**
+ * optional int64 input_size_bytes = 22;
+ * @return {number}
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.getInputSizeBytes = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 22, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.cordum.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.setInputSizeBytes = function(value) {
+  return jspb.Message.setProto3IntField(this, 22, value);
 };
 
 

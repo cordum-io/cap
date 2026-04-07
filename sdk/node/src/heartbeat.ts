@@ -21,9 +21,10 @@ export async function heartbeatPayload(
   pool: string,
   activeJobs: number,
   maxParallel: number,
-  cpuLoad: number
+  cpuLoad: number,
+  authToken = ""
 ): Promise<HeartbeatPacket> {
-  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel, cpuLoad, 0, 0, "");
+  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel, cpuLoad, 0, 0, "", authToken);
 }
 
 /**
@@ -35,9 +36,10 @@ export async function heartbeatPayloadWithMemory(
   activeJobs: number,
   maxParallel: number,
   cpuLoad: number,
-  memoryLoad: number
+  memoryLoad: number,
+  authToken = ""
 ): Promise<HeartbeatPacket> {
-  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel, cpuLoad, memoryLoad, 0, "");
+  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel, cpuLoad, memoryLoad, 0, "", authToken);
 }
 
 /**
@@ -51,10 +53,12 @@ export async function heartbeatPayloadWithProgress(
   cpuLoad: number,
   memoryLoad = 0,
   progressPct = 0,
-  lastMemo = ""
+  lastMemo = "",
+  authToken = ""
 ): Promise<HeartbeatPacket> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+  const normalizedAuthToken = authToken.trim();
 
   return BusPacket.fromObject({
     senderId: workerId,
@@ -69,6 +73,7 @@ export async function heartbeatPayloadWithProgress(
       memoryLoad,
       progressPct,
       lastMemo,
+      ...(normalizedAuthToken ? { authToken: normalizedAuthToken } : {}),
     },
   });
 }

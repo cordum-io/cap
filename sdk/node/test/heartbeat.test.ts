@@ -36,7 +36,7 @@ async function waitFor(fn: () => boolean, timeoutMs = 1000): Promise<void> {
 
 describe("heartbeat helpers", () => {
   it("builds heartbeat payload with defaults", async () => {
-    const packet = await heartbeatPayload("worker-1", "pool-a", 2, 8, 42.5);
+    const packet = await heartbeatPayload("worker-1", "pool-a", 2, 8, 42.5, " token-123 ");
 
     assert.strictEqual(packet.senderId, "worker-1");
     assert.strictEqual(packet.protocolVersion, 1);
@@ -48,6 +48,7 @@ describe("heartbeat helpers", () => {
     assert.strictEqual(packet.heartbeat.memoryLoad, 0);
     assert.strictEqual(packet.heartbeat.progressPct, 0);
     assert.strictEqual(packet.heartbeat.lastMemo, "");
+    assert.strictEqual(packet.heartbeat.authToken, "token-123");
   });
 
   it("builds heartbeat payload with memory", async () => {

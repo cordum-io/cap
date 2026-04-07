@@ -25,6 +25,7 @@ goog.exportSymbol('proto.cordum.agent.v1.ActorType', null, global);
 goog.exportSymbol('proto.cordum.agent.v1.Budget', null, global);
 goog.exportSymbol('proto.cordum.agent.v1.Compensation', null, global);
 goog.exportSymbol('proto.cordum.agent.v1.ContextHints', null, global);
+goog.exportSymbol('proto.cordum.agent.v1.ErrorCode', null, global);
 goog.exportSymbol('proto.cordum.agent.v1.JobCancel', null, global);
 goog.exportSymbol('proto.cordum.agent.v1.JobMetadata', null, global);
 goog.exportSymbol('proto.cordum.agent.v1.JobPriority', null, global);
@@ -2359,7 +2360,8 @@ proto.cordum.agent.v1.JobResult.toObject = function(includeInstance, msg) {
     executionMs: jspb.Message.getFieldWithDefault(msg, 5, 0),
     errorCode: jspb.Message.getFieldWithDefault(msg, 6, ""),
     errorMessage: jspb.Message.getFieldWithDefault(msg, 7, ""),
-    artifactPtrsList: (f = jspb.Message.getRepeatedField(msg, 8)) == null ? undefined : f
+    artifactPtrsList: (f = jspb.Message.getRepeatedField(msg, 8)) == null ? undefined : f,
+    errorCodeEnum: jspb.Message.getFieldWithDefault(msg, 9, 0)
   };
 
   if (includeInstance) {
@@ -2427,6 +2429,10 @@ proto.cordum.agent.v1.JobResult.deserializeBinaryFromReader = function(msg, read
     case 8:
       var value = /** @type {string} */ (reader.readString());
       msg.addArtifactPtrs(value);
+      break;
+    case 9:
+      var value = /** @type {!proto.cordum.agent.v1.ErrorCode} */ (reader.readEnum());
+      msg.setErrorCodeEnum(value);
       break;
     default:
       reader.skipField();
@@ -2510,6 +2516,13 @@ proto.cordum.agent.v1.JobResult.serializeBinaryToWriter = function(message, writ
   if (f.length > 0) {
     writer.writeRepeatedString(
       8,
+      f
+    );
+  }
+  f = message.getErrorCodeEnum();
+  if (f !== 0.0) {
+    writer.writeEnum(
+      9,
       f
     );
   }
@@ -2676,6 +2689,24 @@ proto.cordum.agent.v1.JobResult.prototype.addArtifactPtrs = function(value, opt_
  */
 proto.cordum.agent.v1.JobResult.prototype.clearArtifactPtrsList = function() {
   return this.setArtifactPtrsList([]);
+};
+
+
+/**
+ * optional ErrorCode error_code_enum = 9;
+ * @return {!proto.cordum.agent.v1.ErrorCode}
+ */
+proto.cordum.agent.v1.JobResult.prototype.getErrorCodeEnum = function() {
+  return /** @type {!proto.cordum.agent.v1.ErrorCode} */ (jspb.Message.getFieldWithDefault(this, 9, 0));
+};
+
+
+/**
+ * @param {!proto.cordum.agent.v1.ErrorCode} value
+ * @return {!proto.cordum.agent.v1.JobResult} returns this
+ */
+proto.cordum.agent.v1.JobResult.prototype.setErrorCodeEnum = function(value) {
+  return jspb.Message.setProto3EnumField(this, 9, value);
 };
 
 
@@ -3240,6 +3271,31 @@ proto.cordum.agent.v1.ActorType = {
   ACTOR_TYPE_UNSPECIFIED: 0,
   ACTOR_TYPE_HUMAN: 1,
   ACTOR_TYPE_SERVICE: 2
+};
+
+/**
+ * @enum {number}
+ */
+proto.cordum.agent.v1.ErrorCode = {
+  ERROR_CODE_UNSPECIFIED: 0,
+  ERROR_CODE_PROTOCOL_VERSION_MISMATCH: 100,
+  ERROR_CODE_PROTOCOL_MALFORMED_PACKET: 101,
+  ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD: 102,
+  ERROR_CODE_PROTOCOL_SIGNATURE_INVALID: 103,
+  ERROR_CODE_PROTOCOL_SIGNATURE_MISSING: 104,
+  ERROR_CODE_JOB_TIMEOUT: 200,
+  ERROR_CODE_JOB_RESOURCE_EXHAUSTED: 201,
+  ERROR_CODE_JOB_PERMISSION_DENIED: 202,
+  ERROR_CODE_JOB_INVALID_INPUT: 203,
+  ERROR_CODE_JOB_NOT_FOUND: 204,
+  ERROR_CODE_JOB_DUPLICATE: 205,
+  ERROR_CODE_JOB_WORKER_UNAVAILABLE: 206,
+  ERROR_CODE_SAFETY_DENIED: 300,
+  ERROR_CODE_SAFETY_POLICY_VIOLATION: 301,
+  ERROR_CODE_SAFETY_RISK_TAG_BLOCKED: 302,
+  ERROR_CODE_TRANSPORT_PUBLISH_FAILED: 400,
+  ERROR_CODE_TRANSPORT_SUBSCRIBE_FAILED: 401,
+  ERROR_CODE_TRANSPORT_CONNECTION_LOST: 402
 };
 
 goog.object.extend(exports, proto.cordum.agent.v1);

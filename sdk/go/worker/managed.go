@@ -409,6 +409,7 @@ func (w *ManagedWorker) publishHandshake() {
 	for _, c := range w.cfg.Capabilities {
 		caps[c] = true
 	}
+	readyTopics := append([]string(nil), w.subjects...)
 	packet := &agentv1.BusPacket{
 		SenderId:        w.workerID,
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
@@ -419,6 +420,7 @@ func (w *ManagedWorker) publishHandshake() {
 				Role:              agentv1.ComponentRole_COMPONENT_ROLE_WORKER,
 				SupportedVersions: []int32{capsdk.DefaultProtocolVersion},
 				Capabilities:      caps,
+				ReadyTopics:       readyTopics,
 			},
 		},
 	}

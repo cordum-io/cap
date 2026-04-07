@@ -79,16 +79,19 @@ func (AlertSeverity) EnumDescriptor() ([]byte, []int) {
 
 // SystemAlert is a lightweight signal for system-level issues.
 type SystemAlert struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	Level           string                 `protobuf:"bytes,1,opt,name=level,proto3" json:"level,omitempty"`                                                                               // DEPRECATED: use severity enum
-	Message         string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`                                                                           // human-readable detail
-	Component       string                 `protobuf:"bytes,3,opt,name=component,proto3" json:"component,omitempty"`                                                                       // DEPRECATED: use source_component
-	Code            string                 `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`                                                                                 // DEPRECATED: use error_code_enum
-	Severity        AlertSeverity          `protobuf:"varint,5,opt,name=severity,proto3,enum=cordum.agent.v1.AlertSeverity" json:"severity,omitempty"`                                     // structured severity level
-	ErrorCodeEnum   ErrorCode              `protobuf:"varint,6,opt,name=error_code_enum,json=errorCodeEnum,proto3,enum=cordum.agent.v1.ErrorCode" json:"error_code_enum,omitempty"`        // structured error code from ErrorCode registry
-	SourceComponent string                 `protobuf:"bytes,7,opt,name=source_component,json=sourceComponent,proto3" json:"source_component,omitempty"`                                    // component ID that emitted the alert
-	Details         map[string]string      `protobuf:"bytes,8,rep,name=details,proto3" json:"details,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // structured key-value context
-	TraceId         string                 `protobuf:"bytes,9,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`                                                            // optional correlation to a specific BusPacket
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Deprecated: Marked as deprecated in cordum/agent/v1/alert.proto.
+	Level   string `protobuf:"bytes,1,opt,name=level,proto3" json:"level,omitempty"`     // Deprecated: use severity enum instead.
+	Message string `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"` // Human-readable detail of the alert.
+	// Deprecated: Marked as deprecated in cordum/agent/v1/alert.proto.
+	Component string `protobuf:"bytes,3,opt,name=component,proto3" json:"component,omitempty"` // Deprecated: use source_component instead.
+	// Deprecated: Marked as deprecated in cordum/agent/v1/alert.proto.
+	Code            string            `protobuf:"bytes,4,opt,name=code,proto3" json:"code,omitempty"`                                                                                 // Deprecated: use error_code_enum instead.
+	Severity        AlertSeverity     `protobuf:"varint,5,opt,name=severity,proto3,enum=cordum.agent.v1.AlertSeverity" json:"severity,omitempty"`                                     // structured severity level
+	ErrorCodeEnum   ErrorCode         `protobuf:"varint,6,opt,name=error_code_enum,json=errorCodeEnum,proto3,enum=cordum.agent.v1.ErrorCode" json:"error_code_enum,omitempty"`        // structured error code from ErrorCode registry
+	SourceComponent string            `protobuf:"bytes,7,opt,name=source_component,json=sourceComponent,proto3" json:"source_component,omitempty"`                                    // component ID that emitted the alert
+	Details         map[string]string `protobuf:"bytes,8,rep,name=details,proto3" json:"details,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // structured key-value context
+	TraceId         string            `protobuf:"bytes,9,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`                                                            // optional correlation to a specific BusPacket
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -123,6 +126,7 @@ func (*SystemAlert) Descriptor() ([]byte, []int) {
 	return file_cordum_agent_v1_alert_proto_rawDescGZIP(), []int{0}
 }
 
+// Deprecated: Marked as deprecated in cordum/agent/v1/alert.proto.
 func (x *SystemAlert) GetLevel() string {
 	if x != nil {
 		return x.Level
@@ -137,6 +141,7 @@ func (x *SystemAlert) GetMessage() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in cordum/agent/v1/alert.proto.
 func (x *SystemAlert) GetComponent() string {
 	if x != nil {
 		return x.Component
@@ -144,6 +149,7 @@ func (x *SystemAlert) GetComponent() string {
 	return ""
 }
 
+// Deprecated: Marked as deprecated in cordum/agent/v1/alert.proto.
 func (x *SystemAlert) GetCode() string {
 	if x != nil {
 		return x.Code
@@ -190,12 +196,12 @@ var File_cordum_agent_v1_alert_proto protoreflect.FileDescriptor
 
 const file_cordum_agent_v1_alert_proto_rawDesc = "" +
 	"\n" +
-	"\x1bcordum/agent/v1/alert.proto\x12\x0fcordum.agent.v1\x1a\x19cordum/agent/v1/job.proto\"\xb6\x03\n" +
-	"\vSystemAlert\x12\x14\n" +
-	"\x05level\x18\x01 \x01(\tR\x05level\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\x12\x1c\n" +
-	"\tcomponent\x18\x03 \x01(\tR\tcomponent\x12\x12\n" +
-	"\x04code\x18\x04 \x01(\tR\x04code\x12:\n" +
+	"\x1bcordum/agent/v1/alert.proto\x12\x0fcordum.agent.v1\x1a\x19cordum/agent/v1/job.proto\"\xc2\x03\n" +
+	"\vSystemAlert\x12\x18\n" +
+	"\x05level\x18\x01 \x01(\tB\x02\x18\x01R\x05level\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12 \n" +
+	"\tcomponent\x18\x03 \x01(\tB\x02\x18\x01R\tcomponent\x12\x16\n" +
+	"\x04code\x18\x04 \x01(\tB\x02\x18\x01R\x04code\x12:\n" +
 	"\bseverity\x18\x05 \x01(\x0e2\x1e.cordum.agent.v1.AlertSeverityR\bseverity\x12B\n" +
 	"\x0ferror_code_enum\x18\x06 \x01(\x0e2\x1a.cordum.agent.v1.ErrorCodeR\rerrorCodeEnum\x12)\n" +
 	"\x10source_component\x18\a \x01(\tR\x0fsourceComponent\x12C\n" +

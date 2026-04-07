@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
@@ -27,6 +28,21 @@ type NATSConn interface {
 // WorkerMiddleware wraps a Handler, returning a new Handler.
 // Middleware is applied in FIFO order: the first registered middleware is the outermost.
 type WorkerMiddleware func(next Handler) Handler
+
+// HeartbeatOption mutates an outgoing heartbeat before it is encoded.
+type HeartbeatOption func(*agentv1.Heartbeat)
+
+// WithAuthToken sets the optional worker attestation token on the heartbeat.
+func WithAuthToken(token string) HeartbeatOption {
+	return func(hb *agentv1.Heartbeat) {
+		if hb == nil {
+			return
+		}
+		if token = strings.TrimSpace(token); token != "" {
+			hb.AuthToken = token
+		}
+	}
+}
 
 // Worker subscribes to a pool subject and handles jobs.
 type Worker struct {
@@ -172,32 +188,38 @@ func (w *Worker) Start() error {
 }
 
 // HeartbeatPayload returns a protobuf-encoded heartbeat envelope.
-func HeartbeatPayload(workerID, pool string, activeJobs, maxParallel int, cpuLoad float32) ([]byte, error) {
-	return HeartbeatPayloadWithProgress(workerID, pool, activeJobs, maxParallel, cpuLoad, 0, 0, "")
+func HeartbeatPayload(workerID, pool string, activeJobs, maxParallel int, cpuLoad float32, opts ...HeartbeatOption) ([]byte, error) {
+	return HeartbeatPayloadWithProgress(workerID, pool, activeJobs, maxParallel, cpuLoad, 0, 0, "", opts...)
 }
 
 // HeartbeatPayloadWithMemory returns a heartbeat payload including memory utilization.
-func HeartbeatPayloadWithMemory(workerID, pool string, activeJobs, maxParallel int, cpuLoad, memoryLoad float32) ([]byte, error) {
-	return HeartbeatPayloadWithProgress(workerID, pool, activeJobs, maxParallel, cpuLoad, memoryLoad, 0, "")
+func HeartbeatPayloadWithMemory(workerID, pool string, activeJobs, maxParallel int, cpuLoad, memoryLoad float32, opts ...HeartbeatOption) ([]byte, error) {
+	return HeartbeatPayloadWithProgress(workerID, pool, activeJobs, maxParallel, cpuLoad, memoryLoad, 0, "", opts...)
 }
 
 // HeartbeatPayloadWithProgress returns a heartbeat payload including optional progress checkpoints.
-func HeartbeatPayloadWithProgress(workerID, pool string, activeJobs, maxParallel int, cpuLoad, memoryLoad float32, progressPct int32, lastMemo string) ([]byte, error) {
+func HeartbeatPayloadWithProgress(workerID, pool string, activeJobs, maxParallel int, cpuLoad, memoryLoad float32, progressPct int32, lastMemo string, opts ...HeartbeatOption) ([]byte, error) {
+	heartbeat := &agentv1.Heartbeat{
+		WorkerId:        workerID,
+		Pool:            pool,
+		ActiveJobs:      int32(activeJobs),
+		MaxParallelJobs: int32(maxParallel),
+		CpuLoad:         cpuLoad,
+		MemoryLoad:      memoryLoad,
+		ProgressPct:     progressPct,
+		LastMemo:        lastMemo,
+	}
+	for _, opt := range opts {
+		if opt != nil {
+			opt(heartbeat)
+		}
+	}
 	hb := &agentv1.BusPacket{
 		TraceId:         "",
 		SenderId:        workerID,
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		Payload: &agentv1.BusPacket_Heartbeat{
-			Heartbeat: &agentv1.Heartbeat{
-				WorkerId:        workerID,
-				Pool:            pool,
-				ActiveJobs:      int32(activeJobs),
-				MaxParallelJobs: int32(maxParallel),
-				CpuLoad:         cpuLoad,
-				MemoryLoad:      memoryLoad,
-				ProgressPct:     progressPct,
-				LastMemo:        lastMemo,
-			},
+			Heartbeat: heartbeat,
 		},
 	}
 	return capsdk.MarshalDeterministic(hb)

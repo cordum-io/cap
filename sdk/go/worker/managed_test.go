@@ -791,6 +791,81 @@ func TestManagedWorker_HeartbeatEmission(t *testing.T) {
 	}
 }
 
+func TestManagedWorker_PublishesHandshakeReadyTopics(t *testing.T) {
+	_, natsURL := startTestNATS(t)
+
+	readyTopics := []string{"job.echo.submit", "job.audit.submit"}
+	w, err := NewManagedWorker(ManagedConfig{
+		Subjects:       readyTopics,
+		NatsURL:        natsURL,
+		WorkerID:       "handshake-ready-worker",
+		HeartbeatEvery: 50 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatalf("NewManagedWorker failed: %v", err)
+	}
+	defer w.Close()
+
+	nc := testNATSConn(t, natsURL)
+
+	var (
+		received  atomic.Bool
+		handshake *agentv1.Handshake
+		mu        sync.Mutex
+	)
+
+	sub, err := nc.Subscribe(capsdk.SubjectHandshake, func(msg *nats.Msg) {
+		var pkt agentv1.BusPacket
+		if err := proto.Unmarshal(msg.Data, &pkt); err != nil {
+			return
+		}
+		if hs := pkt.GetHandshake(); hs != nil {
+			mu.Lock()
+			handshake = hs
+			mu.Unlock()
+			received.Store(true)
+		}
+	})
+	if err != nil {
+		t.Fatalf("subscribe to handshake: %v", err)
+	}
+	defer sub.Unsubscribe()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		_ = w.Run(ctx, func(ctx context.Context, req *agentv1.JobRequest) (*agentv1.JobResult, error) {
+			return &agentv1.JobResult{JobId: req.GetJobId(), Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED}, nil
+		})
+	}()
+
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if received.Load() {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if !received.Load() {
+		t.Fatal("handshake not published")
+	}
+
+	mu.Lock()
+	defer mu.Unlock()
+	if handshake == nil {
+		t.Fatal("no handshake received")
+	}
+	if got := handshake.GetReadyTopics(); len(got) != len(readyTopics) {
+		t.Fatalf("ready_topics len = %d, want %d (%v)", len(got), len(readyTopics), got)
+	}
+	for i, topic := range readyTopics {
+		if handshake.GetReadyTopics()[i] != topic {
+			t.Fatalf("ready_topics[%d] = %q, want %q", i, handshake.GetReadyTopics()[i], topic)
+		}
+	}
+}
+
 func TestManagedWorker_HeartbeatFailureTracking(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 

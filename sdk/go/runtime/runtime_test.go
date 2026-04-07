@@ -2,6 +2,9 @@ package runtime
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"sync"
@@ -91,7 +94,7 @@ func TestRuntimeSuccess(t *testing.T) {
 		TraceId:         "trace-1",
 		SenderId:        "client-1",
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
-		Payload: &agentv1.BusPacket_JobRequest{JobRequest: req},
+		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}
 	data, _ := capsdk.MarshalDeterministic(packet)
 	mock.send("job.test", data)
@@ -155,7 +158,7 @@ func TestRuntimeInvalidJSON(t *testing.T) {
 		TraceId:         "trace-2",
 		SenderId:        "client-2",
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
-		Payload: &agentv1.BusPacket_JobRequest{JobRequest: req},
+		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}
 	data, _ := capsdk.MarshalDeterministic(packet)
 	mock.send("job.validate", data)
@@ -210,7 +213,7 @@ func TestRuntimeRetries(t *testing.T) {
 		TraceId:         "trace-3",
 		SenderId:        "client-3",
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
-		Payload: &agentv1.BusPacket_JobRequest{JobRequest: req},
+		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}
 	data, _ := capsdk.MarshalDeterministic(packet)
 	mock.send("job.retry", data)
@@ -229,6 +232,90 @@ func TestRuntimeRetries(t *testing.T) {
 	if attempts != 2 {
 		t.Fatalf("expected 2 attempts, got %d", attempts)
 	}
+}
+
+func TestAgentStartPublishesHandshake(t *testing.T) {
+	store := NewInMemoryBlobStore()
+	mock := newMockNATS()
+	key := mustGenerateECDSAKey(t)
+
+	agent := &Agent{
+		NATS:       mock,
+		Store:      store,
+		SenderID:   "worker-handshake",
+		PrivateKey: key,
+	}
+
+	Register(agent, "job.handshake", func(_ Context, _ struct{}) (struct{}, error) {
+		return struct{}{}, nil
+	})
+	Register(agent, "job.handshake.secondary", func(_ Context, _ struct{}) (struct{}, error) {
+		return struct{}{}, nil
+	})
+
+	if err := agent.Start(); err != nil {
+		t.Fatalf("start: %v", err)
+	}
+
+	msg, ok := mock.lastPublished()
+	if !ok {
+		t.Fatal("no handshake published")
+	}
+	if msg.subject != capsdk.SubjectHandshake {
+		t.Fatalf("unexpected subject: %s", msg.subject)
+	}
+
+	var packet agentv1.BusPacket
+	if err := proto.Unmarshal(msg.data, &packet); err != nil {
+		t.Fatalf("decode handshake: %v", err)
+	}
+
+	handshake := packet.GetHandshake()
+	if handshake == nil {
+		t.Fatal("missing handshake payload")
+	}
+	if packet.GetSenderId() != "worker-handshake" {
+		t.Fatalf("sender_id = %q, want %q", packet.GetSenderId(), "worker-handshake")
+	}
+	if handshake.GetComponentId() != "worker-handshake" {
+		t.Fatalf("component_id = %q, want %q", handshake.GetComponentId(), "worker-handshake")
+	}
+	if handshake.GetRole() != agentv1.ComponentRole_COMPONENT_ROLE_WORKER {
+		t.Fatalf("role = %v, want %v", handshake.GetRole(), agentv1.ComponentRole_COMPONENT_ROLE_WORKER)
+	}
+	if len(handshake.GetSupportedVersions()) != 1 || handshake.GetSupportedVersions()[0] != capsdk.DefaultProtocolVersion {
+		t.Fatalf("supported_versions = %v, want [%d]", handshake.GetSupportedVersions(), capsdk.DefaultProtocolVersion)
+	}
+	if !handshake.GetCapabilities()["job.handshake"] {
+		t.Fatalf("expected job.handshake capability, got %v", handshake.GetCapabilities())
+	}
+	if !handshake.GetCapabilities()["job.handshake.secondary"] {
+		t.Fatalf("expected job.handshake.secondary capability, got %v", handshake.GetCapabilities())
+	}
+	if got, want := handshake.GetReadyTopics(), []string{"job.handshake", "job.handshake.secondary"}; len(got) != len(want) {
+		t.Fatalf("ready_topics len = %d, want %d (%v)", len(got), len(want), got)
+	} else {
+		for i := range want {
+			if got[i] != want[i] {
+				t.Fatalf("ready_topics[%d] = %q, want %q", i, got[i], want[i])
+			}
+		}
+	}
+	if len(packet.GetSignature()) == 0 {
+		t.Fatal("expected handshake signature")
+	}
+	if err := capsdk.VerifyPacketSignature(&packet, &key.PublicKey); err != nil {
+		t.Fatalf("verify handshake signature: %v", err)
+	}
+}
+
+func mustGenerateECDSAKey(t *testing.T) *ecdsa.PrivateKey {
+	t.Helper()
+	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		t.Fatalf("generate key: %v", err)
+	}
+	return key
 }
 
 func TestPingRedis_BadURL(t *testing.T) {

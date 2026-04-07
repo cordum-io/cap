@@ -40,6 +40,7 @@ class TestHeartbeatPayload(unittest.TestCase):
             active_jobs=3,
             max_parallel=8,
             cpu_load=42.5,
+            auth_token=" token-123 ",
         )
         packet = buspacket_pb2.BusPacket()
         packet.ParseFromString(payload)
@@ -55,6 +56,7 @@ class TestHeartbeatPayload(unittest.TestCase):
         self.assertEqual(packet.heartbeat.memory_load, 0.0)
         self.assertEqual(packet.heartbeat.progress_pct, 0)
         self.assertEqual(packet.heartbeat.last_memo, "")
+        self.assertEqual(packet.heartbeat.auth_token, "token-123")
 
     def test_heartbeat_payload_with_memory_constructor(self):
         payload = heartbeat_payload_with_memory(

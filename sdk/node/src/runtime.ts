@@ -10,6 +10,7 @@ import { MalformedPacketError, SignatureInvalidError, SignatureMissingError, Inv
 import type { Logger } from "./logger";
 import type { MetricsHook } from "./metrics";
 import { noopMetrics } from "./metrics";
+import { handshakePayload, publishHandshake } from "./handshake";
 
 export type { Logger } from "./logger";
 
@@ -320,6 +321,19 @@ export class Agent {
           void this.onMessage(msg, spec);
         }
       );
+    }
+
+    try {
+      const readyTopics = Array.from(this.handlers.keys()).sort();
+      const packet = await handshakePayload(
+        this.senderId,
+        Object.fromEntries(Array.from(this.handlers.keys(), (topic) => [topic, true])),
+        this.senderId,
+        readyTopics
+      );
+      await publishHandshake(this.nc, packet, this.privateKey);
+    } catch (err) {
+      this.logger.warn("handshake publish failed", { senderId: this.senderId, error: String(err) });
     }
 
     this.heartbeatHandle = heartbeatLoop(

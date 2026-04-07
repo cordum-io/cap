@@ -27,4 +27,5 @@ message Handshake {
     repeated int32 supported_versions = 3; // wire versions this component supports
     map<string, bool> capabilities = 4;    // feature flags (signatures, compensation, progress, cancel, etc.)
     string sdk_version = 5;                // optional SDK version string
+    repeated string ready_topics = 6;      // topics this worker is ready to serve
 }

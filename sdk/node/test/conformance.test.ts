@@ -94,6 +94,7 @@ describe("CAP conformance fixtures", () => {
     assert.strictEqual(hb.pool, "job.tools");
     assert.strictEqual(hb.labels.zone, "us-east-1a");
     assert.strictEqual(hb.progressPct, 60);
+    assert.strictEqual(hb.authToken, "attest-worker-1");
   });
 
   it("decodes job progress fixture", async () => {
@@ -157,6 +158,7 @@ describe("CAP conformance fixtures", () => {
     assert.strictEqual(hs.capabilities.cancel, true);
     assert.strictEqual(hs.capabilities.compensation, false);
     assert.strictEqual(hs.sdkVersion, "2.0.19");
+    assert.deepStrictEqual(hs.readyTopics, ["job.tools", "job.tools.bulk"]);
   });
 
   it("decodes enhanced alert fixture", async () => {

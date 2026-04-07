@@ -44,6 +44,9 @@ export class Heartbeat extends jspb.Message {
   getLastMemo(): string;
   setLastMemo(value: string): void;
 
+  getAuthToken(): string;
+  setAuthToken(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Heartbeat.AsObject;
   static toObject(includeInstance: boolean, msg: Heartbeat): Heartbeat.AsObject;
@@ -69,6 +72,7 @@ export namespace Heartbeat {
     memoryLoad: number,
     progressPct: number,
     lastMemo: string,
+    authToken: string,
   }
 }
 

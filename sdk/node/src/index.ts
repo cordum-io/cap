@@ -9,5 +9,6 @@ export * from "./validate";
 export * from "./testing";
 export * from "./errors";
 export * from "./middleware";
+export * from "./handshake";
 export * from "./heartbeat";
 export * from "./progress";

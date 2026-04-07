@@ -23,21 +23,21 @@ const (
 
 // Heartbeat advertises worker liveness and load to schedulers.
 type Heartbeat struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	WorkerId       string                 `protobuf:"bytes,1,opt,name=worker_id,json=workerId,proto3" json:"worker_id,omitempty"`                     // unique worker identifier
-	Region         string                 `protobuf:"bytes,2,opt,name=region,proto3" json:"region,omitempty"`                                         // region/zone/cluster hint
-	Type           string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`                                             // capability class (cpu, gpu, cpu-tools)
-	CpuLoad        float32                `protobuf:"fixed32,4,opt,name=cpu_load,json=cpuLoad,proto3" json:"cpu_load,omitempty"`                      // 0-100
-	GpuUtilization float32                `protobuf:"fixed32,5,opt,name=gpu_utilization,json=gpuUtilization,proto3" json:"gpu_utilization,omitempty"` // 0-100
-	ActiveJobs     int32                  `protobuf:"varint,6,opt,name=active_jobs,json=activeJobs,proto3" json:"active_jobs,omitempty"`              // current in-flight jobs
-	Capabilities   []string               `protobuf:"bytes,7,rep,name=capabilities,proto3" json:"capabilities,omitempty"`                             // freeform skill descriptors
-	// field numbers 8-10 are reserved to allow future extensions
-	Pool            string            `protobuf:"bytes,11,opt,name=pool,proto3" json:"pool,omitempty"`                                                                               // pool name (often tied to job subject)
-	MaxParallelJobs int32             `protobuf:"varint,12,opt,name=max_parallel_jobs,json=maxParallelJobs,proto3" json:"max_parallel_jobs,omitempty"`                               // advertised concurrency limit
-	Labels          map[string]string `protobuf:"bytes,13,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // optional placement labels
-	MemoryLoad      float32           `protobuf:"fixed32,14,opt,name=memory_load,json=memoryLoad,proto3" json:"memory_load,omitempty"`                                               // 0-100
-	ProgressPct     int32             `protobuf:"varint,15,opt,name=progress_pct,json=progressPct,proto3" json:"progress_pct,omitempty"`                                             // 0-100 task-level progress checkpoint (optional)
-	LastMemo        string            `protobuf:"bytes,16,opt,name=last_memo,json=lastMemo,proto3" json:"last_memo,omitempty"`                                                       // last successful internal step/memo (short string/hash)
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	WorkerId        string                 `protobuf:"bytes,1,opt,name=worker_id,json=workerId,proto3" json:"worker_id,omitempty"`                                                        // unique worker identifier
+	Region          string                 `protobuf:"bytes,2,opt,name=region,proto3" json:"region,omitempty"`                                                                            // region/zone/cluster hint
+	Type            string                 `protobuf:"bytes,3,opt,name=type,proto3" json:"type,omitempty"`                                                                                // capability class (cpu, gpu, cpu-tools)
+	CpuLoad         float32                `protobuf:"fixed32,4,opt,name=cpu_load,json=cpuLoad,proto3" json:"cpu_load,omitempty"`                                                         // 0-100
+	GpuUtilization  float32                `protobuf:"fixed32,5,opt,name=gpu_utilization,json=gpuUtilization,proto3" json:"gpu_utilization,omitempty"`                                    // 0-100
+	ActiveJobs      int32                  `protobuf:"varint,6,opt,name=active_jobs,json=activeJobs,proto3" json:"active_jobs,omitempty"`                                                 // current in-flight jobs
+	Capabilities    []string               `protobuf:"bytes,7,rep,name=capabilities,proto3" json:"capabilities,omitempty"`                                                                // freeform skill descriptors
+	Pool            string                 `protobuf:"bytes,11,opt,name=pool,proto3" json:"pool,omitempty"`                                                                               // pool name (often tied to job subject)
+	MaxParallelJobs int32                  `protobuf:"varint,12,opt,name=max_parallel_jobs,json=maxParallelJobs,proto3" json:"max_parallel_jobs,omitempty"`                               // advertised concurrency limit
+	Labels          map[string]string      `protobuf:"bytes,13,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // optional placement labels
+	MemoryLoad      float32                `protobuf:"fixed32,14,opt,name=memory_load,json=memoryLoad,proto3" json:"memory_load,omitempty"`                                               // 0-100
+	ProgressPct     int32                  `protobuf:"varint,15,opt,name=progress_pct,json=progressPct,proto3" json:"progress_pct,omitempty"`                                             // 0-100 task-level progress checkpoint (optional)
+	LastMemo        string                 `protobuf:"bytes,16,opt,name=last_memo,json=lastMemo,proto3" json:"last_memo,omitempty"`                                                       // last successful internal step/memo (short string/hash)
+	AuthToken       string                 `protobuf:"bytes,18,opt,name=auth_token,json=authToken,proto3" json:"auth_token,omitempty"`                                                    // optional worker attestation credential
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -163,11 +163,18 @@ func (x *Heartbeat) GetLastMemo() string {
 	return ""
 }
 
+func (x *Heartbeat) GetAuthToken() string {
+	if x != nil {
+		return x.AuthToken
+	}
+	return ""
+}
+
 var File_cordum_agent_v1_heartbeat_proto protoreflect.FileDescriptor
 
 const file_cordum_agent_v1_heartbeat_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcordum/agent/v1/heartbeat.proto\x12\x0fcordum.agent.v1\"\xf9\x03\n" +
+	"\x1fcordum/agent/v1/heartbeat.proto\x12\x0fcordum.agent.v1\"\xaa\x04\n" +
 	"\tHeartbeat\x12\x1b\n" +
 	"\tworker_id\x18\x01 \x01(\tR\bworkerId\x12\x16\n" +
 	"\x06region\x18\x02 \x01(\tR\x06region\x12\x12\n" +
@@ -183,10 +190,14 @@ const file_cordum_agent_v1_heartbeat_proto_rawDesc = "" +
 	"\vmemory_load\x18\x0e \x01(\x02R\n" +
 	"memoryLoad\x12!\n" +
 	"\fprogress_pct\x18\x0f \x01(\x05R\vprogressPct\x12\x1b\n" +
-	"\tlast_memo\x18\x10 \x01(\tR\blastMemo\x1a9\n" +
+	"\tlast_memo\x18\x10 \x01(\tR\blastMemo\x12\x1d\n" +
+	"\n" +
+	"auth_token\x18\x12 \x01(\tR\tauthToken\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\x7f\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\b\x10\tJ\x04\b\t\x10\n" +
+	"J\x04\b\n" +
+	"\x10\vB\x7f\n" +
 	"\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
 
 var (

@@ -39,6 +39,12 @@ class TestRuntime(unittest.IsolatedAsyncioTestCase):
         self.store = InMemoryBlobStore()
         self.mock = MockNATS()
 
+    async def _next_published(self, expected_subject: str):
+        while True:
+            subject, payload = await asyncio.wait_for(self.mock.published.get(), timeout=1)
+            if subject == expected_subject:
+                return payload
+
     async def _send_job(self, job_id: str, topic: str, context_ptr: str):
         req = job_pb2.JobRequest(job_id=job_id, topic=topic, context_ptr=context_ptr)
         packet = buspacket_pb2.BusPacket()
@@ -62,8 +68,7 @@ class TestRuntime(unittest.IsolatedAsyncioTestCase):
         await agent.start()
         await self._send_job(job_id, "job.test", f"redis://{ctx_key}")
 
-        subject, payload = await asyncio.wait_for(self.mock.published.get(), timeout=1)
-        self.assertEqual(subject, "sys.job.result")
+        payload = await self._next_published("sys.job.result")
         result_packet = buspacket_pb2.BusPacket()
         result_packet.ParseFromString(payload)
         self.assertEqual(result_packet.job_result.status, job_pb2.JOB_STATUS_SUCCEEDED)
@@ -89,8 +94,7 @@ class TestRuntime(unittest.IsolatedAsyncioTestCase):
         await agent.start()
         await self._send_job(job_id, "job.validate", f"redis://{ctx_key}")
 
-        subject, payload = await asyncio.wait_for(self.mock.published.get(), timeout=1)
-        self.assertEqual(subject, "sys.job.result")
+        payload = await self._next_published("sys.job.result")
         result_packet = buspacket_pb2.BusPacket()
         result_packet.ParseFromString(payload)
         self.assertEqual(result_packet.job_result.status, job_pb2.JOB_STATUS_FAILED)
@@ -116,8 +120,7 @@ class TestRuntime(unittest.IsolatedAsyncioTestCase):
         await agent.start()
         await self._send_job(job_id, "job.retry", f"redis://{ctx_key}")
 
-        subject, payload = await asyncio.wait_for(self.mock.published.get(), timeout=1)
-        self.assertEqual(subject, "sys.job.result")
+        payload = await self._next_published("sys.job.result")
         result_packet = buspacket_pb2.BusPacket()
         result_packet.ParseFromString(payload)
         self.assertEqual(result_packet.job_result.status, job_pb2.JOB_STATUS_SUCCEEDED)

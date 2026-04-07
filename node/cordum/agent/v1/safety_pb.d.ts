@@ -43,6 +43,17 @@ export class PolicyCheckRequest extends jspb.Message {
   getMeta(): cordum_agent_v1_job_pb.JobMetadata | undefined;
   setMeta(value?: cordum_agent_v1_job_pb.JobMetadata): void;
 
+  getInputContent(): Uint8Array | string;
+  getInputContent_asU8(): Uint8Array;
+  getInputContent_asB64(): string;
+  setInputContent(value: Uint8Array | string): void;
+
+  getInputContentType(): string;
+  setInputContentType(value: string): void;
+
+  getInputSizeBytes(): number;
+  setInputSizeBytes(value: number): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PolicyCheckRequest.AsObject;
   static toObject(includeInstance: boolean, msg: PolicyCheckRequest): PolicyCheckRequest.AsObject;
@@ -66,6 +77,9 @@ export namespace PolicyCheckRequest {
     memoryId: string,
     effectiveConfig: Uint8Array | string,
     meta?: cordum_agent_v1_job_pb.JobMetadata.AsObject,
+    inputContent: Uint8Array | string,
+    inputContentType: string,
+    inputSizeBytes: number,
   }
 }
 

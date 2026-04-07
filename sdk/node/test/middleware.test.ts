@@ -34,6 +34,10 @@ async function waitFor(fn: () => boolean, timeoutMs = 1000): Promise<void> {
   throw new Error("timeout waiting for condition");
 }
 
+async function waitForPublishedSubject(mock: MockNatsConnection, subject: string, timeoutMs = 1000): Promise<void> {
+  await waitFor(() => mock.published.some((entry) => entry.subject === subject), timeoutMs);
+}
+
 async function sendJob(mock: MockNatsConnection, topic: string, jobId: string, ctxKey: string) {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
@@ -89,7 +93,7 @@ describe("Middleware (node)", () => {
 
     await agent.start();
     await sendJob(mock, "job.mw", jobId, ctxKey);
-    await waitFor(() => mock.published.length > 0);
+    await waitForPublishedSubject(mock, "sys.job.result");
 
     assert.deepStrictEqual(order, ["A-before", "B-before", "handler", "B-after", "A-after"]);
     await agent.close();
@@ -124,7 +128,7 @@ describe("Middleware (node)", () => {
 
     await agent.start();
     await sendJob(mock, "job.short", jobId, ctxKey);
-    await waitFor(() => mock.published.length > 0);
+    await waitForPublishedSubject(mock, "sys.job.result");
 
     assert.strictEqual(handlerCalled, false);
 
@@ -166,7 +170,7 @@ describe("Middleware (node)", () => {
 
     await agent.start();
     await sendJob(mock, "job.log", jobId, ctxKey);
-    await waitFor(() => mock.published.length > 0);
+    await waitForPublishedSubject(mock, "sys.job.result");
 
     const logOutput = logs.join("\n");
     assert.ok(logOutput.includes(jobId), `log should contain job ID: ${logOutput}`);

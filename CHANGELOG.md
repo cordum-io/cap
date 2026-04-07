@@ -4,6 +4,17 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
+## v2.9.0 — 2026-04-07
+
+- **[WIRE]** Added `auth_token` field (18) to `Heartbeat` for worker attestation.
+- **[WIRE]** Added `ready_topics` field (6) to `Handshake` for readiness declaration.
+- Added automatic handshake publish in `Agent.Start()` across Go, Python, and Node SDKs — all workers now send handshake at startup with zero code changes.
+- Added `publishHandshake()` to Python SDK (`cap.handshake`) and Node SDK (`handshake.ts`) — previously only Go SDK had this.
+- Updated heartbeat payload builders in all 3 SDKs to accept `auth_token` parameter.
+- Updated handshake construction in all 3 SDKs to include `ready_topics` from registered handler topics.
+- Updated spec docs: 05-heartbeats.md (auth_token), 14-capability-negotiation.md (ready_topics), 10-security-observability.md (attestation flow).
+- Regenerated conformance fixtures for new proto fields.
+
 ## Unreleased — Protocol Hardening
 
 - **[WIRE]** Added `ErrorCode` enum and `error_code_enum` field to `JobResult` for structured error classification.

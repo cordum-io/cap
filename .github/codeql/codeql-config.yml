@@ -1,0 +1,28 @@
+name: "Cordum CAP CodeQL config"
+
+# Paired with .github/workflows/codeql.yml. Controls per-language query
+# selection and path filtering for CodeQL analysis. Keep intentionally
+# conservative — we want high-signal findings, not every stylistic suggestion.
+
+# Pull the security-extended query pack in addition to the default pack so
+# we catch CWE-89-class issues in Python and the high-severity TypeScript
+# sinks (DOM XSS, prototype pollution) that the default pack misses.
+queries:
+  - uses: security-extended
+
+paths-ignore:
+  # Vendored / generated artifacts — noise, not our source.
+  - "sdk/node/node_modules/**"
+  - "**/dist/**"
+  - "**/build/**"
+  # Protobuf-generated sources are best scanned via the source .proto, not
+  # the derived code; skip the derived trees to keep results actionable.
+  - "python/cordum/**/*_pb2.py"
+  - "python/cordum/**/*_pb2_grpc.py"
+  - "sdk/python/cap/pb/**/*_pb2.py"
+  - "sdk/python/cap/pb/**/*_pb2_grpc.py"
+  - "sdk/java/src/main/java/**/*OrBuilder.java"
+  # Example / playground code is for docs, not production — don't block PRs
+  # on issues that exist only in copy-paste tutorials.
+  - "examples/**"
+  - "playground/**"

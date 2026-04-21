@@ -1,0 +1,67 @@
+name: CodeQL
+
+# Replaces GitHub's default code-scanning setup with an explicit workflow
+# that scopes the language matrix to what actually exists in this repo.
+#
+# The default setup auto-detects every language CodeQL supports and runs an
+# analyzer per language. For cap, that produced noisy "low analysis quality"
+# warnings on csharp / ruby / rust / c-cpp because the autodetect scans a
+# handful of generated or protobuf-derived files that don't represent real
+# source. Narrowing the matrix removes those false positives and keeps the
+# security scans focused on code we actually ship.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly re-scan to pick up new queries / advisories even when the repo is quiet.
+    - cron: "23 6 * * 1"
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - actions
+          - go
+          - javascript-typescript
+          - python
+          - java-kotlin
+        # csharp / ruby / rust / c-cpp are DELIBERATELY EXCLUDED — this repo
+        # has no source in those languages; GitHub's default code-scanning
+        # setup auto-detected them from generated / template files and
+        # produced low-confidence noise. Re-add only when real source lands.
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go (only for go matrix leg)
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: "go.mod"
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

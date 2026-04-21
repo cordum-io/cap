@@ -9,6 +9,21 @@ name: CodeQL
 # handful of generated or protobuf-derived files that don't represent real
 # source. Narrowing the matrix removes those false positives and keeps the
 # security scans focused on code we actually ship.
+#
+# Build modes per language:
+#   * actions / javascript-typescript / python  → build-mode: none (source-only)
+#   * go                                        → autobuild (go-version pinned
+#                                                 via go.mod so govulncheck
+#                                                 sees the current toolchain)
+#   * java-kotlin                               → build-mode: none — sdk/java
+#                                                 has no Gradle wrapper, and
+#                                                 CodeQL's java autobuild needs
+#                                                 one. Source-only analysis
+#                                                 still catches high-severity
+#                                                 sinks in hand-written code;
+#                                                 the generated protobuf
+#                                                 classes are filtered by
+#                                                 codeql-config.yml paths-ignore.
 
 on:
   push:
@@ -31,12 +46,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language:
-          - actions
-          - go
-          - javascript-typescript
-          - python
-          - java-kotlin
+        include:
+          - language: actions
+            build-mode: none
+          - language: go
+            build-mode: autobuild
+          - language: javascript-typescript
+            build-mode: none
+          - language: python
+            build-mode: none
+          - language: java-kotlin
+            build-mode: none
         # csharp / ruby / rust / c-cpp are DELIBERATELY EXCLUDED — this repo
         # has no source in those languages; GitHub's default code-scanning
         # setup auto-detected them from generated / template files and
@@ -56,9 +76,11 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
           config-file: ./.github/codeql/codeql-config.yml
 
-      - name: Autobuild
+      - name: Autobuild (go only)
+        if: matrix.build-mode == 'autobuild'
         uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis

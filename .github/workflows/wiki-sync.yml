@@ -8,12 +8,25 @@ on:
       - 'wiki/**'
   workflow_dispatch: # <--- THIS LINE ADDS THE BUTTON
 
+permissions:
+  # Read-only is enough: actions/checkout needs contents:read, and the
+  # wiki push uses its own WIKI_TOKEN PAT (scoped to the wiki repo),
+  # not the default GITHUB_TOKEN. Explicit block closes the
+  # `actions/missing-workflow-permissions` CodeQL alert.
+  contents: read
+
 jobs:
   sync-wiki:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: Andrew-Chen-Wang/github-wiki-action@v4
+      # SHA pins close the `actions/unpinned-tag` CodeQL alert class.
+      # Floating tags (@v4, @release/v1) are mutable and a maintainer
+      # takeover or publish-hijack would silently replace action code on
+      # next workflow run.
+      # Update cadence: bump these SHAs when a known-good release lands;
+      # the workflow doesn't auto-upgrade, which is the point.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.1.7
+      - uses: Andrew-Chen-Wang/github-wiki-action@50650fccf3a10f741995523cf9708c53cec8912a # v4
         with:
           token: ${{ secrets.WIKI_TOKEN }}
           path: wiki

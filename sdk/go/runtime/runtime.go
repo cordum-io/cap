@@ -159,8 +159,19 @@ type Agent struct {
 	Logger          *slog.Logger
 	Metrics         MetricsHook
 
+	// Phase-2 worker handshake. Tenant + HandshakeMode opt the agent
+	// into the Phase-2 session-token flow on Start(); zero-valued
+	// fields preserve the pre-Phase-2 behaviour. See handshake.go.
+	Tenant            string
+	SDKVersion        string
+	HandshakeMode     HandshakeMode
+	HandshakeTimeout  time.Duration
+	HandshakeRetries  int
+
 	handlers    map[string]handlerSpec
 	middlewares []Middleware
+	session     *sessionState
+	renew       *renewer
 }
 
 // Register registers a typed handler for a topic.
@@ -254,6 +265,18 @@ func (a *Agent) Start() error {
 		a.Store = store
 	}
 
+	// Phase-2 worker handshake. Must precede job-topic subscription
+	// so that in enforce mode no job handlers ever run without a
+	// trusted session token. In warn/off modes the handshake is
+	// best-effort and Start() proceeds regardless.
+	if _, err := a.performHandshake(context.Background()); err != nil {
+		return err
+	}
+	// Spawn the renew loop only if we obtained a session token; in
+	// warn mode Start() may succeed without one, in which case the
+	// loop would have nothing to refresh.
+	a.startRenewLoop(context.Background())
+
 	for _, spec := range a.handlers {
 		handler := spec
 		_, err := a.NATS.QueueSubscribe(handler.topic, handler.topic, func(msg *nats.Msg) {
@@ -290,6 +313,12 @@ func (a *Agent) publishHandshake() {
 			},
 		},
 	}
+	// Attach the session token on the legacy handshake packet too —
+	// this is the generic protocol-negotiation handshake (not the
+	// Phase-2 trust handshake), and a session token on it lets the
+	// scheduler tie this broadcast to a trusted agent identity when
+	// enforce mode is active.
+	a.withSessionToken(packet)
 	if a.PrivateKey != nil {
 		if err := capsdk.SignPacket(packet, a.PrivateKey); err != nil {
 			a.Logger.Warn("sign handshake failed", "error", err)
@@ -309,6 +338,7 @@ func (a *Agent) publishHandshake() {
 
 // Close drains NATS and closes the blob store if possible.
 func (a *Agent) Close() error {
+	a.stopRenewLoop()
 	if conn, ok := a.NATS.(*nats.Conn); ok {
 		if err := conn.Drain(); err != nil {
 			slog.Warn("nats drain failed during close", "error", err)
@@ -470,6 +500,11 @@ func (a *Agent) publishResult(ctx Context, result *agentv1.JobResult) {
 			JobResult: result,
 		},
 	}
+	// Phase-2: attach the session token BEFORE signing so the
+	// signature covers the token bytes. A stripped/tampered token
+	// would invalidate the packet signature — belt-and-suspenders
+	// with the scheduler-side token verification.
+	a.withSessionToken(packet)
 	if a.PrivateKey != nil {
 		if err := capsdk.SignPacket(packet, a.PrivateKey); err != nil {
 			ctx.Logger.Error("failed signing packet", "error", err)

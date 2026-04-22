@@ -1,0 +1,1138 @@
+{
+  "$schema": "moe-import-v1",
+  "source": "CAP_STRATEGY_EPICS.md",
+  "generated": "2026-04-18",
+  "project": "cap",
+  "bet": "CAP is a neutral standard with Cordum as the best implementation \u2014 not 'Cordum's protocol.'",
+  "globalRails": [
+    "Normative CAP behavior MUST NOT require Cordum-specific code paths.",
+    "No spec/adapter/packs change lands without a conformance-fixture delta plan.",
+    "Perception changes (naming, docs, site copy) do not wait for legal foundation transfer.",
+    "Every public claim (README, site, marketing) must be true at merge time, not aspirationally.",
+    "CAP public-facing content (site, papers, talks, social) never co-brands with Cordum beyond a single 'founding implementer' attribution line.",
+    "CAP's publishing cadence, community events, and launch motion run on the CAP calendar, not the Cordum marketing calendar.",
+    "Custody of CAP public assets (domain, GitHub org, trademark, social handles) sits with a non-Cordum entity before any public launch.",
+    "No paid advertising for CAP in the first 180 days \u2014 credibility is the asset; paid media undermines the neutrality perception."
+  ],
+  "epics": [
+    {
+      "id": "E1",
+      "title": "Company Decision & Staffing",
+      "window": "Days 0-14",
+      "owner": "founder",
+      "goal": "Binary decision \u2014 CAP as primary moat vs integration surface \u2014 with staffing, owner, and roadmap reallocation visible by Day 14.",
+      "successMetric": "Every team member can answer 'control plane vs governance standard + best implementation' in one sentence by Day 14.",
+      "dependsOn": [],
+      "tasks": [
+        {
+          "id": "T1.1",
+          "title": "CAP-vs-feature decision memo",
+          "description": "One-page founder-signed memo stating the bet, what gets deprioritized in the current Cordum roadmap (enterprise hardening, packs, scale) to fund CAP, and the 1-sentence positioning test.",
+          "definitionOfDone": [
+            "Memo published to internal wiki",
+            "Linked from Cordum + CAP READMEs"
+          ],
+          "priority": "P0",
+          "role": "founder",
+          "dependsOn": []
+        },
+        {
+          "id": "T1.2",
+          "title": "Staff CAP as a product line",
+          "description": "Identify and announce named humans in these roles: founder-level owner, protocol/spec editor, ecosystem engineer (adapters/conformance), DX engineer (SDKs/docs/examples), part-time counsel (IP/trademark/foundation).",
+          "definitionOfDone": [
+            "Internal CAP_TEAM.md lists named humans with allocation percentages",
+            "Counsel engaged with signed engagement letter"
+          ],
+          "priority": "P0",
+          "role": "founder",
+          "dependsOn": ["T1.1"]
+        },
+        {
+          "id": "T1.3",
+          "title": "Freeze CAP public-messaging edits under a single owner",
+          "description": "Every change to README, site, docs, decks, repo metadata routes through one reviewer until Epic 2 ships.",
+          "definitionOfDone": [
+            "CODEOWNERS entry in cap repo",
+            "Site repo branch protection configured",
+            "Review SLA documented"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T1.2"]
+        },
+        {
+          "id": "T1.4",
+          "title": "Audit all CAP public surfaces",
+          "description": "Enumerate: cordum.io/protocol, github.com/cordum-io/cap, SDK package metadata (npm/PyPI/Go module path), spec repo, release notes, CHANGELOG, adapter claims, pack claims, governance docs, marketing assets. Produce a delta list of every surface that still reads 'vendor-owned.'",
+          "definitionOfDone": [
+            "Audit spreadsheet with URL, current text, target state, owner for every surface",
+            "Delta list triaged P0/P1/P2"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T1.2"]
+        }
+      ]
+    },
+    {
+      "id": "E2",
+      "title": "Neutral Branding & Separation",
+      "window": "Days 0-30",
+      "owner": "founder",
+      "goal": "Perception layer matches the bet. CAP does not feel Cordum-owned at the URL, repo, site, or community level.",
+      "dependsOn": ["T1.4"],
+      "tasks": [
+        {
+          "id": "T2.1",
+          "title": "Pick neutral public name and domain",
+          "description": "Keep acronym 'CAP'; decide neutral expansion (or drop expansion entirely), reserve domain, secure trademark-ready naming.",
+          "definitionOfDone": [
+            "ADR in spec/ recording name + domain + rationale",
+            "Domain registered"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T1.4"]
+        },
+        {
+          "id": "T2.2",
+          "title": "Stop expanding CAP as 'Cordum Agent Protocol' publicly",
+          "description": "Sweep repo, site, spec, SDK metadata, package manifests for the phrase 'Cordum Agent Protocol' and replace with the neutral expansion (or drop expansion).",
+          "definitionOfDone": [
+            "grep for 'Cordum Agent Protocol' returns zero public-facing hits",
+            "Internal docs may retain historical usage"
+          ],
+          "priority": "P0",
+          "role": "worker",
+          "dependsOn": ["T2.1"]
+        },
+        {
+          "id": "T2.3",
+          "title": "Migrate docs to neutral docs site",
+          "description": "Stand up docs.<neutral-domain> with the full spec/ + getting-started + sdk-comparison + troubleshooting. Redirect cordum.io/protocol to neutral docs.",
+          "definitionOfDone": [
+            "301 redirects live",
+            "Docs site has feature parity with current",
+            "Canonical URLs updated in meta tags"
+          ],
+          "priority": "P1",
+          "role": "worker",
+          "dependsOn": ["T2.1"]
+        },
+        {
+          "id": "T2.4",
+          "title": "Create neutral GitHub org for spec and governance",
+          "description": "Move cap repo (or fork + redirect) to the neutral org. Move governance repo, trademark repo, conformance repo. Plan Go module path migration.",
+          "definitionOfDone": [
+            "Neutral org created",
+            "Repos moved",
+            "Old cordum-io/cap redirects",
+            "CI green on new paths",
+            "Go module path migration plan documented"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T2.1"]
+        },
+        {
+          "id": "T2.5",
+          "title": "Reframe Cordum site from 'our protocol' to 'Cordum implements CAP'",
+          "description": "Copy rewrite on cordum.io, pricing page, homepage, docs cross-links.",
+          "definitionOfDone": [
+            "Site diff reviewed",
+            "No 'our protocol' / 'Cordum's protocol' strings remain"
+          ],
+          "priority": "P0",
+          "role": "worker",
+          "dependsOn": ["T2.1"]
+        },
+        {
+          "id": "T2.6",
+          "title": "Move community surfaces to neutral branding",
+          "description": "Rename Discord/Slack channel, forum, social accounts, demo videos to neutral branding.",
+          "definitionOfDone": [
+            "Rename list executed",
+            "Handles secured on all platforms"
+          ],
+          "priority": "P1",
+          "role": "worker",
+          "dependsOn": ["T2.1"]
+        }
+      ]
+    },
+    {
+      "id": "E3",
+      "title": "Governance & Legal Package",
+      "window": "Days 0-45",
+      "owner": "counsel+architect",
+      "goal": "Governance package is drafted and public before foundation outreach, so adopters can evaluate CAP's independence.",
+      "dependsOn": ["T1.2", "T2.1"],
+      "tasks": [
+        {
+          "id": "T3.1",
+          "title": "Draft governance charter",
+          "description": "Scope, non-goals, membership, decision rules, conflict resolution.",
+          "definitionOfDone": [
+            "Charter in governance repo at /CHARTER.md",
+            "Reviewed by counsel"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T1.2"]
+        },
+        {
+          "id": "T3.2",
+          "title": "Maintainer ladder",
+          "description": "Contributor to committer to maintainer to TSC; criteria, nomination process, removal process.",
+          "definitionOfDone": [
+            "/MAINTAINERS.md + /GOVERNANCE.md merged"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T3.1"]
+        },
+        {
+          "id": "T3.3",
+          "title": "Spec change process",
+          "description": "RFC template, review SLA, compatibility class (wire-breaking vs additive vs editorial), required conformance-fixture delta.",
+          "definitionOfDone": [
+            "spec/PROCESS.md merged",
+            "First RFC PR dogfoods the process end-to-end"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T3.1"]
+        },
+        {
+          "id": "T3.4",
+          "title": "TSC trigger and composition rules",
+          "description": "When TSC forms, seat-allocation rules, voting thresholds, tiebreaker.",
+          "definitionOfDone": [
+            "Section in GOVERNANCE.md merged"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T3.2"]
+        },
+        {
+          "id": "T3.5",
+          "title": "Patent non-assert covenant",
+          "description": "Draft and publish patent non-assert covenant signed by Cordum as founding contributor.",
+          "definitionOfDone": [
+            "/PATENTS.md signed and published"
+          ],
+          "priority": "P0",
+          "role": "counsel",
+          "dependsOn": ["T1.2"]
+        },
+        {
+          "id": "T3.6",
+          "title": "'CAP-compatible' trademark policy",
+          "description": "Permitted uses, badge usage, conformance requirement, enforcement posture.",
+          "definitionOfDone": [
+            "/TRADEMARK.md merged",
+            "Badge assets published",
+            "Usage examples documented"
+          ],
+          "priority": "P0",
+          "role": "counsel",
+          "dependsOn": ["T2.1"]
+        }
+      ]
+    },
+    {
+      "id": "E4",
+      "title": "Apache Reference Kit",
+      "window": "Days 15-60",
+      "owner": "ecosystem-eng",
+      "goal": "An Apache-2.0-only implementation proves interop without Cordum. Removes the BUSL licensing trap as an adoption blocker.",
+      "dependsOn": ["E5", "T3.6"],
+      "tasks": [
+        {
+          "id": "T4.1",
+          "title": "Reference kit scope doc",
+          "description": "Define what ships: golden packets, test vectors, minimal reference worker, minimal gateway/scheduler sample, conformance CLI, badge. List what it deliberately does NOT ship (auth, RBAC, workflow engine, Safety Kernel, Redis/NATS prod hardening).",
+          "definitionOfDone": [
+            "Scope doc merged in neutral repo"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T5.1"]
+        },
+        {
+          "id": "T4.2",
+          "title": "Golden packets + test vectors bundle v1",
+          "description": "Extend existing tools/conformance/generate_fixtures.go output into a published fixture bundle with versioning, checksums, and per-profile coverage map.",
+          "definitionOfDone": [
+            "Fixture bundle v1 tagged",
+            "All four SDKs decode it in CI"
+          ],
+          "priority": "P0",
+          "role": "worker",
+          "dependsOn": ["T4.1", "T5.1"]
+        },
+        {
+          "id": "T4.3",
+          "title": "Minimal reference worker runtime (Apache-2.0)",
+          "description": "Standalone binary in neutral repo. Accepts JobRequest, emits heartbeat/progress/result. No Cordum imports.",
+          "definitionOfDone": [
+            "go run works against public NATS fixture",
+            "Conformance CLI passes",
+            "No imports from cordum-io/cordum"
+          ],
+          "priority": "P0",
+          "role": "worker",
+          "dependsOn": ["T4.1"]
+        },
+        {
+          "id": "T4.4",
+          "title": "Minimal gateway/scheduler sample (Apache-2.0)",
+          "description": "Standalone binary. Submits jobs, routes results. No Cordum imports.",
+          "definitionOfDone": [
+            "Round-trip test against T4.3 worker passes in CI"
+          ],
+          "priority": "P0",
+          "role": "worker",
+          "dependsOn": ["T4.3"]
+        },
+        {
+          "id": "T4.5",
+          "title": "Conformance CLI + badge emitter",
+          "description": "`cap conformance run --impl <url>` produces a pass/fail report + signed badge JSON.",
+          "definitionOfDone": [
+            "CLI binary released",
+            "Cordum runs it in its CI and publishes the badge"
+          ],
+          "priority": "P0",
+          "role": "worker",
+          "dependsOn": ["T4.2", "T3.6"]
+        },
+        {
+          "id": "T4.6",
+          "title": "Normative vs product-behavior line in spec/",
+          "description": "Sweep spec/ and annotate every clause with [NORMATIVE] or [IMPLEMENTATION-NOTE]. Move Cordum-specific behavior into docs/cordum-implementation-notes.md.",
+          "definitionOfDone": [
+            "Spec sweep merged",
+            "Conformance CLI reports only against [NORMATIVE] clauses"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T5.1", "T5.2", "T5.3", "T5.4"]
+        }
+      ]
+    },
+    {
+      "id": "E5",
+      "title": "Four-Profile Split",
+      "window": "Days 15-60",
+      "owner": "spec-editor",
+      "goal": "Implementation boundaries become obvious. Cordum's stack looks like one implementation, not the definition.",
+      "dependsOn": ["T1.2"],
+      "parallelWith": "E4",
+      "tasks": [
+        {
+          "id": "T5.1",
+          "title": "Core wire profile",
+          "description": "Envelope (BusPacket), JobRequest, JobResult, JobProgress, JobCancel, JobStatus, Heartbeat. Minimum viable CAP.",
+          "definitionOfDone": [
+            "spec/profiles/core.md merged",
+            "Conformance fixtures tagged 'core'"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": []
+        },
+        {
+          "id": "T5.2",
+          "title": "Transport bindings profile",
+          "description": "NATS binding first-class; HTTP, gRPC, Kafka as optional appendices with their own conformance fixtures.",
+          "definitionOfDone": [
+            "spec/profiles/transport-nats.md merged",
+            "Placeholders for other transports"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T5.1"]
+        },
+        {
+          "id": "T5.3",
+          "title": "Governance profile",
+          "description": "Policy-before-dispatch, approval binding, remediation hooks, constraints.",
+          "definitionOfDone": [
+            "spec/profiles/governance.md merged",
+            "Fixtures showing a denied dispatch + approval round-trip"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T5.1"]
+        },
+        {
+          "id": "T5.4",
+          "title": "Workflow profile",
+          "description": "Parent/child job semantics, DAG execution, compensation/rollback.",
+          "definitionOfDone": [
+            "spec/profiles/workflow.md merged",
+            "Fixtures covering parent/child + compensation"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T5.1"]
+        },
+        {
+          "id": "T5.5",
+          "title": "Profile conformance matrix",
+          "description": "Each SDK, each implementation, which profiles pass.",
+          "definitionOfDone": [
+            "Matrix page on neutral docs site wired to CI badge output"
+          ],
+          "priority": "P1",
+          "role": "worker",
+          "dependsOn": ["T4.5", "T5.2", "T5.3", "T5.4"]
+        }
+      ]
+    },
+    {
+      "id": "E6",
+      "title": "Framework Adapters",
+      "window": "Days 15-90",
+      "owner": "ecosystem-eng",
+      "goal": "Two credible framework-native adoption lanes. Each adapter is thin, does five things well, ships with one real demo.",
+      "priorityOrder": ["LangGraph", "CrewAI", "LlamaIndex (deferred)", "AutoGen (compat-only)"],
+      "perAdapterDoD": [
+        "Submit governed jobs (CAP JobRequest -> framework primitive)",
+        "Expose progress, heartbeat, cancel to the framework's event stream",
+        "Surface approvals and policy denials cleanly (typed errors, not generic exceptions)",
+        "Emit interoperable traces and artifacts",
+        "One real end-to-end demo repo with README, Docker-compose, <5-minute time-to-first-job",
+        "Passes conformance CLI against the Apache reference kit",
+        "No Cordum runtime required"
+      ],
+      "dependsOn": ["E5", "T4.5"],
+      "tasks": [
+        {
+          "id": "T6.1",
+          "title": "LangGraph adapter",
+          "description": "TypeScript + Python. Published as standalone package in neutral org. Implements the five per-adapter DoD capabilities + demo + conformance.",
+          "definitionOfDone": [
+            "Published to npm and PyPI under neutral org",
+            "Demo repo with Docker-compose, <5-min TTFJ",
+            "Conformance CLI pass",
+            "No Cordum runtime imports"
+          ],
+          "priority": "P0",
+          "role": "worker",
+          "dependsOn": ["T4.5", "T5.3"]
+        },
+        {
+          "id": "T6.2",
+          "title": "CrewAI adapter",
+          "description": "Python. Same DoD pattern as LangGraph.",
+          "definitionOfDone": [
+            "Published to PyPI under neutral org",
+            "Demo repo with Docker-compose, <5-min TTFJ",
+            "Conformance CLI pass",
+            "No Cordum runtime imports"
+          ],
+          "priority": "P0",
+          "role": "worker",
+          "dependsOn": ["T4.5", "T5.3"]
+        },
+        {
+          "id": "T6.3",
+          "title": "LlamaIndex adapter (deferred lane)",
+          "description": "Stub + issue tracker entry; work starts only after T6.1 + T6.2 have one external adopter each.",
+          "definitionOfDone": [
+            "Stub repo created",
+            "Issue tracker entry describes gating conditions"
+          ],
+          "priority": "P2",
+          "role": "architect",
+          "dependsOn": ["T6.1", "T6.2"],
+          "gatedBy": "One external adopter each on T6.1 and T6.2"
+        },
+        {
+          "id": "T6.4",
+          "title": "AutoGen compatibility lane",
+          "description": "Minimal shim, documented as 'compatibility only, not strategically prioritized due to upstream maintenance-mode status.'",
+          "definitionOfDone": [
+            "Shim published",
+            "README explicitly states compat-only, non-strategic status"
+          ],
+          "priority": "P2",
+          "role": "worker",
+          "dependsOn": ["T4.5"]
+        },
+        {
+          "id": "T6.5",
+          "title": "Adapter claims audit",
+          "description": "Sweep CAP README and site for adapter/pack claims that outrun reality; either upgrade asset to match claim or tighten claim to match asset.",
+          "definitionOfDone": [
+            "Every public claim verifiable in <=10 minutes by a new reader"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T1.4"]
+        }
+      ]
+    },
+    {
+      "id": "E7",
+      "title": "Adopter Motions",
+      "window": "Days 15-90",
+      "owner": "founder",
+      "goal": "One framework-native integration signed + one real product adopter signed. Both with founder-level engagement.",
+      "dependsOn": ["T6.1", "T6.2"],
+      "tasks": [
+        {
+          "id": "T7.1",
+          "title": "Framework wedge: LangGraph or CrewAI design partnership",
+          "description": "Founder-owned outreach. Offer: engineering help, joint launch, governance seat.",
+          "definitionOfDone": [
+            "Signed MOU or public joint announcement"
+          ],
+          "priority": "P0",
+          "role": "founder",
+          "dependsOn": ["T6.1", "T6.2"]
+        },
+        {
+          "id": "T7.2",
+          "title": "Product wedge: open-source agent/workflow adopter",
+          "description": "Target shortlist of 5, outreach, land one. Offer: free implementation support, co-authored case study, roadmap input, founding-implementer recognition.",
+          "definitionOfDone": [
+            "Shortlist documented",
+            "Signed design-partner agreement with one adopter"
+          ],
+          "priority": "P0",
+          "role": "founder",
+          "dependsOn": ["T4.5"]
+        },
+        {
+          "id": "T7.3",
+          "title": "Standing offer template",
+          "description": "Productize the partner offer.",
+          "definitionOfDone": [
+            "partnerships/FOUNDING_IMPLEMENTER.md on neutral docs site",
+            "Clear 'apply here' path"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T7.1"]
+        },
+        {
+          "id": "T7.4",
+          "title": "Founder calendar allocation",
+          "description": "Block founder time for first adopter conversations \u2014 not just engineering triage.",
+          "definitionOfDone": [
+            "Standing weekly slot on founder's calendar labeled 'CAP adopter motion'"
+          ],
+          "priority": "P0",
+          "role": "founder",
+          "dependsOn": ["T1.2"]
+        }
+      ]
+    },
+    {
+      "id": "E8",
+      "title": "Proof Assets",
+      "window": "Days 90-180",
+      "owner": "ecosystem-eng",
+      "goal": "Three assets that make adoption easy to justify.",
+      "dependsOn": ["E6", "E7"],
+      "tasks": [
+        {
+          "id": "T8.1",
+          "title": "Interoperability report v1",
+          "description": "Two or three independent implementations passing conformance. Report includes: implementations tested, profiles covered, failure modes found and fixed, gaps known.",
+          "definitionOfDone": [
+            "Published on neutral docs site",
+            "Referenced from all adapter READMEs"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T4.5", "T5.5"]
+        },
+        {
+          "id": "T8.2",
+          "title": "Governance benchmark / demo",
+          "description": "Live, reproducible demo of: policy-before-dispatch, approval binding, rollback, audit. Not a pitch deck \u2014 a running system with a scripted scenario.",
+          "definitionOfDone": [
+            "Public repo",
+            "Hosted demo URL",
+            "3-minute video walkthrough"
+          ],
+          "priority": "P0",
+          "role": "worker",
+          "dependsOn": ["T5.3", "T4.3", "T4.4"]
+        },
+        {
+          "id": "T8.3",
+          "title": "First adopter case study",
+          "description": "Co-authored with T7.1 or T7.2 partner. Focus on 'CAP gave us enterprise governance without rewriting our runtime.'",
+          "definitionOfDone": [
+            "Case study published",
+            "Partner-quoted",
+            "Linked from neutral site + Cordum site"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T7.1", "T7.2"]
+        }
+      ]
+    },
+    {
+      "id": "E9",
+      "title": "AAIF Foundation Path",
+      "window": "Days 46-180",
+      "owner": "founder+counsel",
+      "goal": "AAIF as the primary neutral-home path. CNCF deferred as a later option for a runtime/reference implementation if one is ever opened.",
+      "dependsOn": ["E3"],
+      "tasks": [
+        {
+          "id": "T9.1",
+          "title": "AAIF pre-brief",
+          "description": "Informal intro call with AAIF TSC contact. Share charter draft + interop status. Collect feedback.",
+          "definitionOfDone": [
+            "Meeting notes in governance repo",
+            "Follow-up action items logged"
+          ],
+          "priority": "P0",
+          "role": "founder",
+          "dependsOn": ["T3.1", "T3.5", "T3.6"]
+        },
+        {
+          "id": "T9.2",
+          "title": "Monthly public maintainer call",
+          "description": "Kick off a recurring public call; minutes published.",
+          "definitionOfDone": [
+            "First two calls executed",
+            "Attendance and recording archive live"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T3.2"]
+        },
+        {
+          "id": "T9.3",
+          "title": "AAIF proposal submission",
+          "description": "Formal proposal per AAIF project proposal process.",
+          "definitionOfDone": [
+            "Proposal submitted",
+            "Tracking issue linked in governance repo"
+          ],
+          "priority": "P0",
+          "role": "founder",
+          "dependsOn": ["T9.1", "T8.1"]
+        },
+        {
+          "id": "T9.4",
+          "title": "CNCF sandbox pre-assessment (optional, deferred)",
+          "description": "Only start after T9.3 feedback; only pursue for a runtime/reference implementation if one exists as a standalone project.",
+          "definitionOfDone": [
+            "Decision memo: pursue or drop"
+          ],
+          "priority": "P2",
+          "role": "architect",
+          "dependsOn": ["T9.3"],
+          "gatedBy": "T9.3 feedback + existence of standalone runtime project"
+        }
+      ]
+    },
+    {
+      "id": "E10",
+      "title": "Kill-Criteria Review",
+      "window": "Day 180 checkpoint",
+      "owner": "founder",
+      "goal": "Judge the bet hard at 6 months. If any kill criterion triggers, downgrade CAP from 'standard' to 'Cordum integration protocol.'",
+      "killCriteria": [
+        "Zero external implementers by 6 months",
+        "Every spec change still effectively a Cordum product decision",
+        "Adopters keep needing Cordum-only behavior to pass conformance"
+      ],
+      "dependsOn": ["E4", "E6", "E7", "E8"],
+      "tasks": [
+        {
+          "id": "T10.1",
+          "title": "6-month review doc",
+          "description": "Scored against the three kill criteria.",
+          "definitionOfDone": [
+            "Review memo published internally",
+            "Go/downgrade decision recorded",
+            "Communication plan drafted"
+          ],
+          "priority": "P0",
+          "role": "founder",
+          "dependsOn": ["E8"]
+        },
+        {
+          "id": "T10.2",
+          "title": "Downgrade plan (contingent)",
+          "description": "If any criterion triggers: roadmap rewrite, messaging revert, staffing reallocation, foundation conversation pause.",
+          "definitionOfDone": [
+            "Plan ready-to-execute but unpublished",
+            "Revisited at T10.1 checkpoint"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T10.1"],
+          "gatedBy": "Any kill criterion triggered at T10.1"
+        }
+      ]
+    },
+    {
+      "id": "E11",
+      "title": "Cordum Moat Above the Protocol Line (positioning-only)",
+      "window": "Ongoing",
+      "owner": "cordum-product",
+      "goal": "Cordum wins by being the best CAP-native control plane, not by owning CAP. This epic tracks the moat work that already exists on Cordum's roadmap \u2014 listed here so it is visibly separate from CAP work and positioned above the protocol line.",
+      "note": "NOT newly scoped here \u2014 this is the existing Cordum roadmap, labeled for positioning clarity. Do NOT file as a CAP epic in Moe; cross-reference only.",
+      "dependsOn": [],
+      "tasks": [
+        {
+          "id": "T11.1",
+          "title": "Add 'above the CAP line' positioning note to each moat area README",
+          "description": "Areas: enterprise auth + RBAC, policy authoring + change control, compliance packs, managed operations, deployment hardening, support + case studies + trust artifacts.",
+          "definitionOfDone": [
+            "Each of the 6 areas has a one-line 'above the CAP line' positioning note in its README"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T2.5"]
+        }
+      ]
+    },
+    {
+      "id": "E12",
+      "title": "CAP Independent Web Presence",
+      "window": "Days 0-60",
+      "owner": "marketing-lead",
+      "goal": "CAP has a standalone web presence that does not live as a tenant of cordum.io. Site, blog, and docs are visibly operated by the CAP project, not by Cordum.",
+      "dependsOn": ["T2.1", "T15.3"],
+      "tasks": [
+        {
+          "id": "T12.1",
+          "title": "Marketing site architecture + stack decision",
+          "description": "Decide stack (Astro / Next / Hugo), hosting (neutral entity, not Cordum's Vercel/Cloudflare account), analytics posture (privacy-respecting), DNS ownership.",
+          "definitionOfDone": [
+            "ADR merged",
+            "Hosting account provisioned under the interim legal structure from Epic 15"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T2.1", "T15.3"]
+        },
+        {
+          "id": "T12.2",
+          "title": "Homepage + positioning pages",
+          "description": "Homepage pitch; 'Why CAP'; audience landings (framework authors / platform teams / enterprise); 'Compare' vs MCP/A2A/OpenAgents (fair and specific); Implementations matrix; Adopters with logos + case-study slots; Governance page (charter + maintainers + TSC + WG); Download/Getting-started; Community; Conformance-badge explainer.",
+          "definitionOfDone": [
+            "All pages live",
+            "Copy reviewed by T1.3 owner",
+            "'Cordum' appears on-site only in a single 'founding implementer' line"
+          ],
+          "priority": "P0",
+          "role": "worker",
+          "dependsOn": ["T12.1", "T2.1"]
+        },
+        {
+          "id": "T12.3",
+          "title": "Blog infrastructure + editorial cadence",
+          "description": "Blog backend, RSS, author profiles, submission process for community posts. Editorial calendar with >=2 posts/month cadence.",
+          "definitionOfDone": [
+            "First 3 posts published",
+            "RSS live",
+            "Editorial calendar in governance repo"
+          ],
+          "priority": "P1",
+          "role": "worker",
+          "dependsOn": ["T12.1"]
+        },
+        {
+          "id": "T12.4",
+          "title": "Brand system",
+          "description": "Logo, wordmark, typography, color system, badge variants (conformant / founding-implementer / partner), presentation template, social card templates.",
+          "definitionOfDone": [
+            "Brand package in neutral repo",
+            "Cordum site updated to use the new brand for CAP references"
+          ],
+          "priority": "P1",
+          "role": "worker",
+          "dependsOn": ["T2.1"]
+        },
+        {
+          "id": "T12.5",
+          "title": "SEO + discoverability",
+          "description": "Canonical URL strategy (all CAP content under neutral domain; cordum.io carries outbound links only), schema.org markup, sitemap, search submission.",
+          "definitionOfDone": [
+            "Site indexed",
+            "'CAP protocol' / 'agent protocol governance' queries return CAP site in top results within 90 days post-launch"
+          ],
+          "priority": "P1",
+          "role": "worker",
+          "dependsOn": ["T12.2"]
+        },
+        {
+          "id": "T12.6",
+          "title": "Public status + roadmap page",
+          "description": "Single page showing current spec version, wire version, profile status, conformance matrix, open RFCs, release cadence. Auto-updated from repo state.",
+          "definitionOfDone": [
+            "Page live",
+            "Auto-updated from repo state via CI"
+          ],
+          "priority": "P1",
+          "role": "worker",
+          "dependsOn": ["T12.2", "T5.5", "T4.5"]
+        }
+      ]
+    },
+    {
+      "id": "E13",
+      "title": "CAP Publishing Program",
+      "window": "Days 30-180",
+      "owner": "marketing-lead",
+      "goal": "A series of published materials that make the technical and strategic case for CAP credibly and independently of Cordum marketing. Papers are co-authored by CAP maintainers (Cordum engineers may be primary authors early, but the masthead expands as external maintainers join).",
+      "dependsOn": ["T3.1", "T5.1", "T5.2", "T5.3", "T5.4", "T12.1"],
+      "tasks": [
+        {
+          "id": "T13.1",
+          "title": "Whitepaper 1: CAP \u2014 A Neutral Wire Protocol for Governed Agent Workloads",
+          "description": "Technical overview + design rationale. 12-15 pages; PDF + HTML.",
+          "definitionOfDone": [
+            "Peer-reviewed by >=2 external technical readers",
+            "Published on CAP site",
+            "Cited from spec/README.md"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T5.1", "T5.2", "T12.2"]
+        },
+        {
+          "id": "T13.2",
+          "title": "Whitepaper 2: Governance-as-Wire",
+          "description": "Makes the case for the governance profile as a wire-level concern, not an application-level bolt-on.",
+          "definitionOfDone": [
+            "Peer-reviewed by >=2 external technical readers",
+            "Published on CAP site"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T5.3", "T12.2"]
+        },
+        {
+          "id": "T13.3",
+          "title": "Whitepaper 3: CAP vs MCP vs A2A \u2014 Comparison Matrix",
+          "description": "Fair, specific, non-snarky comparison. Emphasizes complementarity where real (e.g., MCP is tool-facing; CAP is job/workload-facing).",
+          "definitionOfDone": [
+            "Sent to MCP + A2A maintainers for factual-accuracy review before publication",
+            "Peer-reviewed by >=2 external technical readers",
+            "Published on CAP site"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T13.1"]
+        },
+        {
+          "id": "T13.4",
+          "title": "Whitepaper 4: Conformance and Interoperability",
+          "description": "How the reference kit + conformance CLI + badge policy + spec-change process prevent fragmentation.",
+          "definitionOfDone": [
+            "Peer-reviewed by >=2 external technical readers",
+            "Published on CAP site"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T4.5", "T3.3"]
+        },
+        {
+          "id": "T13.5",
+          "title": "Whitepaper 5: Reference Architecture for CAP-Native Control Planes",
+          "description": "Lets other vendors see how to build a CAP control plane. Includes the Cordum implementation as ONE worked example among a template class (gateway pattern, scheduler pattern, safety/policy engine pattern, workflow engine pattern).",
+          "definitionOfDone": [
+            "Peer-reviewed by >=2 external technical readers",
+            "Published on CAP site",
+            "Cordum shown as an instance, not the definition"
+          ],
+          "priority": "P1",
+          "role": "architect",
+          "dependsOn": ["T5.4", "T4.3", "T4.4"]
+        },
+        {
+          "id": "T13.6",
+          "title": "Adopter Playbook",
+          "description": "Practical guide: 'From zero to CAP-compatible in 90 days.'",
+          "definitionOfDone": [
+            "Live on site",
+            "Linked from every adapter README"
+          ],
+          "priority": "P0",
+          "role": "architect",
+          "dependsOn": ["T4.5", "T6.1", "T6.2"]
+        },
+        {
+          "id": "T13.7",
+          "title": "Explainer video + animation",
+          "description": "3-minute homepage video.",
+          "definitionOfDone": [
+            "Published on neutral YouTube channel",
+            "Embedded on homepage"
+          ],
+          "priority": "P1",
+          "role": "worker",
+          "dependsOn": ["T12.2", "T12.4"]
+        },
+        {
+          "id": "T13.8",
+          "title": "Technical blog series supporting the whitepapers",
+          "description": "Roughly 2 blog posts per whitepaper (teaser + deep-dive).",
+          "definitionOfDone": [
+            "First 4 posts published alongside T13.1 + T13.2 launch"
+          ],
+          "priority": "P1",
+          "role": "worker",
+          "dependsOn": ["T12.3", "T13.1", "T13.2"]
+        }
+      ]
+    },
+    {
+      "id": "E14",
+      "title": "CAP Launch & Developer Evangelism",
+      "window": "Days 60-365",
+      "owner": "devrel-lead",
+      "goal": "CAP is visible, talked about, and easy to start using. Launch motion is not a single moment but a 180-day rolling cadence. DevRel presence is distinct from Cordum growth marketing.",
+      "dependsOn": ["T12.2", "T13.1", "T6.1", "T15.3"],
+      "tasks": [
+        {
+          "id": "T14.1",
+          "title": "Launch-day plan",
+          "description": "Coordinated: HN submission, X/Twitter thread, r/programming post, blog post, press list outreach (The New Stack, InfoQ, Changelog, Latent Space, Hacker Newsletter), podcast pre-records lined up.",
+          "definitionOfDone": [
+            "Runbook merged in governance repo",
+            "All assets staged",
+            "Launch day locked",
+            "Dry-run completed"
+          ],
+          "priority": "P0",
+          "role": "devrel",
+          "dependsOn": ["T12.2", "T13.1", "T6.1"]
+        },
+        {
+          "id": "T14.2",
+          "title": "Podcast circuit",
+          "description": "Target: 6 appearances in the first 90 days post-launch (TWIML, Changelog, Latent Space, MLOps Community, AI Engineer, PracticalAI).",
+          "definitionOfDone": [
+            "Bookings confirmed",
+            "Appearances completed",
+            "Transcripts linked from site"
+          ],
+          "priority": "P1",
+          "role": "devrel",
+          "dependsOn": ["T14.1"]
+        },
+        {
+          "id": "T14.3",
+          "title": "Conference talks",
+          "description": "Target: 3 CFP acceptances in the first 180 days (KubeCon, QCon, AAIF events, AI Engineer Summit, Agentic AI Summit).",
+          "definitionOfDone": [
+            "Talks accepted, delivered, recordings linked from site"
+          ],
+          "priority": "P1",
+          "role": "devrel",
+          "dependsOn": ["T14.1"]
+        },
+        {
+          "id": "T14.4",
+          "title": "Community infrastructure",
+          "description": "Forum (Discourse or GitHub Discussions), chat (Matrix or Discord under neutral identity, NOT Cordum's Slack), monthly office hours, issue-triage rotation.",
+          "definitionOfDone": [
+            "Forum live",
+            "Chat live",
+            "First 3 office hours held",
+            "Triage rotation documented"
+          ],
+          "priority": "P0",
+          "role": "devrel",
+          "dependsOn": ["T15.3"]
+        },
+        {
+          "id": "T14.5",
+          "title": "DevRel lead",
+          "description": "Dedicated DevRel owner (DX engineer from T1.2 with protected time, or a new hire). Monthly metrics report.",
+          "definitionOfDone": [
+            "Named owner with weekly cadence",
+            "First monthly metrics report published (stars, downloads, Discord members, adapter pulls, conformance runs, whitepaper downloads)"
+          ],
+          "priority": "P0",
+          "role": "founder",
+          "dependsOn": ["T1.2"]
+        },
+        {
+          "id": "T14.6",
+          "title": "'CAP in Production' speaker bureau",
+          "description": "Program that helps adopters and implementers (not just Cordum) speak at events about their CAP deployment.",
+          "definitionOfDone": [
+            "Program page live",
+            "2 external speakers enrolled"
+          ],
+          "priority": "P1",
+          "role": "devrel",
+          "dependsOn": ["T14.4", "T7.1", "T7.2"]
+        },
+        {
+          "id": "T14.7",
+          "title": "Paid-media moratorium (explicit policy)",
+          "description": "Document the 180-day no-paid-ads policy. Revisit at the 6-month review (ties into Epic 10).",
+          "definitionOfDone": [
+            "Policy in governance repo",
+            "Cross-referenced from marketing budget docs"
+          ],
+          "priority": "P0",
+          "role": "founder",
+          "dependsOn": ["T15.5"]
+        },
+        {
+          "id": "T14.8",
+          "title": "Community content grants (small stipends)",
+          "description": "Small stipend program for external tutorials, integrations, translations.",
+          "definitionOfDone": [
+            "Grant page live",
+            "First 3 grants awarded"
+          ],
+          "priority": "P2",
+          "role": "devrel",
+          "dependsOn": ["T14.4", "T15.5"]
+        }
+      ]
+    },
+    {
+      "id": "E15",
+      "title": "CAP Interim Legal Structure & Asset Custody",
+      "window": "Days 15-120",
+      "owner": "counsel+founder",
+      "goal": "Until AAIF transfer completes, CAP has a clear interim legal structure that is visibly not Cordum-owned. Contributors and adopters can see WHO governs CAP in the meantime.",
+      "dependsOn": ["T1.2", "T2.1"],
+      "tasks": [
+        {
+          "id": "T15.1",
+          "title": "Interim Working Group charter",
+          "description": "Written charter for the CAP Working Group: membership, decision rules, IP handling, relationship to Cordum (founding member, not operator).",
+          "definitionOfDone": [
+            "Charter merged in governance repo",
+            "Signed by initial members",
+            "Published on site governance page"
+          ],
+          "priority": "P0",
+          "role": "counsel",
+          "dependsOn": ["T1.2", "T2.1"]
+        },
+        {
+          "id": "T15.2",
+          "title": "Trademark holding",
+          "description": "'CAP' (or neutral full-name) trademark registered under a neutral legal structure \u2014 fiscal sponsor (Open Collective, Software Freedom Conservancy), a new non-profit, or counsel-recommended vehicle. Holder is NOT Cordum, Inc.",
+          "definitionOfDone": [
+            "Trademark filed",
+            "Assignment chain documented",
+            "Holder is non-Cordum entity"
+          ],
+          "priority": "P0",
+          "role": "counsel",
+          "dependsOn": ["T15.1", "T3.6"]
+        },
+        {
+          "id": "T15.3",
+          "title": "Domain + asset custody transfer",
+          "description": "Domain, GitHub org, social handles, brand assets, demo repos, forum, chat \u2014 held by the interim structure, not Cordum.",
+          "definitionOfDone": [
+            "Ownership transferred",
+            "Audit trail documented in governance repo"
+          ],
+          "priority": "P0",
+          "role": "counsel",
+          "dependsOn": ["T15.1", "T2.4"]
+        },
+        {
+          "id": "T15.4",
+          "title": "Contributor License Agreement (or DCO)",
+          "description": "Decide and implement (DCO recommended for lowest friction).",
+          "definitionOfDone": [
+            "DCO or CLA bot configured on all repos",
+            "First external PR passes through it"
+          ],
+          "priority": "P0",
+          "role": "counsel",
+          "dependsOn": ["T15.1"]
+        },
+        {
+          "id": "T15.5",
+          "title": "Financial transparency statement",
+          "description": "If Cordum funds the interim structure, that funding is disclosed publicly and updated quarterly.",
+          "definitionOfDone": [
+            "Funding statement on governance page",
+            "First quarterly update scheduled"
+          ],
+          "priority": "P0",
+          "role": "counsel",
+          "dependsOn": ["T15.1"]
+        },
+        {
+          "id": "T15.6",
+          "title": "Conflict-of-interest policy",
+          "description": "Policy for maintainers who are also employees of implementer companies (including Cordum).",
+          "definitionOfDone": [
+            "Policy merged",
+            "Maintainers acknowledge annually"
+          ],
+          "priority": "P0",
+          "role": "counsel",
+          "dependsOn": ["T15.1"]
+        }
+      ]
+    }
+  ],
+  "mondayChecklist": {
+    "1_freeze_messaging": "T1.3",
+    "2_audit_surfaces": "T1.4",
+    "3_neutral_name_domain": "T2.1",
+    "4_charter_legal": ["T3.1", "T3.2", "T3.3", "T3.4", "T3.5", "T3.6", "T15.1", "T15.2", "T15.3", "T15.4", "T15.5", "T15.6"],
+    "5_four_profiles": ["T5.1", "T5.2", "T5.3", "T5.4"],
+    "6_reference_kit_scope": ["T4.1", "T4.5"],
+    "7_adapter_lanes": ["T6.1", "T6.2"],
+    "8_demo_per_lane": ["T6.1_DoD.demo", "T6.2_DoD.demo", "T8.2"],
+    "9_aaif_intro": "T9.1",
+    "10_founder_adopter_lead": "T7.4"
+  },
+  "independenceChecklist": {
+    "standalone_cap_site": ["T12.1", "T12.2"],
+    "neutral_github_domain_handles": ["T2.4", "T15.3"],
+    "trademark_outside_cordum": "T15.2",
+    "interim_working_group_charter": "T15.1",
+    "dco_or_cla": "T15.4",
+    "coi_policy": "T15.6",
+    "financial_transparency": "T15.5",
+    "first_whitepaper_peer_reviewed": "T13.1",
+    "full_whitepaper_series": ["T13.1", "T13.2", "T13.3", "T13.4", "T13.5", "T13.6"],
+    "homepage_explainer_video": "T13.7",
+    "launch_day_runbook": "T14.1",
+    "podcast_appearances_90d": "T14.2",
+    "conference_talks_180d": "T14.3",
+    "community_forum_chat_office_hours": "T14.4",
+    "implementations_matrix_and_badge": ["T12.2", "T4.5"],
+    "public_status_and_roadmap_page": "T12.6",
+    "paid_media_moratorium_180d": "T14.7"
+  },
+  "staffingUpdate": {
+    "originalT1_2": ["founder-owner", "spec-editor", "ecosystem-engineer", "dx-engineer", "part-time-counsel"],
+    "addedForPublishingTrack": ["marketing-content-lead (full-time after Day 14)", "devrel-lead (full-time after Day 60)", "community-ops (part-time from Day 30)", "legal-entity-ops (counsel extended through interim period)"],
+    "totalHeadcountEstimate": "~6.5-7 FTE (up from ~4.5)",
+    "flagTo": "T1.1 decision memo \u2014 must land as an explicit cost of the standard-vs-feature bet, not a Month-3 surprise."
+  },
+  "importNotes": [
+    "When Moe MCP reconnects, iterate epics in order (E1..E15). For each epic: call moe_create_epic with {title, goal, window, owner, successMetric?, killCriteria?, note?, dependsOn}.",
+    "After all epics are created, map epic.id -> returned epicId. Then iterate tasks in dependency order: for each task call moe_create_task with {epicId, title, description, definitionOfDone, priority, role, dependsOn: mapped-ids, gatedBy?}.",
+    "E11 is positioning-only; decide at import time whether to create it in Moe or cross-reference from Cordum roadmap only.",
+    "Priorities: P0 = must ship in its window, P1 = should ship, P2 = deferred / compat-only.",
+    "Roles: 'architect' = planning/spec work, 'worker' = implementation, 'founder' = executive decision/outreach, 'counsel' = legal draft, 'devrel' = developer relations, 'marketing-lead' = editorial/site ownership.",
+    "Epic 15 tasks BLOCK Epic 12 and Epic 14 \u2014 do not approve launch-track plans that skip custody-transfer and COI-policy gates.",
+    "Whitepaper tasks (Epic 13) need editorial review workflows with named external peer reviewers, not code-review workflows.",
+    "Launch tasks (Epic 14) are runbook-style \u2014 plans need dry-runs and rollback, not code diffs."
+  ]
+}

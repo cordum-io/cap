@@ -17,6 +17,9 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Unreleased — Protocol Hardening
 
+- **Go SDK:** Added `sdk/go/agent.go` — `AgentClient` with `Register(ctx, AgentSpec) (id, error)`, `Lookup(ctx, name, tenant) (*AgentIdentity, error)`, and `SetScope(ctx, AgentScopeUpdate) error` wrapping the Cordum control-plane endpoints `POST /api/v1/agents`, `GET /api/v1/agents`, `PUT /api/v1/agents/{id}`. Bearer-token-supplants-X-API-Key auth, configurable tenant header, idempotency-key support on SetScope. Source-of-truth wrappers so service bootstraps (cordum-llm-chat phase 3, future services) stop rolling their own MCP-fallback registration paths.
+- **Go SDK:** `Register` payload deliberately omits `preapproved_mutating_tools` per the gateway's `registerAgentArgs`/`updateAgentRequest` split — preapproved mutations are a post-registration `SetScope` privilege, never a create-time grant.
+- **Go SDK:** `SetScope` always sends `preapproved_mutating_tools` (including empty `[]`) so operators have a deterministic revoke path for chat-assistant-style agents.
 - **[WIRE]** Added `ErrorCode` enum and `error_code_enum` field to `JobResult` for structured error classification.
 - **[WIRE]** Enhanced `SystemAlert` with `AlertSeverity` enum and structured fields (`severity`, `source_component`, `details`, `trace_id`).
 - **[WIRE]** Added `Handshake` message for capability negotiation.

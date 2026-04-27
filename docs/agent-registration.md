@@ -32,6 +32,31 @@ The wrappers hit the Cordum control-plane REST endpoints directly:
 - **Preapproval is post-registration.** `Register` never grants preapproved mutating tools; the create-time payload is intentionally narrow. Operators grant preapproval through `SetScope` after a separate review of the tool list. This split mirrors `registerAgentArgs` vs. `updateAgentRequest` in the gateway and keeps audit lineage clean.
 - **`SetScope` is the revoke path.** Callers always pass the full `preapproved_mutating_tools` list — including `[]` to revoke everything — so the resulting `AgentIdentity` reflects exactly the operator's intent. Never rely on partial / merge semantics here.
 
+## CLI surface
+
+CAP remains the protocol library and SDK surface; the operator CLI lives in
+the `cordum` repository. For day-2 operations, use:
+
+```bash
+cordumctl agent set-scope <name> \
+  --allowed-tools=tool1,tool2 \
+  --preapproved-mutating-tools=cordum_submit_job \
+  --idempotency-key=<stable-retry-key>
+```
+
+The command wraps `capsdk.AgentClient.SetScope` rather than hand-coding the
+REST request, so CLI behavior stays aligned with the SDK's deterministic
+replace/revoke contract. `--allowed-tools` and
+`--preapproved-mutating-tools` are replace operations; `--add-tool` and
+`--remove-tool` perform a lookup, merge the AllowedTools set, then call
+`SetScope`. `--dry-run` prints the resulting scope update without mutating
+the control plane.
+
+Important split: `AgentSpec` at registration time still cannot grant
+preapproved mutating tools. Register or look up the agent first, then use
+`cordumctl agent set-scope` / `AgentClient.SetScope` to grant, replace, or
+revoke preapproval after review.
+
 ## Real-world consumer: `cordum-llm-chat`
 
 The Cordum LLM chat assistant (the platform's own copilot) is a CAP agent registered with `AgentClient` on first boot. The bootstrap is idempotent and audited like any other Cordum agent.

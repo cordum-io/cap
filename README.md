@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/cordum-io-cap-badge.png)](https://mseep.ai/app/cordum-io-cap)
+
 # Cordum Agent Protocol (CAP)
 
 [![CI](https://github.com/cordum-io/cap/actions/workflows/ci.yml/badge.svg)](https://github.com/cordum-io/cap/actions/workflows/ci.yml)

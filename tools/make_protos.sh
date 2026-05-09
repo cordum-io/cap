@@ -44,11 +44,29 @@ fi
 # Ensure protoc plugins installed via `go install` are on PATH.
 export PATH="$(go env GOPATH)/bin:$PATH"
 
+# Optional supplementary protoc include path. Linux apt installs of
+# `protobuf-compiler` carry the well-known protos (google/protobuf/*.proto)
+# at `/usr/include` automatically; macOS Homebrew puts them at
+# `$(brew --prefix protobuf)/include`; Windows binary releases often ship
+# without them. Set EXTRA_PROTO_INCLUDE to the directory containing
+# `google/protobuf/{timestamp,struct,empty,...}.proto` if your protoc
+# install lacks them. Example for Windows hosts using grpc.tools NuGet:
+#   EXTRA_PROTO_INCLUDE=/c/Users/$USER/.nuget/packages/grpc.tools/<v>/build/native/include
+EXTRA_INCLUDE_FLAG=""
+if [ -n "${EXTRA_PROTO_INCLUDE:-}" ]; then
+  if [ -d "$EXTRA_PROTO_INCLUDE/google/protobuf" ]; then
+    EXTRA_INCLUDE_FLAG="-I$EXTRA_PROTO_INCLUDE"
+    echo "Using EXTRA_PROTO_INCLUDE=$EXTRA_PROTO_INCLUDE for well-known proto resolution"
+  else
+    echo "WARN: EXTRA_PROTO_INCLUDE=$EXTRA_PROTO_INCLUDE does not contain google/protobuf/; ignoring" >&2
+  fi
+fi
+
 mkdir -p "$OUT_GO" "$OUT_PY" "$OUT_CPP" "$OUT_JS"
 
 echo "Generating Go stubs..."
 protoc \
-  -I"$PROTO_DIR" \
+  -I"$PROTO_DIR" $EXTRA_INCLUDE_FLAG \
   --go_out="$OUT_GO" --go_opt=paths=source_relative \
   --go-grpc_out="$OUT_GO" --go-grpc_opt=paths=source_relative \
   $(find "$PROTO_DIR" -name '*.proto')
@@ -57,7 +75,7 @@ protoc \
 if [ "${CAP_RUN_CPP:-1}" = "1" ]; then
   echo "Generating C++ stubs..."
   protoc \
-    -I"$PROTO_DIR" \
+    -I"$PROTO_DIR" $EXTRA_INCLUDE_FLAG \
     --cpp_out="$OUT_CPP" \
     $(find "$PROTO_DIR" -name '*.proto')
 else
@@ -76,7 +94,7 @@ if [ "${CAP_RUN_JS:-1}" = "1" ]; then
   if [ -n "$PROTOC_JS" ]; then
     echo "Generating Node JS stubs ($PROTOC_JS)..."
     "$PROTOC_JS" \
-      -I"$PROTO_DIR" \
+      -I"$PROTO_DIR" $EXTRA_INCLUDE_FLAG \
       --js_out=import_style=commonjs,binary:"$OUT_JS" \
       $(find "$PROTO_DIR" -name '*.proto')
   fi
@@ -94,7 +112,7 @@ if [ "${CAP_RUN_JS:-1}" = "1" ]; then
   if command -v protoc-gen-ts >/dev/null 2>&1; then
     if [ -n "$PROTOC_JS" ]; then
       "$PROTOC_JS" \
-        -I"$PROTO_DIR" \
+        -I"$PROTO_DIR" $EXTRA_INCLUDE_FLAG \
         --ts_out="$OUT_JS" \
         $(find "$PROTO_DIR" -name '*.proto')
     else
@@ -119,7 +137,7 @@ sys.exit(0 if importlib.util.find_spec("grpc_tools") else 1)
 PY
   then
     "$PYTHON_BIN" -m grpc_tools.protoc \
-      -I"$PROTO_DIR" \
+      -I"$PROTO_DIR" $EXTRA_INCLUDE_FLAG \
       --python_out="$OUT_PY" \
       --grpc_python_out="$OUT_PY" \
       $(find "$PROTO_DIR" -name '*.proto')
@@ -142,7 +160,7 @@ if [ "${CAP_RUN_JAVA:-0}" = "1" ]; then
     echo "protoc-gen-grpc-java not found; generating protobuf stubs only (no gRPC services)"
   fi
   protoc \
-    -I"$PROTO_DIR" \
+    -I"$PROTO_DIR" $EXTRA_INCLUDE_FLAG \
     --java_out="$OUT_JAVA" \
     $JAVA_GRPC_OPT \
     $(find "$PROTO_DIR" -name '*.proto')
@@ -163,7 +181,7 @@ if [ "${CAP_RUN_CSHARP:-0}" = "1" ]; then
     echo "grpc_csharp_plugin not found; generating protobuf stubs only (no gRPC services)"
   fi
   protoc \
-    -I"$PROTO_DIR" \
+    -I"$PROTO_DIR" $EXTRA_INCLUDE_FLAG \
     --csharp_out="$OUT_CSHARP" \
     $CSHARP_GRPC_OPT \
     $(find "$PROTO_DIR" -name '*.proto')
@@ -183,7 +201,7 @@ if [ "${CAP_RUN_PHP:-0}" = "1" ]; then
     echo "grpc_php_plugin not found; generating protobuf stubs only (no gRPC services)"
   fi
   protoc \
-    -I"$PROTO_DIR" \
+    -I"$PROTO_DIR" $EXTRA_INCLUDE_FLAG \
     --php_out="$OUT_PHP" \
     $PHP_GRPC_OPT \
     $(find "$PROTO_DIR" -name '*.proto')
@@ -203,7 +221,7 @@ if [ "${CAP_RUN_RUBY:-0}" = "1" ]; then
     echo "grpc_ruby_plugin not found; generating protobuf stubs only (no gRPC services)"
   fi
   protoc \
-    -I"$PROTO_DIR" \
+    -I"$PROTO_DIR" $EXTRA_INCLUDE_FLAG \
     --ruby_out="$OUT_RUBY" \
     $RUBY_GRPC_OPT \
     $(find "$PROTO_DIR" -name '*.proto')

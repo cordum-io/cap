@@ -75,7 +75,15 @@ Protobuf changes follow strict rules:
 
 1. **Append-only** — add new fields/enums; never delete or reuse field numbers.
 2. **Update the spec** — every proto change needs a matching spec update in `spec/`.
-3. **Regenerate stubs** — rebuild Go (`protoc --go_out`), Python (`grpc_tools.protoc`), and Node stubs.
+3. **Regenerate stubs** — rebuild Go (`protoc --go_out`), Python (`grpc_tools.protoc`), and Node stubs. Use `bash tools/make_protos.sh` for the canonical multi-language run. On hosts whose `protoc` install lacks the well-known protos (`google/protobuf/timestamp.proto`, `struct.proto`, etc — common on Windows binary releases), set `EXTRA_PROTO_INCLUDE` to the directory containing `google/protobuf/*.proto` before running the script. Example for Windows hosts using the `grpc.tools` NuGet package:
+
+   ```bash
+   EXTRA_PROTO_INCLUDE=/c/Users/$USER/.nuget/packages/grpc.tools/<v>/build/native/include \
+     CAP_RUN_PY=1 \
+     bash tools/make_protos.sh
+   ```
+
+   Linux hosts with `apt install protobuf-compiler` and macOS hosts with `brew install protobuf` ship the well-known protos at standard paths; `EXTRA_PROTO_INCLUDE` is only needed when those auto-discovery paths are absent.
 4. **Add conformance fixtures** — new message types need binary fixtures in `spec/conformance/fixtures/`.
 5. **Cross-SDK tests** — verify all 3 SDKs decode the new fixtures correctly.
 6. **CHANGELOG entry** — prefix wire-level changes with `[WIRE]`.

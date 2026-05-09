@@ -278,3 +278,103 @@ func TestConformanceFixtures(t *testing.T) {
 		}
 	})
 }
+
+// Policy Studio (epic-d9a6c0a1) — exercises the standalone-message
+// fixtures from spec/conformance/fixtures/policy_*.bin. These are NOT
+// BusPacket-wrapped (Rule/Decision/Bundle are higher-layer API shapes,
+// not bus payloads); the test verifies binary roundtrip parity for the
+// new types + the appended DecisionType enum values (QUARANTINE,
+// REDACT) + the new EdgeMode enum.
+func TestPolicyShapesConformance(t *testing.T) {
+	t.Run("rule", func(t *testing.T) {
+		data, err := os.ReadFile(fixturePath(t, "policy_rule.bin"))
+		if err != nil {
+			t.Fatalf("read policy_rule.bin: %v", err)
+		}
+		var rule agentv1.Rule
+		if err := proto.Unmarshal(data, &rule); err != nil {
+			t.Fatalf("unmarshal Rule: %v", err)
+		}
+		if rule.GetId() != "rule-input-secrets" {
+			t.Fatalf("Rule.id = %q, want rule-input-secrets", rule.GetId())
+		}
+		if rule.GetType() != agentv1.RuleType_RULE_TYPE_INPUT {
+			t.Fatalf("Rule.type = %v, want INPUT", rule.GetType())
+		}
+		if rule.GetScope().GetKind() != agentv1.RuleScopeKind_RULE_SCOPE_KIND_TENANT {
+			t.Fatalf("Rule.scope.kind = %v, want TENANT", rule.GetScope().GetKind())
+		}
+		if rule.GetStatus() != agentv1.RuleStatus_RULE_STATUS_PUBLISHED {
+			t.Fatalf("Rule.status = %v, want PUBLISHED", rule.GetStatus())
+		}
+		if rule.GetMatch() == nil || rule.GetDecide() == nil {
+			t.Fatal("Rule.match and Rule.decide must be non-nil structpb")
+		}
+	})
+
+	t.Run("decision_quarantine", func(t *testing.T) {
+		data, err := os.ReadFile(fixturePath(t, "policy_decision.bin"))
+		if err != nil {
+			t.Fatalf("read policy_decision.bin: %v", err)
+		}
+		var dec agentv1.Decision
+		if err := proto.Unmarshal(data, &dec); err != nil {
+			t.Fatalf("unmarshal Decision: %v", err)
+		}
+		if dec.GetType() != agentv1.DecisionType_DECISION_TYPE_QUARANTINE {
+			t.Fatalf("Decision.type = %v, want QUARANTINE (6)", dec.GetType())
+		}
+		if dec.GetSource() != agentv1.DecisionSource_DECISION_SOURCE_JOB {
+			t.Fatalf("Decision.source = %v, want JOB", dec.GetSource())
+		}
+		if got := len(dec.GetTrace()); got != 1 {
+			t.Fatalf("Decision.trace len = %d, want 1", got)
+		}
+		if dec.GetTrace()[0].GetDecisionType() != agentv1.DecisionType_DECISION_TYPE_QUARANTINE {
+			t.Fatalf("TraceStep.decision_type = %v, want QUARANTINE", dec.GetTrace()[0].GetDecisionType())
+		}
+	})
+
+	t.Run("bundle_edge_mode", func(t *testing.T) {
+		data, err := os.ReadFile(fixturePath(t, "policy_bundle.bin"))
+		if err != nil {
+			t.Fatalf("read policy_bundle.bin: %v", err)
+		}
+		var b agentv1.Bundle
+		if err := proto.Unmarshal(data, &b); err != nil {
+			t.Fatalf("unmarshal Bundle: %v", err)
+		}
+		if b.GetMetadata().GetEdgeMode() != agentv1.EdgeMode_EDGE_MODE_ENTERPRISE_STRICT {
+			t.Fatalf("Bundle.metadata.edge_mode = %v, want ENTERPRISE_STRICT", b.GetMetadata().GetEdgeMode())
+		}
+		if b.GetScopeBinding().GetKind() != agentv1.RuleScopeKind_RULE_SCOPE_KIND_EDGE_FLEET {
+			t.Fatalf("Bundle.scope_binding.kind = %v, want EDGE_FLEET", b.GetScopeBinding().GetKind())
+		}
+		if got := len(b.GetVersions()); got != 1 {
+			t.Fatalf("Bundle.versions len = %d, want 1", got)
+		}
+	})
+
+	t.Run("decision_type_redact_round_trip", func(t *testing.T) {
+		// Build + marshal + unmarshal a DecisionType=REDACT instance to
+		// exercise the wire path for the second new enum value (the
+		// QUARANTINE path is exercised by decision_quarantine above).
+		dec := &agentv1.Decision{
+			Source:    agentv1.DecisionSource_DECISION_SOURCE_JOB,
+			RuleId:    "rule-redact",
+			Type:      agentv1.DecisionType_DECISION_TYPE_REDACT,
+			Timestamp: nil,
+		}
+		raw, err := proto.Marshal(dec)
+		if err != nil {
+			t.Fatalf("marshal: %v", err)
+		}
+		var back agentv1.Decision
+		if err := proto.Unmarshal(raw, &back); err != nil {
+			t.Fatalf("unmarshal: %v", err)
+		}
+		if back.GetType() != agentv1.DecisionType_DECISION_TYPE_REDACT {
+			t.Fatalf("round-trip Decision.type = %v, want REDACT (7)", back.GetType())
+		}
+	})
+}

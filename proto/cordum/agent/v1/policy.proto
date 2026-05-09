@@ -166,3 +166,65 @@ message Bundle {
     repeated BundleVersion versions = 5;
     BundleMetadata metadata = 6;
 }
+
+// JobEvaluationContext carries the job-side inputs needed to evaluate a
+// unified Rule through the safetykernel path. It intentionally mirrors the
+// identity and input-content fields used by PolicyCheckRequest without
+// coupling the unified evaluator contract to the legacy endpoint shape.
+message JobEvaluationContext {
+    string tenant_id = 1;
+    string job_id = 2;
+    string workflow_id = 3;
+    string topic = 4;
+    string principal_id = 5;
+    map<string, string> labels = 6;
+    string memory_id = 7;
+    string capability = 8;
+    repeated string risk_tags = 9;
+
+    bytes input_content = 20;
+    string input_content_type = 21;
+    int64 input_size_bytes = 22;
+}
+
+// EdgeEvaluationContext carries the edge-side action snapshot needed to
+// evaluate a unified edge Rule through the edge classifier path. Raw tool input
+// is intentionally absent; callers provide only redacted input and labels.
+message EdgeEvaluationContext {
+    string tenant_id = 1;
+    string principal_id = 2;
+    string session_id = 3;
+    string execution_id = 4;
+    string agent_product = 5;
+    string tool_name = 6;
+    google.protobuf.Struct tool_input_redacted = 7;
+    string input_hash = 8;
+    string tool_input_hash = 9;
+    map<string, string> labels = 10;
+    repeated string risk_tags = 11;
+}
+
+// PolicyEvaluateRequest is the unified evaluator entry-point request. Callers
+// either provide an inline Rule or a (bundle_id, scope) pair that resolves the
+// currently active BundleVersion before evaluation. Exactly one of
+// job_context or edge_context must be populated, and it must match Rule.type.
+message PolicyEvaluateRequest {
+    Rule rule = 1;
+    string bundle_id = 2;
+    RuleScope scope = 3;
+
+    JobEvaluationContext job_context = 10;
+    EdgeEvaluationContext edge_context = 11;
+}
+
+// PolicyEvaluateResponse wraps the unified Decision emitted by the selected
+// evaluator. The legacy PolicyCheckResponse remains available on the transition
+// endpoints; this response is for the unified Rule/Decision surface.
+message PolicyEvaluateResponse {
+    Decision decision = 1;
+}
+
+// PolicyEvaluator exposes the unified job + edge policy entry-point over gRPC.
+service PolicyEvaluator {
+    rpc EvaluateUnified(PolicyEvaluateRequest) returns (PolicyEvaluateResponse);
+}

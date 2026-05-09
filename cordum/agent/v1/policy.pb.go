@@ -960,6 +960,396 @@ func (x *Bundle) GetMetadata() *BundleMetadata {
 	return nil
 }
 
+// JobEvaluationContext carries the job-side inputs needed to evaluate a
+// unified Rule through the safetykernel path. It intentionally mirrors the
+// identity and input-content fields used by PolicyCheckRequest without
+// coupling the unified evaluator contract to the legacy endpoint shape.
+type JobEvaluationContext struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	TenantId         string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	JobId            string                 `protobuf:"bytes,2,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	WorkflowId       string                 `protobuf:"bytes,3,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	Topic            string                 `protobuf:"bytes,4,opt,name=topic,proto3" json:"topic,omitempty"`
+	PrincipalId      string                 `protobuf:"bytes,5,opt,name=principal_id,json=principalId,proto3" json:"principal_id,omitempty"`
+	Labels           map[string]string      `protobuf:"bytes,6,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	MemoryId         string                 `protobuf:"bytes,7,opt,name=memory_id,json=memoryId,proto3" json:"memory_id,omitempty"`
+	Capability       string                 `protobuf:"bytes,8,opt,name=capability,proto3" json:"capability,omitempty"`
+	RiskTags         []string               `protobuf:"bytes,9,rep,name=risk_tags,json=riskTags,proto3" json:"risk_tags,omitempty"`
+	InputContent     []byte                 `protobuf:"bytes,20,opt,name=input_content,json=inputContent,proto3" json:"input_content,omitempty"`
+	InputContentType string                 `protobuf:"bytes,21,opt,name=input_content_type,json=inputContentType,proto3" json:"input_content_type,omitempty"`
+	InputSizeBytes   int64                  `protobuf:"varint,22,opt,name=input_size_bytes,json=inputSizeBytes,proto3" json:"input_size_bytes,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *JobEvaluationContext) Reset() {
+	*x = JobEvaluationContext{}
+	mi := &file_cordum_agent_v1_policy_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JobEvaluationContext) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JobEvaluationContext) ProtoMessage() {}
+
+func (x *JobEvaluationContext) ProtoReflect() protoreflect.Message {
+	mi := &file_cordum_agent_v1_policy_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JobEvaluationContext.ProtoReflect.Descriptor instead.
+func (*JobEvaluationContext) Descriptor() ([]byte, []int) {
+	return file_cordum_agent_v1_policy_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *JobEvaluationContext) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *JobEvaluationContext) GetJobId() string {
+	if x != nil {
+		return x.JobId
+	}
+	return ""
+}
+
+func (x *JobEvaluationContext) GetWorkflowId() string {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return ""
+}
+
+func (x *JobEvaluationContext) GetTopic() string {
+	if x != nil {
+		return x.Topic
+	}
+	return ""
+}
+
+func (x *JobEvaluationContext) GetPrincipalId() string {
+	if x != nil {
+		return x.PrincipalId
+	}
+	return ""
+}
+
+func (x *JobEvaluationContext) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *JobEvaluationContext) GetMemoryId() string {
+	if x != nil {
+		return x.MemoryId
+	}
+	return ""
+}
+
+func (x *JobEvaluationContext) GetCapability() string {
+	if x != nil {
+		return x.Capability
+	}
+	return ""
+}
+
+func (x *JobEvaluationContext) GetRiskTags() []string {
+	if x != nil {
+		return x.RiskTags
+	}
+	return nil
+}
+
+func (x *JobEvaluationContext) GetInputContent() []byte {
+	if x != nil {
+		return x.InputContent
+	}
+	return nil
+}
+
+func (x *JobEvaluationContext) GetInputContentType() string {
+	if x != nil {
+		return x.InputContentType
+	}
+	return ""
+}
+
+func (x *JobEvaluationContext) GetInputSizeBytes() int64 {
+	if x != nil {
+		return x.InputSizeBytes
+	}
+	return 0
+}
+
+// EdgeEvaluationContext carries the edge-side action snapshot needed to
+// evaluate a unified edge Rule through the edge classifier path. Raw tool input
+// is intentionally absent; callers provide only redacted input and labels.
+type EdgeEvaluationContext struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	TenantId          string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	PrincipalId       string                 `protobuf:"bytes,2,opt,name=principal_id,json=principalId,proto3" json:"principal_id,omitempty"`
+	SessionId         string                 `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	ExecutionId       string                 `protobuf:"bytes,4,opt,name=execution_id,json=executionId,proto3" json:"execution_id,omitempty"`
+	AgentProduct      string                 `protobuf:"bytes,5,opt,name=agent_product,json=agentProduct,proto3" json:"agent_product,omitempty"`
+	ToolName          string                 `protobuf:"bytes,6,opt,name=tool_name,json=toolName,proto3" json:"tool_name,omitempty"`
+	ToolInputRedacted *structpb.Struct       `protobuf:"bytes,7,opt,name=tool_input_redacted,json=toolInputRedacted,proto3" json:"tool_input_redacted,omitempty"`
+	InputHash         string                 `protobuf:"bytes,8,opt,name=input_hash,json=inputHash,proto3" json:"input_hash,omitempty"`
+	ToolInputHash     string                 `protobuf:"bytes,9,opt,name=tool_input_hash,json=toolInputHash,proto3" json:"tool_input_hash,omitempty"`
+	Labels            map[string]string      `protobuf:"bytes,10,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	RiskTags          []string               `protobuf:"bytes,11,rep,name=risk_tags,json=riskTags,proto3" json:"risk_tags,omitempty"`
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *EdgeEvaluationContext) Reset() {
+	*x = EdgeEvaluationContext{}
+	mi := &file_cordum_agent_v1_policy_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EdgeEvaluationContext) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EdgeEvaluationContext) ProtoMessage() {}
+
+func (x *EdgeEvaluationContext) ProtoReflect() protoreflect.Message {
+	mi := &file_cordum_agent_v1_policy_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EdgeEvaluationContext.ProtoReflect.Descriptor instead.
+func (*EdgeEvaluationContext) Descriptor() ([]byte, []int) {
+	return file_cordum_agent_v1_policy_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *EdgeEvaluationContext) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *EdgeEvaluationContext) GetPrincipalId() string {
+	if x != nil {
+		return x.PrincipalId
+	}
+	return ""
+}
+
+func (x *EdgeEvaluationContext) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *EdgeEvaluationContext) GetExecutionId() string {
+	if x != nil {
+		return x.ExecutionId
+	}
+	return ""
+}
+
+func (x *EdgeEvaluationContext) GetAgentProduct() string {
+	if x != nil {
+		return x.AgentProduct
+	}
+	return ""
+}
+
+func (x *EdgeEvaluationContext) GetToolName() string {
+	if x != nil {
+		return x.ToolName
+	}
+	return ""
+}
+
+func (x *EdgeEvaluationContext) GetToolInputRedacted() *structpb.Struct {
+	if x != nil {
+		return x.ToolInputRedacted
+	}
+	return nil
+}
+
+func (x *EdgeEvaluationContext) GetInputHash() string {
+	if x != nil {
+		return x.InputHash
+	}
+	return ""
+}
+
+func (x *EdgeEvaluationContext) GetToolInputHash() string {
+	if x != nil {
+		return x.ToolInputHash
+	}
+	return ""
+}
+
+func (x *EdgeEvaluationContext) GetLabels() map[string]string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+func (x *EdgeEvaluationContext) GetRiskTags() []string {
+	if x != nil {
+		return x.RiskTags
+	}
+	return nil
+}
+
+// PolicyEvaluateRequest is the unified evaluator entry-point request. Callers
+// either provide an inline Rule or a (bundle_id, scope) pair that resolves the
+// currently active BundleVersion before evaluation. Exactly one of
+// job_context or edge_context must be populated, and it must match Rule.type.
+type PolicyEvaluateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rule          *Rule                  `protobuf:"bytes,1,opt,name=rule,proto3" json:"rule,omitempty"`
+	BundleId      string                 `protobuf:"bytes,2,opt,name=bundle_id,json=bundleId,proto3" json:"bundle_id,omitempty"`
+	Scope         *RuleScope             `protobuf:"bytes,3,opt,name=scope,proto3" json:"scope,omitempty"`
+	JobContext    *JobEvaluationContext  `protobuf:"bytes,10,opt,name=job_context,json=jobContext,proto3" json:"job_context,omitempty"`
+	EdgeContext   *EdgeEvaluationContext `protobuf:"bytes,11,opt,name=edge_context,json=edgeContext,proto3" json:"edge_context,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PolicyEvaluateRequest) Reset() {
+	*x = PolicyEvaluateRequest{}
+	mi := &file_cordum_agent_v1_policy_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyEvaluateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyEvaluateRequest) ProtoMessage() {}
+
+func (x *PolicyEvaluateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_cordum_agent_v1_policy_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyEvaluateRequest.ProtoReflect.Descriptor instead.
+func (*PolicyEvaluateRequest) Descriptor() ([]byte, []int) {
+	return file_cordum_agent_v1_policy_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *PolicyEvaluateRequest) GetRule() *Rule {
+	if x != nil {
+		return x.Rule
+	}
+	return nil
+}
+
+func (x *PolicyEvaluateRequest) GetBundleId() string {
+	if x != nil {
+		return x.BundleId
+	}
+	return ""
+}
+
+func (x *PolicyEvaluateRequest) GetScope() *RuleScope {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
+func (x *PolicyEvaluateRequest) GetJobContext() *JobEvaluationContext {
+	if x != nil {
+		return x.JobContext
+	}
+	return nil
+}
+
+func (x *PolicyEvaluateRequest) GetEdgeContext() *EdgeEvaluationContext {
+	if x != nil {
+		return x.EdgeContext
+	}
+	return nil
+}
+
+// PolicyEvaluateResponse wraps the unified Decision emitted by the selected
+// evaluator. The legacy PolicyCheckResponse remains available on the transition
+// endpoints; this response is for the unified Rule/Decision surface.
+type PolicyEvaluateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Decision      *Decision              `protobuf:"bytes,1,opt,name=decision,proto3" json:"decision,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PolicyEvaluateResponse) Reset() {
+	*x = PolicyEvaluateResponse{}
+	mi := &file_cordum_agent_v1_policy_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PolicyEvaluateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PolicyEvaluateResponse) ProtoMessage() {}
+
+func (x *PolicyEvaluateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_cordum_agent_v1_policy_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PolicyEvaluateResponse.ProtoReflect.Descriptor instead.
+func (*PolicyEvaluateResponse) Descriptor() ([]byte, []int) {
+	return file_cordum_agent_v1_policy_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *PolicyEvaluateResponse) GetDecision() *Decision {
+	if x != nil {
+		return x.Decision
+	}
+	return nil
+}
+
 var File_cordum_agent_v1_policy_proto protoreflect.FileDescriptor
 
 const file_cordum_agent_v1_policy_proto_rawDesc = "" +
@@ -1025,7 +1415,54 @@ const file_cordum_agent_v1_policy_proto_rawDesc = "" +
 	"\brule_ids\x18\x03 \x03(\tR\aruleIds\x12?\n" +
 	"\rscope_binding\x18\x04 \x01(\v2\x1a.cordum.agent.v1.RuleScopeR\fscopeBinding\x12:\n" +
 	"\bversions\x18\x05 \x03(\v2\x1e.cordum.agent.v1.BundleVersionR\bversions\x12;\n" +
-	"\bmetadata\x18\x06 \x01(\v2\x1f.cordum.agent.v1.BundleMetadataR\bmetadata*|\n" +
+	"\bmetadata\x18\x06 \x01(\v2\x1f.cordum.agent.v1.BundleMetadataR\bmetadata\"\x81\x04\n" +
+	"\x14JobEvaluationContext\x12\x1b\n" +
+	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12\x15\n" +
+	"\x06job_id\x18\x02 \x01(\tR\x05jobId\x12\x1f\n" +
+	"\vworkflow_id\x18\x03 \x01(\tR\n" +
+	"workflowId\x12\x14\n" +
+	"\x05topic\x18\x04 \x01(\tR\x05topic\x12!\n" +
+	"\fprincipal_id\x18\x05 \x01(\tR\vprincipalId\x12I\n" +
+	"\x06labels\x18\x06 \x03(\v21.cordum.agent.v1.JobEvaluationContext.LabelsEntryR\x06labels\x12\x1b\n" +
+	"\tmemory_id\x18\a \x01(\tR\bmemoryId\x12\x1e\n" +
+	"\n" +
+	"capability\x18\b \x01(\tR\n" +
+	"capability\x12\x1b\n" +
+	"\trisk_tags\x18\t \x03(\tR\briskTags\x12#\n" +
+	"\rinput_content\x18\x14 \x01(\fR\finputContent\x12,\n" +
+	"\x12input_content_type\x18\x15 \x01(\tR\x10inputContentType\x12(\n" +
+	"\x10input_size_bytes\x18\x16 \x01(\x03R\x0einputSizeBytes\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x8f\x04\n" +
+	"\x15EdgeEvaluationContext\x12\x1b\n" +
+	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12!\n" +
+	"\fprincipal_id\x18\x02 \x01(\tR\vprincipalId\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x03 \x01(\tR\tsessionId\x12!\n" +
+	"\fexecution_id\x18\x04 \x01(\tR\vexecutionId\x12#\n" +
+	"\ragent_product\x18\x05 \x01(\tR\fagentProduct\x12\x1b\n" +
+	"\ttool_name\x18\x06 \x01(\tR\btoolName\x12G\n" +
+	"\x13tool_input_redacted\x18\a \x01(\v2\x17.google.protobuf.StructR\x11toolInputRedacted\x12\x1d\n" +
+	"\n" +
+	"input_hash\x18\b \x01(\tR\tinputHash\x12&\n" +
+	"\x0ftool_input_hash\x18\t \x01(\tR\rtoolInputHash\x12J\n" +
+	"\x06labels\x18\n" +
+	" \x03(\v22.cordum.agent.v1.EdgeEvaluationContext.LabelsEntryR\x06labels\x12\x1b\n" +
+	"\trisk_tags\x18\v \x03(\tR\briskTags\x1a9\n" +
+	"\vLabelsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xa4\x02\n" +
+	"\x15PolicyEvaluateRequest\x12)\n" +
+	"\x04rule\x18\x01 \x01(\v2\x15.cordum.agent.v1.RuleR\x04rule\x12\x1b\n" +
+	"\tbundle_id\x18\x02 \x01(\tR\bbundleId\x120\n" +
+	"\x05scope\x18\x03 \x01(\v2\x1a.cordum.agent.v1.RuleScopeR\x05scope\x12F\n" +
+	"\vjob_context\x18\n" +
+	" \x01(\v2%.cordum.agent.v1.JobEvaluationContextR\n" +
+	"jobContext\x12I\n" +
+	"\fedge_context\x18\v \x01(\v2&.cordum.agent.v1.EdgeEvaluationContextR\vedgeContext\"O\n" +
+	"\x16PolicyEvaluateResponse\x125\n" +
+	"\bdecision\x18\x01 \x01(\v2\x19.cordum.agent.v1.DecisionR\bdecision*|\n" +
 	"\bRuleType\x12\x19\n" +
 	"\x15RULE_TYPE_UNSPECIFIED\x10\x00\x12\x13\n" +
 	"\x0fRULE_TYPE_INPUT\x10\x01\x12\x14\n" +
@@ -1053,7 +1490,9 @@ const file_cordum_agent_v1_policy_proto_rawDesc = "" +
 	"\x15EDGE_MODE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11EDGE_MODE_OBSERVE\x10\x01\x12\x15\n" +
 	"\x11EDGE_MODE_ENFORCE\x10\x02\x12\x1f\n" +
-	"\x1bEDGE_MODE_ENTERPRISE_STRICT\x10\x03B\x7f\n" +
+	"\x1bEDGE_MODE_ENTERPRISE_STRICT\x10\x032u\n" +
+	"\x0fPolicyEvaluator\x12b\n" +
+	"\x0fEvaluateUnified\x12&.cordum.agent.v1.PolicyEvaluateRequest\x1a'.cordum.agent.v1.PolicyEvaluateResponseB\x7f\n" +
 	"\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
 
 var (
@@ -1069,53 +1508,69 @@ func file_cordum_agent_v1_policy_proto_rawDescGZIP() []byte {
 }
 
 var file_cordum_agent_v1_policy_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_cordum_agent_v1_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_cordum_agent_v1_policy_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_cordum_agent_v1_policy_proto_goTypes = []any{
-	(RuleType)(0),                 // 0: cordum.agent.v1.RuleType
-	(RuleStatus)(0),               // 1: cordum.agent.v1.RuleStatus
-	(DecisionSource)(0),           // 2: cordum.agent.v1.DecisionSource
-	(RuleScopeKind)(0),            // 3: cordum.agent.v1.RuleScopeKind
-	(EdgeMode)(0),                 // 4: cordum.agent.v1.EdgeMode
-	(*RuleScope)(nil),             // 5: cordum.agent.v1.RuleScope
-	(*AuditMetadata)(nil),         // 6: cordum.agent.v1.AuditMetadata
-	(*Rule)(nil),                  // 7: cordum.agent.v1.Rule
-	(*TraceStep)(nil),             // 8: cordum.agent.v1.TraceStep
-	(*Decision)(nil),              // 9: cordum.agent.v1.Decision
-	(*BundleMetadata)(nil),        // 10: cordum.agent.v1.BundleMetadata
-	(*BundleVersion)(nil),         // 11: cordum.agent.v1.BundleVersion
-	(*Bundle)(nil),                // 12: cordum.agent.v1.Bundle
-	(*timestamppb.Timestamp)(nil), // 13: google.protobuf.Timestamp
-	(*structpb.Struct)(nil),       // 14: google.protobuf.Struct
-	(DecisionType)(0),             // 15: cordum.agent.v1.DecisionType
+	(RuleType)(0),                  // 0: cordum.agent.v1.RuleType
+	(RuleStatus)(0),                // 1: cordum.agent.v1.RuleStatus
+	(DecisionSource)(0),            // 2: cordum.agent.v1.DecisionSource
+	(RuleScopeKind)(0),             // 3: cordum.agent.v1.RuleScopeKind
+	(EdgeMode)(0),                  // 4: cordum.agent.v1.EdgeMode
+	(*RuleScope)(nil),              // 5: cordum.agent.v1.RuleScope
+	(*AuditMetadata)(nil),          // 6: cordum.agent.v1.AuditMetadata
+	(*Rule)(nil),                   // 7: cordum.agent.v1.Rule
+	(*TraceStep)(nil),              // 8: cordum.agent.v1.TraceStep
+	(*Decision)(nil),               // 9: cordum.agent.v1.Decision
+	(*BundleMetadata)(nil),         // 10: cordum.agent.v1.BundleMetadata
+	(*BundleVersion)(nil),          // 11: cordum.agent.v1.BundleVersion
+	(*Bundle)(nil),                 // 12: cordum.agent.v1.Bundle
+	(*JobEvaluationContext)(nil),   // 13: cordum.agent.v1.JobEvaluationContext
+	(*EdgeEvaluationContext)(nil),  // 14: cordum.agent.v1.EdgeEvaluationContext
+	(*PolicyEvaluateRequest)(nil),  // 15: cordum.agent.v1.PolicyEvaluateRequest
+	(*PolicyEvaluateResponse)(nil), // 16: cordum.agent.v1.PolicyEvaluateResponse
+	nil,                            // 17: cordum.agent.v1.JobEvaluationContext.LabelsEntry
+	nil,                            // 18: cordum.agent.v1.EdgeEvaluationContext.LabelsEntry
+	(*timestamppb.Timestamp)(nil),  // 19: google.protobuf.Timestamp
+	(*structpb.Struct)(nil),        // 20: google.protobuf.Struct
+	(DecisionType)(0),              // 21: cordum.agent.v1.DecisionType
 }
 var file_cordum_agent_v1_policy_proto_depIdxs = []int32{
 	3,  // 0: cordum.agent.v1.RuleScope.kind:type_name -> cordum.agent.v1.RuleScopeKind
-	13, // 1: cordum.agent.v1.AuditMetadata.created_at:type_name -> google.protobuf.Timestamp
-	13, // 2: cordum.agent.v1.AuditMetadata.updated_at:type_name -> google.protobuf.Timestamp
+	19, // 1: cordum.agent.v1.AuditMetadata.created_at:type_name -> google.protobuf.Timestamp
+	19, // 2: cordum.agent.v1.AuditMetadata.updated_at:type_name -> google.protobuf.Timestamp
 	0,  // 3: cordum.agent.v1.Rule.type:type_name -> cordum.agent.v1.RuleType
 	5,  // 4: cordum.agent.v1.Rule.scope:type_name -> cordum.agent.v1.RuleScope
 	1,  // 5: cordum.agent.v1.Rule.status:type_name -> cordum.agent.v1.RuleStatus
 	6,  // 6: cordum.agent.v1.Rule.audit:type_name -> cordum.agent.v1.AuditMetadata
-	14, // 7: cordum.agent.v1.Rule.match:type_name -> google.protobuf.Struct
-	14, // 8: cordum.agent.v1.Rule.decide:type_name -> google.protobuf.Struct
-	15, // 9: cordum.agent.v1.TraceStep.decision_type:type_name -> cordum.agent.v1.DecisionType
-	13, // 10: cordum.agent.v1.TraceStep.timestamp:type_name -> google.protobuf.Timestamp
-	14, // 11: cordum.agent.v1.TraceStep.constraints:type_name -> google.protobuf.Struct
+	20, // 7: cordum.agent.v1.Rule.match:type_name -> google.protobuf.Struct
+	20, // 8: cordum.agent.v1.Rule.decide:type_name -> google.protobuf.Struct
+	21, // 9: cordum.agent.v1.TraceStep.decision_type:type_name -> cordum.agent.v1.DecisionType
+	19, // 10: cordum.agent.v1.TraceStep.timestamp:type_name -> google.protobuf.Timestamp
+	20, // 11: cordum.agent.v1.TraceStep.constraints:type_name -> google.protobuf.Struct
 	2,  // 12: cordum.agent.v1.Decision.source:type_name -> cordum.agent.v1.DecisionSource
-	15, // 13: cordum.agent.v1.Decision.type:type_name -> cordum.agent.v1.DecisionType
+	21, // 13: cordum.agent.v1.Decision.type:type_name -> cordum.agent.v1.DecisionType
 	8,  // 14: cordum.agent.v1.Decision.trace:type_name -> cordum.agent.v1.TraceStep
-	13, // 15: cordum.agent.v1.Decision.timestamp:type_name -> google.protobuf.Timestamp
+	19, // 15: cordum.agent.v1.Decision.timestamp:type_name -> google.protobuf.Timestamp
 	4,  // 16: cordum.agent.v1.BundleMetadata.edge_mode:type_name -> cordum.agent.v1.EdgeMode
 	7,  // 17: cordum.agent.v1.BundleVersion.rule_snapshot:type_name -> cordum.agent.v1.Rule
-	13, // 18: cordum.agent.v1.BundleVersion.deployed_at:type_name -> google.protobuf.Timestamp
+	19, // 18: cordum.agent.v1.BundleVersion.deployed_at:type_name -> google.protobuf.Timestamp
 	5,  // 19: cordum.agent.v1.Bundle.scope_binding:type_name -> cordum.agent.v1.RuleScope
 	11, // 20: cordum.agent.v1.Bundle.versions:type_name -> cordum.agent.v1.BundleVersion
 	10, // 21: cordum.agent.v1.Bundle.metadata:type_name -> cordum.agent.v1.BundleMetadata
-	22, // [22:22] is the sub-list for method output_type
-	22, // [22:22] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	17, // 22: cordum.agent.v1.JobEvaluationContext.labels:type_name -> cordum.agent.v1.JobEvaluationContext.LabelsEntry
+	20, // 23: cordum.agent.v1.EdgeEvaluationContext.tool_input_redacted:type_name -> google.protobuf.Struct
+	18, // 24: cordum.agent.v1.EdgeEvaluationContext.labels:type_name -> cordum.agent.v1.EdgeEvaluationContext.LabelsEntry
+	7,  // 25: cordum.agent.v1.PolicyEvaluateRequest.rule:type_name -> cordum.agent.v1.Rule
+	5,  // 26: cordum.agent.v1.PolicyEvaluateRequest.scope:type_name -> cordum.agent.v1.RuleScope
+	13, // 27: cordum.agent.v1.PolicyEvaluateRequest.job_context:type_name -> cordum.agent.v1.JobEvaluationContext
+	14, // 28: cordum.agent.v1.PolicyEvaluateRequest.edge_context:type_name -> cordum.agent.v1.EdgeEvaluationContext
+	9,  // 29: cordum.agent.v1.PolicyEvaluateResponse.decision:type_name -> cordum.agent.v1.Decision
+	15, // 30: cordum.agent.v1.PolicyEvaluator.EvaluateUnified:input_type -> cordum.agent.v1.PolicyEvaluateRequest
+	16, // 31: cordum.agent.v1.PolicyEvaluator.EvaluateUnified:output_type -> cordum.agent.v1.PolicyEvaluateResponse
+	31, // [31:32] is the sub-list for method output_type
+	30, // [30:31] is the sub-list for method input_type
+	30, // [30:30] is the sub-list for extension type_name
+	30, // [30:30] is the sub-list for extension extendee
+	0,  // [0:30] is the sub-list for field type_name
 }
 
 func init() { file_cordum_agent_v1_policy_proto_init() }
@@ -1130,9 +1585,9 @@ func file_cordum_agent_v1_policy_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cordum_agent_v1_policy_proto_rawDesc), len(file_cordum_agent_v1_policy_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   8,
+			NumMessages:   14,
 			NumExtensions: 0,
-			NumServices:   0,
+			NumServices:   1,
 		},
 		GoTypes:           file_cordum_agent_v1_policy_proto_goTypes,
 		DependencyIndexes: file_cordum_agent_v1_policy_proto_depIdxs,

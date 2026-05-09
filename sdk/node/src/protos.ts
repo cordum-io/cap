@@ -15,6 +15,7 @@ const PROTOS = [
   "handshake.proto",
   "heartbeat.proto",
   "job.proto",
+  "policy.proto",
   "safety.proto",
 ].map((f) => path.join(PROTO_BASE_DIR, "cordum", "agent", "v1", f));
 

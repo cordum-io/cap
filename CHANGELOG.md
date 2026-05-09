@@ -20,6 +20,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 - **[WIRE]** Added `ErrorCode` enum and `error_code_enum` field to `JobResult` for structured error classification.
 - **[WIRE]** Enhanced `SystemAlert` with `AlertSeverity` enum and structured fields (`severity`, `source_component`, `details`, `trace_id`).
 - **[WIRE]** Added `Handshake` message for capability negotiation.
+- **[WIRE]** Extended `DecisionType` (`safety.proto`) with `DECISION_TYPE_QUARANTINE = 6` and `DECISION_TYPE_REDACT = 7` for the unified Policy Studio shapes (Cordum epic-d9a6c0a1). Existing values 0-5 retain their numbers per the CAP append-only enum rule.
+- **[WIRE]** Added `cordum/agent/v1/policy.proto` with the unified Policy Studio Rule / Decision / Bundle / RuleScope / AuditMetadata shapes plus enums `RuleType`, `RuleStatus`, `DecisionSource`, `RuleScopeKind`. Field-tag policy: 1-20 reserved for envelope, 50+ for type-specific extensions. Imports `safety.proto` for `DecisionType`.
 - Added error code registry (spec/13), capability negotiation (spec/14), conformance levels (spec/15), protocol errors (spec/16), and versioning policy (spec/17).
 - Added input validation helpers to Go, Node, and Python SDKs (`ValidateJobRequest`, `ValidateJobResult`, `ValidateBusPacket`).
 - Added `cordum-guard` Python SDK with `@guard` decorator for LangChain, LlamaIndex, and plain Python functions.

@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package cordum.agent.v1;
+
+option go_package = "github.com/cordum-io/cap/v2/cordum/agent/v1";
+option java_package = "io.cordum.cap.agent.v1";
+option java_multiple_files = true;
+option csharp_namespace = "Cordum.Agent.V1";
+option php_namespace = "cordum\\Agent\\V1";
+option ruby_package = "Cordum::Agent::V1";
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "cordum/agent/v1/safety.proto";
+
+// Policy Studio unified shapes (Cordum epic-d9a6c0a1).
+//
+// These messages subsume the previously split job-policy (input/output/velocity)
+// and edge-policy authoring surfaces with a single Rule envelope, a unified
+// Decision shape, and a Bundle wrapper for deployment scoping. The wire-level
+// DecisionType values are inherited from safety.proto's existing enum (extended
+// to include QUARANTINE = 6 and REDACT = 7 for output-side outcomes).
+//
+// Field-tag policy: 1-20 reserved for envelope; 50+ for type-specific
+// extensions to leave headroom.
+
+// RuleType discriminates a rule's match/decide payload schema.
+enum RuleType {
+    RULE_TYPE_UNSPECIFIED = 0;
+    RULE_TYPE_INPUT = 1;
+    RULE_TYPE_OUTPUT = 2;
+    RULE_TYPE_VELOCITY = 3;
+    RULE_TYPE_EDGE = 4;
+}
+
+// RuleStatus tracks a rule's lifecycle state. Authors edit drafts; published
+// rules participate in evaluation; deprecated rules remain queryable for
+// audit and rollback but are skipped by evaluators.
+enum RuleStatus {
+    RULE_STATUS_UNSPECIFIED = 0;
+    RULE_STATUS_DRAFT = 1;
+    RULE_STATUS_PUBLISHED = 2;
+    RULE_STATUS_DEPRECATED = 3;
+}
+
+// DecisionSource identifies which evaluator produced a Decision: the
+// safetykernel job pipeline (JOB) or the edge classifier path (EDGE).
+enum DecisionSource {
+    DECISION_SOURCE_UNSPECIFIED = 0;
+    DECISION_SOURCE_JOB = 1;
+    DECISION_SOURCE_EDGE = 2;
+}
+
+// RuleScopeKind narrows where a rule (or bundle) applies.
+enum RuleScopeKind {
+    RULE_SCOPE_KIND_UNSPECIFIED = 0;
+    RULE_SCOPE_KIND_GLOBAL = 1;
+    RULE_SCOPE_KIND_TENANT = 2;
+    RULE_SCOPE_KIND_WORKFLOW = 3;
+    RULE_SCOPE_KIND_EDGE_FLEET = 4;
+    RULE_SCOPE_KIND_EDGE_USER = 5;
+}
+
+// EdgeMode is the per-bundle enforcement posture for the edge evaluator,
+// migrating the legacy global EdgePolicyMode switch onto bundle metadata so
+// different fleets and users can run at different modes simultaneously.
+enum EdgeMode {
+    EDGE_MODE_UNSPECIFIED = 0;
+    EDGE_MODE_OBSERVE = 1;
+    EDGE_MODE_ENFORCE = 2;
+    EDGE_MODE_ENTERPRISE_STRICT = 3;
+}
+
+// RuleScope narrows where a rule (or bundle) applies. When kind is
+// RULE_SCOPE_KIND_GLOBAL, value is unused and may be empty.
+message RuleScope {
+    RuleScopeKind kind = 1;
+    string value = 2;
+}
+
+// AuditMetadata records who created or last updated a Rule or Bundle. The
+// updated_* fields are zero-valued on first creation and populated by the
+// first subsequent edit.
+message AuditMetadata {
+    google.protobuf.Timestamp created_at = 1;
+    string created_by = 2;
+    google.protobuf.Timestamp updated_at = 3;
+    string updated_by = 4;
+}
+
+// Rule is the unified authoring surface for both job-side and edge-side
+// policy. The envelope (id, name, type, scope, status, version, audit) is
+// shared across all rule types; the type-specific match/decide payloads
+// carry the per-RuleType schema as Struct for lossless JSON roundtrip with
+// the Go json.RawMessage and the orval-generated dashboard types.
+message Rule {
+    string id = 1;
+    string name = 2;
+    RuleType type = 3;
+    RuleScope scope = 4;
+    RuleStatus status = 5;
+    string version = 6;
+    AuditMetadata audit = 7;
+    google.protobuf.Struct match = 8;
+    google.protobuf.Struct decide = 9;
+    string description = 10;
+}
+
+// TraceStep records one rule evaluation contributing to a Decision. Multiple
+// trace steps are emitted when a rule chain or bundle composition produces a
+// final decision through ordered evaluation.
+message TraceStep {
+    string rule_id = 1;
+    string bundle_id = 2;
+    DecisionType decision_type = 3;
+    string reason = 4;
+    google.protobuf.Timestamp timestamp = 5;
+    google.protobuf.Struct constraints = 6;
+}
+
+// Decision is the unified evaluator output. A single Decision may aggregate
+// multiple rule evaluations via trace; type holds the final outcome the
+// evaluator derived from the trace. source distinguishes the producing
+// evaluator. input_ref and output_ref are pointers into the blob store
+// rather than embedded payloads.
+message Decision {
+    DecisionSource source = 1;
+    string rule_id = 2;
+    string bundle_id = 3;
+    string bundle_version = 4;
+    DecisionType type = 5;
+    repeated TraceStep trace = 6;
+    string input_ref = 7;
+    string output_ref = 8;
+    string audit_hash = 9;
+    google.protobuf.Timestamp timestamp = 10;
+}
+
+// BundleMetadata carries per-bundle authoring metadata that does not affect
+// match/decide payloads. edge_mode is the per-bundle enforcement posture for
+// edge-scoped bundles, replacing the legacy global EdgePolicyMode switch.
+message BundleMetadata {
+    EdgeMode edge_mode = 1;
+}
+
+// BundleVersion is the immutable record of a Bundle deploy. rule_snapshot
+// captures the full Rule contents at deploy time so rollback and audit do
+// not depend on the live rule store; audit_hash chains the version into the
+// audit chain.
+message BundleVersion {
+    string version = 1;
+    repeated Rule rule_snapshot = 2;
+    google.protobuf.Timestamp deployed_at = 3;
+    string audit_hash = 4;
+}
+
+// Bundle is a deployable set of rules with a deployment scope. Rules are
+// referenced by id rather than embedded so a bundle can rotate its members
+// without forcing rule duplication; the snapshot at deploy time lives in
+// BundleVersion.rule_snapshot for tamper-evident rollback.
+message Bundle {
+    string id = 1;
+    string name = 2;
+    repeated string rule_ids = 3;
+    RuleScope scope_binding = 4;
+    repeated BundleVersion versions = 5;
+    BundleMetadata metadata = 6;
+}

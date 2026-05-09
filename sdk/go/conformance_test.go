@@ -64,9 +64,7 @@ func verifySignature(t *testing.T, pkt *agentv1.BusPacket, pub *ecdsa.PublicKey)
 	if len(pkt.GetSignature()) == 0 {
 		t.Fatal("missing signature")
 	}
-	clone := proto.Clone(pkt).(*agentv1.BusPacket)
-	clone.Signature = nil
-	unsigned, err := proto.MarshalOptions{Deterministic: true}.Marshal(clone)
+	unsigned, err := MarshalUnsignedForSignature(pkt)
 	if err != nil {
 		t.Fatalf("marshal unsigned: %v", err)
 	}
@@ -167,6 +165,26 @@ func TestConformanceFixtures(t *testing.T) {
 		}
 		if hb.GetAuthToken() != "attest-worker-1" {
 			t.Fatalf("unexpected heartbeat auth_token: %q", hb.GetAuthToken())
+		}
+	})
+
+	t.Run("auth_token", func(t *testing.T) {
+		pkt := loadPacket(t, "buspacket_auth_token.bin")
+		verifySignature(t, pkt, pub)
+		assertTimestamp(t, pkt)
+		if got := pkt.GetAuthToken(); got != "session-token-fixture" {
+			t.Fatalf("unexpected buspacket auth_token: %q", got)
+		}
+		field := pkt.ProtoReflect().Descriptor().Fields().ByName("auth_token")
+		if field == nil || field.Number() != 18 {
+			t.Fatalf("auth_token descriptor=%v want field 18", field)
+		}
+		hb := pkt.GetHeartbeat()
+		if hb == nil || hb.GetWorkerId() != "worker-session-1" {
+			t.Fatalf("unexpected auth-token fixture heartbeat: %#v", hb)
+		}
+		if hb.GetAuthToken() != "" {
+			t.Fatalf("heartbeat auth_token=%q want empty", hb.GetAuthToken())
 		}
 	})
 

@@ -97,6 +97,43 @@ describe("CAP conformance fixtures", () => {
     assert.strictEqual(hb.authToken, "attest-worker-1");
   });
 
+  it("decodes buspacket auth_token fixture", async () => {
+    const root = await loadRoot();
+    const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+    const data = fs.readFileSync(fixturePath("buspacket_auth_token.bin"));
+    const pkt = BusPacket.decode(data) as any;
+    verifySignature(pkt, BusPacket);
+
+    assert.strictEqual(pkt.traceId, "trace-auth-token");
+    assert.strictEqual(pkt.senderId, "worker-session-1");
+    assert.strictEqual(pkt.protocolVersion, 1);
+    assert.strictEqual(asNumber(pkt.createdAt?.seconds), 1704164645);
+    assert.strictEqual(pkt.authToken, "session-token-fixture");
+    assert.strictEqual(BusPacket.fields.authToken.id, 18);
+    assert.strictEqual(BusPacket.fields.authToken.type, "string");
+
+    const hb = pkt.heartbeat;
+    assert.ok(hb);
+    assert.strictEqual(hb.workerId, "worker-session-1");
+    assert.strictEqual(hb.authToken, "");
+  });
+
+  it("round-trips buspacket auth_token", async () => {
+    const root = await loadRoot();
+    const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+    const pkt = BusPacket.create({
+      traceId: "trace-auth-token-round-trip",
+      senderId: "worker-session-1",
+      protocolVersion: 1,
+      authToken: "session-token-node",
+    });
+
+    const decoded = BusPacket.decode(BusPacket.encode(pkt).finish()) as any;
+
+    assert.strictEqual(decoded.authToken, "session-token-node");
+    assert.strictEqual(BusPacket.fields.authToken.id, 18);
+  });
+
   it("decodes job progress fixture", async () => {
     const root = await loadRoot();
     const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");

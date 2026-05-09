@@ -26,6 +26,17 @@ func MarshalDeterministic(msg proto.Message) ([]byte, error) {
 	return proto.MarshalOptions{Deterministic: true}.Marshal(msg)
 }
 
+// MarshalUnsignedForSignature serializes a BusPacket with signature cleared
+// using CAP's cross-SDK signing order.
+func MarshalUnsignedForSignature(packet *agentv1.BusPacket) ([]byte, error) {
+	if packet == nil {
+		return nil, errors.New("capsdk: packet is nil")
+	}
+	clone := proto.Clone(packet).(*agentv1.BusPacket)
+	clone.Signature = nil
+	return marshalPacketForSignature(clone)
+}
+
 // SignPacket signs a BusPacket and stores the signature on the packet.
 func SignPacket(packet *agentv1.BusPacket, key *ecdsa.PrivateKey) error {
 	if packet == nil {
@@ -35,9 +46,7 @@ func SignPacket(packet *agentv1.BusPacket, key *ecdsa.PrivateKey) error {
 		return errors.New("capsdk: private key is nil")
 	}
 
-	clone := proto.Clone(packet).(*agentv1.BusPacket)
-	clone.Signature = nil
-	unsignedData, err := MarshalDeterministic(clone)
+	unsignedData, err := MarshalUnsignedForSignature(packet)
 	if err != nil {
 		return fmt.Errorf("marshal unsigned packet: %w", err)
 	}
@@ -64,9 +73,7 @@ func VerifyPacketSignature(packet *agentv1.BusPacket, key *ecdsa.PublicKey) erro
 		return ErrMissingSignature
 	}
 
-	clone := proto.Clone(packet).(*agentv1.BusPacket)
-	clone.Signature = nil
-	unsignedData, err := MarshalDeterministic(clone)
+	unsignedData, err := MarshalUnsignedForSignature(packet)
 	if err != nil {
 		return fmt.Errorf("marshal unsigned packet: %w", err)
 	}
@@ -75,4 +82,27 @@ func VerifyPacketSignature(packet *agentv1.BusPacket, key *ecdsa.PublicKey) erro
 		return ErrInvalidSignature
 	}
 	return nil
+}
+
+func marshalPacketForSignature(packet *agentv1.BusPacket) ([]byte, error) {
+	if packet.GetAuthToken() == "" || packet.GetPayload() == nil {
+		return MarshalDeterministic(packet)
+	}
+	// Python protobuf and protobufjs encode BusPacket oneof payload fields
+	// before auth_token when signature is cleared. Go's generated fast path
+	// emits scalar fields before oneofs, so auth_token would otherwise be
+	// signed before the payload and fail cross-SDK verification.
+	clone := proto.Clone(packet).(*agentv1.BusPacket)
+	authToken := clone.AuthToken
+	clone.AuthToken = ""
+
+	data, err := MarshalDeterministic(clone)
+	if err != nil {
+		return nil, err
+	}
+	authBytes, err := MarshalDeterministic(&agentv1.BusPacket{AuthToken: authToken})
+	if err != nil {
+		return nil, err
+	}
+	return append(data, authBytes...), nil
 }

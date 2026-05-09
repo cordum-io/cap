@@ -2,13 +2,14 @@
 
 All CAP traffic is wrapped in a `BusPacket`. The envelope provides tracing, sender identity, and protocol negotiation around a single payload.
 
-## Required Fields
+## Envelope Fields
 - `trace_id`: correlates all packets for a request or workflow.
 - `sender_id`: stable identifier for the emitting component (gateway, scheduler, worker, orchestrator, controller).
 - `created_at`: timestamp of emission.
 - `protocol_version`: CAP wire version. Consumers MAY reject packets with unsupported versions.
 - `payload`: exactly one of `JobRequest`, `JobResult`, `Heartbeat`, `SystemAlert`, `JobProgress`, `JobCancel`, or `Handshake`. Old consumers that do not recognize a variant will ignore it per standard protobuf oneof behavior.
 - `signature` (optional but recommended): digital signature of the serialized `BusPacket` for authenticity and integrity. Producers SHOULD sign; consumers SHOULD verify when configured with public keys.
+- `auth_token` (optional): trusted runtime session token attached by CAP SDK/runtime code after handshake or scheduler-issued session establishment. Implementations MUST treat it as sensitive and MUST NOT populate it from untrusted client input.
 
 ## Canonical Proto (see `proto/cordum/agent/v1/buspacket.proto`)
 ```proto
@@ -29,6 +30,7 @@ message BusPacket {
   }
 
   bytes signature = 14; // digital signature of the serialized BusPacket
+  string auth_token = 18; // trusted runtime session token
 }
 ```
 
@@ -46,8 +48,9 @@ message BusPacket {
 - Producers SHOULD set `protocol_version = 1` until a new major is defined.
 - Consumers SHOULD treat unknown fields as optional and ignore them.
 - Bus-level metadata (headers) MAY be used for auth or routing, but message-level fields remain canonical.
+- `auth_token` is trusted runtime context, not an application payload field. Gateways and schedulers MUST NOT copy caller-supplied values into it unless the caller is already authenticated as trusted control-plane/runtime code.
 - When signatures are enabled, verify the `signature` against the serialized packet with the field zeroed; drop or flag packets that fail verification.
-- Signatures MUST be computed over deterministic protobuf serialization. Map entries MUST be ordered by key. Implementations SHOULD use deterministic/protobuf-canonical encoding when signing/verifying (e.g., Go `proto.MarshalOptions{Deterministic: true}`, Python `SerializeToString(deterministic=True)`, or protobufjs with map keys sorted before encode).
+- Signatures MUST be computed over deterministic protobuf serialization. Map entries MUST be ordered by key. Implementations SHOULD use the SDK signing helpers when available. In particular, packets that carry both a oneof `payload` and `auth_token` MUST use the CAP unsigned BusPacket signing order with `signature` cleared and the payload serialized before `auth_token` so Go, Python, and Node verify the same bytes.
 
 ## Protocol Error Handling
 - When a consumer receives a BusPacket with an unsupported `protocol_version`, it SHOULD publish a `SystemAlert` with `error_code_enum = PROTOCOL_VERSION_MISMATCH` and `severity = ERROR` to `sys.alert`.

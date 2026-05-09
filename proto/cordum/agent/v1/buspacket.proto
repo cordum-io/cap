@@ -32,4 +32,5 @@ message BusPacket {
         Handshake handshake = 17;
     }
     bytes signature = 14;                   // digital signature of the serialized BusPacket
+    string auth_token = 18;                 // trusted runtime session token
 }

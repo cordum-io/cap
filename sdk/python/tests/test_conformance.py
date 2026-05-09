@@ -83,6 +83,31 @@ class TestConformanceFixtures(unittest.TestCase):
         self.assertEqual(hb.progress_pct, 60)
         self.assertEqual(hb.auth_token, "attest-worker-1")
 
+    def test_buspacket_auth_token_fixture(self):
+        pkt = load_packet("buspacket_auth_token.bin")
+        self._assert_common(pkt, "trace-auth-token", "worker-session-1")
+        self.assertEqual(pkt.auth_token, "session-token-fixture")
+        field = buspacket_pb2.BusPacket.DESCRIPTOR.fields_by_name["auth_token"]
+        self.assertEqual(field.number, 18)
+        self.assertEqual(field.type, field.TYPE_STRING)
+        self.assertEqual(pkt.heartbeat.worker_id, "worker-session-1")
+        self.assertEqual(pkt.heartbeat.auth_token, "")
+
+    def test_buspacket_auth_token_round_trip(self):
+        pkt = buspacket_pb2.BusPacket(
+            trace_id="trace-auth-token-round-trip",
+            sender_id="worker-session-1",
+            protocol_version=1,
+            auth_token="session-token-python",
+        )
+        encoded = pkt.SerializeToString(deterministic=True)
+        decoded = buspacket_pb2.BusPacket()
+        decoded.ParseFromString(encoded)
+
+        self.assertEqual(decoded.auth_token, "session-token-python")
+        field = buspacket_pb2.BusPacket.DESCRIPTOR.fields_by_name["auth_token"]
+        self.assertEqual(field.number, 18)
+
     def test_job_progress_fixture(self):
         pkt = load_packet("buspacket_job_progress.bin")
         self._assert_common(pkt, "trace-progress", "worker-1")

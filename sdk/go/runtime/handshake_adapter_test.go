@@ -114,7 +114,7 @@ func TestAdapterFlow_TenantSurfacesInRequest(t *testing.T) {
 func TestAdapterFlow_DownstreamPacketsCarryAdapterToken(t *testing.T) {
 	// End-to-end: after the adapter Agent.Start installs a token,
 	// every downstream JobResult publish must carry that token on
-	// unknown field 18. Verifies the outbound middleware is
+	// the typed BusPacket.auth_token field. Verifies the outbound middleware is
 	// adapter-agnostic.
 	t.Parallel()
 	bus := newHandshakeBus(func(_ string, data []byte) ([]byte, error) {
@@ -140,6 +140,9 @@ func TestAdapterFlow_DownstreamPacketsCarryAdapterToken(t *testing.T) {
 	var decoded agentv1.BusPacket
 	if err := proto.Unmarshal(last.data, &decoded); err != nil {
 		t.Fatalf("unmarshal: %v", err)
+	}
+	if got := decoded.GetAuthToken(); got != "adapter-token-42" {
+		t.Fatalf("published packet auth_token=%q want adapter-token-42", got)
 	}
 	if got := ExtractSessionToken(&decoded); got != "adapter-token-42" {
 		t.Fatalf("published packet token=%q want adapter-token-42", got)

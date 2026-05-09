@@ -15,6 +15,7 @@ import (
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+	capsdk "github.com/cordum-io/cap/v2/sdk/go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -32,9 +33,7 @@ func marshalDeterministic(msg proto.Message) ([]byte, error) {
 }
 
 func signPacket(pkt *agentv1.BusPacket, priv *ecdsa.PrivateKey) error {
-	clone := proto.Clone(pkt).(*agentv1.BusPacket)
-	clone.Signature = nil
-	unsigned, err := marshalDeterministic(clone)
+	unsigned, err := capsdk.MarshalUnsignedForSignature(pkt)
 	if err != nil {
 		return fmt.Errorf("marshal unsigned: %w", err)
 	}
@@ -226,6 +225,22 @@ func main() {
 					ProgressPct: 60,
 					LastMemo:    "step-3",
 					AuthToken:   "attest-worker-1",
+				}},
+			},
+		},
+		{
+			Name: "buspacket_auth_token.bin",
+			Packet: &agentv1.BusPacket{
+				TraceId:         "trace-auth-token",
+				SenderId:        "worker-session-1",
+				CreatedAt:       timestamp,
+				ProtocolVersion: 1,
+				AuthToken:       "session-token-fixture",
+				Payload: &agentv1.BusPacket_Heartbeat{Heartbeat: &agentv1.Heartbeat{
+					WorkerId: "worker-session-1",
+					Region:   "us-east-1",
+					Type:     "cpu-tools",
+					Pool:     "job.tools",
 				}},
 			},
 		},

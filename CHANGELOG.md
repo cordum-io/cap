@@ -17,6 +17,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Unreleased — Protocol Hardening
 
+- **[WIRE]** Declared `BusPacket.auth_token` at field 18 to match the pre-existing session-token wire convention and expose the field consistently across Go, Python, and Node descriptors.
+- **Go SDK:** `SignPacket`/`VerifyPacketSignature` now use the CAP cross-SDK unsigned BusPacket signing order when both `auth_token` and a oneof payload are present, so tokens remain covered by signatures without breaking Python/Node verification.
 - **[WIRE]** Added `ErrorCode` enum and `error_code_enum` field to `JobResult` for structured error classification.
 - **[WIRE]** Enhanced `SystemAlert` with `AlertSeverity` enum and structured fields (`severity`, `source_component`, `details`, `trace_id`).
 - **[WIRE]** Added `Handshake` message for capability negotiation.

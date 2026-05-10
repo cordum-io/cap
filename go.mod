@@ -1,6 +1,6 @@
 module github.com/cordum-io/cap/v2
 
-go 1.25.9
+go 1.25.10
 
 require (
 	github.com/nats-io/nats-server/v2 v2.12.6

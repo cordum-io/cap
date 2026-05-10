@@ -12,6 +12,10 @@ option ruby_package = "Cordum::Agent::V1";
 import "cordum/agent/v1/job.proto";
 
 // DecisionType enumerates policy outcomes from the SafetyKernel.
+//
+// Values 6 and 7 (QUARANTINE, REDACT) were appended for the unified
+// Policy Studio Rule/Decision/Bundle shapes (Cordum epic-d9a6c0a1).
+// Per CAP append-only rule: existing values 0-5 retain their numbers.
 enum DecisionType {
     DECISION_TYPE_UNSPECIFIED = 0;
     DECISION_TYPE_ALLOW = 1;
@@ -19,6 +23,8 @@ enum DecisionType {
     DECISION_TYPE_REQUIRE_HUMAN = 3;
     DECISION_TYPE_THROTTLE = 4;
     DECISION_TYPE_ALLOW_WITH_CONSTRAINTS = 5;
+    DECISION_TYPE_QUARANTINE = 6;
+    DECISION_TYPE_REDACT = 7;
 }
 
 // PolicyCheckRequest carries job metadata to the SafetyKernel.

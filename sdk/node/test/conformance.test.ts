@@ -97,6 +97,43 @@ describe("CAP conformance fixtures", () => {
     assert.strictEqual(hb.authToken, "attest-worker-1");
   });
 
+  it("decodes buspacket auth_token fixture", async () => {
+    const root = await loadRoot();
+    const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+    const data = fs.readFileSync(fixturePath("buspacket_auth_token.bin"));
+    const pkt = BusPacket.decode(data) as any;
+    verifySignature(pkt, BusPacket);
+
+    assert.strictEqual(pkt.traceId, "trace-auth-token");
+    assert.strictEqual(pkt.senderId, "worker-session-1");
+    assert.strictEqual(pkt.protocolVersion, 1);
+    assert.strictEqual(asNumber(pkt.createdAt?.seconds), 1704164645);
+    assert.strictEqual(pkt.authToken, "session-token-fixture");
+    assert.strictEqual(BusPacket.fields.authToken.id, 18);
+    assert.strictEqual(BusPacket.fields.authToken.type, "string");
+
+    const hb = pkt.heartbeat;
+    assert.ok(hb);
+    assert.strictEqual(hb.workerId, "worker-session-1");
+    assert.strictEqual(hb.authToken, "");
+  });
+
+  it("round-trips buspacket auth_token", async () => {
+    const root = await loadRoot();
+    const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+    const pkt = BusPacket.create({
+      traceId: "trace-auth-token-round-trip",
+      senderId: "worker-session-1",
+      protocolVersion: 1,
+      authToken: "session-token-node",
+    });
+
+    const decoded = BusPacket.decode(BusPacket.encode(pkt).finish()) as any;
+
+    assert.strictEqual(decoded.authToken, "session-token-node");
+    assert.strictEqual(BusPacket.fields.authToken.id, 18);
+  });
+
   it("decodes job progress fixture", async () => {
     const root = await loadRoot();
     const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
@@ -183,5 +220,65 @@ describe("CAP conformance fixtures", () => {
     assert.strictEqual(alert.details.sender, "worker-bad");
     assert.strictEqual(alert.details.subject, "sys.job.result");
     assert.strictEqual(alert.traceId, "trace-offending-packet");
+  });
+
+  // Policy Studio (epic-d9a6c0a1) — standalone-message fixtures, not
+  // BusPacket-wrapped. Exercises Rule/Decision/Bundle decode parity through
+  // protobufjs runtime parser. Mirrors sdk/go/conformance_test.go's
+  // TestPolicyShapesConformance + sdk/python/tests TestPolicyShapesConformance.
+
+  it("decodes policy rule fixture", async () => {
+    const root = await loadRoot();
+    const Rule = root.lookupType("cordum.agent.v1.Rule");
+    const data = fs.readFileSync(fixturePath("policy_rule.bin"));
+    const rule = Rule.decode(data) as any;
+    assert.strictEqual(rule.id, "rule-input-secrets");
+    assert.strictEqual(rule.name, "Block secret leaks in input");
+    assert.strictEqual(rule.type, 1); // RULE_TYPE_INPUT
+    assert.strictEqual(rule.scope.kind, 2); // RULE_SCOPE_KIND_TENANT
+    assert.strictEqual(rule.scope.value, "acme");
+    assert.strictEqual(rule.status, 2); // RULE_STATUS_PUBLISHED
+    assert.strictEqual(rule.version, "v1");
+    assert.strictEqual(rule.audit.createdBy, "yaron@cordum.io");
+    assert.strictEqual(rule.description, "Conformance fixture for RuleType=INPUT.");
+    assert.strictEqual(rule.decide.fields.decision.stringValue, "deny");
+    assert.strictEqual(rule.decide.fields.reason.stringValue, "secret_leak");
+  });
+
+  it("decodes policy decision fixture (exercises wire-value 6 = QUARANTINE)", async () => {
+    const root = await loadRoot();
+    const Decision = root.lookupType("cordum.agent.v1.Decision");
+    const data = fs.readFileSync(fixturePath("policy_decision.bin"));
+    const decision = Decision.decode(data) as any;
+    assert.strictEqual(decision.source, 1); // DECISION_SOURCE_JOB
+    assert.strictEqual(decision.ruleId, "rule-input-secrets");
+    assert.strictEqual(decision.bundleId, "bundle-acme-default");
+    assert.strictEqual(decision.bundleVersion, "v12");
+    // Wire value 6 = DECISION_TYPE_QUARANTINE — proves protobufjs runtime
+    // parser handles the appended DecisionType enum value correctly.
+    assert.strictEqual(decision.type, 6);
+    assert.strictEqual(decision.trace.length, 1);
+    assert.strictEqual(decision.trace[0].ruleId, "rule-input-secrets");
+    assert.strictEqual(decision.trace[0].decisionType, 6);
+    assert.strictEqual(decision.trace[0].reason, "secret_leak");
+    assert.strictEqual(decision.inputRef, "blob://acme/input/r1");
+    assert.strictEqual(decision.outputRef, "blob://acme/output/r1");
+    assert.strictEqual(decision.auditHash, "0xabcdef");
+  });
+
+  it("decodes policy bundle fixture (exercises EdgeMode.ENTERPRISE_STRICT)", async () => {
+    const root = await loadRoot();
+    const Bundle = root.lookupType("cordum.agent.v1.Bundle");
+    const data = fs.readFileSync(fixturePath("policy_bundle.bin"));
+    const bundle = Bundle.decode(data) as any;
+    assert.strictEqual(bundle.id, "bundle-edge-prod");
+    assert.strictEqual(bundle.name, "Production edge bundle");
+    assert.deepStrictEqual(bundle.ruleIds, ["rule-edge-fs-write-deny"]);
+    assert.strictEqual(bundle.scopeBinding.kind, 4); // RULE_SCOPE_KIND_EDGE_FLEET
+    assert.strictEqual(bundle.scopeBinding.value, "fleet-prod");
+    assert.strictEqual(bundle.versions.length, 1);
+    assert.strictEqual(bundle.versions[0].version, "v3");
+    assert.strictEqual(bundle.versions[0].auditHash, "0xdeadbeef");
+    assert.strictEqual(bundle.metadata.edgeMode, 3); // EDGE_MODE_ENTERPRISE_STRICT
   });
 });

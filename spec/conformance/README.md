@@ -9,6 +9,7 @@ This directory contains binary fixtures used by SDK conformance tests. Fixtures 
 - `buspacket_job_progress.bin` — JobProgress at 50% with RUNNING status
 - `buspacket_job_cancel.bin` — JobCancel with reason and requester
 - `buspacket_heartbeat.bin` — Heartbeat with capabilities, labels, memory load, and progress checkpoint
+- `buspacket_auth_token.bin` — BusPacket-level `auth_token` with a Heartbeat payload to verify declared field 18 and cross-SDK signature coverage
 - `buspacket_alert.bin` — SystemAlert with legacy fields (level, component, code)
 - `buspacket_handshake.bin` — Handshake with worker role, supported versions, capability flags, and SDK version
 - `buspacket_alert_enhanced.bin` — Enhanced SystemAlert with both legacy and new fields (severity enum, error code enum, source component, details map, trace ID)

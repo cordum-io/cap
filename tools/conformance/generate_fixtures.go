@@ -15,7 +15,9 @@ import (
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+	capsdk "github.com/cordum-io/cap/v2/sdk/go"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -31,9 +33,7 @@ func marshalDeterministic(msg proto.Message) ([]byte, error) {
 }
 
 func signPacket(pkt *agentv1.BusPacket, priv *ecdsa.PrivateKey) error {
-	clone := proto.Clone(pkt).(*agentv1.BusPacket)
-	clone.Signature = nil
-	unsigned, err := marshalDeterministic(clone)
+	unsigned, err := capsdk.MarshalUnsignedForSignature(pkt)
 	if err != nil {
 		return fmt.Errorf("marshal unsigned: %w", err)
 	}
@@ -229,6 +229,22 @@ func main() {
 			},
 		},
 		{
+			Name: "buspacket_auth_token.bin",
+			Packet: &agentv1.BusPacket{
+				TraceId:         "trace-auth-token",
+				SenderId:        "worker-session-1",
+				CreatedAt:       timestamp,
+				ProtocolVersion: 1,
+				AuthToken:       "session-token-fixture",
+				Payload: &agentv1.BusPacket_Heartbeat{Heartbeat: &agentv1.Heartbeat{
+					WorkerId: "worker-session-1",
+					Region:   "us-east-1",
+					Type:     "cpu-tools",
+					Pool:     "job.tools",
+				}},
+			},
+		},
+		{
 			Name: "buspacket_job_progress.bin",
 			Packet: &agentv1.BusPacket{
 				TraceId:         "trace-progress",
@@ -326,6 +342,99 @@ func main() {
 		outPath := filepath.Join(outDir, fixture.Name)
 		if err := writePacket(outPath, fixture.Packet, priv); err != nil {
 			fatal(err)
+		}
+	}
+
+	// Policy Studio (epic-d9a6c0a1) — standalone message fixtures. These are
+	// not BusPacket payloads (Rule/Decision/Bundle live in higher-layer APIs,
+	// not on the cap bus); the fixtures exercise binary roundtrip parity for
+	// the seven new message types + the appended DecisionType enum values
+	// across all SDKs.
+	policyTimestamp := timestamppb.New(time.Date(2026, time.May, 9, 12, 0, 0, 0, time.UTC))
+	matchPayload, err := structpb.NewStruct(map[string]any{
+		"tenants":   []any{"acme"},
+		"topics":    []any{"job.acme.*"},
+		"scanners":  []any{"secret_leak"},
+	})
+	if err != nil {
+		fatal(fmt.Errorf("build match struct: %w", err))
+	}
+	decidePayload, err := structpb.NewStruct(map[string]any{
+		"decision": "deny",
+		"reason":   "secret_leak",
+		"severity": "critical",
+	})
+	if err != nil {
+		fatal(fmt.Errorf("build decide struct: %w", err))
+	}
+	rule := &agentv1.Rule{
+		Id:      "rule-input-secrets",
+		Name:    "Block secret leaks in input",
+		Type:    agentv1.RuleType_RULE_TYPE_INPUT,
+		Scope:   &agentv1.RuleScope{Kind: agentv1.RuleScopeKind_RULE_SCOPE_KIND_TENANT, Value: "acme"},
+		Status:  agentv1.RuleStatus_RULE_STATUS_PUBLISHED,
+		Version: "v1",
+		Audit: &agentv1.AuditMetadata{
+			CreatedAt: policyTimestamp,
+			CreatedBy: "yaron@cordum.io",
+		},
+		Match:       matchPayload,
+		Decide:      decidePayload,
+		Description: "Conformance fixture for RuleType=INPUT.",
+	}
+	traceConstraints, err := structpb.NewStruct(map[string]any{
+		"budgets": map[string]any{"max_runtime_ms": 30000},
+	})
+	if err != nil {
+		fatal(fmt.Errorf("build trace constraints: %w", err))
+	}
+	decision := &agentv1.Decision{
+		Source:        agentv1.DecisionSource_DECISION_SOURCE_JOB,
+		RuleId:        "rule-input-secrets",
+		BundleId:      "bundle-acme-default",
+		BundleVersion: "v12",
+		Type:          agentv1.DecisionType_DECISION_TYPE_QUARANTINE,
+		Trace: []*agentv1.TraceStep{{
+			RuleId:       "rule-input-secrets",
+			BundleId:     "bundle-acme-default",
+			DecisionType: agentv1.DecisionType_DECISION_TYPE_QUARANTINE,
+			Reason:       "secret_leak",
+			Timestamp:    policyTimestamp,
+			Constraints:  traceConstraints,
+		}},
+		InputRef:  "blob://acme/input/r1",
+		OutputRef: "blob://acme/output/r1",
+		AuditHash: "0xabcdef",
+		Timestamp: policyTimestamp,
+	}
+	bundle := &agentv1.Bundle{
+		Id:           "bundle-edge-prod",
+		Name:         "Production edge bundle",
+		RuleIds:      []string{"rule-edge-fs-write-deny"},
+		ScopeBinding: &agentv1.RuleScope{Kind: agentv1.RuleScopeKind_RULE_SCOPE_KIND_EDGE_FLEET, Value: "fleet-prod"},
+		Versions: []*agentv1.BundleVersion{{
+			Version:    "v3",
+			DeployedAt: policyTimestamp,
+			AuditHash:  "0xdeadbeef",
+		}},
+		Metadata: &agentv1.BundleMetadata{EdgeMode: agentv1.EdgeMode_EDGE_MODE_ENTERPRISE_STRICT},
+	}
+	rawFixtures := []struct {
+		Name string
+		Msg  proto.Message
+	}{
+		{Name: "policy_rule.bin", Msg: rule},
+		{Name: "policy_decision.bin", Msg: decision},
+		{Name: "policy_bundle.bin", Msg: bundle},
+	}
+	for _, fx := range rawFixtures {
+		data, err := marshalDeterministic(fx.Msg)
+		if err != nil {
+			fatal(fmt.Errorf("marshal %s: %w", fx.Name, err))
+		}
+		outPath := filepath.Join(outDir, fx.Name)
+		if err := os.WriteFile(outPath, data, 0o644); err != nil {
+			fatal(fmt.Errorf("write %s: %w", outPath, err))
 		}
 	}
 }

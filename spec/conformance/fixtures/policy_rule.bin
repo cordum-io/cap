@@ -1,0 +1,21 @@
+
+rule-input-secretsBlock secret leaks in input"acme(2v1:
+¿√¸œyaron@cordum.ioBR
+
+scanners2
+secret_leak
+
+tenants
+2
+acme
+
+topics2
+
+job.acme.*JE
+
+decisiondeny
+
+reasonsecret_leak
+
+severity
+criticalR'Conformance fixture for RuleType=INPUT.

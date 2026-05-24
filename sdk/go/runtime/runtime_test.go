@@ -309,6 +309,42 @@ func TestAgentStartPublishesHandshake(t *testing.T) {
 	}
 }
 
+func TestAgentHandshakeCarriesSanitizedAgentName(t *testing.T) {
+	mock := newMockNATS()
+	store := NewInMemoryBlobStore()
+
+	agent := &Agent{
+		NATS:     mock,
+		Store:    store,
+		SenderID: "worker-named",
+		// Padded/dirty label proves the SDK sanitizes before advertising it.
+		AgentName: "  Claude Code\n— Billing  ",
+	}
+	Register(agent, "job.named", func(_ Context, _ struct{}) (struct{}, error) {
+		return struct{}{}, nil
+	})
+
+	if err := agent.Start(); err != nil {
+		t.Fatalf("start: %v", err)
+	}
+
+	msg, ok := mock.lastPublished()
+	if !ok {
+		t.Fatal("no handshake published")
+	}
+	var packet agentv1.BusPacket
+	if err := proto.Unmarshal(msg.data, &packet); err != nil {
+		t.Fatalf("decode handshake: %v", err)
+	}
+	handshake := packet.GetHandshake()
+	if handshake == nil {
+		t.Fatal("missing handshake payload")
+	}
+	if handshake.GetAgentName() != "Claude Code — Billing" {
+		t.Fatalf("handshake agent_name = %q, want sanitized %q", handshake.GetAgentName(), "Claude Code — Billing")
+	}
+}
+
 func mustGenerateECDSAKey(t *testing.T) *ecdsa.PrivateKey {
 	t.Helper()
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)

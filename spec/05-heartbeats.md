@@ -15,6 +15,7 @@ Heartbeats advertise worker liveness, capacity, and pool membership so scheduler
 - `progress_pct`: optional task-level progress checkpoint (0-100).
 - `last_memo`: optional short string/hash identifying the last successful internal step.
 - `auth_token`: optional worker attestation credential presented by the worker to prove it matches a registered `WorkerCredential`. This is a dedicated protocol field and MUST NOT be copied into `labels`.
+- `agent_name` (field 19): optional human-facing **display label** for the agent/worker (e.g., `Claude Code — Billing Bot`), surfaced in dashboards and audit summaries. SDKs sanitize and bound it (trim, collapse internal whitespace, drop control characters, cap at 128 characters). It is **not an authentication authority**: schedulers and audit consumers MUST prefer authenticated identity records (worker credential / Agent Identity) over this self-reported value and MUST NOT treat it as proof of identity. Additive/append-only; older workers omit it. It MUST NOT carry secrets, tokens, or PII.
 - Tags: `checkpoint-heartbeat`, `progress`.
 
 ## Emission Rules
@@ -31,3 +32,4 @@ Heartbeats advertise worker liveness, capacity, and pool membership so scheduler
 - Respect `max_parallel_jobs` to avoid overload; pause dispatch when active count meets or exceeds the limit.
 - Use `capabilities`/`type` to honor pool-specific requirements (GPU-only pools, tool availability, etc.).
 - When worker attestation is enabled, schedulers SHOULD validate `auth_token` against the credential store before trusting the heartbeat for worker identity. Missing or invalid tokens MAY still be accepted in compatibility/warn modes so older workers continue to function during rollout.
+- `agent_name` is informational only: schedulers and audit pipelines MUST NOT use it for authorization or identity resolution, and MUST prefer authenticated records (worker credential / Agent Identity) when both are present.

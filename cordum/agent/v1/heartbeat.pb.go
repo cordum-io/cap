@@ -38,8 +38,13 @@ type Heartbeat struct {
 	ProgressPct     int32                  `protobuf:"varint,15,opt,name=progress_pct,json=progressPct,proto3" json:"progress_pct,omitempty"`                                             // 0-100 task-level progress checkpoint (optional)
 	LastMemo        string                 `protobuf:"bytes,16,opt,name=last_memo,json=lastMemo,proto3" json:"last_memo,omitempty"`                                                       // last successful internal step/memo (short string/hash)
 	AuthToken       string                 `protobuf:"bytes,18,opt,name=auth_token,json=authToken,proto3" json:"auth_token,omitempty"`                                                    // optional worker attestation credential
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	// agent_name is a human-facing DISPLAY label only (e.g. "Claude Code — Billing Bot").
+	// It is NOT an authentication authority: consumers MUST prefer authenticated identity
+	// records over this self-reported value. Additive/append-only; safe to omit (old clients
+	// send empty). See spec/05-heartbeats.md.
+	AgentName     string `protobuf:"bytes,19,opt,name=agent_name,json=agentName,proto3" json:"agent_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Heartbeat) Reset() {
@@ -170,11 +175,18 @@ func (x *Heartbeat) GetAuthToken() string {
 	return ""
 }
 
+func (x *Heartbeat) GetAgentName() string {
+	if x != nil {
+		return x.AgentName
+	}
+	return ""
+}
+
 var File_cordum_agent_v1_heartbeat_proto protoreflect.FileDescriptor
 
 const file_cordum_agent_v1_heartbeat_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcordum/agent/v1/heartbeat.proto\x12\x0fcordum.agent.v1\"\xaa\x04\n" +
+	"\x1fcordum/agent/v1/heartbeat.proto\x12\x0fcordum.agent.v1\"\xc9\x04\n" +
 	"\tHeartbeat\x12\x1b\n" +
 	"\tworker_id\x18\x01 \x01(\tR\bworkerId\x12\x16\n" +
 	"\x06region\x18\x02 \x01(\tR\x06region\x12\x12\n" +
@@ -192,7 +204,9 @@ const file_cordum_agent_v1_heartbeat_proto_rawDesc = "" +
 	"\fprogress_pct\x18\x0f \x01(\x05R\vprogressPct\x12\x1b\n" +
 	"\tlast_memo\x18\x10 \x01(\tR\blastMemo\x12\x1d\n" +
 	"\n" +
-	"auth_token\x18\x12 \x01(\tR\tauthToken\x1a9\n" +
+	"auth_token\x18\x12 \x01(\tR\tauthToken\x12\x1d\n" +
+	"\n" +
+	"agent_name\x18\x13 \x01(\tR\tagentName\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01J\x04\b\b\x10\tJ\x04\b\t\x10\n" +

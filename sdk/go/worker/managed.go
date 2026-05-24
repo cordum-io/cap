@@ -38,9 +38,14 @@ type ManagedConfig struct {
 	Labels          map[string]string
 	Type            string
 	WorkerID        string
-	HeartbeatEvery  time.Duration
-	PublicKeys      map[string]*ecdsa.PublicKey
-	PrivateKey      *ecdsa.PrivateKey
+	// AgentName is an optional human-facing display label (e.g. "Claude Code —
+	// Billing Bot") advertised on heartbeats and handshakes. It is sanitized and
+	// bounded before transport and is a DISPLAY label only, never an
+	// authentication authority.
+	AgentName      string
+	HeartbeatEvery time.Duration
+	PublicKeys     map[string]*ecdsa.PublicKey
+	PrivateKey     *ecdsa.PrivateKey
 	// NATSTLSConfig is an optional TLS configuration for the NATS connection.
 	// When nil, NewManagedWorker attempts to build one from NATS_TLS_* env vars.
 	NATSTLSConfig *tls.Config
@@ -346,6 +351,7 @@ func (w *ManagedWorker) startHeartbeat(ctx context.Context) {
 					MaxParallelJobs: w.cfg.MaxParallelJobs,
 					Capabilities:    w.cfg.Capabilities,
 					Labels:          w.cfg.Labels,
+					AgentName:       capsdk.SanitizeAgentName(w.cfg.AgentName),
 				},
 			},
 		}
@@ -421,6 +427,7 @@ func (w *ManagedWorker) publishHandshake() {
 				SupportedVersions: []int32{capsdk.DefaultProtocolVersion},
 				Capabilities:      caps,
 				ReadyTopics:       readyTopics,
+				AgentName:         capsdk.SanitizeAgentName(w.cfg.AgentName),
 			},
 		},
 	}

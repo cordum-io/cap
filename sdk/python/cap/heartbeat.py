@@ -18,6 +18,20 @@ from cap.subjects import SUBJECT_HEARTBEAT
 
 _logger = logging.getLogger("cap.heartbeat")
 
+#: Maximum length (in characters) of a human-facing agent display label.
+AGENT_NAME_MAX_LEN = 128
+
+
+def sanitize_agent_name(name: str) -> str:
+    """Trim, collapse internal whitespace, and bound a human-facing agent
+    display label for safe transport on ``Heartbeat``/``Handshake``.
+
+    The result is a DISPLAY label only: consumers MUST prefer authenticated
+    identity records over this self-reported value and MUST NOT treat it as
+    proof of identity.
+    """
+    return " ".join(name.split())[:AGENT_NAME_MAX_LEN]
+
 
 def heartbeat_payload(
     worker_id: str,
@@ -26,6 +40,7 @@ def heartbeat_payload(
     max_parallel: int,
     cpu_load: float,
     auth_token: str = "",
+    agent_name: str = "",
 ) -> bytes:
     """Build a heartbeat payload with CPU utilization only."""
     return heartbeat_payload_with_progress(
@@ -35,6 +50,7 @@ def heartbeat_payload(
         max_parallel=max_parallel,
         cpu_load=cpu_load,
         auth_token=auth_token,
+        agent_name=agent_name,
     )
 
 
@@ -46,6 +62,7 @@ def heartbeat_payload_with_memory(
     cpu_load: float,
     memory_load: float,
     auth_token: str = "",
+    agent_name: str = "",
 ) -> bytes:
     """Build a heartbeat payload including memory utilization."""
     return heartbeat_payload_with_progress(
@@ -56,6 +73,7 @@ def heartbeat_payload_with_memory(
         cpu_load=cpu_load,
         memory_load=memory_load,
         auth_token=auth_token,
+        agent_name=agent_name,
     )
 
 
@@ -69,6 +87,7 @@ def heartbeat_payload_with_progress(
     progress_pct: int = 0,
     last_memo: str = "",
     auth_token: str = "",
+    agent_name: str = "",
 ) -> bytes:
     """Build a heartbeat payload including optional progress fields."""
     ts = timestamp_pb2.Timestamp()
@@ -90,6 +109,7 @@ def heartbeat_payload_with_progress(
             progress_pct=progress_pct,
             last_memo=last_memo,
             auth_token=auth_token,
+            agent_name=sanitize_agent_name(agent_name),
         )
     )
     return packet.SerializeToString(deterministic=True)

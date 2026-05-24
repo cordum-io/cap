@@ -44,6 +44,22 @@ func WithAuthToken(token string) HeartbeatOption {
 	}
 }
 
+// WithAgentName sets the optional human-facing agent display label on the
+// heartbeat. The value is sanitized and bounded via capsdk.SanitizeAgentName.
+// This is a DISPLAY label only — it is NOT an authentication authority, and
+// consumers must prefer authenticated identity records over it. Blank labels
+// are ignored.
+func WithAgentName(name string) HeartbeatOption {
+	return func(hb *agentv1.Heartbeat) {
+		if hb == nil {
+			return
+		}
+		if clean := capsdk.SanitizeAgentName(name); clean != "" {
+			hb.AgentName = clean
+		}
+	}
+}
+
 // Worker subscribes to a pool subject and handles jobs.
 type Worker struct {
 	NATS        NATSConn

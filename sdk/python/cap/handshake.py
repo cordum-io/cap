@@ -10,6 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from google.protobuf import timestamp_pb2
 
 from cap.constants import DEFAULT_PROTOCOL_VERSION
+from cap.heartbeat import sanitize_agent_name
 from cap.pb.cordum.agent.v1 import buspacket_pb2, handshake_pb2
 from cap.subjects import SUBJECT_HANDSHAKE
 
@@ -21,6 +22,7 @@ def handshake_payload(
     sender_id: Optional[str] = None,
     supported_versions: Optional[Sequence[int]] = None,
     ready_topics: Optional[Sequence[str]] = None,
+    agent_name: str = "",
 ) -> bytes:
     """Build a worker handshake payload."""
     ts = timestamp_pb2.Timestamp()
@@ -37,6 +39,7 @@ def handshake_payload(
             supported_versions=list(supported_versions or [DEFAULT_PROTOCOL_VERSION]),
             capabilities=dict(capabilities or {}),
             ready_topics=list(ready_topics or []),
+            agent_name=sanitize_agent_name(agent_name),
         )
     )
     return packet.SerializeToString(deterministic=True)
@@ -51,6 +54,7 @@ async def publish_handshake(
     sender_id: Optional[str] = None,
     supported_versions: Optional[Sequence[int]] = None,
     ready_topics: Optional[Sequence[str]] = None,
+    agent_name: str = "",
 ) -> None:
     """Publish one worker handshake packet to the CAP handshake subject."""
     payload = handshake_payload(
@@ -59,6 +63,7 @@ async def publish_handshake(
         sender_id=sender_id,
         supported_versions=supported_versions,
         ready_topics=ready_topics,
+        agent_name=agent_name,
     )
     data = payload
     if private_key is not None:

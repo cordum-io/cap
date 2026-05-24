@@ -26,4 +26,9 @@ message Heartbeat {
     int32 progress_pct = 15;        // 0-100 task-level progress checkpoint (optional)
     string last_memo = 16;          // last successful internal step/memo (short string/hash)
     string auth_token = 18;         // optional worker attestation credential
+    // agent_name is a human-facing DISPLAY label only (e.g. "Claude Code — Billing Bot").
+    // It is NOT an authentication authority: consumers MUST prefer authenticated identity
+    // records over this self-reported value. Additive/append-only; safe to omit (old clients
+    // send empty). See spec/05-heartbeats.md.
+    string agent_name = 19;
 }

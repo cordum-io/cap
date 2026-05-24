@@ -1,7 +1,7 @@
 import { NatsConnection } from "nats";
 import * as crypto from "crypto";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
-import { loadRoot, DEFAULT_PROTOCOL_VERSION, SUBJECT_HEARTBEAT } from "./protos";
+import { loadRoot, DEFAULT_PROTOCOL_VERSION, SUBJECT_HEARTBEAT, sanitizeAgentName } from "./protos";
 import type { Logger } from "./logger";
 import type { MetricsHook } from "./metrics";
 
@@ -22,9 +22,10 @@ export async function heartbeatPayload(
   activeJobs: number,
   maxParallel: number,
   cpuLoad: number,
-  authToken = ""
+  authToken = "",
+  agentName = ""
 ): Promise<HeartbeatPacket> {
-  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel, cpuLoad, 0, 0, "", authToken);
+  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel, cpuLoad, 0, 0, "", authToken, agentName);
 }
 
 /**
@@ -37,9 +38,10 @@ export async function heartbeatPayloadWithMemory(
   maxParallel: number,
   cpuLoad: number,
   memoryLoad: number,
-  authToken = ""
+  authToken = "",
+  agentName = ""
 ): Promise<HeartbeatPacket> {
-  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel, cpuLoad, memoryLoad, 0, "", authToken);
+  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel, cpuLoad, memoryLoad, 0, "", authToken, agentName);
 }
 
 /**
@@ -54,11 +56,13 @@ export async function heartbeatPayloadWithProgress(
   memoryLoad = 0,
   progressPct = 0,
   lastMemo = "",
-  authToken = ""
+  authToken = "",
+  agentName = ""
 ): Promise<HeartbeatPacket> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
   const normalizedAuthToken = authToken.trim();
+  const normalizedAgentName = sanitizeAgentName(agentName);
 
   return BusPacket.fromObject({
     senderId: workerId,
@@ -74,6 +78,7 @@ export async function heartbeatPayloadWithProgress(
       progressPct,
       lastMemo,
       ...(normalizedAuthToken ? { authToken: normalizedAuthToken } : {}),
+      ...(normalizedAgentName ? { agentName: normalizedAgentName } : {}),
     },
   });
 }

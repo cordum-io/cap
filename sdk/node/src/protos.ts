@@ -46,3 +46,16 @@ export const SUBJECT_DLQ = "sys.job.dlq";
 export const SUBJECT_WORKFLOW_EVENT = "sys.workflow.event";
 export const SUBJECT_HANDSHAKE = "sys.handshake";
 export const DEFAULT_PROTOCOL_VERSION = 1;
+
+/** Maximum length (in characters) of a human-facing agent display label. */
+export const MAX_AGENT_NAME_LEN = 128;
+
+/**
+ * Trim, collapse internal whitespace, and bound a human-facing agent display
+ * label for safe transport on Heartbeat/Handshake. The result is a DISPLAY
+ * label only: consumers MUST prefer authenticated identity records over this
+ * self-reported value and MUST NOT treat it as proof of identity.
+ */
+export function sanitizeAgentName(name: string): string {
+  return name.replace(/\s+/g, " ").trim().slice(0, MAX_AGENT_NAME_LEN);
+}

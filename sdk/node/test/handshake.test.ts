@@ -1,5 +1,6 @@
 import assert from "node:assert";
 import { Agent, InMemoryBlobStore } from "../src/runtime";
+import { handshakePayload } from "../src/handshake";
 import { loadRoot } from "../src/protos";
 
 class MockNatsConnection {
@@ -59,5 +60,25 @@ describe("handshake helpers", () => {
     assert.deepStrictEqual(packet.handshake.readyTopics, ["job.handshake", "job.handshake.secondary"]);
 
     await agent.close();
+  });
+
+  it("builds handshake payload with sanitized agent name", async () => {
+    const root = await loadRoot();
+    const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+    const packet = await handshakePayload(
+      "worker-named",
+      { "job.x": true },
+      "worker-named",
+      [],
+      "  Claude Code\n— Billing  "
+    );
+    // Round-trip through the wire to prove serialize/deserialize.
+    const decoded = BusPacket.decode(BusPacket.encode(packet).finish()) as any;
+    assert.strictEqual(decoded.handshake.agentName, "Claude Code — Billing");
+  });
+
+  it("omits agent name when blank (wire-compatible with old clients)", async () => {
+    const packet = await handshakePayload("worker-x");
+    assert.strictEqual(packet.handshake.agentName ?? "", "");
   });
 });

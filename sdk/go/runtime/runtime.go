@@ -145,13 +145,17 @@ type NATSConn interface {
 
 // Agent coordinates job handling with typed payloads.
 type Agent struct {
-	NATS            NATSConn
-	NATSURL         string
-	RedisURL        string
-	Store           BlobStore
-	PublicKeys      map[string]*ecdsa.PublicKey
-	PrivateKey      *ecdsa.PrivateKey
-	SenderID        string
+	NATS       NATSConn
+	NATSURL    string
+	RedisURL   string
+	Store      BlobStore
+	PublicKeys map[string]*ecdsa.PublicKey
+	PrivateKey *ecdsa.PrivateKey
+	SenderID   string
+	// AgentName is an optional human-facing display label advertised on the
+	// handshake. It is sanitized/bounded before transport and is a DISPLAY
+	// label only, never an authentication authority.
+	AgentName       string
 	Retries         int
 	IOTTimeout      time.Duration
 	MaxContextBytes int
@@ -162,11 +166,11 @@ type Agent struct {
 	// Phase-2 worker handshake. Tenant + HandshakeMode opt the agent
 	// into the Phase-2 session-token flow on Start(); zero-valued
 	// fields preserve the pre-Phase-2 behaviour. See handshake.go.
-	Tenant            string
-	SDKVersion        string
-	HandshakeMode     HandshakeMode
-	HandshakeTimeout  time.Duration
-	HandshakeRetries  int
+	Tenant           string
+	SDKVersion       string
+	HandshakeMode    HandshakeMode
+	HandshakeTimeout time.Duration
+	HandshakeRetries int
 
 	handlers    map[string]handlerSpec
 	middlewares []Middleware
@@ -310,6 +314,7 @@ func (a *Agent) publishHandshake() {
 				SupportedVersions: []int32{capsdk.DefaultProtocolVersion},
 				Capabilities:      caps,
 				ReadyTopics:       readyTopics,
+				AgentName:         capsdk.SanitizeAgentName(a.AgentName),
 			},
 		},
 	}

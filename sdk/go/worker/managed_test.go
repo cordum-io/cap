@@ -791,6 +791,88 @@ func TestManagedWorker_HeartbeatEmission(t *testing.T) {
 	}
 }
 
+func TestManagedWorker_AgentNameInHeartbeatAndHandshake(t *testing.T) {
+	_, natsURL := startTestNATS(t)
+
+	w, err := NewManagedWorker(ManagedConfig{
+		Type:            "agentname-test",
+		NatsURL:         natsURL,
+		WorkerID:        "agentname-worker",
+		Pool:            "test-pool",
+		MaxParallelJobs: 1,
+		HeartbeatEvery:  50 * time.Millisecond,
+		// Deliberately padded/dirty to prove the SDK sanitizes display labels.
+		AgentName: "  Claude Code — Billing  ",
+	})
+	if err != nil {
+		t.Fatalf("NewManagedWorker failed: %v", err)
+	}
+	defer w.Close()
+
+	nc := testNATSConn(t, natsURL)
+
+	var (
+		mu           sync.Mutex
+		hbName       string
+		hsName       string
+		gotHB, gotHS bool
+	)
+	hbSub, err := nc.Subscribe(capsdk.SubjectHeartbeat, func(msg *nats.Msg) {
+		var pkt agentv1.BusPacket
+		if proto.Unmarshal(msg.Data, &pkt) == nil {
+			if hb := pkt.GetHeartbeat(); hb != nil {
+				mu.Lock()
+				hbName, gotHB = hb.GetAgentName(), true
+				mu.Unlock()
+			}
+		}
+	})
+	if err != nil {
+		t.Fatalf("subscribe heartbeat: %v", err)
+	}
+	defer hbSub.Unsubscribe()
+
+	hsSub, err := nc.Subscribe(capsdk.SubjectHandshake, func(msg *nats.Msg) {
+		var pkt agentv1.BusPacket
+		if proto.Unmarshal(msg.Data, &pkt) == nil {
+			if hs := pkt.GetHandshake(); hs != nil {
+				mu.Lock()
+				hsName, gotHS = hs.GetAgentName(), true
+				mu.Unlock()
+			}
+		}
+	})
+	if err != nil {
+		t.Fatalf("subscribe handshake: %v", err)
+	}
+	defer hsSub.Unsubscribe()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() {
+		_ = w.Run(ctx, func(ctx context.Context, req *agentv1.JobRequest) (*agentv1.JobResult, error) {
+			return &agentv1.JobResult{JobId: req.GetJobId(), Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED}, nil
+		})
+	}()
+
+	time.Sleep(200 * time.Millisecond)
+
+	mu.Lock()
+	defer mu.Unlock()
+	if !gotHB {
+		t.Fatal("no heartbeat received")
+	}
+	if !gotHS {
+		t.Fatal("no handshake received")
+	}
+	if hbName != "Claude Code — Billing" {
+		t.Errorf("heartbeat AgentName = %q, want sanitized %q", hbName, "Claude Code — Billing")
+	}
+	if hsName != "Claude Code — Billing" {
+		t.Errorf("handshake AgentName = %q, want sanitized %q", hsName, "Claude Code — Billing")
+	}
+}
+
 func TestManagedWorker_PublishesHandshakeReadyTopics(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 

@@ -1,7 +1,7 @@
 import { NatsConnection } from "nats";
 import * as crypto from "crypto";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
-import { DEFAULT_PROTOCOL_VERSION, loadRoot, SUBJECT_HANDSHAKE } from "./protos";
+import { DEFAULT_PROTOCOL_VERSION, loadRoot, SUBJECT_HANDSHAKE, sanitizeAgentName } from "./protos";
 
 const COMPONENT_ROLE_WORKER = 3;
 
@@ -14,10 +14,12 @@ export async function handshakePayload(
   componentId: string,
   capabilities: Record<string, boolean> = {},
   senderId = componentId,
-  readyTopics: string[] = []
+  readyTopics: string[] = [],
+  agentName = ""
 ): Promise<HandshakePacket> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+  const normalizedAgentName = sanitizeAgentName(agentName);
 
   return BusPacket.fromObject({
     senderId,
@@ -29,6 +31,7 @@ export async function handshakePayload(
       supportedVersions: [DEFAULT_PROTOCOL_VERSION],
       capabilities,
       readyTopics,
+      ...(normalizedAgentName ? { agentName: normalizedAgentName } : {}),
     },
   });
 }

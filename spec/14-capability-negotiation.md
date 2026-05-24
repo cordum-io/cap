@@ -30,6 +30,7 @@ message Handshake {
     map<string, bool> capabilities = 4;
     string sdk_version = 5;
     repeated string ready_topics = 6;
+    string agent_name = 7;
 }
 ```
 
@@ -63,6 +64,12 @@ Implementations MAY define additional capability keys. Custom keys SHOULD use a 
 Schedulers MAY use `ready_topics` as an additional dispatch filter before selecting a worker. This lets a worker advertise broad static capabilities while temporarily narrowing the set of routed topics during startup or reconfiguration.
 
 Workers SHOULD publish `ready_topics` in a stable order so registries and tests can compare handshake payloads deterministically. Older workers that omit `ready_topics` remain wire-compatible; schedulers SHOULD treat the field as unknown/unspecified rather than as an error.
+
+## Agent Display Name
+
+`agent_name` (field 7) is an optional human-facing **display label** for the component (e.g., `Claude Code — Billing Bot`), surfaced in registries, dashboards, and audit summaries so operators can attribute activity to a recognizable name rather than an opaque `component_id`. SDKs sanitize and bound it (trim, collapse internal whitespace, drop control characters, cap at 128 characters).
+
+`agent_name` is **not an authentication authority**. It is self-reported and spoofable, so schedulers, registries, and audit pipelines MUST prefer authenticated identity records (worker credential / Agent Identity) over it and MUST NOT use it for authorization or identity resolution. It MUST NOT carry secrets, tokens, or PII. Older components that omit `agent_name` remain wire-compatible; consumers SHOULD treat the field as unknown/unspecified rather than as an error.
 
 ## Version Negotiation
 

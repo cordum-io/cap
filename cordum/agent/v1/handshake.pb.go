@@ -90,8 +90,12 @@ type Handshake struct {
 	Capabilities      map[string]bool        `protobuf:"bytes,4,rep,name=capabilities,proto3" json:"capabilities,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"` // feature flags (signatures, compensation, progress, cancel, etc.)
 	SdkVersion        string                 `protobuf:"bytes,5,opt,name=sdk_version,json=sdkVersion,proto3" json:"sdk_version,omitempty"`                                                              // optional SDK version string
 	ReadyTopics       []string               `protobuf:"bytes,6,rep,name=ready_topics,json=readyTopics,proto3" json:"ready_topics,omitempty"`                                                           // topics this worker is ready to serve
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	// agent_name is a human-facing DISPLAY label only; NOT an authentication authority.
+	// Consumers MUST prefer authenticated identity records over this self-reported value.
+	// Additive/append-only; safe to omit (old clients send empty).
+	AgentName     string `protobuf:"bytes,7,opt,name=agent_name,json=agentName,proto3" json:"agent_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Handshake) Reset() {
@@ -166,11 +170,18 @@ func (x *Handshake) GetReadyTopics() []string {
 	return nil
 }
 
+func (x *Handshake) GetAgentName() string {
+	if x != nil {
+		return x.AgentName
+	}
+	return ""
+}
+
 var File_cordum_agent_v1_handshake_proto protoreflect.FileDescriptor
 
 const file_cordum_agent_v1_handshake_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcordum/agent/v1/handshake.proto\x12\x0fcordum.agent.v1\"\xe8\x02\n" +
+	"\x1fcordum/agent/v1/handshake.proto\x12\x0fcordum.agent.v1\"\x87\x03\n" +
 	"\tHandshake\x12!\n" +
 	"\fcomponent_id\x18\x01 \x01(\tR\vcomponentId\x122\n" +
 	"\x04role\x18\x02 \x01(\x0e2\x1e.cordum.agent.v1.ComponentRoleR\x04role\x12-\n" +
@@ -178,7 +189,9 @@ const file_cordum_agent_v1_handshake_proto_rawDesc = "" +
 	"\fcapabilities\x18\x04 \x03(\v2,.cordum.agent.v1.Handshake.CapabilitiesEntryR\fcapabilities\x12\x1f\n" +
 	"\vsdk_version\x18\x05 \x01(\tR\n" +
 	"sdkVersion\x12!\n" +
-	"\fready_topics\x18\x06 \x03(\tR\vreadyTopics\x1a?\n" +
+	"\fready_topics\x18\x06 \x03(\tR\vreadyTopics\x12\x1d\n" +
+	"\n" +
+	"agent_name\x18\a \x01(\tR\tagentName\x1a?\n" +
 	"\x11CapabilitiesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01*\xc4\x01\n" +

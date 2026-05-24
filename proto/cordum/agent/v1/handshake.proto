@@ -28,4 +28,8 @@ message Handshake {
     map<string, bool> capabilities = 4;    // feature flags (signatures, compensation, progress, cancel, etc.)
     string sdk_version = 5;                // optional SDK version string
     repeated string ready_topics = 6;      // topics this worker is ready to serve
+    // agent_name is a human-facing DISPLAY label only; NOT an authentication authority.
+    // Consumers MUST prefer authenticated identity records over this self-reported value.
+    // Additive/append-only; safe to omit (old clients send empty).
+    string agent_name = 7;
 }

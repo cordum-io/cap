@@ -58,6 +58,34 @@ class TestHeartbeatPayload(unittest.TestCase):
         self.assertEqual(packet.heartbeat.last_memo, "")
         self.assertEqual(packet.heartbeat.auth_token, "token-123")
 
+    def test_heartbeat_payload_with_agent_name(self):
+        payload = heartbeat_payload(
+            worker_id="worker-an",
+            pool="pool-an",
+            active_jobs=1,
+            max_parallel=4,
+            cpu_load=42.0,
+            agent_name="  Claude Code\n— Billing  ",
+        )
+        packet = buspacket_pb2.BusPacket()
+        packet.ParseFromString(payload)
+        # Serializes/deserializes; sanitized (trimmed + whitespace-collapsed).
+        self.assertEqual(packet.heartbeat.agent_name, "Claude Code — Billing")
+        # agent_name is a DISPLAY label, never an auth authority.
+        self.assertEqual(packet.heartbeat.auth_token, "")
+
+    def test_heartbeat_payload_agent_name_optional_for_old_clients(self):
+        payload = heartbeat_payload(
+            worker_id="worker-x",
+            pool="pool-x",
+            active_jobs=0,
+            max_parallel=1,
+            cpu_load=0.0,
+        )
+        packet = buspacket_pb2.BusPacket()
+        packet.ParseFromString(payload)
+        self.assertEqual(packet.heartbeat.agent_name, "")
+
     def test_heartbeat_payload_with_memory_constructor(self):
         payload = heartbeat_payload_with_memory(
             worker_id="worker-2",

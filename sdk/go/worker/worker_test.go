@@ -179,6 +179,67 @@ func TestHeartbeatPayloadWithAuthToken(t *testing.T) {
 	}
 }
 
+func TestHeartbeatPayloadWithAgentName(t *testing.T) {
+	data, err := HeartbeatPayload("worker-an", "pool-an", 1, 4, 42.0, WithAgentName("  Claude Code — Billing  "))
+	if err != nil {
+		t.Fatalf("HeartbeatPayload failed: %v", err)
+	}
+
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+
+	hb := pkt.GetHeartbeat()
+	if hb == nil {
+		t.Fatal("Heartbeat is nil")
+	}
+	// Serializes/deserializes and is sanitized (trimmed) on the way out.
+	if hb.GetAgentName() != "Claude Code — Billing" {
+		t.Fatalf("AgentName = %q, want %q", hb.GetAgentName(), "Claude Code — Billing")
+	}
+	// agent_name is a DISPLAY label, NOT an authentication authority: it must
+	// never populate the worker attestation credential.
+	if hb.GetAuthToken() != "" {
+		t.Fatalf("WithAgentName must not set AuthToken; got %q", hb.GetAuthToken())
+	}
+}
+
+func TestHeartbeatPayloadAgentNameOptionalForOldClients(t *testing.T) {
+	// No WithAgentName option => empty agent_name, preserving wire-compatibility
+	// with clients built before the field existed.
+	data, err := HeartbeatPayload("worker-x", "pool-x", 0, 1, 0)
+	if err != nil {
+		t.Fatalf("HeartbeatPayload failed: %v", err)
+	}
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+	hb := pkt.GetHeartbeat()
+	if hb == nil {
+		t.Fatal("Heartbeat is nil")
+	}
+	if hb.GetAgentName() != "" {
+		t.Fatalf("AgentName should be empty without WithAgentName; got %q", hb.GetAgentName())
+	}
+}
+
+func TestWithAgentNameEmptyIsNoop(t *testing.T) {
+	// Blank/whitespace labels must not overwrite with empty noise nor panic.
+	data, err := HeartbeatPayload("worker-blank", "pool-blank", 0, 1, 0, WithAgentName("   "))
+	if err != nil {
+		t.Fatalf("HeartbeatPayload failed: %v", err)
+	}
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+	if got := pkt.GetHeartbeat().GetAgentName(); got != "" {
+		t.Fatalf("blank WithAgentName should yield empty AgentName; got %q", got)
+	}
+}
+
 func TestProgressPayloadZeroPercent(t *testing.T) {
 	data, err := ProgressPayload("worker-1", "job-1", "step-1", 0, "")
 	if err != nil {

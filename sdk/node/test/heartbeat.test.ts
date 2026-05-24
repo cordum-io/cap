@@ -51,6 +51,20 @@ describe("heartbeat helpers", () => {
     assert.strictEqual(packet.heartbeat.authToken, "token-123");
   });
 
+  it("builds heartbeat payload with sanitized agent name", async () => {
+    const packet = await heartbeatPayload("worker-an", "pool-an", 1, 4, 42, "", "  Claude Code\n— Billing  ");
+
+    // Serializes/deserializes; sanitized (trimmed + whitespace-collapsed).
+    assert.strictEqual(packet.heartbeat.agentName, "Claude Code — Billing");
+    // agent_name is a DISPLAY label, never an auth authority.
+    assert.strictEqual(packet.heartbeat.authToken ?? "", "");
+  });
+
+  it("omits agent name when blank (wire-compatible with old clients)", async () => {
+    const packet = await heartbeatPayload("worker-x", "pool-x", 0, 1, 0);
+    assert.strictEqual(packet.heartbeat.agentName ?? "", "");
+  });
+
   it("builds heartbeat payload with memory", async () => {
     const packet = await heartbeatPayloadWithMemory("worker-2", "pool-b", 1, 4, 22.2, 77.7);
 

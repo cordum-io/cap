@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ordum/agent/v1/handshake.proto\x12\x0f\x63ordum.agent.v1\"\x8f\x02\n\tHandshake\x12\x14\n\x0c\x63omponent_id\x18\x01 \x01(\t\x12,\n\x04role\x18\x02 \x01(\x0e\x32\x1e.cordum.agent.v1.ComponentRole\x12\x1a\n\x12supported_versions\x18\x03 \x03(\x05\x12\x42\n\x0c\x63\x61pabilities\x18\x04 \x03(\x0b\x32,.cordum.agent.v1.Handshake.CapabilitiesEntry\x12\x13\n\x0bsdk_version\x18\x05 \x01(\t\x12\x14\n\x0cready_topics\x18\x06 \x03(\t\x1a\x33\n\x11\x43\x61pabilitiesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x08:\x02\x38\x01*\xc4\x01\n\rComponentRole\x12\x1e\n\x1a\x43OMPONENT_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n\x16\x43OMPONENT_ROLE_GATEWAY\x10\x01\x12\x1c\n\x18\x43OMPONENT_ROLE_SCHEDULER\x10\x02\x12\x19\n\x15\x43OMPONENT_ROLE_WORKER\x10\x03\x12\x1f\n\x1b\x43OMPONENT_ROLE_ORCHESTRATOR\x10\x04\x12\x1d\n\x19\x43OMPONENT_ROLE_CONTROLLER\x10\x05\x42\x7f\n\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0f\x43ordum.Agent.V1\xca\x02\x0f\x63ordum\\Agent\\V1\xea\x02\x11\x43ordum::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ordum/agent/v1/handshake.proto\x12\x0f\x63ordum.agent.v1\"\xa3\x02\n\tHandshake\x12\x14\n\x0c\x63omponent_id\x18\x01 \x01(\t\x12,\n\x04role\x18\x02 \x01(\x0e\x32\x1e.cordum.agent.v1.ComponentRole\x12\x1a\n\x12supported_versions\x18\x03 \x03(\x05\x12\x42\n\x0c\x63\x61pabilities\x18\x04 \x03(\x0b\x32,.cordum.agent.v1.Handshake.CapabilitiesEntry\x12\x13\n\x0bsdk_version\x18\x05 \x01(\t\x12\x14\n\x0cready_topics\x18\x06 \x03(\t\x12\x12\n\nagent_name\x18\x07 \x01(\t\x1a\x33\n\x11\x43\x61pabilitiesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x08:\x02\x38\x01*\xc4\x01\n\rComponentRole\x12\x1e\n\x1a\x43OMPONENT_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n\x16\x43OMPONENT_ROLE_GATEWAY\x10\x01\x12\x1c\n\x18\x43OMPONENT_ROLE_SCHEDULER\x10\x02\x12\x19\n\x15\x43OMPONENT_ROLE_WORKER\x10\x03\x12\x1f\n\x1b\x43OMPONENT_ROLE_ORCHESTRATOR\x10\x04\x12\x1d\n\x19\x43OMPONENT_ROLE_CONTROLLER\x10\x05\x42\x7f\n\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0f\x43ordum.Agent.V1\xca\x02\x0f\x63ordum\\Agent\\V1\xea\x02\x11\x43ordum::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,10 +34,10 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._serialized_options = b'\n\026io.cordum.cap.agent.v1P\001Z+github.com/cordum-io/cap/v2/cordum/agent/v1\252\002\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent::V1'
   _globals['_HANDSHAKE_CAPABILITIESENTRY']._loaded_options = None
   _globals['_HANDSHAKE_CAPABILITIESENTRY']._serialized_options = b'8\001'
-  _globals['_COMPONENTROLE']._serialized_start=327
-  _globals['_COMPONENTROLE']._serialized_end=523
+  _globals['_COMPONENTROLE']._serialized_start=347
+  _globals['_COMPONENTROLE']._serialized_end=543
   _globals['_HANDSHAKE']._serialized_start=53
-  _globals['_HANDSHAKE']._serialized_end=324
-  _globals['_HANDSHAKE_CAPABILITIESENTRY']._serialized_start=273
-  _globals['_HANDSHAKE_CAPABILITIESENTRY']._serialized_end=324
+  _globals['_HANDSHAKE']._serialized_end=344
+  _globals['_HANDSHAKE_CAPABILITIESENTRY']._serialized_start=293
+  _globals['_HANDSHAKE_CAPABILITIESENTRY']._serialized_end=344
 # @@protoc_insertion_point(module_scope)

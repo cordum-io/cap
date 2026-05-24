@@ -58,5 +58,28 @@ class TestHandshake(unittest.IsolatedAsyncioTestCase):
         await agent.close()
 
 
+class TestHandshakePayloadAgentName(unittest.TestCase):
+    def test_handshake_payload_with_agent_name(self):
+        from cap.handshake import handshake_payload
+
+        payload = handshake_payload(
+            component_id="worker-named",
+            capabilities={"job.x": True},
+            agent_name="  Claude Code\n— Billing  ",
+        )
+        packet = buspacket_pb2.BusPacket()
+        packet.ParseFromString(payload)
+        # Sanitized display label round-trips.
+        self.assertEqual(packet.handshake.agent_name, "Claude Code — Billing")
+
+    def test_handshake_payload_agent_name_optional_for_old_clients(self):
+        from cap.handshake import handshake_payload
+
+        payload = handshake_payload(component_id="worker-x")
+        packet = buspacket_pb2.BusPacket()
+        packet.ParseFromString(payload)
+        self.assertEqual(packet.handshake.agent_name, "")
+
+
 if __name__ == "__main__":
     unittest.main()

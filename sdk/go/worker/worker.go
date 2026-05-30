@@ -230,10 +230,14 @@ func HeartbeatPayloadWithProgress(workerID, pool string, activeJobs, maxParallel
 			opt(heartbeat)
 		}
 	}
+	// ValidateBusPacket requires trace_id and created_at on every envelope.
+	// Use workerID as the heartbeat correlation id (it is already SenderId);
+	// stricter bus consumers reject helper-built heartbeats if either is empty.
 	hb := &agentv1.BusPacket{
-		TraceId:         "",
+		TraceId:         workerID,
 		SenderId:        workerID,
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
+		CreatedAt:       timestamppb.Now(),
 		Payload: &agentv1.BusPacket_Heartbeat{
 			Heartbeat: heartbeat,
 		},
@@ -244,6 +248,7 @@ func HeartbeatPayloadWithProgress(workerID, pool string, activeJobs, maxParallel
 // ProgressPayload returns a protobuf-encoded progress envelope.
 func ProgressPayload(senderID, jobID, stepID string, percent int32, message string) ([]byte, error) {
 	pkt := &agentv1.BusPacket{
+		TraceId:         jobID,
 		SenderId:        senderID,
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		CreatedAt:       timestamppb.Now(),
@@ -262,6 +267,7 @@ func ProgressPayload(senderID, jobID, stepID string, percent int32, message stri
 // CancelPayload returns a protobuf-encoded cancel envelope.
 func CancelPayload(senderID, jobID, reason, requestedBy string) ([]byte, error) {
 	pkt := &agentv1.BusPacket{
+		TraceId:         jobID,
 		SenderId:        senderID,
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		CreatedAt:       timestamppb.Now(),

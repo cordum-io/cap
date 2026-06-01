@@ -95,6 +95,7 @@ def heartbeat_payload_with_progress(
     auth_token = auth_token.strip()
 
     packet = buspacket_pb2.BusPacket()
+    packet.trace_id = worker_id
     packet.sender_id = worker_id
     packet.protocol_version = DEFAULT_PROTOCOL_VERSION
     packet.created_at.CopyFrom(ts)

@@ -120,6 +120,107 @@ func TestWorkerE2E(t *testing.T) {
 	}
 }
 
+func TestHeartbeatPayloadsPassBusPacketValidation(t *testing.T) {
+	builders := []struct {
+		name  string
+		build func() ([]byte, error)
+	}{
+		{
+			name: "HeartbeatPayload",
+			build: func() ([]byte, error) {
+				return HeartbeatPayload("w-1", "pool-a", 1, 4, 12.5)
+			},
+		},
+		{
+			name: "HeartbeatPayloadWithMemory",
+			build: func() ([]byte, error) {
+				return HeartbeatPayloadWithMemory("w-1", "pool-a", 1, 4, 12.5, 33.3)
+			},
+		},
+		{
+			name: "HeartbeatPayloadWithProgress",
+			build: func() ([]byte, error) {
+				return HeartbeatPayloadWithProgress("w-1", "pool-a", 1, 4, 12.5, 33.3, 50, "halfway")
+			},
+		},
+	}
+
+	for _, tc := range builders {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := tc.build()
+			if err != nil {
+				t.Fatalf("%s failed: %v", tc.name, err)
+			}
+			pkt := decodeBusPacket(t, data)
+
+			if err := capsdk.ValidateBusPacket(pkt); err != nil {
+				t.Fatalf("ValidateBusPacket rejected heartbeat payload: %v", err)
+			}
+			if pkt.GetTraceId() != "w-1" {
+				t.Fatalf("TraceId = %q, want %q", pkt.GetTraceId(), "w-1")
+			}
+			if pkt.GetCreatedAt() == nil {
+				t.Fatal("CreatedAt is nil")
+			}
+			if pkt.GetHeartbeat().GetWorkerId() != "w-1" {
+				t.Fatalf("Heartbeat.WorkerId = %q, want w-1", pkt.GetHeartbeat().GetWorkerId())
+			}
+		})
+	}
+}
+
+func TestProgressAndCancelPayloadsPassBusPacketValidation(t *testing.T) {
+	cases := []struct {
+		name        string
+		build       func() ([]byte, error)
+		wantTraceID string
+	}{
+		{
+			name: "ProgressPayload",
+			build: func() ([]byte, error) {
+				return ProgressPayload("worker-1", "job-1", "step-1", 50, "halfway")
+			},
+			wantTraceID: "job-1",
+		},
+		{
+			name: "CancelPayload",
+			build: func() ([]byte, error) {
+				return CancelPayload("worker-1", "job-1", "timeout", "user-7")
+			},
+			wantTraceID: "job-1",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			data, err := tc.build()
+			if err != nil {
+				t.Fatalf("%s failed: %v", tc.name, err)
+			}
+			pkt := decodeBusPacket(t, data)
+
+			if err := capsdk.ValidateBusPacket(pkt); err != nil {
+				t.Fatalf("ValidateBusPacket rejected payload: %v", err)
+			}
+			if pkt.GetTraceId() != tc.wantTraceID {
+				t.Fatalf("TraceId = %q, want %q", pkt.GetTraceId(), tc.wantTraceID)
+			}
+			if pkt.GetCreatedAt() == nil {
+				t.Fatal("CreatedAt is nil")
+			}
+		})
+	}
+}
+
+func decodeBusPacket(t *testing.T, data []byte) *agentv1.BusPacket {
+	t.Helper()
+	var pkt agentv1.BusPacket
+	if err := proto.Unmarshal(data, &pkt); err != nil {
+		t.Fatalf("Unmarshal failed: %v", err)
+	}
+	return &pkt
+}
+
 func TestProgressPayload(t *testing.T) {
 	data, err := ProgressPayload("worker-1", "job-1", "step-1", 50, "halfway done")
 	if err != nil {

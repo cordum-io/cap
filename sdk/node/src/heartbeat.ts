@@ -65,6 +65,7 @@ export async function heartbeatPayloadWithProgress(
   const normalizedAgentName = sanitizeAgentName(agentName);
 
   return BusPacket.fromObject({
+    traceId: workerId,
     senderId: workerId,
     protocolVersion: DEFAULT_PROTOCOL_VERSION,
     createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },

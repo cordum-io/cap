@@ -14,6 +14,7 @@ from cap.heartbeat import (
 )
 from cap.pb.cordum.agent.v1 import buspacket_pb2
 from cap.subjects import SUBJECT_HEARTBEAT
+from cap.validate import validate_bus_packet
 
 
 class MockNATS:
@@ -45,6 +46,7 @@ class TestHeartbeatPayload(unittest.TestCase):
         packet = buspacket_pb2.BusPacket()
         packet.ParseFromString(payload)
 
+        self.assertEqual(packet.trace_id, "worker-1")
         self.assertEqual(packet.sender_id, "worker-1")
         self.assertEqual(packet.protocol_version, 1)
         self.assertGreater(packet.created_at.seconds, 0)
@@ -57,6 +59,7 @@ class TestHeartbeatPayload(unittest.TestCase):
         self.assertEqual(packet.heartbeat.progress_pct, 0)
         self.assertEqual(packet.heartbeat.last_memo, "")
         self.assertEqual(packet.heartbeat.auth_token, "token-123")
+        self.assertEqual(validate_bus_packet(packet), [])
 
     def test_heartbeat_payload_with_agent_name(self):
         payload = heartbeat_payload(
@@ -98,11 +101,13 @@ class TestHeartbeatPayload(unittest.TestCase):
         packet = buspacket_pb2.BusPacket()
         packet.ParseFromString(payload)
 
+        self.assertEqual(packet.trace_id, "worker-2")
         self.assertEqual(packet.sender_id, "worker-2")
         self.assertEqual(packet.protocol_version, 1)
         self.assertEqual(packet.heartbeat.memory_load, 75.0)
         self.assertEqual(packet.heartbeat.progress_pct, 0)
         self.assertEqual(packet.heartbeat.last_memo, "")
+        self.assertEqual(validate_bus_packet(packet), [])
 
     def test_heartbeat_payload_with_progress_constructor(self):
         payload = heartbeat_payload_with_progress(
@@ -118,6 +123,7 @@ class TestHeartbeatPayload(unittest.TestCase):
         packet = buspacket_pb2.BusPacket()
         packet.ParseFromString(payload)
 
+        self.assertEqual(packet.trace_id, "worker-3")
         self.assertEqual(packet.sender_id, "worker-3")
         self.assertEqual(packet.protocol_version, 1)
         self.assertEqual(packet.heartbeat.worker_id, "worker-3")
@@ -128,6 +134,7 @@ class TestHeartbeatPayload(unittest.TestCase):
         self.assertEqual(packet.heartbeat.memory_load, 64.0)
         self.assertEqual(packet.heartbeat.progress_pct, 67)
         self.assertEqual(packet.heartbeat.last_memo, "checkpoint-42")
+        self.assertEqual(validate_bus_packet(packet), [])
 
     def test_heartbeat_payload_with_zero_values(self):
         payload = heartbeat_payload_with_progress(
@@ -317,6 +324,7 @@ class TestHeartbeatIntegration(unittest.IsolatedAsyncioTestCase):
             packet.ParseFromString(data)
 
             self.assertEqual(packet.sender_id, "worker-int")
+            self.assertEqual(packet.trace_id, "worker-int")
             self.assertEqual(packet.protocol_version, 1)
             self.assertEqual(packet.heartbeat.worker_id, "worker-int")
             self.assertEqual(packet.heartbeat.pool, "pool-int")

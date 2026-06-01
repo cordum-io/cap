@@ -10,6 +10,7 @@ import {
 import { encodeDeterministic, encodeUnsignedForSignature } from "../src/codec";
 import { SUBJECT_PROGRESS, SUBJECT_CANCEL, loadRoot } from "../src/protos";
 import { MockNatsConnection } from "../src/testing";
+import { validateBusPacket } from "../src/validate";
 
 async function waitFor(fn: () => boolean, timeoutMs = 1000): Promise<void> {
   const start = Date.now();
@@ -27,12 +28,14 @@ describe("progress/cancel helpers", () => {
     const packet = await progressPayload("worker-1", "job-1", "step-1", 50, "halfway");
 
     assert.strictEqual(packet.senderId, "worker-1");
+    assert.strictEqual(packet.traceId, "job-1");
     assert.strictEqual(packet.protocolVersion, 1);
     assert.ok(packet.createdAt);
     assert.strictEqual(packet.jobProgress.jobId, "job-1");
     assert.strictEqual(packet.jobProgress.stepId, "step-1");
     assert.strictEqual(packet.jobProgress.percent, 50);
     assert.strictEqual(packet.jobProgress.message, "halfway");
+    assert.deepStrictEqual(validateBusPacket(packet), []);
   });
 
   it("builds progress payload with zero percent and empty message", async () => {
@@ -55,11 +58,13 @@ describe("progress/cancel helpers", () => {
     const packet = await cancelPayload("worker-1", "job-1", "timeout", "user-7");
 
     assert.strictEqual(packet.senderId, "worker-1");
+    assert.strictEqual(packet.traceId, "job-1");
     assert.strictEqual(packet.protocolVersion, 1);
     assert.ok(packet.createdAt);
     assert.strictEqual(packet.jobCancel.jobId, "job-1");
     assert.strictEqual(packet.jobCancel.reason, "timeout");
     assert.strictEqual(packet.jobCancel.requestedBy, "user-7");
+    assert.deepStrictEqual(validateBusPacket(packet), []);
   });
 
   it("builds cancel payload with empty reason", async () => {
@@ -83,6 +88,7 @@ describe("progress/cancel helpers", () => {
     const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
     const decoded = BusPacket.decode(nc.published[0].data) as any;
     assert.strictEqual(decoded.senderId, "worker-emit");
+    assert.strictEqual(decoded.traceId, "job-1");
     assert.strictEqual(decoded.jobProgress.jobId, "job-1");
     assert.strictEqual(decoded.signature?.length ?? 0, 0);
   });
@@ -105,6 +111,7 @@ describe("progress/cancel helpers", () => {
     const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
     const decoded = BusPacket.decode(nc.published[0].data) as any;
     assert.ok(decoded.signature);
+    assert.strictEqual(decoded.traceId, "job-1");
 
     const unsigned = encodeUnsignedForSignature(BusPacket, decoded);
     const verify = crypto.createVerify("sha256");
@@ -125,6 +132,7 @@ describe("progress/cancel helpers", () => {
     const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
     const decoded = BusPacket.decode(nc.published[0].data) as any;
     assert.strictEqual(decoded.senderId, "worker-emit");
+    assert.strictEqual(decoded.traceId, "job-1");
     assert.strictEqual(decoded.jobCancel.jobId, "job-1");
     assert.strictEqual(decoded.signature?.length ?? 0, 0);
   });
@@ -147,6 +155,7 @@ describe("progress/cancel helpers", () => {
     const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
     const decoded = BusPacket.decode(nc.published[0].data) as any;
     assert.ok(decoded.signature);
+    assert.strictEqual(decoded.traceId, "job-1");
 
     const unsigned = encodeUnsignedForSignature(BusPacket, decoded);
     const verify = crypto.createVerify("sha256");
@@ -162,6 +171,7 @@ describe("progress/cancel helpers", () => {
     const progEncoded = encodeDeterministic(BusPacket, progPacket);
     const progDecoded = BusPacket.decode(progEncoded) as any;
     assert.strictEqual(progDecoded.senderId, "worker-zero");
+    assert.strictEqual(progDecoded.traceId, "job-1");
     assert.strictEqual(progDecoded.jobProgress.jobId, "job-1");
     assert.strictEqual(progDecoded.jobProgress.percent, 0);
 
@@ -169,6 +179,7 @@ describe("progress/cancel helpers", () => {
     const cancEncoded = encodeDeterministic(BusPacket, cancPacket);
     const cancDecoded = BusPacket.decode(cancEncoded) as any;
     assert.strictEqual(cancDecoded.senderId, "worker-zero");
+    assert.strictEqual(cancDecoded.traceId, "job-1");
     assert.strictEqual(cancDecoded.jobCancel.jobId, "job-1");
   });
 
@@ -225,6 +236,7 @@ describe("progress/cancel helpers", () => {
       await waitFor(() => matchedProgress != null, 3000);
 
       assert.strictEqual(matchedProgress.senderId, senderId);
+      assert.strictEqual(matchedProgress.traceId, "job-int");
       assert.strictEqual(matchedProgress.protocolVersion, 1);
       assert.strictEqual(matchedProgress.jobProgress.jobId, "job-int");
       assert.strictEqual(matchedProgress.jobProgress.stepId, "step-int");
@@ -243,6 +255,7 @@ describe("progress/cancel helpers", () => {
       await waitFor(() => matchedCancel != null, 3000);
 
       assert.strictEqual(matchedCancel.senderId, senderId);
+      assert.strictEqual(matchedCancel.traceId, "job-int");
       assert.strictEqual(matchedCancel.jobCancel.jobId, "job-int");
       assert.strictEqual(matchedCancel.jobCancel.reason, "user-abort");
       assert.strictEqual(matchedCancel.jobCancel.requestedBy, "admin-int");

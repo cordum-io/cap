@@ -13,6 +13,7 @@ from cap.progress import (
 )
 from cap.pb.cordum.agent.v1 import buspacket_pb2
 from cap.subjects import SUBJECT_CANCEL, SUBJECT_PROGRESS
+from cap.validate import validate_bus_packet
 
 
 class MockNATS:
@@ -35,6 +36,7 @@ class TestProgressPayload(unittest.TestCase):
         packet = buspacket_pb2.BusPacket()
         packet.ParseFromString(payload)
 
+        self.assertEqual(packet.trace_id, "job-1")
         self.assertEqual(packet.sender_id, "worker-1")
         self.assertEqual(packet.protocol_version, 1)
         self.assertGreater(packet.created_at.seconds, 0)
@@ -42,6 +44,7 @@ class TestProgressPayload(unittest.TestCase):
         self.assertEqual(packet.job_progress.step_id, "step-1")
         self.assertEqual(packet.job_progress.percent, 50)
         self.assertEqual(packet.job_progress.message, "halfway")
+        self.assertEqual(validate_bus_packet(packet), [])
 
     def test_progress_payload_zero_percent(self):
         payload = progress_payload(
@@ -85,12 +88,14 @@ class TestCancelPayload(unittest.TestCase):
         packet = buspacket_pb2.BusPacket()
         packet.ParseFromString(payload)
 
+        self.assertEqual(packet.trace_id, "job-1")
         self.assertEqual(packet.sender_id, "worker-1")
         self.assertEqual(packet.protocol_version, 1)
         self.assertGreater(packet.created_at.seconds, 0)
         self.assertEqual(packet.job_cancel.job_id, "job-1")
         self.assertEqual(packet.job_cancel.reason, "timeout")
         self.assertEqual(packet.job_cancel.requested_by, "user-7")
+        self.assertEqual(validate_bus_packet(packet), [])
 
     def test_cancel_payload_empty_reason(self):
         payload = cancel_payload(
@@ -222,6 +227,7 @@ class TestProgressIntegration(unittest.IsolatedAsyncioTestCase):
             packet = buspacket_pb2.BusPacket()
             packet.ParseFromString(data)
 
+            self.assertEqual(packet.trace_id, "job-int")
             self.assertEqual(packet.sender_id, "worker-int")
             self.assertEqual(packet.protocol_version, 1)
             self.assertEqual(packet.job_progress.job_id, "job-int")
@@ -242,6 +248,7 @@ class TestProgressIntegration(unittest.IsolatedAsyncioTestCase):
             packet = buspacket_pb2.BusPacket()
             packet.ParseFromString(data)
 
+            self.assertEqual(packet.trace_id, "job-int")
             self.assertEqual(packet.sender_id, "worker-int")
             self.assertEqual(packet.job_cancel.job_id, "job-int")
             self.assertEqual(packet.job_cancel.reason, "user-abort")

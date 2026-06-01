@@ -11,6 +11,7 @@ import {
 import { encodeDeterministic, encodeUnsignedForSignature } from "../src/codec";
 import { SUBJECT_HEARTBEAT, loadRoot } from "../src/protos";
 import { MockNatsConnection } from "../src/testing";
+import { validateBusPacket } from "../src/validate";
 
 class RecordingMetrics {
   public readonly heartbeats: string[] = [];
@@ -39,6 +40,7 @@ describe("heartbeat helpers", () => {
     const packet = await heartbeatPayload("worker-1", "pool-a", 2, 8, 42.5, " token-123 ");
 
     assert.strictEqual(packet.senderId, "worker-1");
+    assert.strictEqual(packet.traceId, "worker-1");
     assert.strictEqual(packet.protocolVersion, 1);
     assert.strictEqual(packet.heartbeat.workerId, "worker-1");
     assert.strictEqual(packet.heartbeat.pool, "pool-a");
@@ -49,6 +51,7 @@ describe("heartbeat helpers", () => {
     assert.strictEqual(packet.heartbeat.progressPct, 0);
     assert.strictEqual(packet.heartbeat.lastMemo, "");
     assert.strictEqual(packet.heartbeat.authToken, "token-123");
+    assert.deepStrictEqual(validateBusPacket(packet), []);
   });
 
   it("builds heartbeat payload with sanitized agent name", async () => {
@@ -69,16 +72,19 @@ describe("heartbeat helpers", () => {
     const packet = await heartbeatPayloadWithMemory("worker-2", "pool-b", 1, 4, 22.2, 77.7);
 
     assert.strictEqual(packet.senderId, "worker-2");
+    assert.strictEqual(packet.traceId, "worker-2");
     assert.strictEqual(packet.protocolVersion, 1);
     assert.strictEqual(packet.heartbeat.workerId, "worker-2");
     assert.strictEqual(packet.heartbeat.memoryLoad, 77.7);
     assert.strictEqual(packet.heartbeat.progressPct, 0);
+    assert.deepStrictEqual(validateBusPacket(packet), []);
   });
 
   it("builds heartbeat payload with progress fields", async () => {
     const packet = await heartbeatPayloadWithProgress("worker-3", "pool-c", 9, 10, 80, 55, 67, "checkpoint-7");
 
     assert.strictEqual(packet.senderId, "worker-3");
+    assert.strictEqual(packet.traceId, "worker-3");
     assert.strictEqual(packet.protocolVersion, 1);
     assert.strictEqual(packet.heartbeat.workerId, "worker-3");
     assert.strictEqual(packet.heartbeat.pool, "pool-c");
@@ -88,6 +94,7 @@ describe("heartbeat helpers", () => {
     assert.strictEqual(packet.heartbeat.memoryLoad, 55);
     assert.strictEqual(packet.heartbeat.progressPct, 67);
     assert.strictEqual(packet.heartbeat.lastMemo, "checkpoint-7");
+    assert.deepStrictEqual(validateBusPacket(packet), []);
   });
 
   it("emits heartbeat without signature", async () => {
@@ -103,6 +110,7 @@ describe("heartbeat helpers", () => {
     const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
     const decoded = BusPacket.decode(nc.published[0].data) as any;
     assert.strictEqual(decoded.senderId, "worker-emit");
+    assert.strictEqual(decoded.traceId, "worker-emit");
     assert.strictEqual(decoded.signature?.length ?? 0, 0);
   });
 
@@ -124,6 +132,7 @@ describe("heartbeat helpers", () => {
     const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
     const decoded = BusPacket.decode(nc.published[0].data) as any;
     assert.ok(decoded.signature);
+    assert.strictEqual(decoded.traceId, "worker-sign");
 
     const unsigned = encodeUnsignedForSignature(BusPacket, decoded);
     const verify = crypto.createVerify("sha256");
@@ -177,6 +186,7 @@ describe("heartbeat helpers", () => {
     const root = await loadRoot();
     const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
     const decoded = BusPacket.decode(nc.published[0].data) as any;
+    assert.strictEqual(decoded.traceId, "worker-retry");
     assert.strictEqual(decoded.heartbeat.workerId, "worker-retry");
   });
 
@@ -188,6 +198,7 @@ describe("heartbeat helpers", () => {
     const decoded = BusPacket.decode(encoded) as any;
 
     assert.strictEqual(decoded.senderId, "worker-zero");
+    assert.strictEqual(decoded.traceId, "worker-zero");
     assert.strictEqual(decoded.heartbeat.workerId, "worker-zero");
     assert.strictEqual(decoded.heartbeat.activeJobs, 0);
     assert.strictEqual(decoded.heartbeat.maxParallelJobs, 0);
@@ -241,6 +252,7 @@ describe("heartbeat helpers", () => {
       await waitFor(() => matchedPacket != null, 3000);
 
       assert.strictEqual(matchedPacket.senderId, workerId);
+      assert.strictEqual(matchedPacket.traceId, workerId);
       assert.strictEqual(matchedPacket.protocolVersion, 1);
       assert.strictEqual(matchedPacket.heartbeat.workerId, workerId);
       assert.strictEqual(matchedPacket.heartbeat.pool, "pool-int");

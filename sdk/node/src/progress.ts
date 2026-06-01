@@ -17,6 +17,7 @@ export async function progressPayload(
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
 
   return BusPacket.fromObject({
+    traceId: jobId,
     senderId,
     protocolVersion: DEFAULT_PROTOCOL_VERSION,
     createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
@@ -42,6 +43,7 @@ export async function cancelPayload(
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
 
   return BusPacket.fromObject({
+    traceId: jobId,
     senderId,
     protocolVersion: DEFAULT_PROTOCOL_VERSION,
     createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },

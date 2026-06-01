@@ -26,6 +26,7 @@ def progress_payload(
     ts.GetCurrentTime()
 
     packet = buspacket_pb2.BusPacket()
+    packet.trace_id = job_id
     packet.sender_id = sender_id
     packet.protocol_version = DEFAULT_PROTOCOL_VERSION
     packet.created_at.CopyFrom(ts)
@@ -51,6 +52,7 @@ def cancel_payload(
     ts.GetCurrentTime()
 
     packet = buspacket_pb2.BusPacket()
+    packet.trace_id = job_id
     packet.sender_id = sender_id
     packet.protocol_version = DEFAULT_PROTOCOL_VERSION
     packet.created_at.CopyFrom(ts)

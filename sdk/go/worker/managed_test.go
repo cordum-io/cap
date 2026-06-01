@@ -847,6 +847,13 @@ func TestManagedWorker_AgentNameInHeartbeatAndHandshake(t *testing.T) {
 	}
 	defer hsSub.Unsubscribe()
 
+	// Ensure both subscriptions are registered server-side before the worker
+	// starts and publishes its one-shot startup handshake — NATS core has no
+	// replay, so a not-yet-flushed subscription would silently miss it.
+	if err := nc.Flush(); err != nil {
+		t.Fatalf("flush subscriptions: %v", err)
+	}
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go func() {
@@ -855,7 +862,19 @@ func TestManagedWorker_AgentNameInHeartbeatAndHandshake(t *testing.T) {
 		})
 	}()
 
-	time.Sleep(200 * time.Millisecond)
+	// Poll until the one-shot handshake and at least one heartbeat have arrived,
+	// rather than racing a fixed sleep — the previous 200ms gamble flaked under
+	// CI load ("no handshake received").
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		mu.Lock()
+		done := gotHB && gotHS
+		mu.Unlock()
+		if done {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
 
 	mu.Lock()
 	defer mu.Unlock()

@@ -90,6 +90,8 @@ if err := client.Submit(context.Background(), nc, req, "trace-1", "client-go", p
 }
 ```
 
+If the context is already canceled or past its deadline, `Submit` returns `ctx.Err()` without publishing.
+
 ### ManagedWorker (Batteries-Included)
 The `worker.ManagedWorker` is a higher-level abstraction than `worker.Worker`. It handles the full lifecycle:
 - **Auto-connect**: Connects to NATS with optional TLS from environment.

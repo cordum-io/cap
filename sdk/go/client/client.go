@@ -30,7 +30,18 @@ type Publisher interface {
 }
 
 // Submit publishes a JobRequest to the submit subject.
+//
+// If ctx is already canceled or past its deadline, Submit returns ctx.Err()
+// without constructing or publishing the packet. The underlying NATS publish
+// is not context-aware; cancellation after this check does not abort an
+// in-flight publish.
 func (c *Client) Submit(ctx context.Context, req *agentv1.JobRequest, traceID, senderID string, key *ecdsa.PrivateKey) error {
+	if ctx != nil {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+	}
+
 	packet := &agentv1.BusPacket{
 		TraceId:         traceID,
 		SenderId:        senderID,
@@ -106,7 +117,18 @@ func (c *Client) Subscribe(subject string, handler Handler) (*nats.Subscription,
 }
 
 // Submit is a convenience function for submitting a job without creating a Client instance.
+//
+// If ctx is already canceled or past its deadline, Submit returns ctx.Err()
+// without constructing or publishing the packet. The underlying NATS publish
+// is not context-aware; cancellation after this check does not abort an
+// in-flight publish.
 func Submit(ctx context.Context, pub Publisher, req *agentv1.JobRequest, traceID, senderID string, key *ecdsa.PrivateKey) error {
+	if ctx != nil {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+	}
+
 	packet := &agentv1.BusPacket{
 		TraceId:         traceID,
 		SenderId:        senderID,

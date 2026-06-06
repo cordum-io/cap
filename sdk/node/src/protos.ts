@@ -57,5 +57,9 @@ export const MAX_AGENT_NAME_LEN = 128;
  * self-reported value and MUST NOT treat it as proof of identity.
  */
 export function sanitizeAgentName(name: string): string {
-  return name.replace(/\s+/g, " ").trim().slice(0, MAX_AGENT_NAME_LEN);
+  // Truncate by Unicode code point (not UTF-16 code unit) so a multi-unit
+  // character (e.g. an emoji's surrogate pair) is never split at the boundary,
+  // which would emit a lone surrogate / ill-formed UTF-16.
+  const normalized = name.replace(/\s+/g, " ").trim();
+  return Array.from(normalized).slice(0, MAX_AGENT_NAME_LEN).join("");
 }

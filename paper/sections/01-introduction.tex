@@ -1,0 +1,17 @@
+\section{Introduction}
+
+Agent systems have moved from producing text to producing effects. A single user request can fan out across model workers, tool runners, cloud APIs, databases, and sub-agents. The resulting system is not merely an inference service; it is a distributed execution environment whose failures include duplicate actions, stale placement decisions, cross-tenant confusion, unbounded resource use, policy bypass, partial execution, and irreconcilable state.
+
+Tool protocols such as the Model Context Protocol (MCP) standardize how models discover and invoke tools, while peer protocols such as Agent2Agent (A2A) standardize inter-agent communication \citep{mcp2024,a2a2025}. These are valuable interoperability layers, but neither is a complete control-plane contract. A production control plane must answer a different set of questions: What is the unit of schedulable work? Which principal and tenant caused it? What budget applies? Which policy snapshot authorized dispatch? Which workers are currently eligible? How does the system recover from duplicate delivery or a worker disappearing after dispatch? Where do large or sensitive payloads reside? How is a workflow reconstructed without inspecting model reasoning?
+
+CAP was created to make those concerns part of the wire contract rather than framework-specific application logic. Its first public draft, released on December 11, 2025, already specified a versioned envelope, jobs and results, worker heartbeats, a pre-dispatch Safety Kernel, human escalation, lifecycle states, pointer-based payload separation, and workflow lineage \citep{cap_v010}. A release the next day added first-class token and deadline budgets together with tenant and principal identity \citep{cap_v200}. Cordum is the production-oriented reference implementation \citep{cordum_current,cordum_disclosure2026}.
+
+The design inherits established security principles. The Safety Kernel is a reference-monitor pattern, not a newly invented security primitive \citep{anderson1972reference,saltzer1975protection}. Job delegation and distributed coordination have deep roots, including the Contract Net Protocol \citep{smith1980contractnet}. CAP's contribution is narrower and operational: it binds governance, capacity, lifecycle, and delivery semantics into one interoperable protocol for heterogeneous agent fleets.
+
+This paper makes four contributions:
+\begin{enumerate}[leftmargin=*,nosep]
+  \item \textbf{A control-plane wire model.} CAP defines a transport-neutral envelope and job lifecycle for gateways, schedulers, workers, orchestrators, and policy services.
+  \item \textbf{Governance-bearing job contracts.} Jobs carry identity, capability, risk, budget, pointer, and workflow metadata, while policy decisions can deny, defer, throttle, redact, quarantine, or tighten execution constraints.
+  \item \textbf{Failure-aware distributed semantics.} Expiring heartbeats, explicit states, idempotency, retries, cancellation, and at-least-once delivery assumptions are part of the specification.
+  \item \textbf{A public artifact and reference implementation.} CAP includes normative documents, protocol buffers, conformance levels, deterministic fixtures, multi-language SDKs, and Cordum as a code-backed implementation.
+\end{enumerate}

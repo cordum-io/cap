@@ -1,0 +1,62 @@
+\section{Artifact Evaluation}
+
+This report evaluates the protocol as a public systems artifact rather than presenting unverified throughput claims. All observations are tied to immutable tags or pinned commits.
+
+\subsection{Historical continuity}
+
+Table~\ref{tab:timeline} separates maintainer-controlled repository history from independently recorded publication evidence. Git commits and tags are useful provenance, but their dates and ref targets are not immutable to repository administrators. The earliest independent anchor currently cited by this report is the Go package registry, which records CAP v2.0.8 as published on January 9, 2026 \citep{cap_pkg_registry}. That date predates Agent Contracts, Faramesh, AARM, OpenPort, OAP, SARC, and C-Trace, but it does not independently establish that the December 11 tag was publicly reachable on that day. We therefore describe December as repository history and January 9 as the externally anchored public date until stronger evidence is archived.
+
+\begin{table}[t]
+\centering
+\caption{Selected CAP milestones and evidence classes.}
+\label{tab:timeline}
+\small
+\begin{tabular}{@{}p{0.22\columnwidth}p{0.69\columnwidth}@{}}
+\toprule
+Date & Evidence and milestone \\
+\midrule
+2025-12-11 & Repository history: v0.1.0 records envelope, jobs/results, heartbeats, pools, pre-dispatch Safety Kernel, human deferral, lifecycle, pointers, and workflows. \\
+2025-12-12 & Repository history: v2.0.0 records token/deadline budgets, memory hints, tenant and principal identity, and labels. \\
+2026-01-03 & Repository history: structured capability/risk metadata, policy snapshots, constraints, simulation/explanation surfaces, and concurrency caps. \\
+2026-01-09 & Independent registry: pkg.go.dev records CAP v2.0.8 as published. \\
+2026-01-23 & Repository disclosure: Cordum CAP v2 design and implementation mapping. \\
+2026-06-21 & Pinned current CAP and Cordum commits used by this report. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Priority-evidence policy}
+
+A stronger historical claim should additionally cite a GitHub organization audit-log visibility event, an OpenTimestamps proof, a Software Heritage identifier, and/or an Internet Archive capture. Those artifacts are intentionally not represented as complete in this version. The manuscript's claim policy is therefore: (1) use December 2025 only for repository-history statements; (2) use January 9, 2026 as the earliest independently anchored public distribution date currently in evidence; and (3) update the claim only after immutable third-party anchors are archived with the artifact bundle.
+
+\subsection{Compatibility surface}
+
+The current specification contains 17 numbered normative documents, uses RFC 2119 requirement language \citep{rfc2119}, and separates wire version from SDK release version. The wire remains version 1 because evolution has been append-only. Deterministic binary fixtures are consumed by SDK tests to detect serialization drift. CAP also defines CORE, STANDARD, and FULL conformance levels so an implementation can state which lifecycle, security, and orchestration capabilities it supports.
+
+\subsection{Implementation traceability}
+
+Table~\ref{tab:traceability} maps major properties to public artifacts. This is not a claim that every deployment is secure; it shows that the protocol concepts have concrete code paths and tests in the reference implementation.
+
+\begin{table*}[t]
+\centering
+\caption{Traceability from protocol property to CAP and Cordum artifacts.}
+\label{tab:traceability}
+\small
+\begin{tabular}{@{}p{0.18\textwidth}p{0.32\textwidth}p{0.40\textwidth}@{}}
+\toprule
+Property & CAP artifact & Cordum realization \\
+\midrule
+Pre-dispatch governance & \texttt{safety.proto}; normative Safety specification & Scheduler Safety client; Safety Kernel; decision persistence; approval handling \\
+Budgeted job contract & \texttt{job.proto} \texttt{Budget}; \texttt{JobMetadata} & Deadline, retry, artifact, and tenant concurrency enforcement \\
+Capacity-aware routing & \texttt{heartbeat.proto}; pool semantics & TTL worker registry; least-loaded and capability-aware strategy \\
+At-least-once safety & Transport profile; idempotency requirements & JetStream ack/nak; per-job locks; pending replay; timeout reconciliation \\
+Pointer separation & Memory pointer specification & Redis context, result, and artifact stores; gateway pointer APIs \\
+Workflow lineage & Parent/workflow/step fields; compensation & DAG workflow engine; retries; approval steps; saga rollback \\
+Cross-SDK compatibility & Stable envelope; append-only versioning & Deterministic fixtures and generated SDKs \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{What is deliberately not measured}
+
+The repository contains historical benchmark documents, but this report does not import those values because the manuscript artifact does not yet bundle the raw traces, pinned load generator, complete hardware image, warm-up procedure, and confidence intervals required for independent reproduction. A future empirical revision should report at least: Safety Kernel decision latency (p50/p95/p99 over a declared request corpus), scheduler dispatch throughput, duplicate-delivery convergence, stale-heartbeat exclusion, and a worked destructive-action denial with its decision and audit records. These experiments must use a tagged harness and publish raw results. Excluding unsupported numbers is a deliberate validity choice, not an absence of implementation.

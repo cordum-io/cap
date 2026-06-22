@@ -1,0 +1,47 @@
+\section{Related Work}
+
+\subsection{Foundational control and coordination}
+
+Reference monitoring, complete mediation, least privilege, and fail-safe defaults long predate agent systems \citep{anderson1972reference,saltzer1975protection}. Contract-based multi-agent coordination dates at least to the Contract Net Protocol \citep{smith1980contractnet}. CAP applies these ideas to a modern, heterogeneous execution fabric; it does not rename them as new inventions.
+
+\subsection{Agent communication protocols}
+
+MCP standardizes model-to-tool context, resources, prompts, and tool calls \citep{mcp2024}. A2A standardizes discovery and task-oriented communication between agents \citep{a2a2025}. CAP is complementary: it standardizes the governance-bearing distributed job lifecycle between gateways, schedulers, policy services, and worker pools. MCP may run inside a CAP worker, and an A2A endpoint may be exposed as a CAP-managed capability.
+
+\subsection{Governance frameworks and bounded execution}
+
+AGENTSAFE provides a broad lifecycle governance and assurance framework and predates CAP's repository-recorded December release \citep{khan2025agentsafe}. Agent Contracts formalizes resource-bounded execution and delegated budget conservation \citep{ye2026agentcontracts}. Policies on Paths makes the execution path, partial history, proposed action, identity, and organizational state the central object of runtime governance \citep{kaptein2026policies}. CAP contributes an interoperable wire representation and reference implementation; it does not claim Agent Contracts' formal delegation laws or the path-level risk formalization of Policies on Paths.
+
+\subsection{Pre-action and execution authorization}
+
+Faramesh defines an Action Authorization Boundary and Canonical Action Representation \citep{fatmi2026faramesh}. PCAS compiles Datalog-derived policies into an instrumented reference monitor and reports policy compliance increasing from 48\% to 93\% with zero policy violations in instrumented customer-service runs \citep{palumbo2026pcas}. AARM specifies interception, contextual policy evaluation, enforcement, and receipts across several deployment architectures \citep{errico2026aarm}. OpenPort specifies a governed tool gateway with authorization-dependent discovery, human-reviewed writes, and state witnesses \citep{zhu2026openport}. OAP synchronously intercepts tool calls and emits signed authorization records \citep{uchibeke2026oap}. These works provide richer action-level authorization models or measurements than CAP's initial protocol. CAP differs in scope: its principal abstraction is a distributed fleet job with routing, liveness, budget, lifecycle, and workflow semantics.
+
+\subsection{Multi-stage governance and verifiable history}
+
+SARC compiles constraints into pre-action, action-time, post-action, and escalation sites \citep{besanson2026sarc}. C-Trace monitors tool invocations and model outputs for runtime compliance \citep{kahani2026ctrace}. Right to History implements a local sovereignty kernel with Merkle-verifiable logs \citep{zhang2026righthistory}, while OpenKedge cryptographically links intent, context, policy, execution bounds, and outcomes \citep{he2026openkedge}. CAP's initial artifact does not provide equivalent evidence-chain guarantees. Its distinctive contribution is the open distributed control-plane wire contract on which such mechanisms can be carried or composed.
+
+\begin{table*}[t]
+\centering
+\caption{Qualitative scope comparison. A check mark means the item is a primary, explicit contribution of the cited work, not merely an implementable extension.}
+\label{tab:related}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\begin{tabularx}{\textwidth}{@{}l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X@{}}
+\toprule
+Work & Pre-execution policy & Fleet scheduling / liveness & Budget in work contract & Multi-stage output control & Cryptographic evidence focus \\
+\midrule
+CAP & $\checkmark$ & $\checkmark$ & $\checkmark$ & extension & optional packet signing \\
+Agent Contracts & contract semantics & -- & $\checkmark$ & -- & -- \\
+Policies on Paths & path policy & fleet framing & organizational risk & path-dependent & -- \\
+PCAS & $\checkmark$ & causal dependency graph & -- & information-flow paths & enforcement traces \\
+Faramesh & $\checkmark$ & -- & -- & -- & provenance artifacts \\
+OpenPort & $\checkmark$ & -- & scoped limits & -- & audit/state witness \\
+AARM & $\checkmark$ & -- & contextual & receipts & tamper-evident receipts \\
+OAP & $\checkmark$ & -- & policy limits & -- & signed audit record \\
+SARC & $\checkmark$ & workflow propagation & constraints & $\checkmark$ & trace correspondence \\
+Right to History & human approval & local kernel & energy budget & -- & $\checkmark$ \\
+OpenKedge & $\checkmark$ & conflict arbitration & execution bounds & outcomes & $\checkmark$ \\
+C-Trace & $\checkmark$ & -- & -- & $\checkmark$ & compliance traces \\
+\bottomrule
+\end{tabularx}
+\end{table*}

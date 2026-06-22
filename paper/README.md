@@ -19,8 +19,9 @@ The output is `cap-paper.pdf`.
 
 - CAP: `df2af4753c0c05ba032f0592ca4eaff3d62bdc8d` (2026-06-21)
 - Cordum: `6232e9d5c864467b4ff051cf9aa71b2b99e379c3` (2026-06-21)
-- Historical CAP release: `v0.1.0` (2025-12-11)
-- Historical CAP release: `v2.0.0` (2025-12-12)
+- Repository-recorded CAP release: `v0.1.0` (2025-12-11)
+- Repository-recorded CAP release: `v2.0.0` (2025-12-12)
+- Independent package-registry anchor: CAP `v2.0.8` on pkg.go.dev (2026-01-09)
 
 ## Publication path
 
@@ -33,9 +34,11 @@ The output is `cap-paper.pdf`.
 
 ## Claims policy
 
-The paper deliberately avoids claims that CAP invented authorization, reference monitoring, contracts, audit logging, or post-action governance. It claims an early public integration of governance, budgets, fleet capacity, pointer-separated state, and lifecycle semantics in a distributed agent wire protocol.
+The paper deliberately avoids claims that CAP invented authorization, reference monitoring, contracts, audit logging, or post-action governance. It claims an early integration of governance, budgets, fleet capacity, pointer-separated state, and lifecycle semantics in a distributed agent wire protocol. December 2025 dates are presented as repository history; the earliest independent public-distribution anchor currently cited is the Go package registry on January 9, 2026.
 
-The first version intentionally omits the historical benchmark numbers in `BENCHMARKS.md`; performance claims should be added only with a pinned harness, raw traces, complete hardware metadata, and uncertainty reporting.
+See `PRIORITY_EVIDENCE.md` for the evidence ledger and required stronger anchors. See `BIBLIOGRAPHY_AUDIT.md` for the primary-source citation audit.
+
+The first version intentionally omits the historical benchmark numbers in `BENCHMARKS.md`; performance claims should be added only with a pinned harness, raw traces, complete hardware metadata, and uncertainty reporting. `EVALUATION_PLAN.md` defines the minimum empirical follow-up.
 
 ## License
 

@@ -1,0 +1,24 @@
+paper:
+  title: "CAP: A Governance-First Wire Protocol for Distributed AI Agent Control Planes"
+  date: "2026-06-22"
+  license: "CC-BY-4.0"
+  status: "technical-report-draft"
+artifacts:
+  cap:
+    repository: "https://github.com/cordum-io/cap"
+    commit: "df2af4753c0c05ba032f0592ca4eaff3d62bdc8d"
+    historical_tags:
+      - tag: "v0.1.0"
+        date: "2025-12-11"
+      - tag: "v2.0.0"
+        date: "2025-12-12"
+  cordum:
+    repository: "https://github.com/cordum-io/cordum"
+    commit: "6232e9d5c864467b4ff051cf9aa71b2b99e379c3"
+build:
+  command: "latexmk -pdf -interaction=nonstopmode -halt-on-error -jobname=cap-paper main.tex"
+  expected_output: "cap-paper.pdf"
+claims:
+  performance_numbers_included: false
+  peer_reviewed: false
+  priority_scope: "integrated governance-first distributed agent wire protocol"

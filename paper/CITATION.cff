@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "Please cite this technical report and the pinned CAP artifact."
+title: "CAP: A Governance-First Wire Protocol for Distributed AI Agent Control Planes"
+type: article
+authors:
+  - family-names: Torgeman
+    given-names: Yaron
+    affiliation: Cordum
+version: 0.1.0
+date-released: 2026-06-22
+license: CC-BY-4.0
+repository-code: "https://github.com/cordum-io/cap"
+url: "https://github.com/cordum-io/cap/tree/main/paper"
+abstract: >-
+  CAP is a governance-first wire protocol for distributed AI agent control
+  planes. It integrates identity, budgets, policy mediation, worker capacity,
+  pointer-based state separation, lifecycle semantics, and workflows.
+keywords:
+  - AI agents
+  - distributed systems
+  - governance
+  - security
+  - protocol

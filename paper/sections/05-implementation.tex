@@ -1,0 +1,17 @@
+\section{Cordum Reference Implementation}
+
+Cordum realizes CAP as a set of Go services over NATS and Redis \citep{cordum_current}. The API gateway authenticates callers, enforces tenant context, writes input payloads, and publishes job requests. The scheduler persists state, calls the Safety Kernel, resolves pool and worker eligibility, dispatches, and reconciles stale work. The Safety Kernel evaluates signed and versioned policies and returns constraints, approvals, and remediation options. The workflow engine expands DAG steps into CAP jobs and consumes job results. External workers use CAP SDKs and remain outside the control-plane repository.
+
+\subsection{Failure handling}
+
+With JetStream enabled, durable subjects use explicit acknowledgment and negative acknowledgment with delay. The scheduler protects critical sections with per-job Redis locks and renews lock leases during long policy or routing decisions. A pending replayer recovers submissions that did not reach dispatch, while a reconciler marks stale dispatched or running jobs as timed out. Retryable failures avoid immediate dead-letter handling; fatal failures can trigger reverse-order compensation.
+
+The worker registry is intentionally ephemeral. Heartbeats populate an in-memory map with a default 30-second time-to-live. This removes a persistent worker database from the dispatch path; a replicated snapshot can accelerate warm start without becoming the authority for liveness.
+
+\subsection{Policy and output extensions}
+
+Cordum persists decision records containing policy snapshots, rule identifiers, reasons, constraints, and approvals. It also implements a post-execution output-policy layer with allow, redact, deny, and quarantine decisions. That layer is useful evidence that CAP can support multiple governance boundaries, but the present paper does not claim it as part of CAP's minimum wire conformance.
+
+\subsection{Security boundary}
+
+The reference implementation enforces API authentication, tenant checks, TLS requirements in production, policy signature verification, URL allowlists for remote policy loading, bounded I/O, and explicit timeouts. These are implementation properties, not automatic consequences of speaking CAP. A minimal CAP implementation can be interoperable while still being insecure; conformance and hardening are distinct dimensions.

@@ -1,0 +1,48 @@
+\section{Governance and Distributed-System Invariants}
+
+We separate \emph{protocol invariants} from \emph{deployment assumptions}. A conforming message format alone cannot prevent bypass; the scheduler and executors must make the protocol path authoritative.
+
+\subsection{Mediated dispatch}
+
+Let $P(J,\pi,s)$ evaluate job $J$ under policy snapshot $\pi$ and observable state $s$. Let $d$ be the resulting decision and $K$ its constraints. Dispatch is safe only if
+\begin{equation}
+\begin{aligned}
+Dispatch(J,w) \Rightarrow d \in \{&ALLOW,\\
+&ALLOW\_WITH\_CONSTRAINTS\}.
+\end{aligned}
+\end{equation}
+and $w \in E(J,t)$. A human decision resolves a deferred request; it is not equivalent to a generic credential that authorizes unrelated future jobs.
+
+Cordum strengthens this property by binding approval to the stored job representation and policy snapshot before requeueing. CAP carries the snapshot and approval reference needed for equivalent implementations, although the exact hash-binding procedure is not yet normative.
+
+\subsection{Constraint monotonicity}
+
+When both a requester and policy specify upper bounds, an enforcement implementation should derive an effective bound no weaker than either source. For a scalar limit $b$,
+\begin{equation}
+  b_{effective} = \min(b_{request}, b_{policy})
+\end{equation}
+when both are present. Cordum applies this tightening to runtime deadlines and enforces policy-provided retry and concurrency caps. CAP currently specifies the fields but leaves complete multi-dimensional merge semantics to a future normative profile.
+
+\subsection{Monotone lifecycle}
+
+Let $\prec$ be the permitted state relation. For every accepted event $e_i$,
+\begin{equation}
+  S_{i+1} = S_i \quad \text{or} \quad S_i \prec S_{i+1}.
+\end{equation}
+Duplicate messages may leave the state unchanged. A result for an already terminal job cannot move it back to a non-terminal state. This property makes redelivery safe and supports deterministic reconciliation after restarts.
+
+\subsection{Idempotent redelivery}
+
+For a fixed idempotency key $k$, repeated submission must not create unbounded side effects. CAP requires consumers to tolerate redelivery but does not claim network-level exactly once. Implementations use locks, compare-and-set state, or result caching to approach effect-once behavior for idempotent workloads.
+
+\subsection{Capacity-bounded dispatch}
+
+A scheduler must not deliberately dispatch to a worker whose latest valid advertisement reports no available slot or lacks required capabilities. Since heartbeats can be delayed, this is a placement safety property over the scheduler's latest authenticated view, not a guarantee about instantaneous physical load.
+
+\subsection{Control/data separation}
+
+For any bus packet $p$, large input and output payloads are referenced rather than embedded:
+\begin{equation}
+  payload(p) = metadata \cup pointers,
+\end{equation}
+subject to small inline fields defined by a profile. This supports independent retention, redaction, and storage authorization policies.

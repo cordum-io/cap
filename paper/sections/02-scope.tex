@@ -1,0 +1,23 @@
+\section{Scope and Threat Model}
+
+\subsection{System model}
+
+CAP assumes five logical roles:
+\begin{itemize}[leftmargin=*,nosep]
+  \item a \emph{gateway} authenticates callers, stores input payloads, and submits jobs;
+  \item a \emph{scheduler} owns lifecycle state, invokes policy, and dispatches work;
+  \item a \emph{Safety Kernel} returns deterministic policy decisions and constraints;
+  \item a \emph{worker} advertises capacity, executes a job, stores output, and emits a result;
+  \item an \emph{orchestrator} creates related jobs and aggregates workflow state.
+\end{itemize}
+The roles may be separate processes, replicated services, or embedded components. CAP standardizes their messages and minimum behavior rather than prescribing a deployment topology.
+
+\subsection{Adversary and failure assumptions}
+
+We consider an agent or upstream model that may generate unsafe, malformed, excessive, or adversarial requests. We also consider ordinary distributed-system faults: duplicate and reordered delivery, stale heartbeats, worker crashes, scheduler restarts, policy-service timeouts, partial persistence, and network partitions. A caller may attempt tenant confusion, replay, or capability escalation.
+
+The trusted computing base includes the enforcement path that prevents a worker from receiving governed work except through the scheduler, the policy service used for a decision, and the authenticated transport and state store. CAP cannot make enforcement non-bypassable if a worker exposes an unaudited side channel. Likewise, a declared sandbox or tool constraint is only as strong as the runtime that enforces it.
+
+\subsection{Non-goals}
+
+CAP does not specify model alignment, prompt formats, reasoning traces, a universal policy language, or a global identity provider. It does not promise exactly-once execution over an asynchronous network. The current wire includes packet signatures and runtime tokens, but CAP does not yet define a complete cross-organization trust root or a Merkle-based evidence ledger. Result-content governance is implemented by Cordum as an extension, but it is not yet a required CAP conformance feature.

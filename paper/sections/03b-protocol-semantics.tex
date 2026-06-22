@@ -1,0 +1,49 @@
+\subsection{Jobs as governance-bearing contracts}
+
+A job request can be modeled as
+\begin{equation}
+J = \langle id, topic, principal, tenant, B, M, C, W \rangle,
+\end{equation}
+where $B$ is a resource budget, $M$ is capability and risk metadata, $C$ is an opaque context pointer plus optional memory hints, and $W$ is workflow lineage.
+
+The current wire budget includes maximum input, output, and total tokens plus a completion deadline. Metadata includes a semantic capability, risk tags, required worker capabilities, an idempotency key, actor identity, and an optional pack identifier. This representation intentionally separates \emph{what work is requested} from any one model framework.
+
+A job is a contract in the operational sense: it carries bounded authority and observable expectations. CAP does not claim the full conservation laws introduced independently by Agent Contracts \citep{ye2026agentcontracts}; delegated budget conservation remains an area for formal extension.
+
+\subsection{Safety Kernel}
+
+The Safety Kernel receives job identity, tenant, principal, priority, budget, labels, capability metadata, effective configuration, and optionally bounded input content. It returns a decision, reason, policy snapshot, matched rule, structured constraints, approval reference, and optional remediations.
+
+The decision set has evolved append-only and currently includes \texttt{ALLOW}, \texttt{DENY}, \texttt{REQUIRE\_HUMAN}, \texttt{THROTTLE}, \texttt{ALLOW\_WITH\_CONSTRAINTS}, \texttt{QUARANTINE}, and \texttt{REDACT}. Structured constraints cover runtime, retries, artifact size, concurrency, sandbox hints, network and filesystem access, allowed tools and commands, and change-set bounds.
+
+CAP requires the policy check before dispatch. If policy is unavailable, the implementation's fail-open or fail-closed mode must be explicit; fail-closed is preferred for high-risk operation. Human approval pauses dispatch rather than approving an already executed effect. This is a protocol-level realization of reference mediation, while the actual policy language remains implementation-defined.
+
+\subsection{Heartbeats and capacity-aware placement}
+
+A heartbeat advertises worker identity, region, type, CPU, memory, GPU utilization, active jobs, maximum parallel jobs, pool, capabilities, and labels. Schedulers discard stale advertisements after a grace interval. The eligible set for a job at time $t$ is
+\begin{equation}
+\begin{aligned}
+E(J,t) = \{w \in \workers \mid{}& live(w,t) \land R(J) \subseteq C(w),\\
+& load(w,t) < cap(w)\}.
+\end{aligned}
+\end{equation}
+where $R(J)$ is the set of required capabilities and $C(w)$ is the worker capability set. CAP does not prescribe a single scoring algorithm; Cordum uses least-loaded placement with pool and label constraints.
+
+Heartbeats are telemetry, not identity proof. The current protocol can carry an attestation credential, but consumers must prefer authenticated identity records over self-reported display fields.
+
+\subsection{Pointer-first data separation}
+
+CAP carries \texttt{context\_ptr}, \texttt{result\_ptr}, and artifact pointers instead of large blobs. This keeps the control plane small, permits storage-specific retention and access controls, and prevents message brokers from becoming accidental long-term data stores. Pointers are opaque: Redis, object storage, a database, or a signed URL can implement the same contract.
+
+Pointer separation reduces bus exposure; it does not automatically guarantee confidentiality. The backing store must authenticate access, enforce tenant scope, and avoid embedding long-lived secrets in pointer values.
+
+\subsection{Lifecycle, retries, and workflows}
+
+CAP standardizes the lifecycle
+\begin{center}
+\small
+\texttt{PENDING} $\rightarrow$ \texttt{SCHEDULED} $\rightarrow$ \texttt{DISPATCHED} $\rightarrow$ \texttt{RUNNING} $\rightarrow$ terminal.
+\end{center}
+Terminal outcomes include success, denial, cancellation, timeout, retryable failure, and fatal failure. Repeating a state is permitted for idempotency; backward transitions are rejected unless an explicit recovery rule exists. Parent identifiers, workflow identifiers, and step indices allow an orchestrator to construct a traceable job tree without changing the base job abstraction. Compensation templates support saga-style rollback for completed steps.
+
+CAP assumes that durable transports may deliver at least once and may reorder across subjects. Consumers therefore deduplicate by job or idempotency key, and terminal-state conflicts are logged and ignored by default. Core NATS can be used for best-effort traffic, while JetStream or another durable bus supplies acknowledgment and redelivery semantics \citep{nats}.

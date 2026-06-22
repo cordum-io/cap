@@ -1,0 +1,46 @@
+\section{Protocol Architecture}
+
+Figure~\ref{fig:architecture} shows the canonical control flow. Payload blobs are stored outside the bus and referenced through opaque pointers. Worker heartbeats are broadcast so schedulers can maintain a short-lived view of capacity without a persistent worker database.
+
+\begin{figure*}[t]
+\centering
+\resizebox{0.98\textwidth}{!}{%
+\begin{tikzpicture}[
+  node distance=1.25cm and 1.25cm,
+  box/.style={draw,rounded corners,minimum width=2.25cm,minimum height=0.8cm,align=center,fill=capgray},
+  secure/.style={draw=capblue,very thick,rounded corners,minimum width=2.4cm,minimum height=0.9cm,align=center,fill=blue!4},
+  store/.style={draw,ellipse,minimum width=2cm,minimum height=0.85cm,align=center,fill=green!5},
+  arr/.style={-{Latex[length=2.3mm]},thick},
+  dasharr/.style={-{Latex[length=2.3mm]},thick,dashed}
+]
+  \node[box] (client) {Client / Agent};
+  \node[box,right=of client] (gateway) {Gateway};
+  \node[store,below=of gateway] (memory) {Payload Store\\context / result};
+  \node[box,right=of gateway] (submit) {Bus\\\texttt{sys.job.submit}};
+  \node[secure,right=of submit] (sched) {Scheduler\\state + routing};
+  \node[secure,above=of sched] (safety) {Safety Kernel\\policy decision};
+  \node[box,right=of sched] (pool) {Bus\\\texttt{job.<pool>}};
+  \node[box,right=of pool] (worker) {Worker Pool};
+  \node[box,below=of pool] (result) {Bus\\\texttt{sys.job.result}};
+
+  \draw[arr] (client) -- node[above]{submit} (gateway);
+  \draw[arr] (gateway) -- node[above]{\texttt{JobRequest}} (submit);
+  \draw[arr] (submit) -- (sched);
+  \draw[arr] (sched) -- node[right]{check} (safety);
+  \draw[arr] (safety) -- node[left]{decision + constraints} (sched);
+  \draw[arr] (sched) -- node[above]{dispatch} (pool);
+  \draw[arr] (pool) -- (worker);
+  \draw[arr] (worker) |- node[pos=0.25,right]{\texttt{JobResult}} (result);
+  \draw[arr] (result) -| (sched);
+  \draw[arr] (gateway) -- node[left]{write input} (memory);
+  \draw[arr] (worker) -- node[below,sloped]{read / write pointers} (memory);
+  \draw[dasharr] (worker) to[bend left=25] node[above]{heartbeat} (sched);
+\end{tikzpicture}%
+}
+\caption{CAP control-plane flow. Governance is evaluated before dispatch; payloads remain behind pointers; workers advertise expiring capacity.}
+\label{fig:architecture}
+\end{figure*}
+
+\subsection{Versioned envelope}
+
+Every bus message is a \texttt{BusPacket} containing a stable \texttt{trace\_id}, \texttt{sender\_id}, timestamp, \texttt{protocol\_version}, optional signature and runtime token, and one payload variant. Current payloads include job request, job result, heartbeat, progress, cancellation, alert, and handshake messages \citep{cap_current}. Protocol Buffers provide unknown-field tolerance and append-only schema evolution \citep{protobuf}. CAP keeps wire version 1 for additive changes and requires a version bump only for incompatible semantics.

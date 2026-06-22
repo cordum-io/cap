@@ -1,0 +1,7 @@
+\section{Limitations and Research Agenda}
+
+First, CAP standardizes messages and expected behavior, but non-bypassability depends on deployment architecture. Direct worker credentials or side channels can undermine the control plane. Second, sandbox, toolchain, and network constraints require enforcement by the selected runtime; a protobuf field alone is not isolation. Third, CAP provides at-least-once tolerance rather than exactly-once execution. Non-idempotent effects require downstream idempotency keys, transactional APIs, or compensating actions.
+
+Fourth, current packet signatures and tokens do not constitute a complete multi-tenant evidence chain. Integrating DSSE-style envelopes, transparent checkpoints, or customer-controlled witnesses is future work. Fifth, output governance is not yet a required CAP profile. A staged-release state machine could make post-execution inspection interoperable. Sixth, the formal semantics in this report should be encoded in TLA+, PlusCal, or another model checker and validated under crash, partition, and redelivery schedules.
+
+The immediate empirical agenda is a tagged, one-command harness with raw data for: (1) policy and dispatch latency distributions; (2) scaling with workers, pools, and tenants; (3) invariant preservation under duplicate and reordered delivery; (4) stale-heartbeat and policy-outage behavior; and (5) release safety for output redaction and quarantine.

@@ -1,0 +1,89 @@
+\documentclass[10pt,twocolumn]{article}
+
+\usepackage[margin=0.72in,columnsep=0.25in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,fit}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage[backend=biber,style=authoryear,natbib=true,maxcitenames=2,maxbibnames=99]{biblatex}
+\addbibresource{references.bib}
+\usepackage{caption}
+\usepackage{fancyhdr}
+
+\definecolor{capblue}{RGB}{24,78,119}
+\definecolor{capgreen}{RGB}{42,125,79}
+\definecolor{capgray}{RGB}{245,247,250}
+\definecolor{capred}{RGB}{170,55,55}
+
+\hypersetup{
+  pdftitle={CAP: A Governance-First Wire Protocol for Distributed AI Agent Control Planes},
+  pdfauthor={Yaron Torgeman},
+  pdfsubject={Distributed AI agent governance and control-plane protocols},
+  pdfkeywords={AI agents, governance, distributed systems, protocol, safety, authorization}
+}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{capgray},
+  frame=single,
+  rulecolor=\color{black!15},
+  breaklines=true,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  xleftmargin=2pt,
+  xrightmargin=2pt
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{CAP Technical Report}
+\fancyhead[R]{June 2026}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\newcommand{\capname}{CAP}
+\newcommand{\decision}{\mathcal{D}}
+\newcommand{\jobs}{\mathcal{J}}
+\newcommand{\workers}{\mathcal{W}}
+\newcommand{\policies}{\mathcal{P}}
+\newcommand{\states}{\mathcal{S}}
+
+\title{\vspace{-1.4em}\textbf{CAP: A Governance-First Wire Protocol\\for Distributed AI Agent Control Planes}}
+\author{Yaron Torgeman\\\small Cordum\\\small \texttt{admin@cordum.io}}
+\date{Technical Report, June 22, 2026\\\small Artifact version: CAP commit \texttt{df2af475}; Cordum commit \texttt{6232e9d}}
+
+\begin{document}
+\raggedbottom
+\maketitle
+\thispagestyle{fancy}
+
+\begin{abstract}
+Autonomous agents increasingly execute work across distributed worker fleets, yet most agent protocols standardize tool invocation or peer messaging rather than the control plane that admits, governs, schedules, and reconciles consequential work. We present the Cordum Agent Protocol (CAP), a governance-first wire protocol for distributed AI agent control planes. CAP represents each unit of work as a versioned job contract containing identity, capability metadata, pointer-based context, workflow lineage, and resource budgets. A scheduler evaluates policy before dispatch, selects eligible workers from expiring capacity advertisements, and advances an explicit lifecycle over transports that may redeliver or reorder messages. We formalize invariants for mediated dispatch, capacity-bounded placement, monotone state transitions, idempotent redelivery, and control/data separation. We describe Cordum, the reference implementation over NATS and Redis, and audit CAP's public artifact history from v0.1.0 on December 11, 2025 through the current append-only wire version. CAP predates the 2026 cluster of execution-governance specifications as a public, versioned protocol for distributed agent fleets. We do not claim invention of reference monitoring, authorization, contracts, or audit logging; CAP's contribution is their integration into an interoperable distributed job lifecycle. The specification, SDKs, fixtures, and reference implementation are openly available.
+\end{abstract}
+
+\input{sections/01-introduction.tex}
+\input{sections/02-scope.tex}
+\input{sections/03-protocol.tex}
+\input{sections/04-invariants.tex}
+\input{sections/05-implementation.tex}
+\input{sections/06-evaluation.tex}
+\input{sections/07-related.tex}
+\input{sections/08-limitations.tex}
+\input{sections/09-conclusion.tex}
+
+\printbibliography
+
+\end{document}

@@ -74,11 +74,28 @@ function verifySignature(
   publicKey: string,
   signature: Uint8Array
 ): boolean {
+  const key = requireP256PublicKey(publicKey);
   try {
     const verifier = crypto.createVerify("sha256");
     verifier.update(encodeUnsignedForSignature(packetType, packet));
-    return verifier.verify(publicKey, signature);
+    return verifier.verify(key, signature);
   } catch {
     throw new SignatureInvalidError("trusted public key is invalid");
   }
+}
+
+function requireP256PublicKey(publicKey: string): crypto.KeyObject {
+  let key: crypto.KeyObject;
+  try {
+    key = crypto.createPublicKey(publicKey);
+  } catch {
+    throw new SignatureInvalidError("trusted public key is invalid");
+  }
+  if (
+    key.asymmetricKeyType !== "ec" ||
+    key.asymmetricKeyDetails?.namedCurve !== "prime256v1"
+  ) {
+    throw new SignatureInvalidError("trusted public key must use ECDSA P-256");
+  }
+  return key;
 }

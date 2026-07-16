@@ -117,7 +117,7 @@ async function collectResults(connection: NatsConnection): Promise<ResultCollect
     },
   });
   await connection.flush();
-  return { ...collector, subscription };
+  return Object.assign(collector, { subscription });
 }
 
 function readJobId(value: unknown): string {
@@ -265,6 +265,24 @@ async function runReconnectScenario(): Promise<void> {
 }
 
 describe("Node SDK real NATS transport", () => {
+  it("keeps late result callback errors observable", async () => {
+    let callback: ((error: NatsError | null, message: Msg) => void) | undefined;
+    const subscription = {} as Subscription;
+    const connection = {
+      subscribe: (_subject: string, options: { callback: typeof callback }) => {
+        callback = options.callback;
+        return subscription;
+      },
+      flush: async () => undefined,
+    } as unknown as NatsConnection;
+    const collector = await collectResults(connection);
+    const error = new Error("injected result callback failure");
+
+    assert.ok(callback);
+    callback(error as NatsError, {} as Msg);
+    assert.equal(collector.error, error);
+  });
+
   it("keeps the original worker subscription after a disconnect and reconnect", async function () {
     this.timeout(30_000);
     await runReconnectScenario();

@@ -470,7 +470,12 @@ export class Agent {
     const connection = this.nc;
     try {
       if (connection) {
-        await connection.drain();
+        try {
+          await withTimeout(connection.drain(), this.ioTimeoutMs, "nats drain");
+        } catch (error) {
+          this.logger.warn("connection drain failed", { error: String(error) });
+          await connection.close();
+        }
       }
     } finally {
       this.nc = undefined;
@@ -484,10 +489,16 @@ export class Agent {
 
   private async drainSubscription(subscription: Subscription): Promise<void> {
     try {
-      await subscription.drain();
+      await withTimeout(subscription.drain(), this.ioTimeoutMs, "subscription drain");
     } catch (error) {
       this.logger.warn("subscription drain failed", { error: String(error) });
-      subscription.unsubscribe();
+      try {
+        subscription.unsubscribe();
+      } catch (unsubscribeError) {
+        this.logger.warn("subscription unsubscribe failed", {
+          error: String(unsubscribeError),
+        });
+      }
     }
   }
 

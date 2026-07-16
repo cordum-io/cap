@@ -79,7 +79,8 @@ signature verification failed for sender <sender-id>
 invalid signature: ECDSA verify failed
 ```
 
-**Cause:** Key format mismatch, wrong key, or non-deterministic serialization.
+**Cause:** Key format mismatch, wrong or missing sender mapping, an unsigned packet in strict
+mode, or non-deterministic serialization.
 
 **Solution:**
 
@@ -103,9 +104,18 @@ invalid signature: ECDSA verify failed
      node -e "const {generateKeyPairSync}=require('crypto');const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1',publicKeyEncoding:{type:'spki',format:'pem'},privateKeyEncoding:{type:'pkcs8',format:'pem'}});console.log(privateKey);console.log(publicKey);"
      ```
 
-3. **Ensure the public key map matches sender IDs.** The `publicKeyMap`/`public_keys` must map sender IDs to the correct public keys. A mismatch causes verification failure.
+3. **Ensure the public key map matches sender IDs.** The `publicKeyMap`/`public_keys`
+   must map sender IDs to the correct public keys. A mismatch causes verification failure.
 
-4. **Cross-SDK verification** works because all SDKs use deterministic protobuf serialization (map entries sorted by key). If you're using a custom serializer, ensure it produces deterministic output.
+4. **For Node, check strict-mode configuration.** Omitting `publicKeyMap` (or setting it
+   to `undefined`) is the sole legacy opt-out. Supplying any map enables strict verification;
+   `{}` denies every sender. Missing senders, unsigned packets, unknown keys, malformed
+   envelopes, and invalid signatures are dropped before either `startWorker` or `Agent`
+   calls a handler.
+
+5. **Cross-SDK verification** works because all SDKs use deterministic protobuf serialization
+   (map entries sorted by key). If you're using a custom serializer, ensure it produces
+   deterministic output.
 
 ---
 
@@ -116,18 +126,40 @@ invalid signature: ECDSA verify failed
 proto: cannot parse invalid wire-format data
 ModuleNotFoundError: No module named 'cap.pb.cordum.agent.v1'
 Cannot find module '../cordum/agent/v1/job.proto'
+ENOENT: no such file or directory, open '.../cordum/agent/v1/alert.proto'
 ```
 
-**Cause:** Stale or missing generated protobuf stubs.
+**Cause:** Invalid or version-mismatched wire bytes, stale generated stubs, or an old/corrupt
+SDK install.
 
 **Solution:**
 
-1. **Regenerate stubs** from the repo root:
+1. **For a released Node package, verify and refresh the install:**
+   ```bash
+   npm ls cap-sdk-node
+   npm cache verify
+   npm install cap-sdk-node@latest
+   ```
+   Released Node artifacts bundle the seven required schemas under
+   `node_modules/cap-sdk-node/dist/proto/cordum/agent/v1`. Node application consumers do not
+   need `protoc` or a full CAP clone. If the directory is absent, update an older lockfile or
+   version, or replace the corrupt install rather than copying schemas from a repository
+   checkout.
+
+2. **For Node SDK source development**, build from the full CAP checkout:
+   ```bash
+   cd sdk/node
+   npm ci
+   npm run build
+   ```
+   The build copies the canonical repository schemas into `dist`; it does not require `protoc`.
+
+3. **Regenerate Go and Python stubs** from the repo root when changing protocol sources:
    ```bash
    ./tools/make_protos.sh
    ```
 
-2. **For Python** stubs specifically:
+4. **For Python** stubs specifically:
    ```bash
    CAP_RUN_PY=1 ./tools/make_protos.sh
    ```
@@ -141,14 +173,13 @@ Cannot find module '../cordum/agent/v1/job.proto'
      ../../proto/cordum/agent/v1/*.proto
    ```
 
-3. **Check protoc version.** CAP proto files use proto3 syntax. Install `protoc` v3.19+ or use `grpc_tools.protoc` (Python) / `protobufjs` (Node).
+5. **Check the generator version for source changes.** CAP proto files use proto3 syntax.
+   Use the repository's pinned generation workflow; Python can use `grpc_tools.protoc`.
 
-4. **For Go**, stubs live at `cordum/agent/v1/` in the repo root. The import path is:
+6. **For Go**, stubs live at `cordum/agent/v1/` in the repo root. The import path is:
    ```go
    agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
    ```
-
-5. **For Node**, protobufjs loads `.proto` files at runtime from `proto/`. If the proto files are missing, ensure you cloned the full repository.
 
 ---
 
@@ -203,7 +234,9 @@ Cannot find module '../cordum/agent/v1/job.proto'
    nats server report connections
    ```
 
-4. **Queue group issues:** CAP workers use `cap-workers` as the default queue group. If you have a custom queue group, ensure all workers for the same subject use the same group.
+4. **Queue group issues:** Ensure workers for the same subject intentionally share a queue
+   group. In Node, `startWorker()` defaults the queue to its subject, and `Agent` uses each
+   handler topic as its queue.
 
 ---
 
@@ -325,7 +358,8 @@ python -m grpc_tools.protoc \
 2. **For the low-level SDK**, heartbeats are manual. Use the heartbeat helpers:
    - **Go:** `capsdk.HeartbeatPayload()` or `capsdk.HeartbeatPayloadWithMemory()`
    - **Python:** Heartbeats are sent automatically by `run_worker()` if `heartbeat_interval` is set.
-   - **Node:** Heartbeats are sent by `startWorker()` when configured.
+   - **Node:** High-level `Agent.start()` starts the heartbeat loop. Low-level
+     `startWorker()` does not; use `heartbeatLoop()` or `emitHeartbeat()` explicitly.
 
 3. **Monitor heartbeats:**
    ```bash

@@ -4,20 +4,21 @@ import { loadRoot } from "../src/protos";
 import { encodeDeterministic } from "../src/codec";
 import type { MetricsHook } from "../src/metrics";
 import { noopMetrics } from "../src/metrics";
+import type { Msg, Subscription, SubscriptionOptions } from "nats";
 
 class MockNatsConnection {
   published: Array<{ subject: string; data: Uint8Array }> = [];
-  subscriptions: Map<string, (msg: any) => void> = new Map();
+  subscriptions: Map<string, NonNullable<SubscriptionOptions["callback"]>> = new Map();
 
   async publish(subject: string, data: Uint8Array): Promise<void> {
     this.published.push({ subject, data });
   }
 
-  subscribe(subject: string, _opts?: any, cb?: (msg: any) => void): any {
-    if (cb) {
-      this.subscriptions.set(subject, cb);
+  subscribe(subject: string, opts: SubscriptionOptions = {}): Subscription {
+    if (opts.callback) {
+      this.subscriptions.set(subject, opts.callback);
     }
-    return { drain: async () => {} };
+    return { drain: async () => {} } as unknown as Subscription;
   }
 
   async drain(): Promise<void> {
@@ -79,12 +80,13 @@ describe("MetricsHook", () => {
       traceId: "t1",
       senderId: "c1",
       protocolVersion: 1,
+      createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
       jobRequest: { jobId, topic: "job.metrics", contextPtr: `redis://${ctxKey}` },
     });
     const data = encodeDeterministic(BusPacket, packetObj);
 
     const cb = mock.subscriptions.get("job.metrics")!;
-    cb({ data });
+    cb(null, { data } as Msg);
 
     await waitFor(() => metrics.completed.length > 0);
 
@@ -123,12 +125,13 @@ describe("MetricsHook", () => {
       traceId: "t2",
       senderId: "c2",
       protocolVersion: 1,
+      createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
       jobRequest: { jobId, topic: "job.metrics.fail", contextPtr: "redis://missing-key" },
     });
     const data = encodeDeterministic(BusPacket, packetObj);
 
     const cb = mock.subscriptions.get("job.metrics.fail")!;
-    cb({ data });
+    cb(null, { data } as Msg);
 
     await waitFor(() => metrics.failed.length > 0);
 

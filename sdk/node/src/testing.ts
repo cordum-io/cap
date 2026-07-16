@@ -2,7 +2,8 @@
  * Testing utilities for CAP Node SDK.
  * Allows testing handlers without running NATS or Redis.
  */
-import { z, ZodTypeAny } from "zod";
+import type { Msg, NatsConnection, Subscription, SubscriptionOptions } from "nats";
+import { z } from "zod";
 import { Agent, InMemoryBlobStore, AgentOptions, Context } from "./runtime";
 import { loadRoot, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import { encodeDeterministic } from "./codec";
@@ -19,17 +20,31 @@ export interface PublishedMsg {
  */
 export class MockNatsConnection {
   published: PublishedMsg[] = [];
-  subscriptions: Map<string, (msg: any) => void> = new Map();
+  subscriptions: Map<
+    string,
+    NonNullable<SubscriptionOptions["callback"]>
+  > = new Map();
 
   async publish(subject: string, data: Uint8Array): Promise<void> {
     this.published.push({ subject, data });
   }
 
-  subscribe(subject: string, _opts?: any, cb?: (msg: any) => void): any {
-    if (cb) {
-      this.subscriptions.set(subject, cb);
+  subscribe(subject: string, opts: SubscriptionOptions = {}): Subscription {
+    if (opts.callback) {
+      this.subscriptions.set(subject, opts.callback);
     }
-    return { drain: async () => {} };
+    return {
+      drain: async () => {},
+      unsubscribe: () => {},
+    } as unknown as Subscription;
+  }
+
+  deliver(subject: string, data: Uint8Array): void {
+    const callback = this.subscriptions.get(subject);
+    if (!callback) {
+      throw new Error(`no callback subscription found for subject ${subject}`);
+    }
+    callback(null, { subject, data } as unknown as Msg);
   }
 
   async drain(): Promise<void> {
@@ -48,7 +63,7 @@ export function createTestAgent(
   const store = new InMemoryBlobStore();
   const agent = new Agent({
     store,
-    connectFn: async () => bus as any,
+    connectFn: async () => bus as unknown as NatsConnection,
     senderId: options.senderId ?? "test-worker",
     retries: options.retries ?? 0,
     ...options,
@@ -97,12 +112,12 @@ export async function testHandler<TIn, TOut>(
   const jobId = options.jobId ?? "test-job-1";
 
   if (options.inputSchema) {
-    agent.job(topic, options.inputSchema, handler as any, {
-      outputSchema: options.outputSchema as any,
+    agent.job<TIn, TOut>(topic, options.inputSchema, handler, {
+      outputSchema: options.outputSchema,
     });
   } else {
-    agent.job(topic, handler as any, {
-      outputSchema: options.outputSchema as any,
+    agent.job<TIn, TOut>(topic, handler, {
+      outputSchema: options.outputSchema,
     });
   }
 
@@ -118,21 +133,23 @@ export async function testHandler<TIn, TOut>(
     traceId: "test-trace",
     senderId: "test-client",
     protocolVersion: DEFAULT_PROTOCOL_VERSION,
+    createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
     jobRequest: { jobId, topic, contextPtr: `redis://${ctxKey}` },
   });
   const payload = encodeDeterministic(BusPacket, packet);
 
   const initialCount = bus.published.length;
-  const cb = bus.subscriptions.get(topic);
-  if (!cb) {
-    throw new Error(`no subscription found for topic ${topic}`);
-  }
-  cb({ data: payload });
+  bus.deliver(topic, payload);
 
   await waitForPublish(bus, initialCount);
 
-  const resultPacket = BusPacket.decode(bus.published[bus.published.length - 1].data) as any;
+  const resultPacket = BusPacket.decode(
+    bus.published[bus.published.length - 1].data
+  ) as unknown as { jobResult?: JobResultView };
   const jr = resultPacket.jobResult;
+  if (!jr) {
+    throw new Error("worker did not publish a JobResult");
+  }
 
   await agent.close();
 
@@ -143,4 +160,12 @@ export async function testHandler<TIn, TOut>(
     errorMessage: jr.errorMessage ?? "",
     workerId: jr.workerId ?? "",
   };
+}
+
+interface JobResultView {
+  status: number;
+  jobId: string;
+  resultPtr?: string;
+  errorMessage?: string;
+  workerId?: string;
 }

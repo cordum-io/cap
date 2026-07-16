@@ -2,6 +2,7 @@
   "name": "cap-sdk-node",
   "version": "2.5.3",
   "description": "CAP (Cordum Agent Protocol) SDK for Node/TypeScript",
+  "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -13,12 +14,15 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cordum-io/cap.git",
+    "url": "git+https://github.com/cordum-io/cap.git",
     "directory": "sdk/node"
   },
   "homepage": "https://github.com/cordum-io/cap#readme",
   "bugs": {
     "url": "https://github.com/cordum-io/cap/issues"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "keywords": [
     "cap",
@@ -29,10 +33,13 @@
     "ai"
   ],
   "scripts": {
-    "build": "tsc -p .",
-    "lint": "echo \"add linter\"",
+    "build": "node scripts/build-package.cjs",
+    "lint": "npm run lint:package",
+    "lint:package": "publint --pack false --level error",
     "sample:worker": "node dist/sample-worker.js",
-    "test": "tsc -p tsconfig.test.json --outDir dist && mocha dist/test/*.test.js",
+    "test": "node -e \"require('fs').rmSync('.build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && mocha \".build/test/*.test.js\"",
+    "test:nats": "node -e \"require('fs').rmSync('.build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && mocha \".build/test/integration/nats.e2e.js\"",
+    "test:package": "node scripts/verify-package.cjs",
     "docs": "typedoc --out docs src/index.ts"
   },
   "dependencies": {
@@ -44,8 +51,10 @@
   "devDependencies": {
     "@types/chai": "^5.2.3",
     "@types/mocha": "^10.0.10",
+    "@types/node": "18.19.130",
     "chai": "^6.2.1",
     "mocha": "^11.7.5",
+    "publint": "0.3.21",
     "ts-mocha": "^11.1.0",
     "tsconfig-paths": "^4.2.0",
     "typedoc": "^0.28.17",

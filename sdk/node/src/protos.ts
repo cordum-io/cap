@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 
 const PROTO_DIR_CANDIDATES = [
+  path.resolve(__dirname, "proto"),
   path.resolve(__dirname, "..", "..", "..", "proto"),
   path.resolve(__dirname, "..", "..", "..", "..", "proto"),
 ];

@@ -1,4 +1,9 @@
-import { connect, NatsConnection } from "nats";
+import {
+  connect,
+  NatsConnection,
+  Subscription,
+  SubscriptionOptions,
+} from "nats";
 import { createClient, RedisClientType } from "redis";
 import { z, ZodTypeAny } from "zod";
 import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
@@ -6,11 +11,12 @@ import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import type { Middleware } from "./middleware";
 import * as crypto from "crypto";
 import { heartbeatLoop, heartbeatPayload } from "./heartbeat";
-import { MalformedPacketError, SignatureInvalidError, SignatureMissingError, InvalidInputError } from "./errors";
+import { MalformedPacketError, InvalidInputError } from "./errors";
 import type { Logger } from "./logger";
 import type { MetricsHook } from "./metrics";
 import { noopMetrics } from "./metrics";
 import { handshakePayload, publishHandshake } from "./handshake";
+import { verifyInboundPacket } from "./security";
 
 export type { Logger } from "./logger";
 
@@ -18,6 +24,8 @@ const DEFAULT_NATS_URL = "nats://127.0.0.1:4222";
 const DEFAULT_REDIS_URL = "redis://127.0.0.1:6379/0";
 const DEFAULT_TIMEOUT_MS = 5000;
 const DEFAULT_MAX_BYTES = 2 * 1024 * 1024;
+
+class OperationTimeoutError extends Error {}
 
 /** Abstraction over payload storage (Redis, in-memory, etc.). */
 export interface BlobStore {
@@ -95,6 +103,8 @@ interface HandlerSpec {
   retries: number;
 }
 
+type AgentState = "idle" | "starting" | "running" | "closing" | "closed";
+
 /** Options for constructing an {@link Agent}. */
 export interface AgentOptions {
   natsUrl?: string;
@@ -160,7 +170,7 @@ async function withTimeout<T>(promise: Promise<T>, ms: number | undefined, label
     return promise;
   }
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`${label} timed out`)), ms);
+    const timer = setTimeout(() => reject(new OperationTimeoutError(`${label} timed out`)), ms);
     promise
       .then((value) => {
         clearTimeout(timer);
@@ -202,6 +212,11 @@ export class Agent {
   private jobResultType?: any;
   private heartbeatHandle?: { stop: () => void };
   private activeJobCount = 0;
+  private readonly subscriptions: Subscription[] = [];
+  private readonly inFlight = new Set<Promise<void>>();
+  private state: AgentState = "idle";
+  private startPromise?: Promise<void>;
+  private closePromise?: Promise<void>;
 
   constructor(options: AgentOptions = {}) {
     this.natsUrl = options.natsUrl ?? process.env.NATS_URL ?? DEFAULT_NATS_URL;
@@ -285,60 +300,137 @@ export class Agent {
     if (this.handlers.size === 0) {
       throw new Error("no handlers registered");
     }
-    this.nc = await withTimeout(
-      this.connectFn({ servers: this.natsUrl, name: this.senderId }),
-      this.ioTimeoutMs,
-      "nats connect"
-    );
+    if (this.state !== "idle") {
+      throw new Error(`Agent already started or closed (state: ${this.state})`);
+    }
+    this.state = "starting";
+    this.startPromise = this.startInternal();
+    return this.startPromise;
+  }
+
+  async close(): Promise<void> {
+    if (!this.closePromise) {
+      this.closePromise = this.closeInternal();
+    }
+    return this.closePromise;
+  }
+
+  private async startInternal(): Promise<void> {
+    try {
+      await this.initializeRuntime();
+      await this.publishStartupHandshake();
+      this.startHeartbeat();
+      this.state = "running";
+    } catch (error) {
+      try {
+        await this.closeResources();
+      } catch (cleanupError) {
+        this.logger.error("Agent start cleanup failed", {
+          error: String(cleanupError),
+        });
+      }
+      this.state = "closed";
+      throw error;
+    }
+  }
+
+  private async initializeRuntime(): Promise<void> {
+    const connection = await this.connectRuntime();
+    this.nc = connection;
     if (!this.store) {
       this.store = new RedisBlobStore(this.redisUrl);
     }
-
     const root = await loadRoot();
     this.busPacketType = root.lookupType("cordum.agent.v1.BusPacket");
     this.jobResultType = root.lookupType("cordum.agent.v1.JobResult");
-
     for (const spec of this.handlers.values()) {
-      (this.nc as any).subscribe(
-        spec.topic,
-        { queue: spec.topic },
-        (...args: any[]) => {
-          let err: Error | null = null;
-          let msg: any;
-          if (args.length >= 2) {
-            err = args[0] as Error | null;
-            msg = args[1];
-          } else {
-            msg = args[0];
-          }
-          if (err) {
-            this.logger.error("subscribe error", { error: String(err) });
-            return;
-          }
-          if (!msg) {
-            return;
-          }
-          void this.onMessage(msg, spec);
-        }
-      );
+      this.subscriptions.push(this.subscribe(connection, spec));
     }
+  }
 
+  private async connectRuntime(): Promise<NatsConnection> {
+    const pending = this.connectFn({ servers: this.natsUrl, name: this.senderId });
+    try {
+      return await withTimeout(pending, this.ioTimeoutMs, "nats connect");
+    } catch (error) {
+      if (error instanceof OperationTimeoutError) {
+        void pending.then(
+          (connection) => this.closeLateConnection(connection),
+          () => undefined
+        );
+      }
+      throw error;
+    }
+  }
+
+  private async closeLateConnection(connection: NatsConnection): Promise<void> {
+    try {
+      await connection.close();
+    } catch (error) {
+      this.logger.warn("late NATS connection cleanup failed", { error: String(error) });
+    }
+  }
+
+  private subscribe(connection: NatsConnection, spec: HandlerSpec): Subscription {
+    const options: SubscriptionOptions = {
+      queue: spec.topic,
+      callback: (error, msg) => {
+        if (error) {
+          this.logger.error("subscribe error", { error: String(error) });
+          return;
+        }
+        this.trackMessage(this.onMessage(msg, spec));
+      },
+    };
+    return connection.subscribe(spec.topic, options);
+  }
+
+  private trackMessage(work: Promise<void>): void {
+    const tracked = work
+      .catch((error: unknown) => {
+        this.logger.error("message processing failed", { error: String(error) });
+      })
+      .finally(() => this.inFlight.delete(tracked));
+    this.inFlight.add(tracked);
+  }
+
+  private async publishStartupHandshake(): Promise<void> {
+    if (!this.nc) {
+      throw new Error("NATS not initialized");
+    }
     try {
       const readyTopics = Array.from(this.handlers.keys()).sort();
+      const capabilities = Object.fromEntries(
+        Array.from(this.handlers.keys(), (topic) => [topic, true])
+      );
       const packet = await handshakePayload(
         this.senderId,
-        Object.fromEntries(Array.from(this.handlers.keys(), (topic) => [topic, true])),
+        capabilities,
         this.senderId,
         readyTopics
       );
       await publishHandshake(this.nc, packet, this.privateKey);
-    } catch (err) {
-      this.logger.warn("handshake publish failed", { senderId: this.senderId, error: String(err) });
+    } catch (error) {
+      this.logger.warn("handshake publish failed", {
+        senderId: this.senderId,
+        error: String(error),
+      });
     }
+  }
 
+  private startHeartbeat(): void {
+    if (!this.nc) {
+      throw new Error("NATS not initialized");
+    }
     this.heartbeatHandle = heartbeatLoop(
       this.nc,
-      () => heartbeatPayload(this.senderId, this.pool, this.activeJobCount, this.maxParallel, 0),
+      () => heartbeatPayload(
+        this.senderId,
+        this.pool,
+        this.activeJobCount,
+        this.maxParallel,
+        0
+      ),
       {
         interval: this.heartbeatInterval,
         privateKey: this.privateKey,
@@ -348,14 +440,65 @@ export class Agent {
     );
   }
 
-  async close(): Promise<void> {
+  private async closeInternal(): Promise<void> {
+    if (this.state === "starting" && this.startPromise) {
+      try {
+        await this.startPromise;
+      } catch {
+        return;
+      }
+    }
+    if (this.state === "closed") {
+      return;
+    }
+    this.state = "closing";
+    try {
+      await this.closeResources();
+    } finally {
+      this.state = "closed";
+    }
+  }
+
+  private async closeResources(): Promise<void> {
     this.heartbeatHandle?.stop();
     this.heartbeatHandle = undefined;
-    if (this.nc) {
-      await this.nc.drain();
+    const subscriptions = this.subscriptions.splice(0);
+    await Promise.all(subscriptions.map((subscription) => this.drainSubscription(subscription)));
+    while (this.inFlight.size > 0) {
+      await Promise.all([...this.inFlight]);
     }
-    if (this.store) {
-      await this.store.close();
+    const connection = this.nc;
+    try {
+      if (connection) {
+        try {
+          await withTimeout(connection.drain(), this.ioTimeoutMs, "nats drain");
+        } catch (error) {
+          this.logger.warn("connection drain failed", { error: String(error) });
+          await connection.close();
+        }
+      }
+    } finally {
+      this.nc = undefined;
+      const store = this.store;
+      this.store = undefined;
+      if (store) {
+        await store.close();
+      }
+    }
+  }
+
+  private async drainSubscription(subscription: Subscription): Promise<void> {
+    try {
+      await withTimeout(subscription.drain(), this.ioTimeoutMs, "subscription drain");
+    } catch (error) {
+      this.logger.warn("subscription drain failed", { error: String(error) });
+      try {
+        subscription.unsubscribe();
+      } catch (unsubscribeError) {
+        this.logger.warn("subscription unsubscribe failed", {
+          error: String(unsubscribeError),
+        });
+      }
     }
   }
 
@@ -383,24 +526,11 @@ export class Agent {
       return;
     }
 
-    if (this.publicKeyMap) {
-      const senderId = packet.senderId;
-      const signature = packet.signature;
-      if (!senderId || !this.publicKeyMap[senderId]) {
-        this.logger.warn("no public key for sender", { senderId });
-        return;
-      }
-      if (!signature || signature.length === 0) {
-        this.logger.warn("missing signature", { senderId, error: new SignatureMissingError(`sender ${senderId}`).message });
-        return;
-      }
-      const unsignedData = encodeUnsignedForSignature(this.busPacketType, packet);
-      const verify = crypto.createVerify("sha256");
-      verify.update(unsignedData);
-      if (!verify.verify(this.publicKeyMap[senderId], signature)) {
-        this.logger.warn("invalid signature", { senderId, error: new SignatureInvalidError(`sender ${senderId}`).message });
-        return;
-      }
+    try {
+      verifyInboundPacket(this.busPacketType, packet, this.publicKeyMap);
+    } catch (error) {
+      this.logger.warn("Agent rejected inbound packet", { error: String(error) });
+      return;
     }
 
     const req = packet.jobRequest;

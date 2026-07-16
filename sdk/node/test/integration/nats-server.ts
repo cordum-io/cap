@@ -46,7 +46,7 @@ export class NatsServer {
       if (child.exitCode !== null) {
         throw new Error(`NATS exited ${child.exitCode}: ${this.output}`);
       }
-      return canConnect(this.port);
+      return isNatsReady(this.port);
     }, START_TIMEOUT_MS, `NATS did not listen on ${this.url}: ${this.output}`);
   }
 
@@ -65,7 +65,7 @@ export class NatsServer {
       }
       await waitForExit(child);
       await waitForCondition(
-        async () => !(await canConnect(this.port)),
+        async () => !(await isNatsReady(this.port)),
         5_000,
         `NATS endpoint ${this.url} remained open`,
       );
@@ -121,10 +121,11 @@ export async function reservePort(): Promise<number> {
   });
 }
 
-async function canConnect(port: number): Promise<boolean> {
+export async function isNatsReady(port: number): Promise<boolean> {
   return new Promise<boolean>((resolve) => {
     const socket = net.createConnection({ host: "127.0.0.1", port });
     let finished = false;
+    let preamble = "";
     const finish = (connected: boolean): void => {
       if (finished) return;
       finished = true;
@@ -132,8 +133,13 @@ async function canConnect(port: number): Promise<boolean> {
       resolve(connected);
     };
     socket.setTimeout(250, () => finish(false));
-    socket.once("connect", () => finish(true));
+    socket.on("data", (chunk: Buffer) => {
+      preamble += chunk.toString("utf8");
+      if (preamble.startsWith("INFO ")) finish(true);
+      else if (preamble.length >= 5) finish(false);
+    });
     socket.once("error", () => finish(false));
+    socket.once("end", () => finish(false));
   });
 }
 

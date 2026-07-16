@@ -1,0 +1,4 @@
+# Exact toolchain used to generate the checked-in Python protobuf/gRPC stubs.
+grpcio==1.76.0
+grpcio-tools==1.76.0
+protobuf==6.31.1

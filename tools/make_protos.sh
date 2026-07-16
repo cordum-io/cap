@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Simple helper to generate language-specific stubs into ./cordum (Go), ./python, ./cpp, and ./node
-# (configurable via CAP_OUT_GO/CAP_OUT_PY/CAP_OUT_CPP/CAP_OUT_JS)
+# Generate language-specific stubs for Go, C++, and Node, and verify the
+# checked-in Python stubs (outputs are configurable via CAP_OUT_GO,
+# CAP_OUT_CPP, and CAP_OUT_JS).
 # Requirements:
 # - protoc
 # - protoc-gen-go, protoc-gen-go-grpc (for Go)
-# - python -m grpc_tools.protoc (for Python)
+# - pinned Python codegen dependencies from sdk/python/requirements-codegen.txt
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PROTO_DIR="$ROOT_DIR/proto"
 # Override output paths with env vars if desired.
 OUT_GO="${CAP_OUT_GO:-$ROOT_DIR}"
-OUT_PY="${CAP_OUT_PY:-$ROOT_DIR/python}"
 OUT_CPP="${CAP_OUT_CPP:-$ROOT_DIR/cpp}"
 OUT_JS="${CAP_OUT_JS:-$ROOT_DIR/node}"
 
@@ -31,7 +31,6 @@ ensure_out_dir() {
 }
 
 OUT_GO="$(ensure_out_dir "$OUT_GO" /tmp/capgen/go)"
-OUT_PY="$(ensure_out_dir "$OUT_PY" /tmp/capgen/python)"
 OUT_CPP="$(ensure_out_dir "$OUT_CPP" /tmp/capgen/cpp)"
 OUT_JS="$(ensure_out_dir "$OUT_JS" /tmp/capgen/node)"
 
@@ -39,6 +38,10 @@ OUT_JS="$(ensure_out_dir "$OUT_JS" /tmp/capgen/node)"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 if ! command -v "$PYTHON_BIN" >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
   PYTHON_BIN="python3"
+fi
+if [ "${CAP_RUN_PY:-0}" = "1" ] && ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
+  echo "Python is required for CAP_RUN_PY=1 (tried: $PYTHON_BIN)" >&2
+  exit 1
 fi
 
 # Ensure protoc plugins installed via `go install` are on PATH.
@@ -62,7 +65,7 @@ if [ -n "${EXTRA_PROTO_INCLUDE:-}" ]; then
   fi
 fi
 
-mkdir -p "$OUT_GO" "$OUT_PY" "$OUT_CPP" "$OUT_JS"
+mkdir -p "$OUT_GO" "$OUT_CPP" "$OUT_JS"
 
 echo "Generating Go stubs..."
 protoc \
@@ -128,24 +131,26 @@ else
   echo "CAP_RUN_JS not set to 1; skipping Node JS stubs"
 fi
 
-# Default: skip Python stubs unless explicitly enabled.
+# Default: skip the pinned Python drift check unless explicitly enabled.
 if [ "${CAP_RUN_PY:-0}" = "1" ]; then
-  echo "Generating Python stubs..."
-  if "$PYTHON_BIN" - <<'PY' >/dev/null 2>&1
-import importlib.util, sys
-sys.exit(0 if importlib.util.find_spec("grpc_tools") else 1)
-PY
-  then
-    "$PYTHON_BIN" -m grpc_tools.protoc \
-      -I"$PROTO_DIR" $EXTRA_INCLUDE_FLAG \
-      --python_out="$OUT_PY" \
-      --grpc_python_out="$OUT_PY" \
-      $(find "$PROTO_DIR" -name '*.proto')
-  else
-    echo "grpc_tools not found; skipping Python stubs (install with: pip install grpcio-tools) or set CAP_RUN_PY=0"
+  PYTHON_GENERATOR="$ROOT_DIR/sdk/python/scripts/generate_protos.py"
+  PYTHON_CODEGEN_REQUIREMENTS="$ROOT_DIR/sdk/python/requirements-codegen.txt"
+  if [ ! -f "$PYTHON_GENERATOR" ] || [ ! -f "$PYTHON_CODEGEN_REQUIREMENTS" ]; then
+    echo "Pinned Python codegen files are missing; cannot verify generated stubs" >&2
+    exit 1
+  fi
+
+  echo "Verifying checked-in Python stubs with pinned codegen..."
+  if ! (
+    cd "$ROOT_DIR"
+    "$PYTHON_BIN" sdk/python/scripts/generate_protos.py --check
+  ); then
+    echo "Python stub verification failed. Install pinned tools with:" >&2
+    echo "  $PYTHON_BIN -m pip install -r $PYTHON_CODEGEN_REQUIREMENTS" >&2
+    exit 1
   fi
 else
-  echo "CAP_RUN_PY not set to 1; skipping Python stubs"
+  echo "CAP_RUN_PY not set to 1; skipping Python stub verification"
 fi
 
 # Java stubs (requires protoc-gen-grpc-java for gRPC services).
@@ -229,4 +234,4 @@ else
   echo "CAP_RUN_RUBY not set to 1; skipping Ruby stubs"
 fi
 
-echo "Done. Artifacts are in $OUT_GO and $OUT_PY"
+echo "Done. Generated artifacts are in $OUT_GO, $OUT_CPP, and $OUT_JS"

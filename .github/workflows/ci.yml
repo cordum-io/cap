@@ -108,10 +108,62 @@ jobs:
         run: npm run test:nats
 
   python:
-    name: Python SDK
+    name: Python SDK (${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14']
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e "sdk/python[dev]"
+
+      - name: Run tests
+        run: >-
+          python -m pytest -q sdk/python/tests
+          --ignore=sdk/python/tests/integration
+
+      - name: Build artifacts for installed-package smoke
+        run: python -m build --outdir "${{ runner.temp }}/cap-python-dist" sdk/python
+
+      - name: Verify wheel and sdist from clean consumers
+        run: |
+          python sdk/python/scripts/verify_artifacts.py \
+            --wheel "${{ runner.temp }}/cap-python-dist/"*.whl \
+            --sdist "${{ runner.temp }}/cap-python-dist/"*.tar.gz \
+            --python python
+
+  python-nats:
+    name: Python SDK (real NATS)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CAP_TEST_NATS_URL: nats://127.0.0.1:4222
+    services:
+      nats:
+        image: nats:2.10.29-alpine
+        ports:
+          - 4222:4222
+        options: >-
+          --health-cmd "nc -z 127.0.0.1 4222"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -121,10 +173,92 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e sdk/python pytest
+          python -m pip install "sdk/python[dev]"
 
-      - name: Run tests
-        run: python -m unittest discover -s sdk/python/tests
+      - name: Run mandatory real-NATS integration
+        run: python -m pytest -q sdk/python/tests/integration/test_worker_nats.py
+
+  python-codegen:
+    name: Python SDK (pinned codegen)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install pinned code generator
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r sdk/python/requirements-codegen.txt
+
+      - name: Verify checked-in generated modules
+        run: python sdk/python/scripts/generate_protos.py --check
+
+  python-typing:
+    name: Python SDK (strict consumer typing)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "sdk/python[dev]"
+
+      - name: Type-check external consumer
+        run: |
+          python -m mypy --strict \
+            --follow-imports=silent \
+            --disallow-any-expr \
+            --disallow-any-explicit \
+            --disallow-any-decorated \
+            --disallow-any-unimported \
+            --no-incremental \
+            --python-version=3.9 \
+            sdk/python/tests/typing/consumer.py
+
+  python-build:
+    name: Python SDK (release artifacts)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Install build verification tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "build>=1.2,<2" "twine>=5.0,<7"
+
+      - name: Build wheel and sdist once
+        run: python -m build --outdir dist/python sdk/python
+
+      - name: Check package metadata
+        run: python -m twine check dist/python/*
+
+      - name: Verify exact release artifacts
+        run: |
+          python sdk/python/scripts/verify_artifacts.py \
+            --wheel dist/python/*.whl \
+            --sdist dist/python/*.tar.gz \
+            --python python
 
   python-guard:
     name: Python Guard SDK

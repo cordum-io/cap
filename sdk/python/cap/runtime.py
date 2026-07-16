@@ -4,7 +4,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Dict, Optional, Protocol, Type, TypeVar, Union
+from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Type, TypeVar, Union
 
 from google.protobuf import timestamp_pb2
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
@@ -25,11 +25,53 @@ except Exception:  # pragma: no cover - optional until runtime used
 
 from cap.subjects import SUBJECT_RESULT
 from cap.errors import InvalidInputError, MalformedPacketError, SignatureInvalidError, SignatureMissingError
-from cap.metrics import MetricsHook, NoopMetrics
+from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
 from cap.handshake import publish_handshake
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
 
 from cap.constants import DEFAULT_PROTOCOL_VERSION  # noqa: E402 — must be after conditional imports
+
+
+_HANDLER_FAILED_MESSAGE = "handler failed"
+_LOG_FIELD_LIMIT = 256
+
+
+def _bounded_log_field(value: object) -> str:
+    sanitized = str(value).replace("\r", "\\r").replace("\n", "\\n")
+    if len(sanitized) <= _LOG_FIELD_LIMIT:
+        return sanitized
+    return sanitized[: _LOG_FIELD_LIMIT - 3] + "..."
+
+
+def _normalize_max_parallel(value: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("max_parallel must be an integer")
+    return max(1, value)
+
+
+def _log_handler_failure(
+    logger: logging.Logger,
+    packet: buspacket_pb2.BusPacket,
+    request: job_pb2.JobRequest,
+    error: Exception,
+    attempt: int,
+    max_attempts: int,
+) -> None:
+    try:
+        logger.warning(
+            "handler failed",
+            extra={
+                "job_id": _bounded_log_field(request.job_id),
+                "trace_id": _bounded_log_field(packet.trace_id),
+                "topic": _bounded_log_field(request.topic),
+                "sender_id": _bounded_log_field(packet.sender_id),
+                "attempt": attempt,
+                "max_attempts": max_attempts,
+                "exception_type": _bounded_log_field(type(error).__name__),
+            },
+        )
+    except Exception:
+        pass
 
 
 class BlobStore(Protocol):
@@ -235,6 +277,13 @@ TOut = TypeVar("TOut")
 TAny = TypeVar("TAny")
 
 
+class _JobDecorator(Protocol):
+    def __call__(
+        self, func: Callable[[Context, TIn], TOut]
+    ) -> Callable[[Context, TIn], TOut]:
+        ...
+
+
 @dataclass
 class HandlerSpec:
     topic: str
@@ -266,6 +315,7 @@ class Agent:
         heartbeat_payload_fn: Optional[Callable[[], bytes]] = None,
         retries: int = 0,
         io_timeout: Optional[float] = 5.0,
+        shutdown_timeout: Optional[float] = 30.0,
         max_context_bytes: Optional[int] = 2 * 1024 * 1024,
         max_result_bytes: Optional[int] = 2 * 1024 * 1024,
         connect_fn: Optional[Callable[..., Awaitable[Any]]] = None,
@@ -279,11 +329,14 @@ class Agent:
         self._private_key = private_key
         self._sender_id = worker_id or sender_id
         self._pool = pool
-        self._max_parallel = max(1, max_parallel)
+        self._max_parallel = _normalize_max_parallel(max_parallel)
         self._heartbeat_interval = heartbeat_interval if heartbeat_interval > 0 else 5.0
         self._heartbeat_payload_fn = heartbeat_payload_fn
         self._default_retries = max(0, retries)
         self._io_timeout = io_timeout if io_timeout and io_timeout > 0 else None
+        if shutdown_timeout is not None and shutdown_timeout <= 0:
+            raise ValueError("shutdown_timeout must be positive or None")
+        self._shutdown_timeout = shutdown_timeout
         self._max_context_bytes = max_context_bytes if max_context_bytes and max_context_bytes > 0 else None
         self._max_result_bytes = max_result_bytes if max_result_bytes and max_result_bytes > 0 else None
         self._connect_fn = connect_fn
@@ -291,10 +344,20 @@ class Agent:
         self._metrics: MetricsHook = metrics or NoopMetrics()
         self._handlers: Dict[str, HandlerSpec] = {}
         self._middlewares: list = []
+        Agent._initialize_lifecycle(self)
+
+    def _initialize_lifecycle(self) -> None:
         self._nc = None
         self._active_jobs: set[str] = set()
         self._heartbeat_cancel_event: Optional[asyncio.Event] = None
         self._heartbeat_task: Optional[asyncio.Task[Any]] = None
+        self._subscriptions: list[Any] = []
+        self._handler_slots = asyncio.BoundedSemaphore(self._max_parallel)
+        self._dispatch_waiters: set[asyncio.Task[Any]] = set()
+        self._dispatch_closed = False
+        self._handler_tasks: set[asyncio.Task[Any]] = set()
+        self._lifecycle_state = "idle"
+        self._close_task: Optional[asyncio.Task[Any]] = None
 
     def use(self, *middlewares) -> None:
         """Append middleware to the agent. Middleware executes in registration order before the handler."""
@@ -307,10 +370,7 @@ class Agent:
         input_model: Optional[Type[Any]] = None,
         output_model: Optional[Type[Any]] = None,
         retries: Optional[int] = None,
-    ) -> Callable[
-        [Callable[[Context, Any], Union[Awaitable[Any], Any]]],
-        Callable[[Context, Any], Union[Awaitable[Any], Any]],
-    ]:
+    ) -> _JobDecorator:
         """Decorator that registers a handler for *topic*.
 
         Args:
@@ -319,7 +379,9 @@ class Agent:
             output_model: Optional Pydantic model or callable for output validation.
             retries: Override the default retry count for this handler.
         """
-        def decorator(func: Callable[[Context, Any], Union[Awaitable[Any], Any]]):
+        def decorator(
+            func: Callable[[Context, TIn], TOut]
+        ) -> Callable[[Context, TIn], TOut]:
             spec = HandlerSpec(
                 topic=topic,
                 func=func,
@@ -336,32 +398,103 @@ class Agent:
         """Connect to NATS/Redis and register subscriptions for all handlers."""
         if not self._handlers:
             raise RuntimeError("no handlers registered")
-        if self._connect_fn is None:
-            try:
-                import nats  # type: ignore
-            except ImportError as exc:
-                raise RuntimeError("nats-py is required to connect to NATS") from exc
-            self._connect_fn = nats.connect
+        if self._lifecycle_state != "idle":
+            raise RuntimeError(f"agent cannot start while {self._lifecycle_state}")
+        self._lifecycle_state = "starting"
+        try:
+            await self._open_resources()
+        except BaseException as exc:
+            await self._cleanup_resources(exc)
+            raise
+        self._lifecycle_state = "running"
 
+    async def close(self) -> None:
+        """Stop intake, flush tracked jobs, and close resources exactly once."""
+        if self._lifecycle_state == "starting":
+            raise RuntimeError("agent start is still in progress")
+        if self._lifecycle_state == "closed" and self._close_task is None:
+            return
+        if self._close_task is None:
+            self._lifecycle_state = "closing"
+            self._close_task = asyncio.create_task(self._cleanup_resources())
+        await asyncio.shield(self._close_task)
+
+    def _resolve_connect_fn(self) -> Callable[..., Awaitable[Any]]:
+        if self._connect_fn is not None:
+            return self._connect_fn
+        try:
+            import nats  # type: ignore
+        except ImportError as exc:
+            raise RuntimeError("nats-py is required to connect to NATS") from exc
+        self._connect_fn = nats.connect
+        return self._connect_fn
+
+    async def _open_resources(self) -> None:
+        connect_fn = self._resolve_connect_fn()
         self._nc = await self._with_timeout(
-            self._connect_fn(servers=self._nats_url, name=self._sender_id),
+            connect_fn(servers=self._nats_url, name=self._sender_id),
             "nats connect",
         )
         if self._store is None:
             self._store = RedisBlobStore(self._redis_url)
+        await self._subscribe_handlers()
+        await self._publish_startup_handshake()
+        self._start_heartbeat()
 
+    async def _subscribe_handlers(self) -> None:
         for topic, spec in self._handlers.items():
-            async def _on_topic_msg(msg, s=spec):
-                asyncio.create_task(self._on_msg(msg, s))
-            await self._nc.subscribe(topic, queue=topic, cb=_on_topic_msg)
+            async def on_topic(message: Any, current: HandlerSpec = spec) -> None:
+                await self._dispatch_handler(lambda: self._on_msg(message, current))
 
-        # Subscribe to direct worker subject (worker.<id>.jobs) for scheduler dispatch
+            handle = await self._nc.subscribe(topic, queue=topic, cb=on_topic)
+            self._remember_subscription(handle)
         if self._sender_id:
-            direct_subject = f"worker.{self._sender_id}.jobs"
-            async def _direct_cb(msg):
-                asyncio.create_task(self._on_direct_msg(msg))
-            await self._nc.subscribe(direct_subject, cb=_direct_cb)
+            subject = f"worker.{self._sender_id}.jobs"
 
+            async def on_direct(message: Any) -> None:
+                await self._dispatch_handler(lambda: self._on_direct_msg(message))
+
+            handle = await self._nc.subscribe(subject, cb=on_direct)
+            self._remember_subscription(handle)
+
+    def _remember_subscription(self, handle: Any) -> None:
+        if handle is not None and callable(getattr(handle, "drain", None)):
+            self._subscriptions.append(handle)
+
+    async def _dispatch_handler(
+        self, factory: Callable[[], Coroutine[Any, Any, None]]
+    ) -> None:
+        if self._dispatch_closed:
+            return
+        waiter = asyncio.current_task()
+        if waiter is not None:
+            self._dispatch_waiters.add(waiter)
+        acquired = False
+        try:
+            await self._handler_slots.acquire()
+            acquired = True
+            task = asyncio.create_task(factory())
+            self._handler_tasks.add(task)
+            task.add_done_callback(self._handler_finished)
+            acquired = False
+        except BaseException:
+            if acquired:
+                self._handler_slots.release()
+            raise
+        finally:
+            if waiter is not None:
+                self._dispatch_waiters.discard(waiter)
+
+    def _handler_finished(self, task: asyncio.Task[Any]) -> None:
+        self._handler_tasks.discard(task)
+        self._handler_slots.release()
+        if task.cancelled():
+            return
+        error = task.exception()
+        if error is not None:
+            self._safe_cleanup_log("job task", error)
+
+    async def _publish_startup_handshake(self) -> None:
         try:
             await publish_handshake(
                 self._nc,
@@ -374,38 +507,159 @@ class Agent:
         except Exception as exc:
             self._logger.warning(
                 "handshake publish failed",
-                extra={"sender_id": self._sender_id, "error": str(exc)},
+                extra={"sender_id": self._sender_id,
+                       "exception_type": type(exc).__name__},
             )
 
-        if self._heartbeat_task is None or self._heartbeat_task.done():
-            self._heartbeat_cancel_event = asyncio.Event()
-            payload_fn = self._heartbeat_payload_fn or self._default_heartbeat_payload
-            self._heartbeat_task = asyncio.create_task(
-                heartbeat_loop(
-                    nc=self._nc,
-                    payload_fn=payload_fn,
-                    interval=self._heartbeat_interval,
-                    private_key=self._private_key,
-                    metrics=self._metrics,
-                    cancel_event=self._heartbeat_cancel_event,
-                )
+    def _start_heartbeat(self) -> None:
+        self._heartbeat_cancel_event = asyncio.Event()
+        payload_fn = self._heartbeat_payload_fn or self._default_heartbeat_payload
+        self._heartbeat_task = asyncio.create_task(
+            heartbeat_loop(
+                nc=self._nc,
+                payload_fn=payload_fn,
+                interval=self._heartbeat_interval,
+                private_key=self._private_key,
+                metrics=self._metrics,
+                cancel_event=self._heartbeat_cancel_event,
             )
+        )
 
-    async def close(self) -> None:
-        """Drain the NATS connection and close the blob store."""
-        if self._heartbeat_cancel_event is not None:
-            self._heartbeat_cancel_event.set()
-        if self._heartbeat_task is not None:
+    def _safe_cleanup_log(self, stage: str, error: BaseException) -> None:
+        try:
+            self._logger.error(
+                "agent cleanup stage failed",
+                extra={"stage": stage, "exception_type": type(error).__name__},
+            )
+        except Exception:
+            pass
+
+    def _record_cleanup_error(
+        self,
+        stage: str,
+        error: BaseException,
+        primary: Optional[BaseException],
+    ) -> BaseException:
+        if primary is not None:
+            self._safe_cleanup_log(stage, error)
+            return primary
+        return error
+
+    async def _drain_subscriptions(
+        self, primary: Optional[BaseException]
+    ) -> Optional[BaseException]:
+        handles = tuple(self._subscriptions)
+        self._subscriptions.clear()
+        for handle in handles:
+            primary = await self._bounded_cleanup(
+                "subscription drain",
+                self._cleanup_call("subscription drain", handle.drain, primary),
+                primary,
+            )
+        return primary
+
+    async def _stop_heartbeat(
+        self, primary: Optional[BaseException]
+    ) -> Optional[BaseException]:
+        cancel_event = self._heartbeat_cancel_event
+        heartbeat_task = self._heartbeat_task
+        self._heartbeat_task = None
+        self._heartbeat_cancel_event = None
+        if cancel_event is not None:
+            cancel_event.set()
+        if heartbeat_task is not None:
             try:
-                await self._heartbeat_task
-            finally:
-                self._heartbeat_task = None
-                self._heartbeat_cancel_event = None
+                await heartbeat_task
+            except Exception as exc:
+                primary = self._record_cleanup_error("heartbeat", exc, primary)
+        return primary
 
+    async def _await_handlers(
+        self, primary: Optional[BaseException]
+    ) -> Optional[BaseException]:
+        current = asyncio.current_task()
+        while True:
+            waiters = tuple(
+                task for task in self._dispatch_waiters if task is not current
+            )
+            tasks = tuple(self._handler_tasks)
+            if not waiters and not tasks:
+                break
+            try:
+                await asyncio.gather(*waiters, *tasks, return_exceptions=True)
+            except Exception as exc:
+                primary = self._record_cleanup_error("job tasks", exc, primary)
+        return primary
+
+    @staticmethod
+    def _consume_detached(task: asyncio.Future[object]) -> None:
+        if task.cancelled():
+            return
+        try:
+            task.exception()
+        except BaseException:
+            pass
+
+    async def _bounded_cleanup(
+        self,
+        stage: str,
+        operation: Awaitable[Optional[BaseException]],
+        primary: Optional[BaseException],
+    ) -> Optional[BaseException]:
+        task = asyncio.ensure_future(operation)
+        try:
+            if self._shutdown_timeout is None:
+                return await task
+            done, _ = await asyncio.wait({task}, timeout=self._shutdown_timeout)
+            if task in done:
+                return task.result()
+        except BaseException as exc:
+            return self._record_cleanup_error(stage, exc, primary)
+        task.cancel()
+        task.add_done_callback(self._consume_detached)
+        error = asyncio.TimeoutError(f"{stage} timed out")
+        return self._record_cleanup_error(stage, error, primary)
+
+    async def _cleanup_call(
+        self,
+        stage: str,
+        operation: Callable[[], Awaitable[Any]],
+        primary: Optional[BaseException],
+    ) -> Optional[BaseException]:
+        try:
+            await operation()
+        except Exception as exc:
+            return self._record_cleanup_error(stage, exc, primary)
+        return primary
+
+    async def _cleanup_resources(
+        self, primary: Optional[BaseException] = None
+    ) -> None:
+        original = primary
+        primary = await self._drain_subscriptions(primary)
+        self._dispatch_closed = True
+        primary = await self._bounded_cleanup(
+            "heartbeat", self._stop_heartbeat(primary), primary
+        )
+        primary = await self._bounded_cleanup(
+            "job tasks", self._await_handlers(primary), primary
+        )
         if self._nc is not None:
-            await self._nc.drain()
+            primary = await self._bounded_cleanup(
+                "NATS drain",
+                self._cleanup_call("NATS drain", self._nc.drain, primary),
+                primary,
+            )
         if self._store is not None:
-            await self._store.close()
+            primary = await self._bounded_cleanup(
+                "blob store",
+                self._cleanup_call("blob store", self._store.close, primary),
+                primary,
+            )
+        self._nc = None
+        self._lifecycle_state = "closed"
+        if original is None and primary is not None:
+            raise primary
 
     def _default_heartbeat_payload(self) -> bytes:
         return heartbeat_payload(
@@ -419,11 +673,20 @@ class Agent:
     async def run(self) -> None:
         """Start the agent and block until interrupted."""
         await self.start()
+        primary: Optional[BaseException] = None
         try:
             while True:
                 await asyncio.sleep(1)
+        except BaseException as exc:
+            primary = exc
+            raise
         finally:
-            await self.close()
+            try:
+                await self.close()
+            except BaseException as exc:
+                if primary is None:
+                    raise
+                self._safe_cleanup_log("agent close", exc)
 
     async def _on_direct_msg(self, msg: Any) -> None:
         """Route a direct worker message to the correct handler by topic."""
@@ -471,15 +734,18 @@ class Agent:
 
         self._active_jobs.add(req.job_id)
         try:
-            self._metrics.on_job_received(req.job_id, req.topic)
+            safe_metrics_call(
+                self._logger,
+                lambda: self._metrics.on_job_received(req.job_id, req.topic),
+            )
 
             ctx_logger = logging.LoggerAdapter(
                 self._logger,
                 {
-                    "job_id": req.job_id,
-                    "trace_id": packet.trace_id,
-                    "topic": req.topic,
-                    "sender_id": packet.sender_id,
+                    "job_id": _bounded_log_field(req.job_id),
+                    "trace_id": _bounded_log_field(packet.trace_id),
+                    "topic": _bounded_log_field(req.topic),
+                    "sender_id": _bounded_log_field(packet.sender_id),
                 },
             )
             ctx = Context(job=req, packet=packet, logger=ctx_logger)
@@ -534,8 +800,15 @@ class Agent:
                     error = None
                     break
                 except Exception as exc:
-                    error = str(exc)
-                    ctx_logger.warning("handler failed (attempt %d/%d): %s", attempt + 1, spec.retries + 1, exc)
+                    error = _HANDLER_FAILED_MESSAGE
+                    _log_handler_failure(
+                        self._logger,
+                        packet,
+                        req,
+                        exc,
+                        attempt + 1,
+                        spec.retries + 1,
+                    )
                     if attempt >= spec.retries:
                         break
 
@@ -555,7 +828,6 @@ class Agent:
                 await self._publish_failure(ctx, req, f"result write failed: {exc}", execution_ms=elapsed_ms)
                 return
 
-            self._metrics.on_job_completed(req.job_id, elapsed_ms, "SUCCEEDED")
             result = job_pb2.JobResult(
                 job_id=req.job_id,
                 status=job_pb2.JOB_STATUS_SUCCEEDED,
@@ -564,6 +836,12 @@ class Agent:
                 execution_ms=elapsed_ms,
             )
             await self._publish_result(ctx, result)
+            safe_metrics_call(
+                self._logger,
+                lambda: self._metrics.on_job_completed(
+                    req.job_id, elapsed_ms, "SUCCEEDED"
+                ),
+            )
         finally:
             self._active_jobs.discard(req.job_id)
 
@@ -597,7 +875,6 @@ class Agent:
         error: str,
         execution_ms: int,
     ) -> None:
-        self._metrics.on_job_failed(req.job_id, error)
         result = job_pb2.JobResult(
             job_id=req.job_id,
             status=job_pb2.JOB_STATUS_FAILED,
@@ -606,6 +883,10 @@ class Agent:
             execution_ms=execution_ms,
         )
         await self._publish_result(ctx, result)
+        safe_metrics_call(
+            self._logger,
+            lambda: self._metrics.on_job_failed(req.job_id, error),
+        )
 
     async def _publish_result(self, ctx: Context, result: job_pb2.JobResult) -> None:
         if self._nc is None:

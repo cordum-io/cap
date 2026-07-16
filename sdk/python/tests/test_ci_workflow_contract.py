@@ -60,7 +60,7 @@ def test_job_view_rejects_disabled_or_conditional_jobs(condition: str) -> None:
     steps:
       - run: required-command
 """
-    with pytest.raises(AssertionError, match="job python.*condition"):
+    with pytest.raises(AssertionError, match=r"job python.*condition"):
         workflow_support.run_text(workflow, "python")
 
 
@@ -71,7 +71,7 @@ def test_job_view_rejects_conditional_steps() -> None:
       - if: ${{ matrix.run_step }}
         run: required-command
 """
-    with pytest.raises(AssertionError, match="step 0.*condition"):
+    with pytest.raises(AssertionError, match=r"step 0.*condition"):
         workflow_support.run_text(workflow, "python")
 
 

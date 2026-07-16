@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from google.protobuf import timestamp_pb2
 
 from cap.client import DEFAULT_PROTOCOL_VERSION
-from cap.metrics import MetricsHook
+from cap.metrics import MetricsHook, safe_metrics_call
 from cap.pb.cordum.agent.v1 import buspacket_pb2, heartbeat_pb2
 from cap.subjects import SUBJECT_HEARTBEAT
 
@@ -139,8 +139,8 @@ async def heartbeat_loop(
     payload_fn: Callable[[], bytes],
     interval: float = 5.0,
     private_key: Optional[ec.EllipticCurvePrivateKey] = None,
-    metrics: MetricsHook | None = None,
-    cancel_event: asyncio.Event | None = None,
+    metrics: Optional[MetricsHook] = None,
+    cancel_event: Optional[asyncio.Event] = None,
 ) -> None:
     """Emit heartbeat packets periodically until cancelled."""
     sleep_interval = max(0.0, interval)
@@ -174,7 +174,9 @@ async def heartbeat_loop(
                 packet = buspacket_pb2.BusPacket()
                 packet.ParseFromString(payload)
                 worker_id = packet.heartbeat.worker_id or packet.sender_id
-                metrics.on_heartbeat_sent(worker_id)
+                safe_metrics_call(
+                    _logger, lambda: metrics.on_heartbeat_sent(worker_id)
+                )
         except asyncio.CancelledError:
             raise
         except Exception:

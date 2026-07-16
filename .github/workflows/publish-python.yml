@@ -5,130 +5,208 @@ on:
   release:
     types: [published]
 
+concurrency:
+  group: publish-python-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 
 jobs:
-  build-and-publish:
+  build-and-verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: read
-      id-token: write
-    defaults:
-      run:
-        shell: bash
-        working-directory: sdk/python
+    outputs:
+      wheel_sha256: ${{ steps.release_hashes.outputs.wheel_sha256 }}
+      sdist_sha256: ${{ steps.release_hashes.outputs.sdist_sha256 }}
+    env:
+      CAP_TEST_NATS_URL: nats://127.0.0.1:4222
+    services:
+      nats:
+        image: nats:2.10.29-alpine
+        ports:
+          - 4222:4222
+        options: >-
+          --health-cmd "nc -z 127.0.0.1 4222"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 20
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Reject non-tag invocations before running repository code
+        run: |
+          if [[ "${GITHUB_REF_TYPE}" != "tag" || "${GITHUB_REF}" != refs/tags/* ]]; then
+            echo "Python releases require a tag ref; got ${GITHUB_REF}" >&2
+            exit 1
+          fi
+
+      - name: Checkout reviewed source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.ref }}
+
+      - name: Confirm checkout resolved to the event commit
+        run: test "$(/usr/bin/git rev-parse HEAD)" = "$GITHUB_SHA"
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: '3.11'
+          python-version: '3.9'
 
-      - name: Install protoc
+      - name: Install release and exact codegen dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+          python -m pip install "sdk/python[dev]"
+          python -m pip install -r sdk/python/requirements-codegen.txt
 
-      - name: Install build deps
+      - name: Require a tag matching the checked-in package version
         env:
-          PYTHON_BIN: python
-        run: |
-          "$PYTHON_BIN" -m pip install --upgrade pip
-          "$PYTHON_BIN" -m pip install build grpcio-tools packaging
-          "$PYTHON_BIN" -m grpc_tools.protoc --version
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python sdk/python/scripts/validate_release.py --tag "${RELEASE_TAG}"
 
-      - name: Set version from tag
-        env:
-          VERSION: ${{ github.ref_name }}
-          PYTHON_BIN: python
+      - name: Verify checked-in generated modules
+        run: python sdk/python/scripts/generate_protos.py --check
+
+      - name: Run source and mandatory real-NATS tests
+        run: >-
+          python -m pytest -q sdk/python/tests
+          --ignore=sdk/python/tests/test_artifacts.py
+
+      - name: Type-check the external consumer contract
         run: |
-          if [[ -z "${VERSION}" ]]; then
-            echo "VERSION not set from tag"; exit 1
+          python -m mypy --strict \
+            --follow-imports=silent \
+            --disallow-any-expr \
+            --disallow-any-explicit \
+            --disallow-any-decorated \
+            --disallow-any-unimported \
+            --no-incremental \
+            --python-version=3.9 \
+            sdk/python/tests/typing/consumer.py
+
+      - name: Check the release environment
+        run: python -m pip check
+
+      - name: Confirm gates did not mutate reviewed source
+        run: |
+          /usr/bin/git --no-replace-objects diff --exit-code "$GITHUB_SHA" --
+          test -z "$(/usr/bin/git status --porcelain --untracked-files=all)"
+
+      - name: Export immutable committed package source
+        run: |
+          RELEASE_ROOT="${RUNNER_TEMP}/cap-python-source"
+          RELEASE_SOURCE="$RELEASE_ROOT/sdk/python"
+          rm -rf "$RELEASE_ROOT"
+          mkdir -p "$RELEASE_ROOT"
+          /usr/bin/git --no-replace-objects archive --format=tar --prefix=sdk/python/ "${GITHUB_SHA}:sdk/python" | /usr/bin/tar -xf - -C "$RELEASE_ROOT"
+          echo "RELEASE_SOURCE=$RELEASE_SOURCE" >> "$GITHUB_ENV"
+
+      - name: Build wheel and sdist exactly once
+        run: |
+          rm -rf dist
+          mkdir -p dist/release dist/evidence
+          python -m build --outdir dist/release "$RELEASE_SOURCE"
+
+      - name: Select the exact artifact pair
+        run: |
+          shopt -s nullglob
+          wheels=(dist/release/*.whl)
+          sdists=(dist/release/*.tar.gz)
+          if (( ${#wheels[@]} != 1 || ${#sdists[@]} != 1 )); then
+            printf 'Expected one wheel and one sdist; found %d and %d\n' \
+              "${#wheels[@]}" "${#sdists[@]}" >&2
+            exit 1
           fi
-          
-          "$PYTHON_BIN" - <<'PY'
-          import os
-          import re
-          import tomllib
-          from pathlib import Path
-          from packaging.version import InvalidVersion, Version
+          {
+            echo "WHEEL=${wheels[0]}"
+            echo "SDIST=${sdists[0]}"
+          } >> "${GITHUB_ENV}"
 
-          raw_version = os.environ.get("VERSION", "").strip()
-          if not raw_version:
-              raise SystemExit("VERSION not set from tag or input")
+      - name: Check exact artifact metadata
+        run: python -m twine check "$WHEEL" "$SDIST"
 
-          # Strip 'v' prefix if present, then ensure PEP 440 compatibility.
-          candidate = raw_version.lstrip("v")
-          try:
-              version = str(Version(candidate))
-          except InvalidVersion:
-              # Fallback: turn branch names (e.g. "main") into a local version.
-              sanitized = re.sub(r"[^0-9A-Za-z]+", ".", raw_version.lower()).strip(".")
-              if not sanitized:
-                  raise SystemExit(f"Cannot derive PEP 440 version from {raw_version!r}")
-              version = f"0.0.0+{sanitized}"
-              print(f"Using fallback PEP 440 version: {version}")
-
-          path = Path("pyproject.toml")
-
-          # Verify TOML is valid
-          data = tomllib.loads(path.read_text())
-          if "project" not in data:
-              raise SystemExit("No [project] section in pyproject.toml")
-
-          out_lines = []
-          in_project = False
-
-          # Naive replacement to preserve comments/formatting
-          for line in path.read_text().splitlines():
-              if line.strip().startswith("[project]"):
-                  in_project = True
-                  out_lines.append(line)
-                  continue
-              if in_project and line.startswith("[") and line.strip() != "[project.urls]":
-                  in_project = False
-
-              # Replace version line
-              if in_project and line.strip().startswith("version"):
-                  out_lines.append(f'version = "{version}"')
-              else:
-                  out_lines.append(line)
-
-          path.write_text("\n".join(out_lines) + "\n")
-          print(f"Set version to {version}")
-          PY
-
-      - name: Generate Python stubs
-        env:
-          PYTHON_BIN: python
+      - name: Verify exact artifacts in clean consumers
         run: |
-          mkdir -p cap/pb
+          set -o pipefail
+          python "$RELEASE_SOURCE/scripts/verify_artifacts.py" \
+            --wheel "$WHEEL" \
+            --sdist "$SDIST" \
+            --python python \
+            | tee dist/evidence/artifact-verification.json
 
-          "$PYTHON_BIN" -m grpc_tools.protoc \
-            -I../../proto \
-            --python_out=./cap/pb \
-            --grpc_python_out=./cap/pb \
-            ../../proto/cordum/agent/v1/*.proto
-
-          # grpc_tools.protoc does not generate __init__.py files;
-          # create them so the pb package hierarchy is importable.
-          touch cap/pb/__init__.py \
-            cap/pb/cordum/__init__.py \
-            cap/pb/cordum/agent/__init__.py \
-            cap/pb/cordum/agent/v1/__init__.py
-
-      - name: Build package
+      - name: Bind verified artifacts to release metadata
         env:
-          PYTHON_BIN: python
-        run: |
-          "$PYTHON_BIN" -m build
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python "$RELEASE_SOURCE/scripts/validate_release.py" --tag "$RELEASE_TAG" --artifact-report dist/evidence/artifact-verification.json
 
-      - name: Publish to PyPI
+      - name: Record exact release checksums
+        id: release_hashes
+        run: |
+          wheel_sha256="$(sha256sum "$WHEEL" | cut -d ' ' -f 1)"
+          sdist_sha256="$(sha256sum "$SDIST" | cut -d ' ' -f 1)"
+          printf '%s  %s\n%s  %s\n' \
+            "$wheel_sha256" "$(basename "$WHEEL")" \
+            "$sdist_sha256" "$(basename "$SDIST")" \
+            > dist/evidence/SHA256SUMS
+          echo "wheel_sha256=$wheel_sha256" >> "$GITHUB_OUTPUT"
+          echo "sdist_sha256=$sdist_sha256" >> "$GITHUB_OUTPUT"
+          (cd dist/release && sha256sum --check ../evidence/SHA256SUMS)
+
+      - name: Upload immutable release bundle and evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cap-python-release-${{ github.ref_name }}
+          path: |
+            dist/release/*.whl
+            dist/release/*.tar.gz
+            dist/evidence/artifact-verification.json
+            dist/evidence/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    needs: build-and-verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      id-token: write
+    env:
+      EXPECTED_WHEEL_SHA256: ${{ needs.build-and-verify.outputs.wheel_sha256 }}
+      EXPECTED_SDIST_SHA256: ${{ needs.build-and-verify.outputs.sdist_sha256 }}
+
+    steps:
+      - name: Download immutable verified release bundle
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: cap-python-release-${{ github.ref_name }}
+          path: dist
+
+      - name: Recheck artifact identity and evidence before publishing
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          wheels=(dist/release/*.whl)
+          sdists=(dist/release/*.tar.gz)
+          if (( ${#wheels[@]} != 1 || ${#sdists[@]} != 1 )); then
+            echo "Downloaded release bundle has the wrong artifact inventory" >&2
+            exit 1
+          fi
+          test -s dist/evidence/SHA256SUMS
+          test -s dist/evidence/artifact-verification.json
+          [[ "$EXPECTED_WHEEL_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          [[ "$EXPECTED_SDIST_SHA256" =~ ^[0-9a-f]{64}$ ]]
+          test "$(sha256sum "${wheels[0]}" | cut -d ' ' -f 1)" = "$EXPECTED_WHEEL_SHA256"
+          test "$(sha256sum "${sdists[0]}" | cut -d ' ' -f 1)" = "$EXPECTED_SDIST_SHA256"
+          test "$(jq -er '.artifacts.wheel.sha256' dist/evidence/artifact-verification.json)" = "$EXPECTED_WHEEL_SHA256"
+          test "$(jq -er '.artifacts.sdist.sha256' dist/evidence/artifact-verification.json)" = "$EXPECTED_SDIST_SHA256"
+          test "$(jq -er '.artifacts.wheel.filename' dist/evidence/artifact-verification.json)" = "$(basename "${wheels[0]}")"
+          test "$(jq -er '.artifacts.sdist.filename' dist/evidence/artifact-verification.json)" = "$(basename "${sdists[0]}")"
+          test "$(wc -l < dist/evidence/SHA256SUMS)" -eq 2
+          (cd dist/release && sha256sum --check ../evidence/SHA256SUMS)
+
+      - name: Publish exact verified artifacts to PyPI
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
         with:
-          packages-dir: sdk/python/dist
-          skip-existing: true
+          packages-dir: dist/release

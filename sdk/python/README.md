@@ -1,24 +1,25 @@
 # CAP Python SDK
 
-Asyncio-first SDK with NATS helpers for CAP workers and clients.
+Asyncio-first SDK with NATS helpers for CAP workers and clients. The supported
+and CI-verified interpreter range is CPython 3.9 through 3.14.
+
+## Compatibility
+
+- Python: `>=3.9` (tested on every minor release from 3.9 through 3.14).
+- Protobuf runtime: `protobuf>=6.31.1,<7`.
+- gRPC runtime: `grpcio>=1.76.0,<2`.
+
+The protobuf modules are included in the wheel and sdist; consumers do not need
+`protoc` or `grpcio-tools`. The minimum runtime versions match the headers in
+the checked-in generated modules.
 
 ## Quick Start
-1. Generate protobuf stubs into this SDK (one-time per proto change):
-   ```bash
-   python -m grpc_tools.protoc \
-     -I../../proto \
-     --python_out=./cap/pb \
-     --grpc_python_out=./cap/pb \
-     ../../proto/cordum/agent/v1/*.proto
-   ```
-   (Or run `./tools/make_protos.sh` from repo root with `CAP_RUN_PY=1` and copy `/python` into `sdk/python/cap/pb` if you want vendored stubs.)
-
-2. Install:
+1. Install:
    ```bash
    pip install -e .
    ```
 
-3. Run a worker:
+2. Run a worker:
    ```python
    import asyncio
    from cap import worker
@@ -35,7 +36,7 @@ Asyncio-first SDK with NATS helpers for CAP workers and clients.
    asyncio.run(worker.run_worker("nats://127.0.0.1:4222", "job.echo", handle))
    ```
 
-4. Submit a job (client):
+3. Submit a job (client):
    ```python
    import asyncio
    from cryptography.hazmat.primitives.asymmetric import ec
@@ -122,6 +123,25 @@ async def summarize(ctx: Context, data: Input) -> Output:
 asyncio.run(agent.run())
 ```
 
+### Failure and shutdown contract
+
+- In both `run_worker()` and the high-level `Agent`, an ordinary handler
+  `Exception` produces exactly one `JOB_STATUS_FAILED` result with the generic
+  external message `handler failed`. Diagnostics use bounded, newline-safe
+  identifiers and the exception type without exposing exception text. Logging
+  and metrics hooks are best-effort and cannot block the terminal result; the
+  worker remains available for later jobs.
+- `asyncio.CancelledError`, `KeyboardInterrupt`, and `SystemExit` remain control
+  flow and are not converted into job results.
+- Cancelling `run_worker()` drains its NATS connection before exit.
+- `Agent.run()` always enters cleanup without letting a cleanup error replace
+  cancellation or another primary failure. `Agent.close()` stops intake, stops
+  the heartbeat, waits for tracked handlers, drains NATS, and closes the blob
+  store. Each asynchronous cleanup stage has the `shutdown_timeout` deadline
+  (30 seconds by default), and later stages are still attempted after a timeout.
+  Pass `None` only to opt out of deadlines; zero and negative values are
+  rejected. Repeated or concurrent calls share the same cleanup operation.
+
 ### Middleware
 
 Add cross-cutting concerns (logging, auth, metrics) without modifying handlers:
@@ -157,6 +177,54 @@ The Python SDK provides `redis_ssl_context_from_env()` to build an `SSLContext` 
 ### Environment
 - `NATS_URL` (default `nats://127.0.0.1:4222`)
 - `REDIS_URL` (default `redis://127.0.0.1:6379/0`)
+
+## Contributor and Release Verification
+
+Run these commands from the repository root. Generated Python modules are
+checked, never rewritten, by the pinned toolchain:
+
+```bash
+python -m pip install -e "sdk/python[dev]"
+python -m pytest -q sdk/python/tests --ignore=sdk/python/tests/integration
+
+python -m pip install -r sdk/python/requirements-codegen.txt
+python sdk/python/scripts/generate_protos.py --check
+```
+
+The real-NATS test is mandatory in CI and never skips. Run it against an
+explicit broker URL (CI uses NATS 2.10.29):
+
+```bash
+CAP_TEST_NATS_URL=nats://127.0.0.1:4222 \
+  python -m pytest -q sdk/python/tests/integration/test_worker_nats.py
+```
+
+Build and verify the exact wheel/sdist pair in clean consumer environments:
+
+```bash
+rm -rf dist/python
+python -m build --outdir dist/python sdk/python
+python -m twine check dist/python/*
+python sdk/python/scripts/verify_artifacts.py \
+  --wheel dist/python/*.whl \
+  --sdist dist/python/*.tar.gz \
+  > dist/python/artifact-verification.json
+```
+
+Before creating a release, bump the checked-in package version and require an
+exact lowercase `v<version>` tag. Replace `<version>` below with the version in
+`sdk/python/pyproject.toml`:
+
+```bash
+python sdk/python/scripts/validate_release.py \
+  --tag "v<version>" \
+  --artifact-report dist/python/artifact-verification.json
+```
+
+The publish workflow exports the tagged commit, builds once, records the exact
+artifact inventory and SHA-256 checksums, and publishes only that verified
+pair. Do not mutate generated code or package metadata during publishing, and
+do not use a manual or `skip-existing` fallback.
 
 ## Generating API Docs
 

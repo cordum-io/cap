@@ -5,7 +5,22 @@ StatsD, OpenTelemetry, or any other metrics system.
 The default is NoopMetrics which has zero overhead.
 """
 
-from typing import Protocol
+import logging
+from typing import Callable, Protocol
+
+
+def safe_metrics_call(logger: logging.Logger, callback: Callable[[], None]) -> None:
+    """Run noncritical metrics code without letting it control job delivery."""
+    try:
+        callback()
+    except Exception as exc:
+        try:
+            logger.warning(
+                "metrics hook failed",
+                extra={"exception_type": type(exc).__name__},
+            )
+        except Exception:
+            pass
 
 
 class MetricsHook(Protocol):

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools==82.0.1", "wheel==0.47.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,11 +9,20 @@ description = "CAP (Cordum Agent Protocol) Python SDK"
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
+license-files = ["LICENSE"]
 authors = [{name = "Cordum", email = "eng@cordum.io"}]
 keywords = ["cap", "cordum", "agent", "protocol", "sdk", "ai"]
+classifiers = [
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
 dependencies = [
-  "protobuf>=6.31.0,<7.0.0",
-  "grpcio>=1.59.0",
+  "protobuf>=6.31.1,<7",
+  "grpcio>=1.76.0,<2",
   "nats-py>=2.6.0",
   "cryptography>=41.0.0",
   "pydantic>=2.6.0",
@@ -21,7 +30,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pdoc>=14.0"]
+dev = [
+  "build>=1.2,<2",
+  "mypy>=1.8,<2",
+  "packaging>=23.2",
+  "pdoc>=14.0",
+  "pytest>=8.0,<9",
+  "tomli>=2.0; python_version < '3.11'",
+  "twine>=5.0,<7",
+]
 
 [project.urls]
 Homepage = "https://github.com/cordum-io/cap"
@@ -30,4 +47,8 @@ Issues = "https://github.com/cordum-io/cap/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-exclude = ["tests", "tests.*"]
+include = ["cap", "cap.*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+cap = ["py.typed"]

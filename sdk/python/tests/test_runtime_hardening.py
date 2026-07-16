@@ -101,6 +101,45 @@ class TestRuntimeHardening(unittest.IsolatedAsyncioTestCase):
         agent = ExistingSubclass(store=self.store, connect_fn=self.nats.connect)
         self.assertEqual("idle", agent._lifecycle_state)
 
+    async def test_max_parallel_backpressures_handler_dispatch(self) -> None:
+        started, release = asyncio.Event(), asyncio.Event()
+        active = peak = 0
+        agent = make_agent(self.nats, self.store, self.logger)
+
+        @agent.job(TOPIC)
+        async def handler(context: Context, data: object) -> Dict[str, bool]:
+            nonlocal active, peak
+            del data
+            active += 1
+            peak = max(peak, active)
+            if context.job_id == "first":
+                started.set()
+                await release.wait()
+            active -= 1
+            return {"ok": True}
+
+        await self.store.set("ctx:first", b"{}")
+        await self.store.set("ctx:second", b"{}")
+        await agent.start()
+        first = asyncio.create_task(
+            self.nats.deliver(TOPIC, make_job_message(TOPIC, "first"))
+        )
+        second: Optional[asyncio.Task[None]] = None
+        try:
+            await first
+            await asyncio.wait_for(started.wait(), WAIT)
+            second = asyncio.create_task(
+                self.nats.deliver(TOPIC, make_job_message(TOPIC, "second"))
+            )
+            await asyncio.sleep(0)
+            self.assertFalse(second.done())
+        finally:
+            release.set()
+            if second is not None:
+                await asyncio.gather(second, return_exceptions=True)
+            await agent.close()
+        self.assertEqual(1, peak)
+
     async def test_handler_exception_is_safe_and_metrics_cannot_block_result(self) -> None:
         secret = "handler-secret-do-not-leak"
         bad_id = "bad\r\nforged" + ("x" * 300)
@@ -134,8 +173,10 @@ class TestRuntimeHardening(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(job_pb2.JOB_STATUS_FAILED, results[0].status)
         self.assertEqual("handler failed", results[0].error_message)
         self.assertEqual(job_pb2.JOB_STATUS_SUCCEEDED, results[1].status)
-        rendered = "\n".join(record.getMessage() for record in self.capture.records)
+        formatter = logging.Formatter()
+        rendered = "\n".join(formatter.format(record) for record in self.capture.records)
         self.assertNotIn(secret, rendered)
+        self.assertNotIn("do-not-leak", rendered)
         handler_record = next(
             record for record in self.capture.records
             if record.getMessage() == "handler failed"

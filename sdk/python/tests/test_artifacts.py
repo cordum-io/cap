@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path, PurePosixPath
 from typing import Mapping
 
 import pytest
+import artifact_support
 
 from artifact_support import (
     BuiltArtifacts,
@@ -33,6 +35,29 @@ def artifact_path(artifacts: BuiltArtifacts, kind: str) -> Path:
 
 def artifact_entries(artifacts: BuiltArtifacts, kind: str) -> Mapping[str, bytes]:
     return archive_entries(artifact_path(artifacts, kind))
+
+
+def test_validation_subprocesses_receive_a_bounded_timeout(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    observed: list[object] = []
+
+    def fake_run(*args: object, **kwargs: object) -> subprocess.CompletedProcess[str]:
+        observed.append(kwargs.get("timeout"))
+        return subprocess.CompletedProcess(args[0], 0, "", "")
+
+    monkeypatch.setattr(artifact_support.subprocess, "run", fake_run)
+    artifact_support.run_checked(("validator",), tmp_path)
+    monkeypatch.setattr(
+        artifact_support, "install_artifact", lambda artifact, workspace: tmp_path / "python"
+    )
+    artifact_support.smoke_installed_artifact(
+        tmp_path / "artifact.whl", tmp_path / "smoke", ()
+    )
+    assert observed == [
+        artifact_support.COMMAND_TIMEOUT_SECONDS,
+        artifact_support.COMMAND_TIMEOUT_SECONDS,
+    ]
 
 
 @pytest.mark.parametrize("kind", ("wheel", "sdist"))

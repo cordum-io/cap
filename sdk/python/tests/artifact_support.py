@@ -18,6 +18,7 @@ SDK_ROOT = Path(__file__).resolve().parents[1]
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PROTO_ROOT = REPO_ROOT / "proto" / "cordum" / "agent" / "v1"
 GENERATED_ROOT = PurePosixPath("cap/pb/cordum/agent/v1")
+COMMAND_TIMEOUT_SECONDS = 600
 
 _COPY_IGNORE = shutil.ignore_patterns(
     ".git",
@@ -116,6 +117,7 @@ def run_checked(args: Sequence[str], cwd: Path) -> subprocess.CompletedProcess[s
         text=True,
         capture_output=True,
         check=False,
+        timeout=COMMAND_TIMEOUT_SECONDS,
     )
     assert result.returncode == 0, _command_failure(args, result)
     return result
@@ -228,4 +230,5 @@ def smoke_installed_artifact(
         text=True,
         capture_output=True,
         check=False,
+        timeout=COMMAND_TIMEOUT_SECONDS,
     )

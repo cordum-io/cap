@@ -36,6 +36,7 @@ def _metadata(version: str, readme: bytes) -> bytes:
         "cryptography>=41.0.0", "pydantic>=2.6.0", "redis>=5.0.0",
         'build<2,>=1.2; extra == "dev"', 'mypy<2,>=1.8; extra == "dev"',
         'packaging>=23.2; extra == "dev"', 'pdoc>=14.0; extra == "dev"',
+        'PyYAML<7,>=6.0; extra == "dev"',
         'pytest<9,>=8.0; extra == "dev"',
         'tomli>=2.0; python_version < "3.11" and extra == "dev"',
         'twine<7,>=5.0; extra == "dev"',

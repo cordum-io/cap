@@ -33,6 +33,8 @@ class _NATSConnection(Protocol):
     async def drain(self) -> None: ...
 
 
+ConnectFn = Callable[..., Awaitable[_NATSConnection]]
+
 @dataclass(frozen=True)
 class _WorkerContext:
     connection: _NATSConnection
@@ -59,9 +61,10 @@ def _verify_packet(
 ) -> bool:
     if not public_keys:
         return True
+    safe_sender_id = _bounded_log_field(packet.sender_id)
     public_key = public_keys.get(packet.sender_id)
     if not public_key:
-        logger.warning("no public key found", extra={"sender_id": packet.sender_id})
+        logger.warning("no public key found", extra={"sender_id": safe_sender_id})
         return False
     signature = packet.signature
     packet.ClearField("signature")
@@ -70,9 +73,8 @@ def _verify_packet(
     try:
         public_key.verify(signature, unsigned_data, ec.ECDSA(hashes.SHA256()))
     except Exception:
-        error = SignatureInvalidError(f"sender {packet.sender_id}")
-        logger.warning("invalid signature: %s", error,
-                       extra={"sender_id": packet.sender_id})
+        error = SignatureInvalidError(f"sender {safe_sender_id}")
+        logger.warning("invalid signature: %s", error, extra={"sender_id": safe_sender_id})
         return False
     return True
 
@@ -261,15 +263,15 @@ async def _serve(
 async def run_worker(
     nats_url: str,
     subject: str,
-    handler: Callable[[job_pb2.JobRequest], Awaitable[job_pb2.JobResult]],
-    public_keys: Dict[str, ec.EllipticCurvePublicKey] = None,
-    private_key: ec.EllipticCurvePrivateKey = None,
+    handler: JobHandler,
+    public_keys: Optional[Dict[str, ec.EllipticCurvePublicKey]] = None,
+    private_key: Optional[ec.EllipticCurvePrivateKey] = None,
     sender_id: str = "cap-worker",
-    connect_fn: Callable = None,
-    middlewares: list = None,
+    connect_fn: Optional[ConnectFn] = None,
+    middlewares: Optional[Sequence[Middleware]] = None,
     logger: Optional[logging.Logger] = None,
     metrics: Optional[MetricsHook] = None,
-):
+) -> None:
     """Subscribe to jobs until cancelled, then drain the NATS connection."""
     if logger is None:
         logger = logging.getLogger("cap.worker")
@@ -292,7 +294,6 @@ async def run_worker(
         logger=logger,
         metrics=metrics,
     )
-
     async def on_msg(message: _Message) -> None:
         await _handle_message(message, context)
 

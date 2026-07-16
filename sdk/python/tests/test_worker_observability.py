@@ -6,9 +6,11 @@ import logging
 import unittest
 from typing import List
 
+from cryptography.hazmat.primitives.asymmetric import ec
+
 from cap.metrics import MetricsHook
-from cap.pb.cordum.agent.v1 import job_pb2
-from cap.worker import run_worker
+from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
+from cap.worker import _verify_packet, run_worker
 
 from worker_support import RecordingNATS, decode_result, job_packet
 
@@ -45,6 +47,21 @@ class CaptureHandler(logging.Handler):
 
 
 class TestWorkerObservabilityIsolation(unittest.IsolatedAsyncioTestCase):
+    def test_signature_failure_log_bounds_untrusted_sender(self) -> None:
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        sender = "sender\r\nforged" + ("x" * 300)
+        packet = buspacket_pb2.BusPacket(sender_id=sender, signature=b"invalid")
+        capture = CaptureHandler()
+        logger = logging.getLogger("cap.worker.signature-log")
+        logger.handlers = [capture]
+        logger.propagate = False
+
+        self.assertFalse(_verify_packet(packet, {sender: private_key.public_key()}, logger))
+        rendered = logging.Formatter().format(capture.records[0])
+        self.assertNotIn("\r", rendered)
+        self.assertNotIn("\n", rendered)
+        self.assertLessEqual(len(capture.records[0].sender_id), 256)
+
     async def test_metrics_exceptions_do_not_block_terminal_results(self) -> None:
         bus = RecordingNATS()
         calls: List[str] = []

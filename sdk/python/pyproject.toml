@@ -35,6 +35,7 @@ dev = [
   "mypy>=1.8,<2",
   "packaging>=23.2",
   "pdoc>=14.0",
+  "PyYAML>=6.0,<7",
   "pytest>=8.0,<9",
   "tomli>=2.0; python_version < '3.11'",
   "twine>=5.0,<7",

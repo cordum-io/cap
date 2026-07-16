@@ -17,7 +17,9 @@ from cap import (
     handshake_payload,
     heartbeat_payload_with_progress,
     progress_payload,
+    run_worker,
 )
+from cap.worker import JobHandler
 
 
 @dataclass(frozen=True)
@@ -60,6 +62,11 @@ def build_store() -> BlobStore:
 def build_metrics() -> MetricsHook:
     """Supply an application adapter through CAP's public protocol."""
     return ApplicationMetrics()
+
+
+async def run_low_level_worker(handler: JobHandler) -> None:
+    """Prove the low-level worker has a fully typed awaitable contract."""
+    await run_worker("nats://127.0.0.1:4222", "job.orders.raw", handler)
 
 
 def heartbeat() -> bytes:

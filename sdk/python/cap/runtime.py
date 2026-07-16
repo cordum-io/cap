@@ -43,6 +43,12 @@ def _bounded_log_field(value: object) -> str:
     return sanitized[: _LOG_FIELD_LIMIT - 3] + "..."
 
 
+def _normalize_max_parallel(value: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("max_parallel must be an integer")
+    return max(1, value)
+
+
 def _log_handler_failure(
     logger: logging.Logger,
     packet: buspacket_pb2.BusPacket,
@@ -323,7 +329,7 @@ class Agent:
         self._private_key = private_key
         self._sender_id = worker_id or sender_id
         self._pool = pool
-        self._max_parallel = max(1, max_parallel)
+        self._max_parallel = _normalize_max_parallel(max_parallel)
         self._heartbeat_interval = heartbeat_interval if heartbeat_interval > 0 else 5.0
         self._heartbeat_payload_fn = heartbeat_payload_fn
         self._default_retries = max(0, retries)
@@ -346,6 +352,9 @@ class Agent:
         self._heartbeat_cancel_event: Optional[asyncio.Event] = None
         self._heartbeat_task: Optional[asyncio.Task[Any]] = None
         self._subscriptions: list[Any] = []
+        self._handler_slots = asyncio.BoundedSemaphore(self._max_parallel)
+        self._dispatch_waiters: set[asyncio.Task[Any]] = set()
+        self._dispatch_closed = False
         self._handler_tasks: set[asyncio.Task[Any]] = set()
         self._lifecycle_state = "idle"
         self._close_task: Optional[asyncio.Task[Any]] = None
@@ -435,7 +444,7 @@ class Agent:
     async def _subscribe_handlers(self) -> None:
         for topic, spec in self._handlers.items():
             async def on_topic(message: Any, current: HandlerSpec = spec) -> None:
-                self._track_handler(self._on_msg(message, current))
+                await self._dispatch_handler(lambda: self._on_msg(message, current))
 
             handle = await self._nc.subscribe(topic, queue=topic, cb=on_topic)
             self._remember_subscription(handle)
@@ -443,7 +452,7 @@ class Agent:
             subject = f"worker.{self._sender_id}.jobs"
 
             async def on_direct(message: Any) -> None:
-                self._track_handler(self._on_direct_msg(message))
+                await self._dispatch_handler(lambda: self._on_direct_msg(message))
 
             handle = await self._nc.subscribe(subject, cb=on_direct)
             self._remember_subscription(handle)
@@ -452,13 +461,33 @@ class Agent:
         if handle is not None and callable(getattr(handle, "drain", None)):
             self._subscriptions.append(handle)
 
-    def _track_handler(self, coroutine: Coroutine[Any, Any, None]) -> None:
-        task = asyncio.create_task(coroutine)
-        self._handler_tasks.add(task)
-        task.add_done_callback(self._handler_finished)
+    async def _dispatch_handler(
+        self, factory: Callable[[], Coroutine[Any, Any, None]]
+    ) -> None:
+        if self._dispatch_closed:
+            return
+        waiter = asyncio.current_task()
+        if waiter is not None:
+            self._dispatch_waiters.add(waiter)
+        acquired = False
+        try:
+            await self._handler_slots.acquire()
+            acquired = True
+            task = asyncio.create_task(factory())
+            self._handler_tasks.add(task)
+            task.add_done_callback(self._handler_finished)
+            acquired = False
+        except BaseException:
+            if acquired:
+                self._handler_slots.release()
+            raise
+        finally:
+            if waiter is not None:
+                self._dispatch_waiters.discard(waiter)
 
     def _handler_finished(self, task: asyncio.Task[Any]) -> None:
         self._handler_tasks.discard(task)
+        self._handler_slots.release()
         if task.cancelled():
             return
         error = task.exception()
@@ -548,11 +577,16 @@ class Agent:
     async def _await_handlers(
         self, primary: Optional[BaseException]
     ) -> Optional[BaseException]:
-        tasks = tuple(self._handler_tasks)
-        self._handler_tasks.clear()
-        if tasks:
+        current = asyncio.current_task()
+        while True:
+            waiters = tuple(
+                task for task in self._dispatch_waiters if task is not current
+            )
+            tasks = tuple(self._handler_tasks)
+            if not waiters and not tasks:
+                break
             try:
-                await asyncio.gather(*tasks, return_exceptions=True)
+                await asyncio.gather(*waiters, *tasks, return_exceptions=True)
             except Exception as exc:
                 primary = self._record_cleanup_error("job tasks", exc, primary)
         return primary
@@ -603,6 +637,7 @@ class Agent:
     ) -> None:
         original = primary
         primary = await self._drain_subscriptions(primary)
+        self._dispatch_closed = True
         primary = await self._bounded_cleanup(
             "heartbeat", self._stop_heartbeat(primary), primary
         )

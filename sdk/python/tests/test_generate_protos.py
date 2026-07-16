@@ -51,8 +51,21 @@ def test_tool_versions_fail_closed_on_pin_mismatch() -> None:
         "protobuf": "6.31.1",
     }
     with patch.object(generator.metadata, "version", side_effect=installed.__getitem__):
-        with pytest.raises(generator.CodegenError, match="grpcio-tools.*1.77.0.*1.76.0"):
+        with pytest.raises(
+            generator.CodegenError,
+            match=r"grpcio-tools.*1\.77\.0.*1\.76\.0",
+        ):
             generator.verify_tool_versions()
+
+
+def test_protoc_timeout_fails_closed(tmp_path: Path) -> None:
+    timeout = generator.subprocess.TimeoutExpired(("grpc_tools.protoc",), 600)
+    with patch.object(generator, "_grpc_include", return_value=tmp_path), patch.object(
+        generator.subprocess, "run", side_effect=timeout
+    ) as run:
+        with pytest.raises(generator.CodegenError, match="timed out"):
+            generator.run_protoc(tmp_path / "generated", tuple())
+    assert run.call_args.kwargs["timeout"] == generator.CODEGEN_TIMEOUT_SECONDS
 
 
 def test_canonical_set_is_sorted_and_yields_exact_outputs() -> None:

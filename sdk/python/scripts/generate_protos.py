@@ -27,6 +27,7 @@ PINNED_VERSIONS = {
     "grpcio-tools": "1.76.0",
     "protobuf": "6.31.1",
 }
+CODEGEN_TIMEOUT_SECONDS = 600
 
 
 class CodegenError(RuntimeError):
@@ -108,8 +109,20 @@ def run_protoc(destination: Path, protos: Tuple[Path, ...]) -> None:
     environment = os.environ.copy()
     environment.pop("PYTHONHOME", None)
     environment.pop("PYTHONPATH", None)
-    result = subprocess.run(command, cwd=str(REPO_ROOT), env=environment,
-                            text=True, capture_output=True, check=False)
+    try:
+        result = subprocess.run(
+            command,
+            cwd=str(REPO_ROOT),
+            env=environment,
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=CODEGEN_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise CodegenError(
+            f"grpc_tools.protoc timed out after {CODEGEN_TIMEOUT_SECONDS} seconds"
+        ) from exc
     if result.returncode:
         output = (result.stdout + "\n" + result.stderr).strip()[-4000:]
         raise CodegenError(f"grpc_tools.protoc failed ({result.returncode})\n{output}")

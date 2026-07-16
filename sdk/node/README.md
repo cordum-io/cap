@@ -1,42 +1,60 @@
 # CAP Node/TypeScript SDK
 
-Node/TS SDK with NATS helpers. Uses `protobufjs` to load CAP proto definitions at runtime.
+Node/TypeScript SDK with NATS helpers and runtime-loaded CAP protobuf definitions.
 
-## Quick Start
-1. Install deps:
-   ```bash
-   cd sdk/node
-   npm install
-   ```
-2. Run the sample worker:
-   ```bash
-   npm run build
-   node dist/sample-worker.js
-   ```
+## Install
 
-3. Submit a job (client):
-   ```ts
-   import { connectNATS } from "./bus";
-   import { submitJob } from "./client";
+```bash
+npm install cap-sdk-node
+```
 
-   async function main() {
-     const nc = await connectNATS({ url: "nats://127.0.0.1:4222" });
-    await submitJob(
-      nc,
-      {
-        jobId: "job-echo-1",
-        topic: "job.echo",
-        contextPtr: "redis://ctx/job-echo-1",
-       },
-      "trace-1",
-      "client-node",
-      "<PEM_PRIVATE_KEY>"
-    );
-     await nc.drain();
-   }
+The released npm artifact bundles the CAP schemas required by `loadRoot()`.
+Application consumers do not need `protoc`, generated stubs, or a CAP repository clone.
 
-   main().catch(console.error);
-   ```
+The package is CommonJS and supports both CommonJS and native ESM consumers:
+
+```js
+const { connectNATS, loadRoot, submitJob } = require("cap-sdk-node");
+```
+
+```ts
+import { connectNATS, loadRoot, submitJob } from "cap-sdk-node";
+```
+
+`loadRoot()` is asynchronous; await it before looking up protobuf types.
+
+## Submit a job
+
+```ts
+import { connectNATS, submitJob } from "cap-sdk-node";
+
+async function main() {
+  const nc = await connectNATS({ url: "nats://127.0.0.1:4222" });
+  await submitJob(
+    nc,
+    {
+      jobId: "job-echo-1",
+      topic: "job.echo",
+      contextPtr: "redis://ctx/job-echo-1",
+    },
+    "trace-1",
+    "client-node",
+    "<PEM_PRIVATE_KEY>",
+  );
+  await nc.drain();
+}
+
+main().catch(console.error);
+```
+
+## Develop this SDK from source
+
+```bash
+cd sdk/node
+npm ci
+npm run build
+node dist/sample-worker.js
+```
 
 ## Files
 - `src/protos.ts` — loads CAP protos via protobufjs.
@@ -50,7 +68,7 @@ The runtime hides NATS/Redis plumbing and gives you typed handlers.
 
 ```ts
 import { z } from "zod";
-import { Agent } from "./runtime";
+import { Agent } from "cap-sdk-node";
 
 const Input = z.object({ prompt: z.string() });
 const Output = z.object({ summary: z.string() });
@@ -65,7 +83,8 @@ agent.run().catch(console.error);
 ```
 
 ### Validation
-The Node SDK provides opt-in validation helpers for CAP protobuf messages. Each function returns an array of `ValidationError` objects; an empty array means the message is valid.
+The Node SDK provides opt-in validation helpers for CAP protobuf messages. Each function
+returns an array of `ValidationError` objects; an empty array means the message is valid.
 
 - `validateJobRequest(msg: any): ValidationError[]`
 - `validateJobResult(msg: any): ValidationError[]`
@@ -80,9 +99,35 @@ if (errors.length > 0) {
 }
 ```
 
+### Signature verification
+
+Inbound envelope validation always runs before a worker handler. Signature verification
+has two explicit modes on both `startWorker` and `Agent`:
+
+- `publicKeyMap: undefined` (or omitting the option) is the sole legacy opt-out from
+  signature verification.
+- Supplying any map enables strict verification. The sender ID and signature must be
+  nonempty, and the map must own a nonempty PEM public key for that sender. An empty map
+  (`{}`) therefore denies every sender.
+
+Unsigned packets, missing or unknown senders, malformed envelopes, and invalid or tampered
+signatures are rejected before the registered handler is called. Do not use `{}` to request
+unsigned compatibility.
+
 ### Environment
 - `NATS_URL` (default `nats://127.0.0.1:4222`)
 - `REDIS_URL` (default `redis://127.0.0.1:6379/0`)
+
+### Shutdown and resource ownership
+
+`startWorker()` is the low-level API and returns its NATS `Subscription`. The caller owns
+that subscription and the supplied NATS connection; drain or unsubscribe the subscription
+before draining the connection.
+
+`Agent` owns the NATS connection and blob store configured for it, including injected
+implementations. `await agent.close()` stops new intake, waits for in-flight handlers and
+result publication, drains the NATS connection, and closes the blob store. Repeated `close()`
+calls share the same shutdown operation.
 
 ## Testing
 
@@ -102,7 +147,8 @@ it("runs echo handler without NATS", async () => {
 ```
 
 - `testHandler(handler, input, options?)` — runs a single handler invocation and returns the result.
-- `createTestAgent(options?)` — returns `{ agent, bus, store }` pre-wired with `MockNatsConnection` + `InMemoryBlobStore`.
+- `createTestAgent(options?)` — returns `{ agent, bus, store }` pre-wired with
+  `MockNatsConnection` and `InMemoryBlobStore`.
 - `MockNatsConnection` — in-memory NATS mock for custom test setups.
 
 ## Middleware
@@ -141,7 +187,11 @@ Output is written to `docs/` (gitignored). Open `docs/index.html` to browse.
 ## Observability
 
 ### Structured Logging
-The runtime Agent and Worker accept a `Logger` for structured logging. All log calls include contextual fields (`jobId`, `traceId`, `topic`, `senderId`). Pass a custom logger or leave undefined for the built-in JSON logger:
+
+The runtime Agent and Worker accept a `Logger` for structured logging. Operational logs add
+job, trace, topic, or sender context when available. Security-rejection logs intentionally
+omit untrusted packet payloads and sender metadata. Pass a custom logger or omit it to use
+the standard `console` logger:
 
 ```ts
 import { Agent, Logger } from "cap-sdk-node";
@@ -184,16 +234,20 @@ const metrics: MetricsHook = {
 const agent = new Agent({ metrics });
 ```
 
-The `traceId` is propagated through all log and metrics calls for distributed tracing correlation.
+Job-scoped runtime logs include `traceId`. `MetricsHook` receives the job, topic, duration,
+status, error, and worker fields shown above; add trace correlation in your adapter if needed.
 
 ## Notes
 - Subjects: `sys.job.submit`, `job.<pool>`, `sys.job.result`, `sys.heartbeat`.
 - Protocol version: `1`.
-- Field names use camelCase in protobufjs objects (e.g., `jobId`, `contextPtr`, `resultPtr`, `workerId`).
-- Swap `bus.ts` for another transport if needed; keep message encoding via protobufjs or precompiled static modules (`pbjs/pbts`).
-- Signing: `submitJob` and `startWorker` sign envelopes when given a PEM private key; set `publicKeyMap` to verify incoming packets. Signatures use deterministic protobuf serialization (map entries ordered by key) for cross-SDK verification. Generate a P-256 keypair with:
+- Field names use camelCase in protobufjs objects (for example, `jobId`, `contextPtr`,
+  `resultPtr`, and `workerId`).
+- The runtime transport covered by this SDK is NATS; publish protobuf-encoded CAP
+  `BusPacket` envelopes on CAP subjects.
+- Signing: `submitJob` and `startWorker` sign envelopes when given a PEM private key. Signatures use
+  deterministic protobuf serialization (map entries ordered by key) for cross-SDK
+  verification. Generate a P-256 keypair with:
   ```bash
   node -e "const {generateKeyPairSync}=require('crypto');const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1',publicKeyEncoding:{type:'spki',format:'pem'},privateKeyEncoding:{type:'pkcs8',format:'pem'}});console.log(privateKey);console.log(publicKey);"
   ```
-- If you do not want signature verification, omit `publicKeyMap` in `startWorker`.
 - Pass `undefined` as the private key to `submitJob` to send unsigned envelopes.

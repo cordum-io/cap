@@ -17,6 +17,10 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Unreleased — Protocol Hardening
 
+- **Node SDK (non-wire bugfix):** Repaired npm artifacts to bundle all runtime protobuf
+  schemas, corrected NATS callback dispatch and shutdown/reconnect lifecycle handling, and
+  made configured inbound signature verification fail closed before handlers run. No
+  protobuf schema or protocol-version change.
 - **Go SDK:** Fixed worker heartbeat/progress/cancel payload builders so freshly-built `BusPacket`s pass the SDK's own `ValidateBusPacket`: `HeartbeatPayloadWithProgress` now sets `TraceId=workerID` and `CreatedAt`, and `ProgressPayload` / `CancelPayload` now set `TraceId=jobID`. This is not a [WIRE] change; it populates existing envelope fields without changing protobuf schema or protocol version.
 - **Python/Node SDKs:** Matched Go SDK parity for heartbeat/progress/cancel payload builders by setting heartbeat `trace_id`/`traceId` to the worker id, progress/cancel `trace_id`/`traceId` to the job id, and stamping `created_at` in these helper-built envelopes so packets pass SDK `BusPacket` validation. This is not a [WIRE] change; it populates existing envelope fields without changing protobuf schema or protocol version.
 - **[WIRE]** Added `agent_name` field (19) to `Heartbeat` and `agent_name` field (7) to `Handshake` — an optional human-facing display label (e.g. `Claude Code — Billing Bot`) for dashboard and audit attribution. Additive/append-only; existing clients stay wire-compatible (old clients send empty). It is a DISPLAY label only and **not an authentication authority**: consumers MUST prefer authenticated identity records (worker credential / Agent Identity) over this self-reported value and MUST NOT use it for authorization. Regenerated Go and Python descriptors; C++/Node-generated stubs unchanged (additive field — regenerate via the pinned toolchain in CI).

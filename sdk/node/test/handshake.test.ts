@@ -2,22 +2,23 @@ import assert from "node:assert";
 import { Agent, InMemoryBlobStore } from "../src/runtime";
 import { handshakePayload } from "../src/handshake";
 import { loadRoot } from "../src/protos";
+import type { Subscription, SubscriptionOptions } from "nats";
 
 class MockNatsConnection {
   published: Array<{ subject: string; data: Uint8Array }> = [];
-  subscriptions: Map<string, (msg: any) => void> = new Map();
+  subscriptions: Map<string, NonNullable<SubscriptionOptions["callback"]>> = new Map();
 
   async publish(subject: string, data: Uint8Array): Promise<void> {
     this.published.push({ subject, data });
   }
 
-  subscribe(subject: string, _opts?: any, cb?: (msg: any) => void): any {
-    if (cb) {
-      this.subscriptions.set(subject, cb);
+  subscribe(subject: string, opts: SubscriptionOptions = {}): Subscription {
+    if (opts.callback) {
+      this.subscriptions.set(subject, opts.callback);
     }
     return {
       drain: async () => {},
-    };
+    } as unknown as Subscription;
   }
 
   async drain(): Promise<void> {

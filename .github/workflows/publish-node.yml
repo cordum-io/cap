@@ -10,13 +10,20 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: publish-node-${{ github.event.inputs.version || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     defaults:
       run:
         shell: bash
         working-directory: sdk/node
+    env:
+      CAP_NODE_PACK_DIR: ${{ runner.temp }}/cap-node-package
     permissions:
       contents: read
     steps:
@@ -28,11 +35,14 @@ jobs:
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+          cache-dependency-path: sdk/node/package-lock.json
 
       - name: Set version from tag
         env:
           VERSION: ${{ github.event.inputs.version || github.ref_name }}
         run: |
+          set -euo pipefail
           if [[ -z "${VERSION}" ]]; then
             echo "VERSION not set from tag"; exit 1
           fi
@@ -42,18 +52,63 @@ jobs:
           fi
           CURRENT_VERSION="$(node -p "require('./package.json').version")"
           if [[ "${CURRENT_VERSION}" != "${VERSION}" ]]; then
-            npm version "$VERSION" --no-git-tag-version
+            npm version "${VERSION}" --no-git-tag-version
           else
             echo "package.json already at version ${VERSION}"
           fi
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install locked dependencies
+        run: npm ci
 
-      - name: Build
+      - name: Run source tests
+        run: npm test
+
+      - name: Build package
         run: npm run build
 
-      - name: Publish to npm
-        run: npm publish --access public
+      - name: Lint package metadata
+        run: npm run lint:package
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Pull pinned NATS server
+        run: docker pull nats:2.10.25-alpine
+
+      - name: Run mandatory real-NATS restart test
+        run: npm run test:nats
+
+      - name: Pack release artifact exactly once
+        id: pack
+        run: |
+          set -euo pipefail
+          rm -rf -- "${CAP_NODE_PACK_DIR}"
+          mkdir -p "${CAP_NODE_PACK_DIR}"
+          PACK_JSON="${CAP_NODE_PACK_DIR}/pack.json"
+          npm pack --json --pack-destination "${CAP_NODE_PACK_DIR}" > "${PACK_JSON}"
+          TARBALL="$(node -e '
+            const fs = require("node:fs");
+            const path = require("node:path");
+            const [jsonPath, packDir] = process.argv.slice(1);
+            const entries = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+            if (!Array.isArray(entries) || entries.length !== 1 || !entries[0].filename) process.exit(2);
+            process.stdout.write(path.join(packDir, entries[0].filename));
+          ' "${PACK_JSON}" "${CAP_NODE_PACK_DIR}")"
+          test -f "${TARBALL}"
+          echo "tarball=${TARBALL}" >> "${GITHUB_OUTPUT}"
+          echo "pack_json=${PACK_JSON}" >> "${GITHUB_OUTPUT}"
+
+      - name: Verify exact release artifact
+        run: >-
+          node scripts/verify-package.cjs
+          --tarball "${{ steps.pack.outputs.tarball }}"
+          --pack-json "${{ steps.pack.outputs.pack_json }}"
+
+      - name: Publish verified artifact to npm
+        run: npm publish "${{ steps.pack.outputs.tarball }}" --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Clean release artifact
+        if: always()
+        run: rm -rf -- "${CAP_NODE_PACK_DIR}"

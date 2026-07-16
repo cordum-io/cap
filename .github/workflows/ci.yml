@@ -37,8 +37,51 @@ jobs:
           govulncheck ./...
 
   node:
-    name: Node SDK
+    name: Node SDK (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['18', '20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: sdk/node/package-lock.json
+
+      - name: Install dependencies
+        working-directory: sdk/node
+        run: npm ci
+
+      - name: Run source tests
+        working-directory: sdk/node
+        run: npm test
+
+      - name: Build package
+        working-directory: sdk/node
+        run: npm run build
+
+      - name: Verify installed package
+        working-directory: sdk/node
+        run: npm run test:package
+
+      - name: Lint package metadata
+        working-directory: sdk/node
+        run: npm run lint:package
+
+      - name: Audit production dependencies
+        working-directory: sdk/node
+        run: npm audit --omit=dev --audit-level=high
+
+  node-nats:
+    name: Node SDK (real NATS v2.10.25)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -53,9 +96,12 @@ jobs:
         working-directory: sdk/node
         run: npm ci
 
-      - name: Run tests
+      - name: Pull pinned NATS server
+        run: docker pull nats:2.10.25-alpine
+
+      - name: Run mandatory real-NATS restart test
         working-directory: sdk/node
-        run: npm test
+        run: npm run test:nats
 
   python:
     name: Python SDK

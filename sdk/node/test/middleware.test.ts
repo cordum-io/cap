@@ -4,20 +4,21 @@ import { Agent, InMemoryBlobStore } from "../src/runtime";
 import { loadRoot } from "../src/protos";
 import { encodeDeterministic } from "../src/codec";
 import { Middleware, loggingMiddleware } from "../src/middleware";
+import type { Msg, Subscription, SubscriptionOptions } from "nats";
 
 class MockNatsConnection {
   published: Array<{ subject: string; data: Uint8Array }> = [];
-  subscriptions: Map<string, (msg: any) => void> = new Map();
+  subscriptions: Map<string, NonNullable<SubscriptionOptions["callback"]>> = new Map();
 
   async publish(subject: string, data: Uint8Array): Promise<void> {
     this.published.push({ subject, data });
   }
 
-  subscribe(subject: string, _opts?: any, cb?: (msg: any) => void): any {
-    if (cb) {
-      this.subscriptions.set(subject, cb);
+  subscribe(subject: string, opts: SubscriptionOptions = {}): Subscription {
+    if (opts.callback) {
+      this.subscriptions.set(subject, opts.callback);
     }
-    return { drain: async () => {} };
+    return { drain: async () => {} } as unknown as Subscription;
   }
 
   async drain(): Promise<void> {
@@ -45,12 +46,13 @@ async function sendJob(mock: MockNatsConnection, topic: string, jobId: string, c
     traceId: "trace-mw",
     senderId: "client-mw",
     protocolVersion: 1,
+    createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
     jobRequest: { jobId, topic, contextPtr: `redis://${ctxKey}` },
   });
   const payload = encodeDeterministic(BusPacket, packet);
   const cb = mock.subscriptions.get(topic);
   assert.ok(cb);
-  cb?.({ data: payload });
+  cb?.(null, { data: payload } as Msg);
 }
 
 describe("Middleware (node)", () => {

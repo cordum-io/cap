@@ -279,3 +279,17 @@ jobs:
       - name: Run tests
         working-directory: sdk/python-guard
         run: pytest
+
+  onboarding:
+    name: Installed-artifact onboarding
+    if: ${{ always() }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/onboarding.yml
+
+  playground:
+    name: Playground real-NATS gate
+    if: ${{ always() }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/playground.yml

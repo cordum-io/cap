@@ -17,6 +17,11 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Unreleased — Protocol Hardening
 
+- **Onboarding docs/examples (no wire change):** Reworked the local playground and
+  simple-echo documentation to distinguish direct development-only `job.echo` publishing
+  from governed `sys.job.submit` routing, document the absent security/state/retry
+  components, use opaque `demo://context/...` and `demo://result/...` pointers, and make
+  playground readiness, result deadlines, exit codes, and cleanup deterministic.
 - **Node SDK (non-wire bugfix):** Repaired npm artifacts to bundle all runtime protobuf
   schemas, corrected NATS callback dispatch and shutdown/reconnect lifecycle handling, and
   made configured inbound signature verification fail closed before handlers run. No

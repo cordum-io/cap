@@ -1,0 +1,138 @@
+name: Playground real-NATS gate
+
+on:
+  workflow_call: {}
+
+permissions:
+  contents: read
+
+jobs:
+  compose:
+    if: ${{ always() }}
+    name: Exact Compose command and negative paths
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      COMPOSE_PROJECT_NAME: cap-playground-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.11"
+
+      - name: Run fail-closed playground unit contracts
+        run: |
+          python -m pip install "sdk/python[dev]"
+          python -m pytest -q playground/tests
+
+      - name: Prepare diagnostics and validate Compose
+        working-directory: playground
+        run: |
+          PLAYGROUND_LOGS="$RUNNER_TEMP/cap-playground-logs"
+          mkdir -p "$PLAYGROUND_LOGS"
+          echo "sha=$GITHUB_SHA" > "$PLAYGROUND_LOGS/gate-context.log"
+          docker compose version
+          docker compose config --quiet
+
+      - name: Require no-worker submit to fail without a success marker
+        working-directory: playground
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYGROUND_LOGS="$RUNNER_TEMP/cap-playground-logs"
+          cleanup() {
+            rc=$?
+            trap - EXIT INT TERM
+            timeout 20s docker compose logs --no-color > \
+              "$PLAYGROUND_LOGS/no-worker-compose.log" 2>&1 || true
+            timeout 30s docker compose down -v --remove-orphans --timeout 5 \
+              >"$PLAYGROUND_LOGS/no-worker-down.log" 2>&1 || true
+            exit "$rc"
+          }
+          trap cleanup EXIT INT TERM
+          docker compose build submit
+          docker compose up -d --wait --wait-timeout 30 nats
+          running="$(docker compose ps --services --status running)"
+          test "$running" = "nats"
+          set +e
+          docker compose run --rm --no-deps \
+            -e CAP_NATS_CONNECT_TIMEOUT_SECONDS=3 \
+            -e CAP_WORKER_READY_TIMEOUT_SECONDS=1 \
+            -e CAP_RESULT_TIMEOUT_SECONDS=1 \
+            submit >"$PLAYGROUND_LOGS/no-worker-submit.log" 2>&1
+          no_worker_status=$?
+          set -e
+          test "$no_worker_status" -ne 0
+          test "$no_worker_status" -eq 3
+          ! grep -q "CAP Playground Demo Complete!" \
+            "$PLAYGROUND_LOGS/no-worker-submit.log"
+
+      - name: Run the exact authoritative Compose command three times
+        working-directory: playground
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYGROUND_LOGS="$RUNNER_TEMP/cap-playground-logs"
+          current_attempt=0
+          cleanup() {
+            rc=$?
+            trap - EXIT INT TERM
+            timeout 20s docker compose logs --no-color > \
+              "$PLAYGROUND_LOGS/cleanup-attempt-${current_attempt}.log" 2>&1 || true
+            timeout 30s docker compose down -v --remove-orphans --timeout 5 \
+              >>"$PLAYGROUND_LOGS/cleanup.log" 2>&1 || true
+            exit "$rc"
+          }
+          trap cleanup EXIT INT TERM
+          for attempt in 1 2 3; do
+            current_attempt=$attempt
+            set +e
+            docker compose up --build --abort-on-container-exit --exit-code-from submit \
+              2>&1 | tee "$PLAYGROUND_LOGS/success-${attempt}.log"
+            compose_status=${PIPESTATUS[0]}
+            set -e
+            timeout 20s docker compose logs --no-color > \
+              "$PLAYGROUND_LOGS/success-${attempt}-compose.log" 2>&1
+            set +e
+            marker_count="$(grep -c "CAP Playground Demo Complete!" \
+              "$PLAYGROUND_LOGS/success-${attempt}.log")"
+            marker_status=$?
+            set -e
+            timeout 30s docker compose down -v --remove-orphans --timeout 5 \
+              >>"$PLAYGROUND_LOGS/success-${attempt}-down.log" 2>&1
+            current_attempt=0
+            test "$compose_status" -eq 0
+            test "$marker_status" -eq 0
+            test "$marker_count" -eq 1
+          done
+
+      - name: Always capture final Compose state and clean up
+        if: always()
+        shell: bash
+        run: |
+          PLAYGROUND_LOGS="$RUNNER_TEMP/cap-playground-logs"
+          mkdir -p "$PLAYGROUND_LOGS"
+          if [[ -f playground/docker-compose.yml ]]; then
+            (
+              cd playground
+              timeout 20s docker compose logs --no-color > \
+                "$PLAYGROUND_LOGS/final-compose.log" 2>&1 || true
+              timeout 30s docker compose down -v --remove-orphans --timeout 5 > \
+                "$PLAYGROUND_LOGS/final-down.log" 2>&1 || true
+            )
+          else
+            printf '%s\n' 'checkout/playground unavailable' > \
+              "$PLAYGROUND_LOGS/final-compose.log"
+          fi
+
+      - name: Archive playground diagnostics
+        if: ${{ failure() || cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playground-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/cap-playground-logs
+          if-no-files-found: error
+          retention-days: 7

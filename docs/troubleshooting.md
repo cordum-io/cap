@@ -18,12 +18,12 @@ Error: Could not connect to server
 
 1. Start NATS:
    ```bash
-   docker run -d --name nats -p 4222:4222 nats:latest
+   docker run -d --name nats -p 127.0.0.1:4222:4222 -p 127.0.0.1:8222:8222 nats:2.12.6-alpine@sha256:1cfc36e2e5e638243d8c722f72c954cd0ec4b15ee82fadbc718ce12e2b3c1652 -m 8222
    ```
 
 2. Verify it's running:
    ```bash
-   docker ps | grep nats
+   curl -fsS http://127.0.0.1:8222/healthz
    ```
 
 3. If using a custom URL, set the environment variable:
@@ -187,24 +187,46 @@ SDK install.
 
 **Symptoms:** Job is submitted but never picked up. No worker logs appear. The client gets no result.
 
-**Cause:** No worker is subscribed to the job's topic/subject.
+**Cause:** The publisher and worker are using different transport topologies, a required
+control-plane component is absent, or no worker is subscribed to the dispatched subject.
+`JobRequest.topic` is payload metadata; NATS does not inspect it to forward a message.
 
 **Solution:**
 
-1. **Check the topic matches.** The worker subscribes to a NATS subject (e.g., `job.echo`). The client's `JobRequest.topic` must match:
+1. **Choose one complete topology.** CAP supports both of these patterns, but they cannot be
+   mixed:
+
+   - **Direct local-development lab:** after subscribing to `sys.job.result`, the client
+     validates and publishes an encoded `BusPacket{JobRequest}` directly to `job.echo`.
+     The worker subscribes to `job.echo` and publishes its result to `sys.job.result`.
+     This deliberately bypasses Gateway, Scheduler, Safety Kernel, policy, authenticated
+     identity, durable state, and retries; do not present it as a production deployment.
+   - **Governed deployment:** an external caller enters through a Gateway or other trusted
+     ingress. The low-level Go `Client.Submit`, Python `submit_job`, and Node `submitJob`
+     helpers encode and publish Scheduler ingress at `sys.job.submit`; they do not implement
+     the Gateway or authenticate the caller. The Scheduler consumes that subject, obtains a
+     Safety decision, and dispatches to `job.<pool>` before a worker can receive the job.
+
+   Setting `JobRequest.topic` to `job.echo` does **not** reroute a packet that was already
+   published to `sys.job.submit`. Without the governed components, it remains on
+   `sys.job.submit`; for the direct lab, publish the validated packet itself to `job.echo`.
+
+2. **Check the dispatched subject matches.** The worker subscribes to a NATS subject (for
+   example, `job.echo`). The actual publish/dispatch subject and `JobRequest.topic` must
+   agree:
    ```
    Worker subject: "job.echo"
    JobRequest topic: "job.echo"   ✓
    JobRequest topic: "job.Echo"   ✗ (case-sensitive)
    ```
 
-2. **Verify the worker is connected** using NATS monitoring:
+3. **Verify the exact worker subscription** using the authoritative NATS monitoring
+   endpoint. This command exits nonzero until `job.echo` appears in the subscription
+   inventory:
    ```bash
-   # List all subscriptions
-   nats sub '>'
+   curl -fsS 'http://127.0.0.1:8222/subsz?subs=1' |
+     python -c "import json,sys; d=json.load(sys.stdin); assert any(isinstance(s,dict) and s.get('subject') == 'job.echo' for s in d.get('subscriptions_list', []))"
    ```
-
-3. **Check the submit subject.** `client.Submit` publishes to `sys.job.submit` by default. If using the low-level worker, ensure it subscribes to the correct subject (the topic, not `sys.job.submit`).
 
 4. **Check NATS queue groups.** Multiple workers on the same subject use competing consumers. If a worker is in a different queue group, it may not receive the message.
 
@@ -383,10 +405,15 @@ malformed packet: missing required fields
 
 1. **Don't publish raw JSON to NATS.** CAP uses binary protobuf encoding. All messages must be wrapped in a `BusPacket` envelope.
 
-2. **Use the SDK's submit/publish functions** instead of raw NATS publish:
-   - **Go:** `client.Submit()` or `worker.Worker.Start()`
-   - **Python:** `client.submit_job()` or `worker.run_worker()`
-   - **Node:** `submitJob()` or `startWorker()`
+2. **Use the encoder and publish path for your chosen topology:**
+   - For a governed deployment, use Go `Client.Submit`, Python `submit_job`, or Node
+     `submitJob`; they encode the packet and publish to `sys.job.submit` for the running
+     control plane.
+   - For the direct local-development lab, follow the canonical
+     [simple-echo examples](../examples/simple-echo/): construct and validate a
+     `BusPacket`, encode it as protobuf, and publish those bytes directly to the exact
+     worker subject. Raw NATS publish is acceptable only with a validated protobuf packet,
+     never with JSON.
 
 3. **Check proto version compatibility.** If you regenerated stubs with a different protoc version, ensure all SDKs use compatible stubs.
 

@@ -1,8 +1,14 @@
 services:
   nats:
-    image: nats:alpine
-    ports:
-      - "4222:4222"
+    image: nats:2.12.6-alpine@sha256:1cfc36e2e5e638243d8c722f72c954cd0ec4b15ee82fadbc718ce12e2b3c1652
+    command: ["-m", "8222"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8222/healthz"]
+      interval: 1s
+      timeout: 2s
+      retries: 20
+      start_period: 1s
+    stop_grace_period: 5s
 
   echo-worker:
     build:
@@ -10,9 +16,11 @@ services:
       dockerfile: playground/worker/Dockerfile
     environment:
       NATS_URL: nats://nats:4222
+      PYTHONUNBUFFERED: "1"
     depends_on:
-      - nats
-    restart: on-failure
+      nats:
+        condition: service_healthy
+    stop_grace_period: 5s
 
   submit:
     build:
@@ -20,6 +28,15 @@ services:
       dockerfile: playground/submit/Dockerfile
     environment:
       NATS_URL: nats://nats:4222
+      NATS_MONITOR_URL: http://nats:8222
+      CAP_NATS_CONNECT_TIMEOUT_SECONDS: "5"
+      CAP_WORKER_READY_TIMEOUT_SECONDS: "20"
+      CAP_RESULT_TIMEOUT_SECONDS: "15"
+      CAP_CLEANUP_TIMEOUT_SECONDS: "2"
+      PYTHONUNBUFFERED: "1"
     depends_on:
-      - nats
-      - echo-worker
+      nats:
+        condition: service_healthy
+      echo-worker:
+        condition: service_started
+    stop_grace_period: 5s

@@ -105,6 +105,16 @@ function proofRecord(
     : payload;
 }
 
+async function rejectsOrReturnsFalse(
+  verify: () => Promise<boolean>
+): Promise<boolean> {
+  try {
+    return await verify();
+  } catch {
+    return false;
+  }
+}
+
 describe("worker trust signing vectors", () => {
   it("covers the four positive phases and the complete negative inventory", () => {
     assert.deepStrictEqual(Object.keys(manifest.positive).sort(), [...PHASES].sort());
@@ -174,7 +184,10 @@ describe("worker trust signing vectors", () => {
     for (const vector of vectors) {
       const packet = await loadPacket(vector.phase);
       vector.mutate(packet);
-      assert.strictEqual(await verifyWorkerTrustPacket(packet, configuredKeys()), false);
+      assert.strictEqual(
+        await rejectsOrReturnsFalse(() => verifyWorkerTrustPacket(packet, configuredKeys())),
+        false
+      );
     }
   });
 
@@ -182,7 +195,8 @@ describe("worker trust signing vectors", () => {
     const packet = await loadPacket("challenge_request");
     await assert.rejects(() => verifyWorkerTrustPacket(packet, {}), /key id/i);
     asRecord(packet).publicKey = configuredKeys()["worker-key-v1"];
-    await assert.rejects(() => verifyWorkerTrustPacket(packet, {}), /key id/i);
+    await assert.rejects(() => verifyWorkerTrustPacket(packet, {}), /unknown field/i);
+    delete asRecord(packet).publicKey;
 
     const p384 = crypto.generateKeyPairSync("ec", { namedCurve: "secp384r1" });
     await assert.rejects(

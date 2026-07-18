@@ -9,59 +9,24 @@ import {
   requireSignature,
   WorkerTrustSigningError,
 } from "./trust-signing-crypto";
+import {
+  WorkerTrustEnvelope,
+  WorkerTrustPacket,
+  WorkerTrustPhase,
+} from "./worker-trust-types";
+import { validateWorkerTrustPacket } from "./worker-trust-packet";
 
 export { WorkerTrustSigningError } from "./trust-signing-crypto";
-
-export type WorkerTrustPhase =
-  | "challenge_request"
-  | "challenge"
-  | "authenticate"
-  | "result";
+export type {
+  AuthenticateTrustPacket,
+  ChallengeRequestTrustPacket,
+  ChallengeTrustPacket,
+  ResultTrustPacket,
+  WorkerTrustPacket,
+  WorkerTrustPhase,
+} from "./worker-trust-types";
 
 export type WorkerTrustKeyMap = Readonly<Record<string, crypto.KeyLike>>;
-
-interface WorkerTrustEnvelope {
-  [key: string]: unknown;
-  traceId?: string;
-  senderId?: string;
-  createdAt?: unknown;
-  protocolVersion?: number;
-  signature?: Uint8Array;
-  authToken?: string;
-}
-
-interface ChallengeRef extends Record<string, unknown> {
-  proofKeyId?: string;
-  serverKeyId?: string;
-}
-
-export interface ChallengeRequestTrustPacket extends WorkerTrustEnvelope {
-  workerHandshakeChallengeRequest: Record<string, unknown> & {
-    proofKeyId?: string;
-  };
-}
-
-export interface ChallengeTrustPacket extends WorkerTrustEnvelope {
-  workerHandshakeChallenge: ChallengeRef;
-}
-
-export interface AuthenticateTrustPacket extends WorkerTrustEnvelope {
-  workerHandshakeAuthenticate: Record<string, unknown> & {
-    challenge?: ChallengeRef;
-  };
-}
-
-export interface ResultTrustPacket extends WorkerTrustEnvelope {
-  workerHandshakeResult: Record<string, unknown> & {
-    challenge?: ChallengeRef;
-  };
-}
-
-export type WorkerTrustPacket =
-  | ChallengeRequestTrustPacket
-  | ChallengeTrustPacket
-  | AuthenticateTrustPacket
-  | ResultTrustPacket;
 
 interface PhaseConfig {
   domain: string;
@@ -109,7 +74,7 @@ const BUS_PAYLOAD_FIELDS = [
 ];
 
 export function workerTrustPhase(packet: WorkerTrustPacket): WorkerTrustPhase {
-  const view = packet as WorkerTrustEnvelope;
+  const view = packet as unknown as WorkerTrustEnvelope & Record<string, unknown>;
   const present = BUS_PAYLOAD_FIELDS.filter((field) => view[field] != null);
   if (present.length !== 1) {
     throw new WorkerTrustSigningError("exactly one worker trust payload is required");
@@ -130,10 +95,11 @@ export function workerTrustDomain(phase: WorkerTrustPhase): string {
 export async function encodeWorkerTrustUnsigned(
   packet: WorkerTrustPacket
 ): Promise<Uint8Array> {
+  validateWorkerTrustPacket(packet);
   const root = await loadRoot();
   const phase = validatedTrustPhase(packet);
   const config = PHASE_CONFIG[phase];
-  const view = packet as WorkerTrustEnvelope;
+  const view = packet as unknown as WorkerTrustEnvelope & Record<string, unknown>;
   const writer = Writer.create();
   writeString(writer, 1, view.traceId);
   writeString(writer, 2, view.senderId);
@@ -172,10 +138,11 @@ export async function signWorkerTrustPacket<T extends WorkerTrustPacket>(
   packet: T,
   privateKeys: WorkerTrustKeyMap
 ): Promise<T> {
-  validatedTrustPhase(packet);
-  const keyId = workerTrustKeyId(packet);
+  const candidate = { ...packet, signature: Uint8Array.of(1) } as T;
+  validateWorkerTrustPacket(candidate);
+  const keyId = workerTrustKeyId(candidate);
   const key = requireP256Key(lookupKey(privateKeys, keyId), "private");
-  const signature = crypto.sign("sha256", await workerTrustTranscript(packet), {
+  const signature = crypto.sign("sha256", await workerTrustTranscript(candidate), {
     key,
     dsaEncoding: "der",
   });
@@ -186,7 +153,7 @@ export async function verifyWorkerTrustPacket(
   packet: WorkerTrustPacket,
   publicKeys: WorkerTrustKeyMap
 ): Promise<boolean> {
-  validatedTrustPhase(packet);
+  validateWorkerTrustPacket(packet);
   const signature = requireSignature(packet.signature);
   if (!isStrictDerSignature(signature)) {
     return false;
@@ -233,7 +200,7 @@ function trustProofRecord(
   phase: WorkerTrustPhase
 ): Record<string, unknown> {
   const payload = requireRecord(
-    (packet as WorkerTrustEnvelope)[PHASE_CONFIG[phase].field],
+    (packet as unknown as Record<string, unknown>)[PHASE_CONFIG[phase].field],
     "worker trust payload"
   );
   return phase === "authenticate" || phase === "result"

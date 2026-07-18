@@ -18,7 +18,6 @@ import pytest
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "verify_artifacts.py"
 SDK_ROOT = SCRIPT.parents[1]
 PROJECT_VERSION = "2.5.3"
-
 def _load_verifier() -> ModuleType:
     spec = importlib.util.spec_from_file_location("cap_artifact_verifier", SCRIPT)
     assert spec is not None and spec.loader is not None
@@ -237,6 +236,7 @@ def test_consumer_installs_and_reports_exact_generated_code_floors(tmp_path: Pat
             "imports": len(verifier.EXPECTED_IMPORTS),
             "protobuf_version": "6.31.1",
             "grpcio_version": "1.76.0",
+            "worker_trust": {"challenge_bytes": 321, "mode": "enforce", "protocol_version": 1, "sender_id": "artifact-worker"},
         }
         stdout = json.dumps(evidence) if str(verifier.SMOKE_SCRIPT) in args else ""
         return _completed(tuple(args), stdout)

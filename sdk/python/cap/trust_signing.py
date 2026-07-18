@@ -78,12 +78,22 @@ def _require_strict_der(signature: bytes) -> None:
 def trust_packet_digest(packet: buspacket_pb2.BusPacket) -> bytes:
     """Return SHA-256(domain || NUL || deterministic unsigned packet)."""
 
+    _reject_unknown_fields(packet)
     _, domain = _phase(packet)
     unsigned = buspacket_pb2.BusPacket()
     unsigned.CopyFrom(packet)
     unsigned.ClearField("signature")
     encoded = unsigned.SerializeToString(deterministic=True)
     return hashlib.sha256(domain + b"\x00" + encoded).digest()
+
+
+def _reject_unknown_fields(packet: buspacket_pb2.BusPacket) -> None:
+    encoded = packet.SerializeToString(deterministic=True)
+    clean = buspacket_pb2.BusPacket()
+    clean.CopyFrom(packet)
+    clean.DiscardUnknownFields()
+    if encoded != clean.SerializeToString(deterministic=True):
+        raise TrustSigningError("trust packet contains unknown fields")
 
 
 def sign_trust_packet(
@@ -119,10 +129,11 @@ def verify_trust_packet(
         raise TrustSigningError("trust packet key ID is not configured")
     _require_p256_public(public_key)
     _require_strict_der(packet.signature)
+    digest = trust_packet_digest(packet)
     try:
         public_key.verify(
             packet.signature,
-            trust_packet_digest(packet),
+            digest,
             ec.ECDSA(utils.Prehashed(hashes.SHA256())),
         )
     except (InvalidSignature, ValueError) as exc:

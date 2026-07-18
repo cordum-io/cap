@@ -8,12 +8,15 @@ from google.protobuf import timestamp_pb2
 
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives import hashes
 
 from cap.subjects import SUBJECT_RESULT
-from cap.errors import MalformedPacketError, SignatureInvalidError
 from cap.constants import DEFAULT_PROTOCOL_VERSION
 from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
+from cap.packet_boundary import (
+    decode_packet,
+    finalize_packet,
+    verify_packet as _verify_packet,
+)
 
 
 _HANDLER_FAILED_MESSAGE = "handler failed"
@@ -45,6 +48,7 @@ class _WorkerContext:
     middlewares: Optional[Sequence[Middleware]]
     logger: logging.Logger
     metrics: MetricsHook
+    session_token: Optional[str]
 
 
 def _bounded_log_field(value: str) -> str:
@@ -54,41 +58,8 @@ def _bounded_log_field(value: str) -> str:
     return sanitized[: _LOG_FIELD_LIMIT - 3] + "..."
 
 
-def _verify_packet(
-    packet: buspacket_pb2.BusPacket,
-    public_keys: Optional[Dict[str, ec.EllipticCurvePublicKey]],
-    logger: logging.Logger,
-) -> bool:
-    if not public_keys:
-        return True
-    safe_sender_id = _bounded_log_field(packet.sender_id)
-    public_key = public_keys.get(packet.sender_id)
-    if not public_key:
-        logger.warning("no public key found", extra={"sender_id": safe_sender_id})
-        return False
-    signature = packet.signature
-    packet.ClearField("signature")
-    unsigned_data = packet.SerializeToString(deterministic=True)
-    packet.signature = signature
-    try:
-        public_key.verify(signature, unsigned_data, ec.ECDSA(hashes.SHA256()))
-    except Exception:
-        error = SignatureInvalidError(f"sender {safe_sender_id}")
-        logger.warning("invalid signature: %s", error, extra={"sender_id": safe_sender_id})
-        return False
-    return True
-
-
 def _decode_packet(message: _Message, context: _WorkerContext) -> Optional[buspacket_pb2.BusPacket]:
-    packet = buspacket_pb2.BusPacket()
-    try:
-        packet.ParseFromString(message.data)
-    except Exception as exc:
-        context.logger.warning("%s", MalformedPacketError(str(exc)))
-        return None
-    if not _verify_packet(packet, context.public_keys, context.logger):
-        return None
-    return packet
+    return decode_packet(message.data, context.public_keys, context.logger)
 
 
 def _middleware_chain(handler: JobHandler, middlewares: Optional[Sequence[Middleware]]) -> JobHandler:
@@ -172,6 +143,8 @@ def _result_packet(
     result: job_pb2.JobResult,
     sender_id: str,
     private_key: Optional[ec.EllipticCurvePrivateKey],
+    *,
+    session_token: Optional[str] = None,
 ) -> buspacket_pb2.BusPacket:
     timestamp = timestamp_pb2.Timestamp()
     timestamp.GetCurrentTime()
@@ -182,10 +155,7 @@ def _result_packet(
     )
     packet.created_at.CopyFrom(timestamp)
     packet.job_result.CopyFrom(result)
-    if private_key:
-        unsigned_data = packet.SerializeToString(deterministic=True)
-        packet.signature = private_key.sign(unsigned_data, ec.ECDSA(hashes.SHA256()))
-    return packet
+    return finalize_packet(packet, private_key, session_token=session_token)
 
 
 async def _handle_message(message: _Message, context: _WorkerContext) -> None:
@@ -203,7 +173,13 @@ async def _handle_message(message: _Message, context: _WorkerContext) -> None:
     result = await _execute_handler(context, packet, request)
     elapsed_ms = int((time.monotonic() - started_at) * 1000)
     _normalize_result(result, request, context.sender_id)
-    outgoing = _result_packet(packet, result, context.sender_id, context.private_key)
+    outgoing = _result_packet(
+        packet,
+        result,
+        context.sender_id,
+        context.private_key,
+        session_token=context.session_token,
+    )
     await context.connection.publish(
         SUBJECT_RESULT, outgoing.SerializeToString(deterministic=True)
     )
@@ -271,6 +247,8 @@ async def run_worker(
     middlewares: Optional[Sequence[Middleware]] = None,
     logger: Optional[logging.Logger] = None,
     metrics: Optional[MetricsHook] = None,
+    *,
+    session_token: Optional[str] = None,
 ) -> None:
     """Subscribe to jobs until cancelled, then drain the NATS connection."""
     if logger is None:
@@ -293,6 +271,7 @@ async def run_worker(
         middlewares=middlewares,
         logger=logger,
         metrics=metrics,
+        session_token=session_token,
     )
     async def on_msg(message: _Message) -> None:
         await _handle_message(message, context)

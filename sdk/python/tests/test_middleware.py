@@ -53,6 +53,7 @@ class TestMiddleware(unittest.IsolatedAsyncioTestCase):
         packet.trace_id = "trace-mw"
         packet.sender_id = "client-mw"
         packet.protocol_version = 1
+        packet.created_at.GetCurrentTime()
         packet.job_request.CopyFrom(req)
         await self.mock.subscriptions[topic](
             type("obj", (object,), {"data": packet.SerializeToString(deterministic=True)})()

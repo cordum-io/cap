@@ -105,6 +105,7 @@ async def run_handler(
     packet.trace_id = "test-trace"
     packet.sender_id = "test-client"
     packet.protocol_version = DEFAULT_PROTOCOL_VERSION
+    packet.created_at.GetCurrentTime()
     packet.job_request.CopyFrom(req)
 
     cb = mock.subscriptions.get(topic)

@@ -132,5 +132,6 @@ def make_job_message(topic: str, job_id: str) -> Message:
         sender_id="test-client",
         protocol_version=1,
     )
+    packet.created_at.GetCurrentTime()
     packet.job_request.CopyFrom(request)
     return Message(packet.SerializeToString(deterministic=True))

@@ -2,14 +2,14 @@ import asyncio
 import json
 import logging
 import os
+import secrets
 import time
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Type, TypeVar, Union
 
 from google.protobuf import timestamp_pb2
-from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
+from cap.pb.cordum.agent.v1 import buspacket_pb2, handshake_pb2, job_pb2
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives import hashes
 
 try:
     import redis.asyncio as redis_async  # type: ignore
@@ -23,11 +23,18 @@ except Exception:  # pragma: no cover - optional until runtime used
     ValidationError = Exception
 
 
-from cap.subjects import SUBJECT_RESULT
-from cap.errors import InvalidInputError, MalformedPacketError, SignatureInvalidError, SignatureMissingError
+from cap.subjects import SUBJECT_HANDSHAKE, SUBJECT_RESULT
+from cap.errors import InvalidInputError
 from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
-from cap.handshake import publish_handshake
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
+from cap.packet_boundary import decode_packet, finalize_packet, parse_packet
+from cap.worker_trust import WorkerTrustConfig, WorkerTrustMode
+from cap.worker_trust_runtime import (
+    DEFAULT_RENEW_MIN_INTERVAL,
+    RuntimeTrustSettings,
+    WorkerTrustLifecycle,
+    WorkerTrustRuntimeError,
+)
 
 from cap.constants import DEFAULT_PROTOCOL_VERSION  # noqa: E402 — must be after conditional imports
 
@@ -302,8 +309,7 @@ class Agent:
     def __init__(
         self,
         *,
-        nats_url: Optional[str] = None,
-        redis_url: Optional[str] = None,
+        nats_url: Optional[str] = None, redis_url: Optional[str] = None,
         store: Optional[BlobStore] = None,
         public_keys: Optional[Dict[str, ec.EllipticCurvePublicKey]] = None,
         private_key: Optional[ec.EllipticCurvePrivateKey] = None,
@@ -321,6 +327,10 @@ class Agent:
         connect_fn: Optional[Callable[..., Awaitable[Any]]] = None,
         logger: Optional[logging.Logger] = None,
         metrics: Optional[MetricsHook] = None,
+        worker_trust_mode: Optional[Union[str, WorkerTrustMode]] = None,
+        worker_trust: Optional[WorkerTrustConfig] = None,
+        worker_trust_timeout: Optional[float] = None, worker_trust_retries: Optional[int] = None,
+        worker_trust_renew_min_interval: float = DEFAULT_RENEW_MIN_INTERVAL,
     ) -> None:
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
@@ -342,11 +352,28 @@ class Agent:
         self._connect_fn = connect_fn
         self._logger = logger or _default_logger()
         self._metrics: MetricsHook = metrics or NoopMetrics()
-        self._handlers: Dict[str, HandlerSpec] = {}
-        self._middlewares: list = []
+        self._configure_worker_trust(worker_trust_mode, worker_trust,
+            worker_trust_timeout, worker_trust_retries,
+            worker_trust_renew_min_interval)
         Agent._initialize_lifecycle(self)
 
+    def _configure_worker_trust(
+        self,
+        mode: Optional[Union[str, WorkerTrustMode]],
+        config: Optional[WorkerTrustConfig],
+        timeout: Optional[float],
+        retries: Optional[int],
+        renew_min_interval: float,
+    ) -> None:
+        self._worker_trust_mode = mode
+        self._worker_trust_config = config
+        self._worker_trust_timeout = timeout
+        self._worker_trust_retries = retries
+        self._worker_trust_renew_min_interval = renew_min_interval
+
     def _initialize_lifecycle(self) -> None:
+        self._handlers: Dict[str, HandlerSpec] = {}
+        self._middlewares: list = []
         self._nc = None
         self._active_jobs: set[str] = set()
         self._heartbeat_cancel_event: Optional[asyncio.Event] = None
@@ -358,6 +385,11 @@ class Agent:
         self._handler_tasks: set[asyncio.Task[Any]] = set()
         self._lifecycle_state = "idle"
         self._close_task: Optional[asyncio.Task[Any]] = None
+        self._trust_settings: Optional[RuntimeTrustSettings] = None
+        self._worker_trust: Optional[WorkerTrustLifecycle] = None
+        self._capability: Optional[handshake_pb2.Handshake] = None
+        self._trust_admitting = False
+        self._trust_reconnect_lock = asyncio.Lock()
 
     def use(self, *middlewares) -> None:
         """Append middleware to the agent. Middleware executes in registration order before the handler."""
@@ -400,6 +432,15 @@ class Agent:
             raise RuntimeError("no handlers registered")
         if self._lifecycle_state != "idle":
             raise RuntimeError(f"agent cannot start while {self._lifecycle_state}")
+        self._trust_settings = RuntimeTrustSettings.resolve(
+            self._worker_trust_mode,
+            self._worker_trust_config,
+            self._sender_id,
+            timeout=self._worker_trust_timeout,
+            retries=self._worker_trust_retries,
+            renew_min_interval=self._worker_trust_renew_min_interval,
+        )
+        self._capability = self._build_capability_handshake()
         self._lifecycle_state = "starting"
         try:
             await self._open_resources()
@@ -407,6 +448,13 @@ class Agent:
             await self._cleanup_resources(exc)
             raise
         self._lifecycle_state = "running"
+
+    @property
+    def session_token(self) -> str:
+        """Return only the current, still-live authenticated session token."""
+        if self._worker_trust is None:
+            return ""
+        return self._worker_trust.session_token()
 
     async def close(self) -> None:
         """Stop intake, flush tracked jobs, and close resources exactly once."""
@@ -431,15 +479,73 @@ class Agent:
 
     async def _open_resources(self) -> None:
         connect_fn = self._resolve_connect_fn()
+        connect_options: Dict[str, Any] = {
+            "servers": self._nats_url,
+            "name": self._sender_id,
+        }
+        if self._trust_enabled():
+            connect_options["reconnected_cb"] = self._on_nats_reconnected
         self._nc = await self._with_timeout(
-            connect_fn(servers=self._nats_url, name=self._sender_id),
+            connect_fn(**connect_options),
             "nats connect",
         )
         if self._store is None:
             self._store = RedisBlobStore(self._redis_url)
+        await self._establish_worker_trust()
         await self._subscribe_handlers()
         await self._publish_startup_handshake()
         self._start_heartbeat()
+        if self._worker_trust is not None:
+            self._worker_trust.start_renewal(self._on_trust_failure)
+
+    def _build_capability_handshake(self) -> handshake_pb2.Handshake:
+        sdk_version = "cap-python/v2"
+        if self._trust_settings is not None and self._trust_settings.config is not None:
+            sdk_version = self._trust_settings.config.sdk_version
+        topics = sorted(self._handlers)
+        return handshake_pb2.Handshake(
+            component_id=self._sender_id,
+            role=handshake_pb2.COMPONENT_ROLE_WORKER,
+            supported_versions=[DEFAULT_PROTOCOL_VERSION],
+            capabilities={topic: True for topic in topics},
+            sdk_version=sdk_version,
+            ready_topics=topics,
+        )
+
+    def _trust_enabled(self) -> bool:
+        return (
+            self._trust_settings is not None
+            and self._trust_settings.mode != WorkerTrustMode.OFF
+        )
+
+    def _enforce_trust(self) -> bool:
+        return (
+            self._trust_settings is not None
+            and self._trust_settings.mode == WorkerTrustMode.ENFORCE
+        )
+
+    def _outbound_session_token(self) -> str:
+        token = self.session_token
+        if self._enforce_trust() and not token:
+            raise WorkerTrustRuntimeError(
+                "authenticated session is required for outbound packet"
+            )
+        return token
+
+    async def _establish_worker_trust(self) -> None:
+        if not self._trust_enabled():
+            self._trust_admitting = True
+            return
+        if self._capability is None:
+            raise RuntimeError("worker capability is unavailable")
+        self._worker_trust = WorkerTrustLifecycle(
+            self._nc,
+            self._trust_settings,
+            self._capability,
+            logger=self._logger,
+        )
+        await self._worker_trust.authenticate()
+        self._trust_admitting = True
 
     async def _subscribe_handlers(self) -> None:
         for topic, spec in self._handlers.items():
@@ -460,6 +566,53 @@ class Agent:
     def _remember_subscription(self, handle: Any) -> None:
         if handle is not None and callable(getattr(handle, "drain", None)):
             self._subscriptions.append(handle)
+
+    async def _on_trust_failure(self, error: Exception) -> None:
+        self._trust_admitting = False
+        await self._stop_heartbeat(error)
+        primary = await self._drain_subscriptions(error)
+        if primary is not error:
+            self._safe_cleanup_log("trust admission stop", primary)
+        self._logger.error(
+            "authenticated session renewal failed; admissions stopped",
+            extra={"exception_type": type(error).__name__},
+        )
+
+    async def _on_nats_reconnected(self) -> None:
+        async with self._trust_reconnect_lock:
+            await self._reauthenticate_after_reconnect()
+
+    async def _reauthenticate_after_reconnect(self) -> None:
+        if self._lifecycle_state != "running" or self._worker_trust is None:
+            return
+        enforce = (
+            self._trust_settings is not None
+            and self._trust_settings.mode == WorkerTrustMode.ENFORCE
+        )
+        if enforce:
+            self._trust_admitting = False
+            failure = await self._drain_subscriptions(None)
+            if failure is not None:
+                await self._on_trust_failure(failure)
+                return
+        try:
+            await self._worker_trust.reauthenticate()
+            if self._lifecycle_state != "running":
+                return
+            if enforce:
+                await self._subscribe_handlers()
+            self._trust_admitting = True
+            await self._publish_startup_handshake()
+            if self._heartbeat_task is None:
+                self._start_heartbeat()
+            self._worker_trust.start_renewal(self._on_trust_failure)
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            if enforce:
+                await self._on_trust_failure(exc)
+            else:
+                self._safe_cleanup_log("worker trust reconnect", exc)
 
     async def _dispatch_handler(
         self, factory: Callable[[], Coroutine[Any, Any, None]]
@@ -495,16 +648,30 @@ class Agent:
             self._safe_cleanup_log("job task", error)
 
     async def _publish_startup_handshake(self) -> None:
+        if self._capability is None:
+            raise RuntimeError("worker capability is unavailable")
+        session_token = self._outbound_session_token()
+        packet = buspacket_pb2.BusPacket(
+            trace_id=secrets.token_hex(16),
+            sender_id=self._sender_id,
+            protocol_version=DEFAULT_PROTOCOL_VERSION,
+        )
+        packet.created_at.GetCurrentTime()
+        packet.handshake.CopyFrom(self._capability)
         try:
-            await publish_handshake(
-                self._nc,
-                component_id=self._sender_id,
-                capabilities={topic: True for topic in self._handlers},
-                ready_topics=sorted(self._handlers),
-                private_key=self._private_key,
-                sender_id=self._sender_id,
+            outgoing = finalize_packet(
+                packet, self._private_key, session_token=session_token
+            )
+            await self._with_timeout(
+                self._nc.publish(
+                    SUBJECT_HANDSHAKE,
+                    outgoing.SerializeToString(deterministic=True),
+                ),
+                "handshake publish",
             )
         except Exception as exc:
+            if self._trust_enabled():
+                raise
             self._logger.warning(
                 "handshake publish failed",
                 extra={"sender_id": self._sender_id,
@@ -514,12 +681,21 @@ class Agent:
     def _start_heartbeat(self) -> None:
         self._heartbeat_cancel_event = asyncio.Event()
         payload_fn = self._heartbeat_payload_fn or self._default_heartbeat_payload
+
+        def secured_payload() -> bytes:
+            session_token = self._outbound_session_token()
+            packet = parse_packet(payload_fn())
+            outgoing = finalize_packet(
+                packet, self._private_key, session_token=session_token
+            )
+            return outgoing.SerializeToString(deterministic=True)
+
         self._heartbeat_task = asyncio.create_task(
             heartbeat_loop(
                 nc=self._nc,
-                payload_fn=payload_fn,
+                payload_fn=secured_payload,
                 interval=self._heartbeat_interval,
-                private_key=self._private_key,
+                private_key=None,
                 metrics=self._metrics,
                 cancel_event=self._heartbeat_cancel_event,
             )
@@ -636,6 +812,12 @@ class Agent:
         self, primary: Optional[BaseException] = None
     ) -> None:
         original = primary
+        if self._worker_trust is not None:
+            primary = await self._bounded_cleanup(
+                "worker trust",
+                self._cleanup_call("worker trust", self._close_worker_trust, primary),
+                primary,
+            )
         primary = await self._drain_subscriptions(primary)
         self._dispatch_closed = True
         primary = await self._bounded_cleanup(
@@ -661,6 +843,12 @@ class Agent:
         if original is None and primary is not None:
             raise primary
 
+    async def _close_worker_trust(self) -> None:
+        async with self._trust_reconnect_lock:
+            lifecycle, self._worker_trust = self._worker_trust, None
+            if lifecycle is not None:
+                await lifecycle.close()
+
     def _default_heartbeat_payload(self) -> bytes:
         return heartbeat_payload(
             worker_id=self._sender_id,
@@ -668,19 +856,27 @@ class Agent:
             active_jobs=len(self._active_jobs),
             max_parallel=self._max_parallel,
             cpu_load=0.0,
+            session_token=self._outbound_session_token(),
         )
 
     async def run(self) -> None:
         """Start the agent and block until interrupted."""
-        await self.start()
+        startup = asyncio.create_task(self.start())
         primary: Optional[BaseException] = None
         try:
+            await asyncio.shield(startup)
             while True:
                 await asyncio.sleep(1)
         except BaseException as exc:
             primary = exc
+            if isinstance(exc, asyncio.CancelledError) and not startup.done():
+                startup.cancel()
+                await asyncio.gather(startup, return_exceptions=True)
             raise
         finally:
+            if not startup.done():
+                startup.cancel()
+                await asyncio.gather(startup, return_exceptions=True)
             try:
                 await self.close()
             except BaseException as exc:
@@ -688,45 +884,48 @@ class Agent:
                     raise
                 self._safe_cleanup_log("agent close", exc)
 
+    def _decode_admitted_packet(
+        self, payload: bytes
+    ) -> Optional[buspacket_pb2.BusPacket]:
+        if not self._trust_admitting:
+            return None
+        settings = self._trust_settings
+        if settings is None or settings.mode == WorkerTrustMode.OFF:
+            return decode_packet(payload, self._public_keys, self._logger)
+        if settings.mode == WorkerTrustMode.ENFORCE and not self.session_token:
+            return None
+        config = settings.config
+        if config is None:
+            return None
+        for public_key in config.scheduler_public_keys.values():
+            pins = {config.expected_scheduler_id: public_key}
+            packet = decode_packet(payload, pins, self._logger)
+            if packet is not None:
+                return packet
+        return None
+
     async def _on_direct_msg(self, msg: Any) -> None:
         """Route a direct worker message to the correct handler by topic."""
-        packet = buspacket_pb2.BusPacket()
-        try:
-            packet.ParseFromString(msg.data)
-        except Exception:
+        packet = self._decode_admitted_packet(msg.data)
+        if packet is None:
             return
         topic = packet.job_request.topic if packet.job_request else ""
         spec = self._handlers.get(topic)
         if spec is None:
             self._logger.warning("no handler for topic %s on direct subject", topic)
             return
-        await self._on_msg(msg, spec)
+        await self._on_msg(msg, spec, packet)
 
-    async def _on_msg(self, msg: Any, spec: HandlerSpec) -> None:
-        packet = buspacket_pb2.BusPacket()
-        try:
-            packet.ParseFromString(msg.data)
-        except Exception as exc:
-            self._logger.error("decode failed: %s", MalformedPacketError(str(exc)))
+    async def _on_msg(
+        self,
+        msg: Any,
+        spec: HandlerSpec,
+        packet: Optional[buspacket_pb2.BusPacket] = None,
+    ) -> None:
+        if packet is None:
+            packet = self._decode_admitted_packet(msg.data)
+        if packet is None:
             return
-
-        if self._public_keys is not None:
-            sender_key = self._public_keys.get(packet.sender_id)
-            if not sender_key:
-                self._logger.warning("no public key for sender", extra={"sender_id": packet.sender_id})
-                return
-            if not packet.signature:
-                self._logger.warning("missing signature: %s", SignatureMissingError(f"sender {packet.sender_id}"), extra={"sender_id": packet.sender_id})
-                return
-            signature = packet.signature
-            packet.ClearField("signature")
-            unsigned = packet.SerializeToString(deterministic=True)
-            packet.signature = signature
-            try:
-                sender_key.verify(signature, unsigned, ec.ECDSA(hashes.SHA256()))
-            except Exception:
-                self._logger.warning("invalid signature: %s", SignatureInvalidError(f"sender {packet.sender_id}"), extra={"sender_id": packet.sender_id})
-                return
 
         req = packet.job_request
         if not req.job_id:
@@ -900,13 +1099,16 @@ class Agent:
         ts.GetCurrentTime()
         packet.created_at.CopyFrom(ts)
         packet.job_result.CopyFrom(result)
-
-        if self._private_key is not None:
-            unsigned = packet.SerializeToString(deterministic=True)
-            packet.signature = self._private_key.sign(unsigned, ec.ECDSA(hashes.SHA256()))
+        outgoing = finalize_packet(
+            packet,
+            self._private_key,
+            session_token=self._outbound_session_token(),
+        )
 
         await self._with_timeout(
-            self._nc.publish(SUBJECT_RESULT, packet.SerializeToString(deterministic=True)),
+            self._nc.publish(
+                SUBJECT_RESULT, outgoing.SerializeToString(deterministic=True)
+            ),
             "result publish",
         )
 

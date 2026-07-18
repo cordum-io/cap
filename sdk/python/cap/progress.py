@@ -5,12 +5,12 @@ These helpers build and publish progress/cancel BusPacket envelopes.
 
 from typing import Optional
 
-from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from google.protobuf import timestamp_pb2
 
 from cap.client import DEFAULT_PROTOCOL_VERSION
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
+from cap.packet_boundary import Publisher, finalize_packet, parse_packet
 from cap.subjects import SUBJECT_CANCEL, SUBJECT_PROGRESS
 
 
@@ -20,6 +20,8 @@ def progress_payload(
     step_id: str,
     percent: int,
     message: str,
+    *,
+    session_token: Optional[str] = None,
 ) -> bytes:
     """Build a progress payload wrapped in a BusPacket envelope."""
     ts = timestamp_pb2.Timestamp()
@@ -38,7 +40,8 @@ def progress_payload(
             message=message,
         )
     )
-    return packet.SerializeToString(deterministic=True)
+    outgoing = finalize_packet(packet, session_token=session_token)
+    return outgoing.SerializeToString(deterministic=True)
 
 
 def cancel_payload(
@@ -46,6 +49,8 @@ def cancel_payload(
     job_id: str,
     reason: str,
     requested_by: str,
+    *,
+    session_token: Optional[str] = None,
 ) -> bytes:
     """Build a cancel payload wrapped in a BusPacket envelope."""
     ts = timestamp_pb2.Timestamp()
@@ -63,40 +68,35 @@ def cancel_payload(
             requested_by=requested_by,
         )
     )
-    return packet.SerializeToString(deterministic=True)
+    outgoing = finalize_packet(packet, session_token=session_token)
+    return outgoing.SerializeToString(deterministic=True)
 
 
 async def emit_progress(
-    nc,
+    nc: Publisher,
     payload: bytes,
     private_key: Optional[ec.EllipticCurvePrivateKey] = None,
+    *,
+    session_token: Optional[str] = None,
 ) -> None:
     """Publish one progress packet to the progress subject."""
-    data = payload
-    if private_key is not None:
-        packet = buspacket_pb2.BusPacket()
-        packet.ParseFromString(payload)
-        packet.ClearField("signature")
-        unsigned_data = packet.SerializeToString(deterministic=True)
-        packet.signature = private_key.sign(unsigned_data, ec.ECDSA(hashes.SHA256()))
-        data = packet.SerializeToString(deterministic=True)
-
+    packet = finalize_packet(
+        parse_packet(payload), private_key, session_token=session_token
+    )
+    data = packet.SerializeToString(deterministic=True)
     await nc.publish(SUBJECT_PROGRESS, data)
 
 
 async def emit_cancel(
-    nc,
+    nc: Publisher,
     payload: bytes,
     private_key: Optional[ec.EllipticCurvePrivateKey] = None,
+    *,
+    session_token: Optional[str] = None,
 ) -> None:
     """Publish one cancel packet to the cancel subject."""
-    data = payload
-    if private_key is not None:
-        packet = buspacket_pb2.BusPacket()
-        packet.ParseFromString(payload)
-        packet.ClearField("signature")
-        unsigned_data = packet.SerializeToString(deterministic=True)
-        packet.signature = private_key.sign(unsigned_data, ec.ECDSA(hashes.SHA256()))
-        data = packet.SerializeToString(deterministic=True)
-
+    packet = finalize_packet(
+        parse_packet(payload), private_key, session_token=session_token
+    )
+    data = packet.SerializeToString(deterministic=True)
     await nc.publish(SUBJECT_CANCEL, data)

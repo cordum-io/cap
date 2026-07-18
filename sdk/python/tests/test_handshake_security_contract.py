@@ -8,7 +8,8 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from google.protobuf import timestamp_pb2
 
 from cap.client import submit_job
-from cap.handshake import handshake_payload
+from cap.errors import InvalidInputError
+from cap.handshake import handshake_payload, publish_handshake
 from cap.heartbeat import heartbeat_payload
 from cap.pb.cordum.agent.v1 import buspacket_pb2, handshake_pb2, job_pb2
 from cap.progress import cancel_payload, progress_payload
@@ -170,17 +171,39 @@ class TestEnvelopeSecurityContract(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(validate_bus_packet(packet), [])
 
     def test_handshake_sender_must_match_component_identity(self) -> None:
-        packet = buspacket_pb2.BusPacket()
-        packet.ParseFromString(
+        with self.assertRaises(InvalidInputError):
             handshake_payload(
                 component_id="worker-security",
                 sender_id="forged-worker",
             )
+
+    async def test_invalid_handshake_is_rejected_before_publish(self) -> None:
+        bus = _MockNats()
+        with self.assertRaises(InvalidInputError):
+            await publish_handshake(
+                bus,
+                component_id="worker-security",
+                sender_id="forged-worker",
+            )
+        self.assertEqual([], bus.published)
+
+    async def test_handshake_token_is_attached_before_signature(self) -> None:
+        bus = _MockNats()
+        private_key = ec.generate_private_key(ec.SECP256R1())
+        await publish_handshake(
+            bus,
+            component_id="worker-security",
+            private_key=private_key,
+            session_token="session-security",
         )
-        errors = validate_bus_packet(packet)
-        self.assertTrue(
-            any(error.field == "handshake.component_id" for error in errors),
-            "handshake component_id must equal the authenticated envelope sender_id",
+        packet = buspacket_pb2.BusPacket.FromString(bus.published[0][1])
+        self.assertEqual("session-security", packet.auth_token)
+        signature = packet.signature
+        packet.ClearField("signature")
+        private_key.public_key().verify(
+            signature,
+            packet.SerializeToString(deterministic=True),
+            ec.ECDSA(hashes.SHA256()),
         )
 
     async def test_invalid_envelope_never_reaches_worker_handler(self) -> None:

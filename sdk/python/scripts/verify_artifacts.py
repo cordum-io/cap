@@ -23,7 +23,7 @@ from typing import Callable, Dict, Mapping, Optional, Sequence, Tuple
 SCRIPT_ROOT = Path(__file__).resolve().parent
 if str(SCRIPT_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPT_ROOT))
-from artifact_contract import verify_artifact_names, verify_build_metadata, verify_inventory, verify_source_bytes
+from artifact_contract import verify_artifact_names, verify_build_metadata, verify_inventory, verify_source_bytes, verify_worker_trust_smoke
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -44,7 +44,6 @@ EXPECTED_IMPORTS = tuple(sorted(
 ))
 SMOKE_SCRIPT = Path(__file__).with_name("artifact_smoke.py")
 DEPENDENCY_FLOORS = {"protobuf": "6.31.1", "grpcio": "1.76.0"}
-
 
 class VerificationError(RuntimeError):
     """An explicit artifact-contract violation."""
@@ -256,8 +255,9 @@ def _consumer_check(artifact: Path, python: Path, timeout: int) -> Mapping[str, 
         }
         for name, expected in DEPENDENCY_FLOORS.items():
             _require(versions[name] == expected, f"{name} exact floor mismatch: {versions[name]} != {expected}")
+        verify_worker_trust_smoke(evidence, _require)
         return {"dependency_versions": versions, "imports": len(EXPECTED_IMPORTS),
-                "pip_check": "ok", "source_shadow": "absent"}
+                "pip_check": "ok", "source_shadow": "absent", "worker_trust": "ok"}
 
 
 def verify_artifacts(wheel: Path, sdist: Path, python: Path, timeout: int) -> Mapping[str, object]:

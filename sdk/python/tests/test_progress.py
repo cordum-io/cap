@@ -11,6 +11,7 @@ from cap.progress import (
     emit_progress,
     progress_payload,
 )
+from cap.errors import InvalidInputError
 from cap.pb.cordum.agent.v1 import buspacket_pb2
 from cap.subjects import SUBJECT_CANCEL, SUBJECT_PROGRESS
 from cap.validate import validate_bus_packet
@@ -102,14 +103,18 @@ class TestCancelPayload(unittest.TestCase):
             sender_id="worker-1",
             job_id="job-1",
             reason="",
-            requested_by="",
+            requested_by="scheduler-1",
         )
         packet = buspacket_pb2.BusPacket()
         packet.ParseFromString(payload)
 
         self.assertEqual(packet.job_cancel.job_id, "job-1")
         self.assertEqual(packet.job_cancel.reason, "")
-        self.assertEqual(packet.job_cancel.requested_by, "")
+        self.assertEqual(packet.job_cancel.requested_by, "scheduler-1")
+
+    def test_cancel_payload_requires_requester(self):
+        with self.assertRaises(InvalidInputError):
+            cancel_payload("worker-1", "job-1", "stop", "")
 
 
 class TestEmitProgress(unittest.IsolatedAsyncioTestCase):

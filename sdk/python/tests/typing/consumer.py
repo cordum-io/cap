@@ -4,7 +4,10 @@ This file is a static fixture. It is type-checked but never executed.
 """
 
 from dataclasses import dataclass
-from typing import Optional
+from datetime import datetime, timezone
+from typing import Optional, cast
+
+from cryptography.hazmat.primitives.asymmetric import ec
 
 from cap import (
     Agent,
@@ -13,11 +16,20 @@ from cap import (
     Context,
     InMemoryBlobStore,
     MetricsHook,
+    WORKER_HANDSHAKE_AUDIENCE,
+    WorkerHandshakeRequestOptions,
+    WorkerTrustConfig,
+    WorkerTrustMode,
+    build_challenge_request,
     cancel_payload,
     handshake_payload,
     heartbeat_payload_with_progress,
+    marshal_worker_trust_packet,
+    parse_worker_trust_mode,
     progress_payload,
     run_worker,
+    unmarshal_worker_trust_packet,
+    validate_worker_trust_config,
 )
 from cap.worker import JobHandler
 
@@ -143,6 +155,38 @@ def protocol_payloads() -> tuple[bytes, bytes, bytes]:
         requested_by="user-456",
     )
     return handshake, progress, cancellation
+
+
+def worker_trust_challenge() -> bytes:
+    """Build and round-trip a typed authenticated worker challenge request."""
+    proof_key = ec.generate_private_key(ec.SECP256R1())
+    config = WorkerTrustConfig(
+        worker_id="orders-worker",
+        expected_agent_id="orders-agent",
+        tenant_id="orders-tenant",
+        audience=WORKER_HANDSHAKE_AUDIENCE,
+        proof_key_id="orders-key",
+        proof_private_key=proof_key,
+        expected_scheduler_id="orders-scheduler",
+        scheduler_public_keys={"scheduler-key": proof_key.public_key()},
+        sdk_version="consumer-fixture",
+    )
+    validate_worker_trust_config(config)
+    options = WorkerHandshakeRequestOptions(
+        request_id="request-123",
+        trace_id="trace-123",
+        purpose=1,
+        client_nonce=b"c" * 32,
+        created_at=datetime.now(timezone.utc),
+    )
+    request = build_challenge_request(config, options)
+    encoded = marshal_worker_trust_packet(request)
+    decoded = unmarshal_worker_trust_packet(encoded)
+    mode = parse_worker_trust_mode("enforce")
+    assert mode is WorkerTrustMode.ENFORCE
+    assert cast(str, decoded.sender_id) == config.worker_id
+    assert cast(int, decoded.protocol_version) == 1
+    return encoded
 
 
 def describe_error(error: CAPError) -> tuple[str, int, Optional[str]]:

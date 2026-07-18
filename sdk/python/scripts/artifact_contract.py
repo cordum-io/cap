@@ -24,6 +24,22 @@ SDIST_ROOT_FILES = ("LICENSE", "PKG-INFO", "README.md", "pyproject.toml", "setup
 SETUP_CFG = b"[egg_info]\ntag_build = \ntag_date = 0\n\n"
 
 
+def verify_worker_trust_smoke(evidence: Mapping[str, object], require: Require) -> None:
+    """Require installed public trust builders/codecs to round-trip safely."""
+    worker_trust = evidence.get("worker_trust")
+    if not isinstance(worker_trust, dict):
+        require(False, "worker trust smoke is missing")
+        return
+    expected = {"mode": "enforce", "protocol_version": 1,
+                "sender_id": "artifact-worker"}
+    for field, value in expected.items():
+        require(worker_trust.get(field) == value,
+                f"worker trust smoke {field} mismatch")
+    size = worker_trust.get("challenge_bytes")
+    require(isinstance(size, int) and not isinstance(size, bool) and 0 < size <= 65536,
+            "worker trust smoke challenge size is invalid")
+
+
 def verify_artifact_names(
     wheel: Path,
     sdist: Path,

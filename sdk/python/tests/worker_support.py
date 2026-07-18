@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Awaitable, Callable, Dict, List, Optional, Tuple
 
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
+from google.protobuf import timestamp_pb2
 
 
 @dataclass(frozen=True)
@@ -111,6 +112,9 @@ def job_packet(
         sender_id="test-client",
         protocol_version=1,
     )
+    timestamp = timestamp_pb2.Timestamp()
+    timestamp.GetCurrentTime()
+    packet.created_at.CopyFrom(timestamp)
     packet.job_request.CopyFrom(job_pb2.JobRequest(job_id=job_id, topic=topic))
     return packet
 

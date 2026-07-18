@@ -13,13 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = (function() {
-  if (this) { return this; }
-  if (typeof window !== 'undefined') { return window; }
-  if (typeof global !== 'undefined') { return global; }
-  if (typeof self !== 'undefined') { return self; }
-  return Function('return this')();
-}.call(null));
+var global =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof global !== 'undefined' && global) ||
+    (typeof self !== 'undefined' && self) ||
+    (function () { return this; }).call(null) ||
+    Function('return this')();
 
 var google_protobuf_timestamp_pb = require('google-protobuf/google/protobuf/timestamp_pb.js');
 goog.object.extend(proto, google_protobuf_timestamp_pb);
@@ -63,7 +63,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.cordum.agent.v1.BusPacket.oneofGroups_ = [[10,11,12,13,15,16,17]];
+proto.cordum.agent.v1.BusPacket.oneofGroups_ = [[10,11,12,13,15,16,17,19,20,21,22]];
 
 /**
  * @enum {number}
@@ -76,7 +76,11 @@ proto.cordum.agent.v1.BusPacket.PayloadCase = {
   ALERT: 13,
   JOB_PROGRESS: 15,
   JOB_CANCEL: 16,
-  HANDSHAKE: 17
+  HANDSHAKE: 17,
+  WORKER_HANDSHAKE_CHALLENGE_REQUEST: 19,
+  WORKER_HANDSHAKE_CHALLENGE: 20,
+  WORKER_HANDSHAKE_AUTHENTICATE: 21,
+  WORKER_HANDSHAKE_RESULT: 22
 };
 
 /**
@@ -117,19 +121,23 @@ proto.cordum.agent.v1.BusPacket.prototype.toObject = function(opt_includeInstanc
  */
 proto.cordum.agent.v1.BusPacket.toObject = function(includeInstance, msg) {
   var f, obj = {
-    traceId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    senderId: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    createdAt: (f = msg.getCreatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
-    protocolVersion: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    jobRequest: (f = msg.getJobRequest()) && cordum_agent_v1_job_pb.JobRequest.toObject(includeInstance, f),
-    jobResult: (f = msg.getJobResult()) && cordum_agent_v1_job_pb.JobResult.toObject(includeInstance, f),
-    heartbeat: (f = msg.getHeartbeat()) && cordum_agent_v1_heartbeat_pb.Heartbeat.toObject(includeInstance, f),
-    alert: (f = msg.getAlert()) && cordum_agent_v1_alert_pb.SystemAlert.toObject(includeInstance, f),
-    jobProgress: (f = msg.getJobProgress()) && cordum_agent_v1_job_pb.JobProgress.toObject(includeInstance, f),
-    jobCancel: (f = msg.getJobCancel()) && cordum_agent_v1_job_pb.JobCancel.toObject(includeInstance, f),
-    handshake: (f = msg.getHandshake()) && cordum_agent_v1_handshake_pb.Handshake.toObject(includeInstance, f),
-    signature: msg.getSignature_asB64(),
-    authToken: jspb.Message.getFieldWithDefault(msg, 18, "")
+traceId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+senderId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+createdAt: (f = msg.getCreatedAt()) && google_protobuf_timestamp_pb.Timestamp.toObject(includeInstance, f),
+protocolVersion: jspb.Message.getFieldWithDefault(msg, 4, 0),
+jobRequest: (f = msg.getJobRequest()) && cordum_agent_v1_job_pb.JobRequest.toObject(includeInstance, f),
+jobResult: (f = msg.getJobResult()) && cordum_agent_v1_job_pb.JobResult.toObject(includeInstance, f),
+heartbeat: (f = msg.getHeartbeat()) && cordum_agent_v1_heartbeat_pb.Heartbeat.toObject(includeInstance, f),
+alert: (f = msg.getAlert()) && cordum_agent_v1_alert_pb.SystemAlert.toObject(includeInstance, f),
+jobProgress: (f = msg.getJobProgress()) && cordum_agent_v1_job_pb.JobProgress.toObject(includeInstance, f),
+jobCancel: (f = msg.getJobCancel()) && cordum_agent_v1_job_pb.JobCancel.toObject(includeInstance, f),
+handshake: (f = msg.getHandshake()) && cordum_agent_v1_handshake_pb.Handshake.toObject(includeInstance, f),
+workerHandshakeChallengeRequest: (f = msg.getWorkerHandshakeChallengeRequest()) && cordum_agent_v1_handshake_pb.WorkerHandshakeChallengeRequest.toObject(includeInstance, f),
+workerHandshakeChallenge: (f = msg.getWorkerHandshakeChallenge()) && cordum_agent_v1_handshake_pb.WorkerHandshakeChallenge.toObject(includeInstance, f),
+workerHandshakeAuthenticate: (f = msg.getWorkerHandshakeAuthenticate()) && cordum_agent_v1_handshake_pb.WorkerHandshakeAuthenticate.toObject(includeInstance, f),
+workerHandshakeResult: (f = msg.getWorkerHandshakeResult()) && cordum_agent_v1_handshake_pb.WorkerHandshakeResult.toObject(includeInstance, f),
+signature: msg.getSignature_asB64(),
+authToken: jspb.Message.getFieldWithDefault(msg, 18, "")
   };
 
   if (includeInstance) {
@@ -217,6 +225,26 @@ proto.cordum.agent.v1.BusPacket.deserializeBinaryFromReader = function(msg, read
       var value = new cordum_agent_v1_handshake_pb.Handshake;
       reader.readMessage(value,cordum_agent_v1_handshake_pb.Handshake.deserializeBinaryFromReader);
       msg.setHandshake(value);
+      break;
+    case 19:
+      var value = new cordum_agent_v1_handshake_pb.WorkerHandshakeChallengeRequest;
+      reader.readMessage(value,cordum_agent_v1_handshake_pb.WorkerHandshakeChallengeRequest.deserializeBinaryFromReader);
+      msg.setWorkerHandshakeChallengeRequest(value);
+      break;
+    case 20:
+      var value = new cordum_agent_v1_handshake_pb.WorkerHandshakeChallenge;
+      reader.readMessage(value,cordum_agent_v1_handshake_pb.WorkerHandshakeChallenge.deserializeBinaryFromReader);
+      msg.setWorkerHandshakeChallenge(value);
+      break;
+    case 21:
+      var value = new cordum_agent_v1_handshake_pb.WorkerHandshakeAuthenticate;
+      reader.readMessage(value,cordum_agent_v1_handshake_pb.WorkerHandshakeAuthenticate.deserializeBinaryFromReader);
+      msg.setWorkerHandshakeAuthenticate(value);
+      break;
+    case 22:
+      var value = new cordum_agent_v1_handshake_pb.WorkerHandshakeResult;
+      reader.readMessage(value,cordum_agent_v1_handshake_pb.WorkerHandshakeResult.deserializeBinaryFromReader);
+      msg.setWorkerHandshakeResult(value);
       break;
     case 14:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
@@ -338,6 +366,38 @@ proto.cordum.agent.v1.BusPacket.serializeBinaryToWriter = function(message, writ
       17,
       f,
       cordum_agent_v1_handshake_pb.Handshake.serializeBinaryToWriter
+    );
+  }
+  f = message.getWorkerHandshakeChallengeRequest();
+  if (f != null) {
+    writer.writeMessage(
+      19,
+      f,
+      cordum_agent_v1_handshake_pb.WorkerHandshakeChallengeRequest.serializeBinaryToWriter
+    );
+  }
+  f = message.getWorkerHandshakeChallenge();
+  if (f != null) {
+    writer.writeMessage(
+      20,
+      f,
+      cordum_agent_v1_handshake_pb.WorkerHandshakeChallenge.serializeBinaryToWriter
+    );
+  }
+  f = message.getWorkerHandshakeAuthenticate();
+  if (f != null) {
+    writer.writeMessage(
+      21,
+      f,
+      cordum_agent_v1_handshake_pb.WorkerHandshakeAuthenticate.serializeBinaryToWriter
+    );
+  }
+  f = message.getWorkerHandshakeResult();
+  if (f != null) {
+    writer.writeMessage(
+      22,
+      f,
+      cordum_agent_v1_handshake_pb.WorkerHandshakeResult.serializeBinaryToWriter
     );
   }
   f = message.getSignature_asU8();
@@ -704,6 +764,154 @@ proto.cordum.agent.v1.BusPacket.prototype.clearHandshake = function() {
  */
 proto.cordum.agent.v1.BusPacket.prototype.hasHandshake = function() {
   return jspb.Message.getField(this, 17) != null;
+};
+
+
+/**
+ * optional WorkerHandshakeChallengeRequest worker_handshake_challenge_request = 19;
+ * @return {?proto.cordum.agent.v1.WorkerHandshakeChallengeRequest}
+ */
+proto.cordum.agent.v1.BusPacket.prototype.getWorkerHandshakeChallengeRequest = function() {
+  return /** @type{?proto.cordum.agent.v1.WorkerHandshakeChallengeRequest} */ (
+    jspb.Message.getWrapperField(this, cordum_agent_v1_handshake_pb.WorkerHandshakeChallengeRequest, 19));
+};
+
+
+/**
+ * @param {?proto.cordum.agent.v1.WorkerHandshakeChallengeRequest|undefined} value
+ * @return {!proto.cordum.agent.v1.BusPacket} returns this
+*/
+proto.cordum.agent.v1.BusPacket.prototype.setWorkerHandshakeChallengeRequest = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 19, proto.cordum.agent.v1.BusPacket.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.cordum.agent.v1.BusPacket} returns this
+ */
+proto.cordum.agent.v1.BusPacket.prototype.clearWorkerHandshakeChallengeRequest = function() {
+  return this.setWorkerHandshakeChallengeRequest(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.cordum.agent.v1.BusPacket.prototype.hasWorkerHandshakeChallengeRequest = function() {
+  return jspb.Message.getField(this, 19) != null;
+};
+
+
+/**
+ * optional WorkerHandshakeChallenge worker_handshake_challenge = 20;
+ * @return {?proto.cordum.agent.v1.WorkerHandshakeChallenge}
+ */
+proto.cordum.agent.v1.BusPacket.prototype.getWorkerHandshakeChallenge = function() {
+  return /** @type{?proto.cordum.agent.v1.WorkerHandshakeChallenge} */ (
+    jspb.Message.getWrapperField(this, cordum_agent_v1_handshake_pb.WorkerHandshakeChallenge, 20));
+};
+
+
+/**
+ * @param {?proto.cordum.agent.v1.WorkerHandshakeChallenge|undefined} value
+ * @return {!proto.cordum.agent.v1.BusPacket} returns this
+*/
+proto.cordum.agent.v1.BusPacket.prototype.setWorkerHandshakeChallenge = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 20, proto.cordum.agent.v1.BusPacket.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.cordum.agent.v1.BusPacket} returns this
+ */
+proto.cordum.agent.v1.BusPacket.prototype.clearWorkerHandshakeChallenge = function() {
+  return this.setWorkerHandshakeChallenge(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.cordum.agent.v1.BusPacket.prototype.hasWorkerHandshakeChallenge = function() {
+  return jspb.Message.getField(this, 20) != null;
+};
+
+
+/**
+ * optional WorkerHandshakeAuthenticate worker_handshake_authenticate = 21;
+ * @return {?proto.cordum.agent.v1.WorkerHandshakeAuthenticate}
+ */
+proto.cordum.agent.v1.BusPacket.prototype.getWorkerHandshakeAuthenticate = function() {
+  return /** @type{?proto.cordum.agent.v1.WorkerHandshakeAuthenticate} */ (
+    jspb.Message.getWrapperField(this, cordum_agent_v1_handshake_pb.WorkerHandshakeAuthenticate, 21));
+};
+
+
+/**
+ * @param {?proto.cordum.agent.v1.WorkerHandshakeAuthenticate|undefined} value
+ * @return {!proto.cordum.agent.v1.BusPacket} returns this
+*/
+proto.cordum.agent.v1.BusPacket.prototype.setWorkerHandshakeAuthenticate = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 21, proto.cordum.agent.v1.BusPacket.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.cordum.agent.v1.BusPacket} returns this
+ */
+proto.cordum.agent.v1.BusPacket.prototype.clearWorkerHandshakeAuthenticate = function() {
+  return this.setWorkerHandshakeAuthenticate(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.cordum.agent.v1.BusPacket.prototype.hasWorkerHandshakeAuthenticate = function() {
+  return jspb.Message.getField(this, 21) != null;
+};
+
+
+/**
+ * optional WorkerHandshakeResult worker_handshake_result = 22;
+ * @return {?proto.cordum.agent.v1.WorkerHandshakeResult}
+ */
+proto.cordum.agent.v1.BusPacket.prototype.getWorkerHandshakeResult = function() {
+  return /** @type{?proto.cordum.agent.v1.WorkerHandshakeResult} */ (
+    jspb.Message.getWrapperField(this, cordum_agent_v1_handshake_pb.WorkerHandshakeResult, 22));
+};
+
+
+/**
+ * @param {?proto.cordum.agent.v1.WorkerHandshakeResult|undefined} value
+ * @return {!proto.cordum.agent.v1.BusPacket} returns this
+*/
+proto.cordum.agent.v1.BusPacket.prototype.setWorkerHandshakeResult = function(value) {
+  return jspb.Message.setOneofWrapperField(this, 22, proto.cordum.agent.v1.BusPacket.oneofGroups_[0], value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.cordum.agent.v1.BusPacket} returns this
+ */
+proto.cordum.agent.v1.BusPacket.prototype.clearWorkerHandshakeResult = function() {
+  return this.setWorkerHandshakeResult(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.cordum.agent.v1.BusPacket.prototype.hasWorkerHandshakeResult = function() {
+  return jspb.Message.getField(this, 22) != null;
 };
 
 

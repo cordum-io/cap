@@ -18,6 +18,12 @@ from .heartbeat import (
     heartbeat_loop,
 )
 from .handshake import handshake_payload, publish_handshake
+from .trust_signing import (
+    TrustSigningError,
+    sign_trust_packet,
+    trust_packet_digest,
+    verify_trust_packet,
+)
 from .progress import (
     progress_payload,
     cancel_payload,
@@ -84,6 +90,10 @@ __all__ = [
     "heartbeat_loop",
     "handshake_payload",
     "publish_handshake",
+    "TrustSigningError",
+    "sign_trust_packet",
+    "trust_packet_digest",
+    "verify_trust_packet",
     "progress_payload",
     "cancel_payload",
     "emit_progress",

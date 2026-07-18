@@ -1,0 +1,10 @@
+# Generated exactly from pinned protobuf plugins; keep review and whitespace
+# tooling focused on authored source while retaining normal textual diffs.
+/cordum/agent/v1/*.pb.go linguist-generated=true whitespace=-trailing-space
+/cpp/cordum/agent/v1/*.pb.cc linguist-generated=true whitespace=-trailing-space
+/cpp/cordum/agent/v1/*.pb.h linguist-generated=true whitespace=-trailing-space
+/node/cap_pb.* linguist-generated=true whitespace=-trailing-space
+/node/cordum/agent/v1/*_pb.* linguist-generated=true whitespace=-trailing-space
+/python/cordum/agent/v1/*_pb2*.py linguist-generated=true whitespace=-trailing-space
+/sdk/python/cap/pb/cordum/agent/v1/*_pb2*.py linguist-generated=true whitespace=-trailing-space
+/sdk/ruby/proto/cordum/agent/v1/*_pb.rb linguist-generated=true whitespace=-trailing-space

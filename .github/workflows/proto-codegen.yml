@@ -1,0 +1,65 @@
+name: Proto codegen
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  generated-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.18.1
+          cache: npm
+          cache-dependency-path: tools/codegen/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12.8
+          cache: pip
+          cache-dependency-path: sdk/python/requirements-codegen.txt
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17.0.13+11
+          cache: maven
+      - uses: dtolnay/rust-toolchain@1.85.1
+      - name: Install generated-language build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes cmake libprotobuf-dev ruby
+          python -m pip install -r sdk/python/requirements-codegen.txt
+          gem install google-protobuf --version 4.33.2 --no-document
+      - name: Test the fail-closed generator
+        run: python -m unittest discover -s tools/tests -p 'test_*proto_codegen.py' -v
+      - name: Lint, breaking, idempotence, and tracked drift
+        run: bash tools/make_protos.sh --check
+      - name: Compile checked-in Go and C++ outputs
+        run: |
+          go test ./cordum/agent/v1
+          cmake -S sdk/cpp -B "${RUNNER_TEMP}/cap-cpp"
+          cmake --build "${RUNNER_TEMP}/cap-cpp" --parallel 2
+      - name: Compile checked-in Node, Python, and Ruby outputs
+        run: |
+          find node -name '*.js' -print0 | xargs -0 -n1 node --check
+          NODE_PATH="$PWD/tools/codegen/node_modules" node -e "require('./node/cap_pb.js'); for (const f of require('fs').readdirSync('./node/cordum/agent/v1').filter(f => f.endsWith('_pb.js'))) require('./node/cordum/agent/v1/' + f)"
+          node tools/codegen/node_modules/typescript/bin/tsc --project tools/codegen/tsconfig.generated.json
+          python -m compileall -q python sdk/python/cap/pb
+          PYTHONPATH=python python -c "from cordum.agent.v1 import buspacket_pb2, policy_pb2"
+          PYTHONPATH=sdk/python/cap/pb python -c "from cordum.agent.v1 import buspacket_pb2, policy_pb2"
+          find sdk/ruby/proto -name '*_pb.rb' -print0 | xargs -0 -n1 ruby -c
+          ruby -I sdk/ruby/proto -e "require 'cordum/agent/v1/buspacket_pb'; require 'cordum/agent/v1/policy_pb'"
+      - name: Compile build-generated Java and Rust outputs
+        run: |
+          mvn --batch-mode --file sdk/java/pom.xml test
+          cargo test --manifest-path sdk/rust/Cargo.toml

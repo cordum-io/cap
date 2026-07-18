@@ -58,6 +58,26 @@ export class BusPacket extends jspb.Message {
   getHandshake(): cordum_agent_v1_handshake_pb.Handshake | undefined;
   setHandshake(value?: cordum_agent_v1_handshake_pb.Handshake): void;
 
+  hasWorkerHandshakeChallengeRequest(): boolean;
+  clearWorkerHandshakeChallengeRequest(): void;
+  getWorkerHandshakeChallengeRequest(): cordum_agent_v1_handshake_pb.WorkerHandshakeChallengeRequest | undefined;
+  setWorkerHandshakeChallengeRequest(value?: cordum_agent_v1_handshake_pb.WorkerHandshakeChallengeRequest): void;
+
+  hasWorkerHandshakeChallenge(): boolean;
+  clearWorkerHandshakeChallenge(): void;
+  getWorkerHandshakeChallenge(): cordum_agent_v1_handshake_pb.WorkerHandshakeChallenge | undefined;
+  setWorkerHandshakeChallenge(value?: cordum_agent_v1_handshake_pb.WorkerHandshakeChallenge): void;
+
+  hasWorkerHandshakeAuthenticate(): boolean;
+  clearWorkerHandshakeAuthenticate(): void;
+  getWorkerHandshakeAuthenticate(): cordum_agent_v1_handshake_pb.WorkerHandshakeAuthenticate | undefined;
+  setWorkerHandshakeAuthenticate(value?: cordum_agent_v1_handshake_pb.WorkerHandshakeAuthenticate): void;
+
+  hasWorkerHandshakeResult(): boolean;
+  clearWorkerHandshakeResult(): void;
+  getWorkerHandshakeResult(): cordum_agent_v1_handshake_pb.WorkerHandshakeResult | undefined;
+  setWorkerHandshakeResult(value?: cordum_agent_v1_handshake_pb.WorkerHandshakeResult): void;
+
   getSignature(): Uint8Array | string;
   getSignature_asU8(): Uint8Array;
   getSignature_asB64(): string;
@@ -90,6 +110,10 @@ export namespace BusPacket {
     jobProgress?: cordum_agent_v1_job_pb.JobProgress.AsObject,
     jobCancel?: cordum_agent_v1_job_pb.JobCancel.AsObject,
     handshake?: cordum_agent_v1_handshake_pb.Handshake.AsObject,
+    workerHandshakeChallengeRequest?: cordum_agent_v1_handshake_pb.WorkerHandshakeChallengeRequest.AsObject,
+    workerHandshakeChallenge?: cordum_agent_v1_handshake_pb.WorkerHandshakeChallenge.AsObject,
+    workerHandshakeAuthenticate?: cordum_agent_v1_handshake_pb.WorkerHandshakeAuthenticate.AsObject,
+    workerHandshakeResult?: cordum_agent_v1_handshake_pb.WorkerHandshakeResult.AsObject,
     signature: Uint8Array | string,
     authToken: string,
   }
@@ -103,6 +127,10 @@ export namespace BusPacket {
     JOB_PROGRESS = 15,
     JOB_CANCEL = 16,
     HANDSHAKE = 17,
+    WORKER_HANDSHAKE_CHALLENGE_REQUEST = 19,
+    WORKER_HANDSHAKE_CHALLENGE = 20,
+    WORKER_HANDSHAKE_AUTHENTICATE = 21,
+    WORKER_HANDSHAKE_RESULT = 22,
   }
 }
 

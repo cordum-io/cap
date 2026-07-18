@@ -105,7 +105,7 @@ impl AgentBuilder {
     }
 
     pub async fn build(self) -> Result<Agent, CapError> {
-        let nc = if let Some(nc) = self.config.nc {
+        let nc = if let Some(nc) = self.config.nc.clone() {
             nc
         } else {
             let bus_config = crate::bus::BusConfig {
@@ -141,7 +141,7 @@ impl Agent {
             let active_jobs = self.active_jobs.clone();
 
             let mut sub = nc
-                .queue_subscribe(subject.clone().into(), subject.clone().into())
+                .queue_subscribe(subject.clone(), subject.clone())
                 .await
                 .map_err(|e| CapError::subscribe_failed(&e.to_string()))?;
 
@@ -233,7 +233,7 @@ impl Agent {
                     }
 
                     let data = marshal_deterministic(&out);
-                    let _ = nc.publish(subjects::SUBJECT_RESULT.into(), data.into()).await;
+                    let _ = nc.publish(subjects::SUBJECT_RESULT, data.into()).await;
                 }
             });
         }

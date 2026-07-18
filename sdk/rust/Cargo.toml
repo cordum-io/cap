@@ -6,8 +6,8 @@ description = "Rust SDK for the Cordum Agent Protocol"
 license = "Apache-2.0"
 
 [dependencies]
-prost = "0.13"
-prost-types = "0.13"
+prost = "=0.13.5"
+prost-types = "=0.13.5"
 tokio = { version = "1", features = ["full"] }
 async-nats = "0.37"
 p256 = { version = "0.13", features = ["ecdsa", "pem"] }
@@ -18,7 +18,8 @@ bytes = "1"
 futures = "0.3"
 
 [build-dependencies]
-prost-build = "0.13"
+prost-build = "=0.13.5"
+protoc-bin-vendored = "=3.2.0"
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full", "test-util"] }

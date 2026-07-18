@@ -1,5 +1,6 @@
 package io.cordum.cap;
 
+import com.google.protobuf.util.Timestamps;
 import io.cordum.cap.agent.v1.BusPacket;
 import org.junit.jupiter.api.Test;
 
@@ -53,17 +54,20 @@ class HeartbeatTest {
     }
 
     @Test
-    void heartbeatLoopTicksAndStops() throws Exception {
-        Testing.RecordingMetrics metrics = new Testing.RecordingMetrics();
-
-        // Use a mock-like approach: we can't use real NATS here, but we can verify
-        // the heartbeat loop starts and stops cleanly via metrics.
-        // This test would require a NATS connection in a real integration test.
-        // For unit testing, verify payload construction is correct.
+    void heartbeatPayloadsHaveValidTimeAndStableSemantics() throws Exception {
         byte[] payload1 = Heartbeat.heartbeatPayload("w-1", "p", 0, 1, 0f);
         byte[] payload2 = Heartbeat.heartbeatPayload("w-1", "p", 0, 1, 0f);
 
-        // Deterministic: same input = same output
-        assertArrayEquals(payload1, payload2);
+        BusPacket packet1 = BusPacket.parseFrom(payload1);
+        BusPacket packet2 = BusPacket.parseFrom(payload2);
+        assertTrue(Timestamps.isValid(packet1.getCreatedAt()));
+        assertTrue(Timestamps.isValid(packet2.getCreatedAt()));
+        assertTrue(packet1.getCreatedAt().getSeconds() > 0);
+        assertTrue(packet2.getCreatedAt().getSeconds() > 0);
+
+        // Creation time is expected to vary; all other payload semantics are stable.
+        assertEquals(
+                packet1.toBuilder().clearCreatedAt().build(),
+                packet2.toBuilder().clearCreatedAt().build());
     }
 }

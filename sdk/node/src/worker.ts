@@ -6,12 +6,15 @@ import type {
 } from "nats";
 import type { Type } from "protobufjs";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
-import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import type { Logger } from "./logger";
 import type { MetricsHook } from "./metrics";
 import { noopMetrics } from "./metrics";
-import * as crypto from "crypto";
 import { verifyInboundPacket } from "./security";
+import {
+  encodeOutboundPacket,
+  type MutableBusPacket,
+  prepareOutboundPacket,
+} from "./packet-boundary";
 
 /** Callback that processes a decoded JobRequest and returns a JobResult. */
 type Handler = (jobRequest: any) => Promise<any>;
@@ -27,6 +30,7 @@ export interface WorkerConfig {
   handler: Handler;
   publicKeyMap?: { [senderId: string]: string }; // senderId -> public key in PEM format
   privateKey?: string; // private key in PEM format for signing outgoing messages
+  sessionToken?: string; // authenticated session attached before signing results
   senderId: string;
   /** Optional middleware applied in FIFO order before the handler. */
   middlewares?: WorkerMiddleware[];
@@ -42,10 +46,6 @@ interface JobRequestView {
 interface PacketView {
   traceId?: string;
   jobRequest?: JobRequestView;
-}
-
-interface SignablePacket {
-  signature?: Uint8Array;
 }
 
 interface WorkerTypes {
@@ -175,12 +175,8 @@ async function publishWorkerResult(
     protocolVersion: DEFAULT_PROTOCOL_VERSION,
     createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
     jobResult: resultMessage,
-  }) as unknown as SignablePacket;
-  if (cfg.privateKey) {
-    const signer = crypto.createSign("sha256");
-    signer.update(encodeUnsignedForSignature(types.busPacket, outgoing));
-    outgoing.signature = signer.sign(cfg.privateKey);
-  }
-  const data = encodeDeterministic(types.busPacket, outgoing);
+  }) as unknown as MutableBusPacket;
+  prepareOutboundPacket(outgoing, cfg.sessionToken);
+  const data = encodeOutboundPacket(types.busPacket, outgoing, cfg.privateKey);
   await cfg.nc.publish(SUBJECT_RESULT, data);
 }

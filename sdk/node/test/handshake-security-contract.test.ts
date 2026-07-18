@@ -193,15 +193,10 @@ describe("CAP handshake identity contract", () => {
   });
 
   it("requires handshake sender identity to equal component identity", async () => {
-    const packet = await handshakePayload(
-      "worker-security",
-      {},
-      "forged-worker"
-    );
-    const errors = validateBusPacket(packet);
-    assert.ok(
-      errors.some((error) => error.field === "handshake.component_id"),
-      "handshake componentId must equal the authenticated envelope senderId"
+    await assert.rejects(
+      () => handshakePayload("worker-security", {}, "forged-worker"),
+      /handshake\.component_id/,
+      "the self-validating builder must reject sender impersonation"
     );
   });
 });

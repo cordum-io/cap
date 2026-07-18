@@ -185,12 +185,15 @@ void describePacket();
         target: "ES2020",
         types: ["node"],
       },
-      include: ["consumer.ts"],
+      include: ["*.ts"],
     }),
   };
   fs.mkdirSync(consumerDir, { recursive: true });
   for (const [name, content] of Object.entries(files)) {
     fs.writeFileSync(path.join(consumerDir, name), `${content.trim()}\n`);
+  }
+  for (const name of ["package-trust-smoke.cjs", "package-trust-consumer.ts"]) {
+    fs.copyFileSync(path.join(SDK_ROOT, "scripts", name), path.join(consumerDir, name));
   }
 }
 
@@ -228,6 +231,8 @@ function verifyConsumer(tarball, tempDir) {
     consumerDir,
   );
   run(process.execPath, ["cjs-probe.cjs"], consumerDir);
+  const trustOutput = run(process.execPath, ["package-trust-smoke.cjs"], consumerDir);
+  if (trustOutput) console.log(trustOutput);
   run(process.execPath, ["esm-probe.mjs"], consumerDir);
 
   const tsc = path.join(consumerDir, "node_modules", "typescript", "bin", "tsc");

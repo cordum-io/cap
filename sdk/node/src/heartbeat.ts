@@ -1,11 +1,31 @@
 import { NatsConnection } from "nats";
-import * as crypto from "crypto";
-import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, DEFAULT_PROTOCOL_VERSION, SUBJECT_HEARTBEAT, sanitizeAgentName } from "./protos";
 import type { Logger } from "./logger";
 import type { MetricsHook } from "./metrics";
+import {
+  encodeOutboundPacket,
+  type MutableBusPacket,
+  prepareOutboundPacket,
+} from "./packet-boundary";
 
-export type HeartbeatPacket = any;
+export interface HeartbeatPacket extends MutableBusPacket {
+  createdAt: unknown;
+  heartbeat: {
+    activeJobs: number;
+    agentName?: string;
+    authToken?: string;
+    cpuLoad: number;
+    lastMemo: string;
+    maxParallelJobs: number;
+    memoryLoad: number;
+    pool: string;
+    progressPct: number;
+    workerId: string;
+  };
+  protocolVersion: number;
+  senderId: string;
+  traceId: string;
+}
 export interface HeartbeatLoopOptions {
   interval?: number;
   privateKey?: string;
@@ -23,9 +43,11 @@ export async function heartbeatPayload(
   maxParallel: number,
   cpuLoad: number,
   authToken = "",
-  agentName = ""
+  agentName = "",
+  sessionToken = ""
 ): Promise<HeartbeatPacket> {
-  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel, cpuLoad, 0, 0, "", authToken, agentName);
+  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel,
+    cpuLoad, 0, 0, "", authToken, agentName, sessionToken);
 }
 
 /**
@@ -39,9 +61,11 @@ export async function heartbeatPayloadWithMemory(
   cpuLoad: number,
   memoryLoad: number,
   authToken = "",
-  agentName = ""
+  agentName = "",
+  sessionToken = ""
 ): Promise<HeartbeatPacket> {
-  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel, cpuLoad, memoryLoad, 0, "", authToken, agentName);
+  return heartbeatPayloadWithProgress(workerId, pool, activeJobs, maxParallel,
+    cpuLoad, memoryLoad, 0, "", authToken, agentName, sessionToken);
 }
 
 /**
@@ -57,14 +81,15 @@ export async function heartbeatPayloadWithProgress(
   progressPct = 0,
   lastMemo = "",
   authToken = "",
-  agentName = ""
+  agentName = "",
+  sessionToken = ""
 ): Promise<HeartbeatPacket> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
   const normalizedAuthToken = authToken.trim();
   const normalizedAgentName = sanitizeAgentName(agentName);
 
-  return BusPacket.fromObject({
+  const packet = BusPacket.fromObject({
     traceId: workerId,
     senderId: workerId,
     protocolVersion: DEFAULT_PROTOCOL_VERSION,
@@ -81,7 +106,8 @@ export async function heartbeatPayloadWithProgress(
       ...(normalizedAuthToken ? { authToken: normalizedAuthToken } : {}),
       ...(normalizedAgentName ? { agentName: normalizedAgentName } : {}),
     },
-  });
+  }) as unknown as HeartbeatPacket;
+  return prepareOutboundPacket(packet, sessionToken);
 }
 
 /**
@@ -95,14 +121,7 @@ export async function emitHeartbeat(
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
 
-  if (privateKey) {
-    const unsignedData = encodeUnsignedForSignature(BusPacket, packet);
-    const sign = crypto.createSign("sha256");
-    sign.update(unsignedData);
-    packet.signature = sign.sign(privateKey);
-  }
-
-  const data = encodeDeterministic(BusPacket, packet);
+  const data = encodeOutboundPacket(BusPacket, packet, privateKey);
   await nc.publish(SUBJECT_HEARTBEAT, data);
 }
 

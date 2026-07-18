@@ -254,7 +254,7 @@ func TestValidateBusPacket(t *testing.T) {
 	t.Run("valid with job_result", func(t *testing.T) {
 		pkt := &agentv1.BusPacket{
 			TraceId:         "trace-1",
-			SenderId:        "sender-1",
+			SenderId:        "worker-1",
 			ProtocolVersion: 1,
 			CreatedAt:       timestamppb.Now(),
 			Payload:         &agentv1.BusPacket_JobResult{JobResult: validJobResult()},
@@ -267,7 +267,7 @@ func TestValidateBusPacket(t *testing.T) {
 	t.Run("valid with heartbeat", func(t *testing.T) {
 		pkt := &agentv1.BusPacket{
 			TraceId:         "trace-1",
-			SenderId:        "sender-1",
+			SenderId:        "w-1",
 			ProtocolVersion: 1,
 			CreatedAt:       timestamppb.Now(),
 			Payload:         &agentv1.BusPacket_Heartbeat{Heartbeat: &agentv1.Heartbeat{WorkerId: "w-1", Pool: "p-1"}},

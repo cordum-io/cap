@@ -1,37 +1,54 @@
-# Phase-2 Worker Handshake — Adapter Transparency Note
+# Authenticated worker trust handshake (Go runtime)
 
-The CAP Go runtime's `Agent.Start()` automatically sends a Phase-2 worker handshake to the scheduler before subscribing to job topics. This is a transparent upgrade for framework adapter maintainers.
+`Agent.Start()` requires an explicit `HandshakeMode`: `off`, `warn`, or
+`enforce`. In `warn` and `enforce`, it completes the signed protobuf
+challenge/authenticate exchange before subscribing to job subjects.
 
-## For adapter maintainers
+## Configuration
 
-If your adapter re-vends `Agent.Start()` (LangChain, CrewAI, AutoGen, OpenAI Agents SDK), **no code change is required**. Pass through the existing `Agent` configuration; the runtime handles the handshake.
+`warn` and `enforce` require a complete `capsdk.WorkerTrustConfig` in
+`Agent.WorkerTrust`:
 
-Useful fields if your adapter wants to expose explicit overrides to the user:
+- `WorkerID`, `ExpectedAgentID`, and `TenantID`
+- exact audience `capsdk.WorkerHandshakeAudience`
+- registered `ProofKeyID` and its P-256 `ProofPrivateKey`
+- `ExpectedSchedulerID` and one or more pinned P-256
+  `SchedulerPublicKeys`
+- `SDKVersion`
 
-| Field | Purpose | Default |
-|---|---|---|
-| `Tenant` | Scope the agent to a tenant record in `AgentIdentityStore`. | empty (handshake skipped in enforce mode when empty) |
-| `SDKVersion` | Version string used by the scheduler to bucket fleets. Adapters typically set this to `"cordum-<framework>/<version>"`. | `"cap-go/v2"` |
-| `HandshakeMode` | `off` / `warn` / `enforce`. | `off` |
-| `HandshakeTimeout` | Request/reply deadline. | 10s |
-| `HandshakeRetries` | Exponential-backoff retry count before giving up. | 3 |
+The trust proof key is intentionally separate from `Agent.PrivateKey`, which
+signs ordinary CAP packets. `SenderID`, when set, must equal
+`WorkerTrust.WorkerID`; otherwise the runtime derives it from the trust
+configuration. Partial configuration fails before the runtime opens NATS or
+Redis. `off` accepts no trust configuration or trust retry/timeout tuning, so
+an operator cannot silently disable a configured trust exchange.
 
-## Operator rollout
+`CORDUM_SDK_HANDSHAKE` may provide the explicit mode when `HandshakeMode` is
+empty. `Tenant` and `SDKVersion` remain legacy generic-advertisement settings
+only in `off`; they are not authentication authority.
 
-Operators control the scheduler-side enforcement via `CORDUM_HEARTBEAT_MODE` + `CORDUM_SDK_HANDSHAKE`. The SDK-side default is `off` so existing deploys keep working; operators flip adapters to `warn` → `enforce` on the same cadence as the scheduler-side flag.
+## Flow and renewal
 
-## Verifying the upgrade
+The runtime uses core NATS request/reply on
+`sys.worker.handshake.challenge` and `sys.worker.handshake.authenticate`.
+Every phase carries one stable, nonempty trace ID and protocol version 1. The
+same capability `Handshake` is embedded in authenticate and cloned for the
+later `sys.handshake` broadcast. Only a verified signed result is installed,
+and the resulting token is attached before validation and signing of outbound
+packets.
 
-After upgrading your adapter:
+A renewal sets purpose `RENEW` and signs the current unexpired token into the
+authenticate envelope. Renewal never falls back to a tokenless `ISSUE`, which
+would bypass session revocation or supersession. On renewal failure, `warn`
+may retain the old token only until its existing expiry. `enforce` clears it.
+Expired tokens are never returned by `SessionToken` or attached to packets.
 
-1. Set `Agent.HandshakeMode = HandshakeModeWarn` in your adapter's initialisation code.
-2. Start an agent. Check scheduler logs for `handshake accepted` with your `agent_id`.
-3. Trigger a job. Check scheduler logs for `session token valid` on the inbound packet.
+`warn` is an admission migration mode only: an operational trust failure may
+allow subscriptions without a token, but it never accepts or installs an
+unsigned, malformed, mismatched, or unpinned result. `enforce` blocks startup
+before subscriptions.
 
-If the scheduler rejects the handshake, inspect the `reason` field in the structured log. The `HandshakeReject*` constants in `cap/sdk/go/handshake.go` document every possible reason.
-
-## Non-Go SDKs
-
-The Python and Node SDKs expose an equivalent surface. The Phase-2 handshake wire format is identical across languages so an adapter bundled with a Python agent and a Go scheduler interoperates transparently.
-
-See the per-SDK READMEs for language-specific configuration.
+`Close()` cancels and waits for the renewal loop, unsubscribes tracked job
+subscriptions, drains a native NATS connection, and closes the blob store.
+Startup failures clean only resources opened by the runtime; injected
+connections and stores remain caller-owned.

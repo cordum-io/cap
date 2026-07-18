@@ -14,6 +14,7 @@ import (
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type mockNATS struct {
@@ -72,9 +73,10 @@ func TestRuntimeSuccess(t *testing.T) {
 	_ = store.Set(nilContext(), ctxKey, payload)
 
 	agent := &Agent{
-		NATS:     mock,
-		Store:    store,
-		SenderID: "worker-1",
+		HandshakeMode: HandshakeModeOff,
+		NATS:          mock,
+		Store:         store,
+		SenderID:      "worker-1",
 	}
 
 	Register(agent, "job.test", func(_ Context, input struct{ Prompt string }) (map[string]string, error) {
@@ -93,6 +95,7 @@ func TestRuntimeSuccess(t *testing.T) {
 	packet := &agentv1.BusPacket{
 		TraceId:         "trace-1",
 		SenderId:        "client-1",
+		CreatedAt:       timestamppb.Now(),
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}
@@ -136,9 +139,10 @@ func TestRuntimeInvalidJSON(t *testing.T) {
 	_ = store.Set(nilContext(), ctxKey, []byte("{bad json"))
 
 	agent := &Agent{
-		NATS:     mock,
-		Store:    store,
-		SenderID: "worker-2",
+		HandshakeMode: HandshakeModeOff,
+		NATS:          mock,
+		Store:         store,
+		SenderID:      "worker-2",
 	}
 
 	Register(agent, "job.validate", func(_ Context, input struct{ Prompt string }) (map[string]string, error) {
@@ -157,6 +161,7 @@ func TestRuntimeInvalidJSON(t *testing.T) {
 	packet := &agentv1.BusPacket{
 		TraceId:         "trace-2",
 		SenderId:        "client-2",
+		CreatedAt:       timestamppb.Now(),
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}
@@ -185,10 +190,11 @@ func TestRuntimeRetries(t *testing.T) {
 	_ = store.Set(nilContext(), ctxKey, payload)
 
 	agent := &Agent{
-		NATS:     mock,
-		Store:    store,
-		SenderID: "worker-3",
-		Retries:  1,
+		HandshakeMode: HandshakeModeOff,
+		NATS:          mock,
+		Store:         store,
+		SenderID:      "worker-3",
+		Retries:       1,
 	}
 
 	attempts := 0
@@ -212,6 +218,7 @@ func TestRuntimeRetries(t *testing.T) {
 	packet := &agentv1.BusPacket{
 		TraceId:         "trace-3",
 		SenderId:        "client-3",
+		CreatedAt:       timestamppb.Now(),
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}
@@ -240,10 +247,11 @@ func TestAgentStartPublishesHandshake(t *testing.T) {
 	key := mustGenerateECDSAKey(t)
 
 	agent := &Agent{
-		NATS:       mock,
-		Store:      store,
-		SenderID:   "worker-handshake",
-		PrivateKey: key,
+		HandshakeMode: HandshakeModeOff,
+		NATS:          mock,
+		Store:         store,
+		SenderID:      "worker-handshake",
+		PrivateKey:    key,
 	}
 
 	Register(agent, "job.handshake", func(_ Context, _ struct{}) (struct{}, error) {
@@ -314,9 +322,10 @@ func TestAgentHandshakeCarriesSanitizedAgentName(t *testing.T) {
 	store := NewInMemoryBlobStore()
 
 	agent := &Agent{
-		NATS:     mock,
-		Store:    store,
-		SenderID: "worker-named",
+		HandshakeMode: HandshakeModeOff,
+		NATS:          mock,
+		Store:         store,
+		SenderID:      "worker-named",
 		// Padded/dirty label proves the SDK sanitizes before advertising it.
 		AgentName: "  Claude Code\n— Billing  ",
 	}

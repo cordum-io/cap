@@ -32,7 +32,8 @@ func TestManagedWorkerBuildersPassOwnValidator(t *testing.T) {
 	}
 
 	managed, err := NewManagedWorker(ManagedConfig{
-		NatsURL: natsURL, WorkerID: "worker-builder", Subjects: []string{"job.builder"}, HeartbeatEvery: 20 * time.Millisecond,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		NatsURL:         natsURL, WorkerID: "worker-builder", Subjects: []string{"job.builder"}, HeartbeatEvery: 20 * time.Millisecond,
 	})
 	if err != nil {
 		t.Fatalf("new managed worker: %v", err)

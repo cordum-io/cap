@@ -68,6 +68,9 @@ func SelectTrustHandshakePhase(packet *agentv1.BusPacket) (TrustHandshakePhase, 
 
 // MarshalTrustHandshakeTranscript returns domain || NUL || deterministic unsigned packet.
 func MarshalTrustHandshakeTranscript(packet *agentv1.BusPacket) ([]byte, error) {
+	if hasUnknownProtoFields(packet) {
+		return nil, fmt.Errorf("%w: unknown fields", ErrWorkerHandshakePacket)
+	}
 	phase, domain, err := SelectTrustHandshakePhase(packet)
 	if err != nil {
 		return nil, err

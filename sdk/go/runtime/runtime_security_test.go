@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
@@ -55,6 +56,92 @@ func TestHandleMessageRejectsInvalidSecurityEnvelopeBeforeHandler(t *testing.T) 
 	}
 }
 
+func TestTrustModeInboundRequiresPinnedSchedulerIdentityAndSignature(t *testing.T) {
+	for _, mode := range []HandshakeMode{HandshakeModeWarn, HandshakeModeEnforce} {
+		t.Run(string(mode), func(t *testing.T) {
+			testTrustModeInboundBoundary(t, mode)
+		})
+	}
+}
+
+func TestTrustModeInboundRequiresLiveSessionOnlyInEnforce(t *testing.T) {
+	for _, test := range []struct {
+		mode HandshakeMode
+		want int32
+	}{
+		{mode: HandshakeModeWarn, want: 1},
+		{mode: HandshakeModeEnforce, want: 0},
+	} {
+		t.Run(string(test.mode), func(t *testing.T) {
+			agent, spec, calls := newBoundaryFixture(t)
+			_, trustBus := newTrustTestAgent(t, test.mode)
+			agent.HandshakeMode, agent.WorkerTrust = test.mode, trustBus.config
+			packet := validBoundaryPacket()
+			packet.SenderId = trustBus.config.ExpectedSchedulerID
+			mustSignBoundaryPacket(t, packet, trustBus.schedulerKey)
+			data, err := proto.Marshal(packet)
+			if err != nil {
+				t.Fatal(err)
+			}
+			agent.handleMessage(&nats.Msg{Data: data}, spec)
+			if calls.Load() != test.want {
+				t.Fatalf("handler calls=%d, want %d", calls.Load(), test.want)
+			}
+		})
+	}
+}
+
+func testTrustModeInboundBoundary(t *testing.T, mode HandshakeMode) {
+	t.Helper()
+	_, trustBus := newTrustTestAgent(t, mode)
+	attacker := testP256Key(t)
+	tests := []struct {
+		name   string
+		mutate func(*Agent, *agentv1.BusPacket)
+		want   int32
+	}{
+		{name: "unsigned expected sender"},
+		{name: "wrong sender", mutate: func(_ *Agent, p *agentv1.BusPacket) {
+			p.SenderId = "scheduler-attacker"
+			mustSignBoundaryPacket(t, p, trustBus.schedulerKey)
+		}},
+		{name: "legacy key map cannot override trust pins", mutate: func(a *Agent, p *agentv1.BusPacket) {
+			a.PublicKeys = map[string]*ecdsa.PublicKey{p.GetSenderId(): &attacker.PublicKey}
+			mustSignBoundaryPacket(t, p, attacker)
+		}},
+		{name: "pinned scheduler", mutate: func(_ *Agent, p *agentv1.BusPacket) {
+			mustSignBoundaryPacket(t, p, trustBus.schedulerKey)
+		}, want: 1},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			agent, spec, calls := newBoundaryFixture(t)
+			agent.HandshakeMode, agent.WorkerTrust = mode, trustBus.config
+			agent.setSession("active-session", time.Now().Add(time.Hour))
+			packet := validBoundaryPacket()
+			packet.SenderId = trustBus.config.ExpectedSchedulerID
+			if test.mutate != nil {
+				test.mutate(agent, packet)
+			}
+			data, err := proto.Marshal(packet)
+			if err != nil {
+				t.Fatal(err)
+			}
+			agent.handleMessage(&nats.Msg{Data: data}, spec)
+			if calls.Load() != test.want {
+				t.Fatalf("handler calls=%d, want %d", calls.Load(), test.want)
+			}
+		})
+	}
+}
+
+func mustSignBoundaryPacket(t *testing.T, packet *agentv1.BusPacket, key *ecdsa.PrivateKey) {
+	t.Helper()
+	if err := capsdk.SignPacket(packet, key); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestRuntimeLegacyHandshakeBuilderPassesValidator(t *testing.T) {
 	bus := newMockNATS()
 	agent := &Agent{NATS: bus, SenderID: "worker-builder", Logger: silentLogger()}
@@ -91,6 +178,19 @@ func TestRuntimeJobResultBuilderPassesValidator(t *testing.T) {
 	}
 	if err := capsdk.ValidateBusPacket(&packet); err != nil {
 		t.Fatalf("job result builder emitted invalid packet: %v", err)
+	}
+}
+
+func TestRuntimeJobResultRejectsInvalidEnvelopeBeforePublish(t *testing.T) {
+	bus := newMockNATS()
+	agent := &Agent{NATS: bus, SenderID: "worker-builder", Logger: silentLogger()}
+	ctx := Context{Packet: &agentv1.BusPacket{}, Logger: silentLogger()}
+	result := &agentv1.JobResult{
+		JobId: "job-builder", Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED, WorkerId: "worker-builder",
+	}
+	agent.publishResult(ctx, result)
+	if _, ok := bus.lastPublished(); ok {
+		t.Fatal("invalid outbound envelope was published")
 	}
 }
 

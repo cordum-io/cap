@@ -8,16 +8,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime/debug"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -54,6 +51,14 @@ type ManagedConfig struct {
 	// Metrics receives job lifecycle events for observability (Prometheus, OTel, etc.).
 	// When nil, no metrics callbacks are fired.
 	Metrics capsdk.MetricsHook
+	// WorkerTrustMode is mandatory. Only explicit off bypasses the authenticated
+	// worker handshake; warn and enforce both require complete pinned trust.
+	WorkerTrustMode capsdk.WorkerTrustMode
+	// WorkerTrust is separate from generic packet signing keys because proof-key
+	// possession is bound to the authoritative worker identity.
+	WorkerTrust *capsdk.WorkerTrustConfig
+	// WorkerTrustTimeout bounds each challenge and authenticate request.
+	WorkerTrustTimeout time.Duration
 }
 
 // ManagedWorker is a batteries-included CAP worker that handles NATS
@@ -63,6 +68,7 @@ type ManagedWorker struct {
 	cfg      ManagedConfig
 	conn     *nats.Conn
 	subjects []string
+	admitted []string
 	queue    string
 	workerID string
 	pool     string
@@ -73,83 +79,39 @@ type ManagedWorker struct {
 
 	subs []*nats.Subscription
 
-	cancelMu sync.Mutex
-	cancel   context.CancelFunc
-	logger   *log.Logger
-	metrics  capsdk.MetricsHook
+	cancelMu      sync.Mutex
+	cancel        context.CancelFunc
+	heartbeatDone chan struct{}
+	logger        *log.Logger
+	metrics       capsdk.MetricsHook
+	trust         *managedTrustState
+	capability    *agentv1.Handshake
 
 	consecutiveHBFailures int32
+	subsMu                sync.Mutex
+	runMu                 sync.Mutex
+	runStarted            bool
 }
 
 // NewManagedWorker builds a worker with a NATS connection.
 func NewManagedWorker(cfg ManagedConfig) (*ManagedWorker, error) {
-	subjects := trimSubjects(cfg.Subjects)
-	if len(subjects) == 0 {
-		if strings.TrimSpace(cfg.Type) == "" {
-			return nil, errors.New("subjects required")
-		}
-		subjects = []string{fmt.Sprintf("job.%s.*", strings.TrimSpace(cfg.Type))}
-	}
-
-	workerID := resolveWorkerID(cfg.WorkerID, cfg.Type)
-	pool := strings.TrimSpace(cfg.Pool)
-	if pool == "" {
-		pool = strings.TrimSpace(cfg.Type)
-	}
-
-	natsURL := strings.TrimSpace(cfg.NatsURL)
-	if natsURL == "" {
-		natsURL = strings.TrimSpace(os.Getenv("NATS_URL"))
-	}
-	if natsURL == "" {
-		natsURL = defaultNATSURL
-	}
-
-	connectTimeout := defaultConnectTimeout
-	natsOpts := []nats.Option{nats.Name(workerID), nats.Timeout(connectTimeout)}
-
-	tlsCfg := cfg.NATSTLSConfig
-	if tlsCfg == nil {
-		var tlsErr error
-		tlsCfg, tlsErr = capsdk.NATSTLSConfigFromEnv()
-		if tlsErr != nil {
-			return nil, fmt.Errorf("nats tls config: %w", tlsErr)
-		}
-	}
-	if tlsCfg != nil {
-		natsOpts = append(natsOpts, nats.Secure(tlsCfg))
-	}
-
-	conn, err := nats.Connect(natsURL, natsOpts...)
+	cfg = cloneManagedTrustConfig(cfg)
+	resolved, err := resolveManagedConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
-
-	maxParallel := cfg.MaxParallelJobs
-	if maxParallel <= 0 {
-		maxParallel = defaultMaxParallel
+	conn, err := connectManagedNATS(cfg, resolved)
+	if err != nil {
+		return nil, err
 	}
-
-	lgr := cfg.Logger
-	if lgr == nil {
-		lgr = log.New(os.Stdout, "cap-worker ", log.LstdFlags)
-	}
-
 	w := &ManagedWorker{
-		cfg:      cfg,
-		conn:     conn,
-		subjects: subjects,
-		queue:    strings.TrimSpace(cfg.Queue),
-		workerID: workerID,
-		pool:     pool,
-		logger:   lgr,
-		metrics:  cfg.Metrics,
+		cfg: cfg, conn: conn, subjects: resolved.subjects, admitted: resolved.admitted,
+		queue: resolved.queue, workerID: resolved.workerID, pool: resolved.pool,
+		logger: resolved.logger, metrics: cfg.Metrics, trust: newManagedTrustState(cfg),
 	}
-	if maxParallel > 0 {
-		w.sem = make(chan struct{}, maxParallel)
-	}
-	w.cfg.MaxParallelJobs = maxParallel
-
+	w.capability = buildManagedCapability(cfg, resolved.workerID, resolved.admitted)
+	w.sem = make(chan struct{}, resolved.maxParallel)
+	w.cfg.MaxParallelJobs = resolved.maxParallel
 	return w, nil
 }
 
@@ -161,9 +123,14 @@ func (w *ManagedWorker) Run(ctx context.Context, handler func(context.Context, *
 	if w.conn == nil {
 		return errors.New("nats connection unavailable")
 	}
+	if err := w.beginRun(); err != nil {
+		return err
+	}
+	if err := w.performInitialTrust(ctx); err != nil {
+		return err
+	}
 
-	subjects := w.subjectsWithDirect()
-	for _, subject := range subjects {
+	for _, subject := range w.admitted {
 		queue := w.queue
 		if queue == "" {
 			queue = subject
@@ -172,6 +139,7 @@ func (w *ManagedWorker) Run(ctx context.Context, handler func(context.Context, *
 			w.dispatch(ctx, msg, handler)
 		})
 		if err != nil {
+			w.unsubscribeAll()
 			return fmt.Errorf("subscribe %s: %w", subject, err)
 		}
 		w.subsAppend(sub)
@@ -179,20 +147,23 @@ func (w *ManagedWorker) Run(ctx context.Context, handler func(context.Context, *
 
 	w.publishHandshake()
 	w.startHeartbeat(ctx)
+	defer w.stopHeartbeat()
+	w.startTrustRenewal(ctx)
 
-	<-ctx.Done()
-	return ctx.Err()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case err := <-w.trustFailure():
+		w.unsubscribeAll()
+		return err
+	}
 }
 
 // Close cancels heartbeats, waits for in-flight handlers to finish, then
 // drains the NATS connection.
 func (w *ManagedWorker) Close() error {
-	w.cancelMu.Lock()
-	if w.cancel != nil {
-		w.cancel()
-		w.cancel = nil
-	}
-	w.cancelMu.Unlock()
+	w.stopTrustRenewal()
+	w.stopHeartbeat()
 
 	w.wg.Wait()
 
@@ -202,242 +173,18 @@ func (w *ManagedWorker) Close() error {
 	return nil
 }
 
-func (w *ManagedWorker) dispatch(ctx context.Context, msg *nats.Msg, handler func(context.Context, *agentv1.JobRequest) (*agentv1.JobResult, error)) {
-	if ctx.Err() != nil {
-		return
-	}
-
-	w.wg.Add(1)
-	go func() {
-		defer w.wg.Done()
-		if w.sem != nil {
-			w.sem <- struct{}{}
-			atomic.AddInt32(&w.active, 1)
-		}
-		defer func() {
-			if w.sem != nil {
-				<-w.sem
-				atomic.AddInt32(&w.active, -1)
-			}
-		}()
-
-		var packet agentv1.BusPacket
-		if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-			w.logger.Printf("worker: decode packet failed: %v", err)
-			return
-		}
-		if w.cfg.PublicKeys != nil {
-			pub, ok := w.cfg.PublicKeys[packet.GetSenderId()]
-			if !ok {
-				w.logger.Printf("worker: no public key for sender %s", packet.GetSenderId())
-				return
-			}
-			if len(packet.GetSignature()) == 0 {
-				w.logger.Printf("worker: missing signature for sender %s", packet.GetSenderId())
-				return
-			}
-			if err := capsdk.VerifyPacketSignature(&packet, pub); err != nil {
-				w.logger.Printf("worker: invalid signature from sender %s: %v", packet.GetSenderId(), err)
-				return
-			}
-		}
-
-		req := packet.GetJobRequest()
-		if req == nil || req.GetJobId() == "" {
-			return
-		}
-		if w.metrics != nil {
-			w.metrics.OnJobReceived(req.GetJobId(), req.GetTopic())
-		}
-
-		start := time.Now()
-		panicRecovered := false
-		res, err := func() (result *agentv1.JobResult, err error) {
-			defer func() {
-				if rec := recover(); rec != nil {
-					panicRecovered = true
-					w.logger.Printf("worker: handler panic: %v", rec)
-					w.logger.Printf("worker: handler panic stack: %s", debug.Stack())
-					err = fmt.Errorf("handler panic: %v", rec)
-				}
-			}()
-			return handler(ctx, req)
-		}()
-		execMs := time.Since(start).Milliseconds()
-
-		if res == nil {
-			res = &agentv1.JobResult{
-				JobId:  req.GetJobId(),
-				Status: agentv1.JobStatus_JOB_STATUS_FAILED,
-			}
-			if !panicRecovered && err == nil {
-				res.ErrorMessage = "handler returned nil"
-			}
-		}
-		if err != nil {
-			if res.Status == agentv1.JobStatus_JOB_STATUS_UNSPECIFIED {
-				res.Status = agentv1.JobStatus_JOB_STATUS_FAILED
-			}
-			if panicRecovered || strings.TrimSpace(res.ErrorMessage) == "" {
-				res.ErrorMessage = err.Error()
-			}
-		}
-		if res.JobId == "" {
-			res.JobId = req.GetJobId()
-		}
-		if res.WorkerId == "" {
-			res.WorkerId = w.workerID
-		}
-		if res.ExecutionMs == 0 {
-			res.ExecutionMs = execMs
-		}
-		if w.metrics != nil {
-			status := res.Status.String()
-			if res.Status == agentv1.JobStatus_JOB_STATUS_FAILED {
-				w.metrics.OnJobFailed(req.GetJobId(), res.ErrorMessage)
-			} else {
-				w.metrics.OnJobCompleted(req.GetJobId(), execMs, status)
-			}
-		}
-
-		out := &agentv1.BusPacket{
-			TraceId:         packet.GetTraceId(),
-			SenderId:        w.workerID,
-			ProtocolVersion: capsdk.DefaultProtocolVersion,
-			CreatedAt:       timestamppb.Now(),
-			Payload: &agentv1.BusPacket_JobResult{
-				JobResult: res,
-			},
-		}
-		if w.cfg.PrivateKey != nil {
-			if err := capsdk.SignPacket(out, w.cfg.PrivateKey); err != nil {
-				w.logger.Printf("worker: sign result failed: %v", err)
-				return
-			}
-		}
-		data, mErr := capsdk.MarshalDeterministic(out)
-		if mErr != nil {
-			w.logger.Printf("worker: marshal result failed: %v", mErr)
-			return
-		}
-		if err := w.conn.Publish(capsdk.SubjectResult, data); err != nil {
-			w.logger.Printf("worker: publish result failed: %v", err)
-		}
-	}()
-}
-
-func (w *ManagedWorker) startHeartbeat(ctx context.Context) {
-	interval := w.cfg.HeartbeatEvery
-	if interval <= 0 {
-		interval = capsdk.DefaultHeartbeatInterval
-	}
-	hbCtx, cancel := context.WithCancel(ctx)
-	w.cancelMu.Lock()
-	w.cancel = cancel
-	w.cancelMu.Unlock()
-
-	payloadFn := func() ([]byte, error) {
-		active := atomic.LoadInt32(&w.active)
-		packet := &agentv1.BusPacket{
-			SenderId:        w.workerID,
-			ProtocolVersion: capsdk.DefaultProtocolVersion,
-			CreatedAt:       timestamppb.Now(),
-			Payload: &agentv1.BusPacket_Heartbeat{
-				Heartbeat: &agentv1.Heartbeat{
-					WorkerId:        w.workerID,
-					Pool:            w.pool,
-					Type:            w.cfg.Type,
-					ActiveJobs:      active,
-					MaxParallelJobs: w.cfg.MaxParallelJobs,
-					Capabilities:    w.cfg.Capabilities,
-					Labels:          w.cfg.Labels,
-					AgentName:       capsdk.SanitizeAgentName(w.cfg.AgentName),
-				},
-			},
-		}
-		if w.cfg.PrivateKey != nil {
-			if err := capsdk.SignPacket(packet, w.cfg.PrivateKey); err != nil {
-				return nil, err
-			}
-		}
-		return capsdk.MarshalDeterministic(packet)
-	}
-
-	publishHeartbeat := func() {
-		payload, err := payloadFn()
-		if err != nil {
-			w.logger.Printf("worker: heartbeat payload build failed: %v", err)
-			return
-		}
-		if err := w.conn.Publish(capsdk.SubjectHeartbeat, payload); err != nil {
-			failures := atomic.AddInt32(&w.consecutiveHBFailures, 1)
-			w.logger.Printf("worker: heartbeat publish failed (consecutive=%d): %v", failures, err)
-
-			time.Sleep(500 * time.Millisecond)
-			payload2, err2 := payloadFn()
-			if err2 == nil {
-				if err3 := w.conn.Publish(capsdk.SubjectHeartbeat, payload2); err3 == nil {
-					atomic.StoreInt32(&w.consecutiveHBFailures, 0)
-					return
-				}
-				failures = atomic.AddInt32(&w.consecutiveHBFailures, 1)
-			}
-
-			if failures >= 3 {
-				w.logger.Printf("worker: ERROR heartbeat publish failing consistently — worker may appear dead to scheduler (consecutive=%d)", failures)
-			}
-			return
-		}
-		atomic.StoreInt32(&w.consecutiveHBFailures, 0)
-		if w.metrics != nil {
-			w.metrics.OnHeartbeatSent(w.workerID)
-		}
-	}
-
-	publishHeartbeat()
-
-	go func() {
-		ticker := time.NewTicker(interval)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-hbCtx.Done():
-				return
-			case <-ticker.C:
-				publishHeartbeat()
-			}
-		}
-	}()
-}
-
 func (w *ManagedWorker) publishHandshake() {
-	caps := make(map[string]bool, len(w.cfg.Capabilities))
-	for _, c := range w.cfg.Capabilities {
-		caps[c] = true
-	}
-	readyTopics := append([]string(nil), w.subjects...)
 	packet := &agentv1.BusPacket{
+		TraceId:         w.managedTraceID("handshake"),
 		SenderId:        w.workerID,
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		CreatedAt:       timestamppb.Now(),
+		AuthToken:       w.sessionToken(),
 		Payload: &agentv1.BusPacket_Handshake{
-			Handshake: &agentv1.Handshake{
-				ComponentId:       w.workerID,
-				Role:              agentv1.ComponentRole_COMPONENT_ROLE_WORKER,
-				SupportedVersions: []int32{capsdk.DefaultProtocolVersion},
-				Capabilities:      caps,
-				ReadyTopics:       readyTopics,
-				AgentName:         capsdk.SanitizeAgentName(w.cfg.AgentName),
-			},
+			Handshake: w.capabilityClone(),
 		},
 	}
-	if w.cfg.PrivateKey != nil {
-		if err := capsdk.SignPacket(packet, w.cfg.PrivateKey); err != nil {
-			w.logger.Printf("worker: sign handshake failed: %v", err)
-			return
-		}
-	}
-	data, err := capsdk.MarshalDeterministic(packet)
+	data, err := marshalValidatedEnvelope(packet, w.cfg.PrivateKey)
 	if err != nil {
 		w.logger.Printf("worker: marshal handshake failed: %v", err)
 		return
@@ -447,25 +194,25 @@ func (w *ManagedWorker) publishHandshake() {
 	}
 }
 
-func (w *ManagedWorker) subjectsWithDirect() []string {
-	subjects := append([]string{}, w.subjects...)
-	direct := DirectSubject(w.workerID)
-	if direct == "" {
-		return subjects
-	}
-	for _, subject := range subjects {
-		if subject == direct {
-			return subjects
-		}
-	}
-	return append(subjects, direct)
-}
-
 func (w *ManagedWorker) subsAppend(sub *nats.Subscription) {
 	if sub == nil {
 		return
 	}
+	w.subsMu.Lock()
+	defer w.subsMu.Unlock()
 	w.subs = append(w.subs, sub)
+}
+
+func (w *ManagedWorker) unsubscribeAll() {
+	w.subsMu.Lock()
+	subscriptions := append([]*nats.Subscription(nil), w.subs...)
+	w.subs = nil
+	w.subsMu.Unlock()
+	for _, subscription := range subscriptions {
+		if subscription != nil {
+			_ = subscription.Unsubscribe()
+		}
+	}
 }
 
 func trimSubjects(subjects []string) []string {

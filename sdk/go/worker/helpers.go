@@ -65,17 +65,28 @@ func publishEnvelope(pub Publisher, subject string, packet *agentv1.BusPacket, k
 	if strings.TrimSpace(subject) == "" {
 		return errors.New("subject required")
 	}
-	if key != nil {
-		if err := capsdk.SignPacket(packet, key); err != nil {
-			return fmt.Errorf("sign packet: %w", err)
-		}
-	}
-	data, err := capsdk.MarshalDeterministic(packet)
+	data, err := marshalValidatedEnvelope(packet, key)
 	if err != nil {
-		return fmt.Errorf("marshal packet: %w", err)
+		return err
 	}
 	if err := pub.Publish(subject, data); err != nil {
 		return fmt.Errorf("publish packet: %w", err)
 	}
 	return nil
+}
+
+func marshalValidatedEnvelope(packet *agentv1.BusPacket, key *ecdsa.PrivateKey) ([]byte, error) {
+	if err := capsdk.ValidateBusPacket(packet); err != nil {
+		return nil, fmt.Errorf("validate packet: %w", err)
+	}
+	if key != nil {
+		if err := capsdk.SignPacket(packet, key); err != nil {
+			return nil, fmt.Errorf("sign packet: %w", err)
+		}
+	}
+	data, err := capsdk.MarshalDeterministic(packet)
+	if err != nil {
+		return nil, fmt.Errorf("marshal packet: %w", err)
+	}
+	return data, nil
 }

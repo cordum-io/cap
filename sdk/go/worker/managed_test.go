@@ -20,6 +20,7 @@ func TestNewManagedWorker_ValidConfig(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	cfg := ManagedConfig{
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
 		Type:            "echo",
 		Pool:            "test-pool",
 		NatsURL:         natsURL,
@@ -54,8 +55,9 @@ func TestNewManagedWorker_DefaultsApplied(t *testing.T) {
 	t.Setenv("WORKER_ID", "")
 
 	cfg := ManagedConfig{
-		Type:    "processor",
-		NatsURL: natsURL,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "processor",
+		NatsURL:         natsURL,
 	}
 
 	w, err := NewManagedWorker(cfg)
@@ -88,9 +90,10 @@ func TestNewManagedWorker_SubjectsProvided(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	cfg := ManagedConfig{
-		Subjects: []string{"custom.subject.1", "custom.subject.2"},
-		NatsURL:  natsURL,
-		WorkerID: "subject-worker",
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Subjects:        []string{"custom.subject.1", "custom.subject.2"},
+		NatsURL:         natsURL,
+		WorkerID:        "subject-worker",
 	}
 
 	w, err := NewManagedWorker(cfg)
@@ -108,9 +111,10 @@ func TestNewManagedWorker_SubjectDeduplication(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	cfg := ManagedConfig{
-		Subjects: []string{"job.echo.*", "job.echo.*", "  job.echo.*  "},
-		NatsURL:  natsURL,
-		WorkerID: "dedup-worker",
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Subjects:        []string{"job.echo.*", "job.echo.*", "  job.echo.*  "},
+		NatsURL:         natsURL,
+		WorkerID:        "dedup-worker",
 	}
 
 	w, err := NewManagedWorker(cfg)
@@ -128,8 +132,9 @@ func TestNewManagedWorker_InvalidSubjects(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	cfg := ManagedConfig{
-		NatsURL:  natsURL,
-		WorkerID: "no-subjects-worker",
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		NatsURL:         natsURL,
+		WorkerID:        "no-subjects-worker",
 	}
 
 	_, err := NewManagedWorker(cfg)
@@ -140,8 +145,9 @@ func TestNewManagedWorker_InvalidSubjects(t *testing.T) {
 
 func TestNewManagedWorker_ConnectionFailure(t *testing.T) {
 	cfg := ManagedConfig{
-		Type:    "echo",
-		NatsURL: "nats://invalid-host-that-does-not-exist:4222",
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "echo",
+		NatsURL:         "nats://invalid-host-that-does-not-exist:4222",
 	}
 
 	_, err := NewManagedWorker(cfg)
@@ -155,8 +161,9 @@ func TestNewManagedWorker_NatsURLFromEnv(t *testing.T) {
 	t.Setenv("NATS_URL", natsURL)
 
 	cfg := ManagedConfig{
-		Type:     "echo",
-		WorkerID: "env-nats-worker",
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "echo",
+		WorkerID:        "env-nats-worker",
 	}
 
 	w, err := NewManagedWorker(cfg)
@@ -169,7 +176,7 @@ func TestNewManagedWorker_NatsURLFromEnv(t *testing.T) {
 func TestManagedWorker_Run_HandlerRequired(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
-	w, err := NewManagedWorker(ManagedConfig{Type: "echo", NatsURL: natsURL})
+	w, err := NewManagedWorker(ManagedConfig{WorkerTrustMode: capsdk.WorkerTrustModeOff, Type: "echo", NatsURL: natsURL})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
 	}
@@ -188,10 +195,11 @@ func TestManagedWorker_Run_ProcessesJobs(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	w, err := NewManagedWorker(ManagedConfig{
-		Type:           "echo",
-		NatsURL:        natsURL,
-		WorkerID:       "process-jobs-worker",
-		HeartbeatEvery: 100 * time.Millisecond,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "echo",
+		NatsURL:         natsURL,
+		WorkerID:        "process-jobs-worker",
+		HeartbeatEvery:  100 * time.Millisecond,
 	})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
@@ -273,6 +281,7 @@ func TestManagedWorker_Run_ConcurrencyLimit(t *testing.T) {
 
 	maxParallel := int32(2)
 	w, err := NewManagedWorker(ManagedConfig{
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
 		Type:            "slow",
 		NatsURL:         natsURL,
 		WorkerID:        "concurrency-worker",
@@ -340,10 +349,11 @@ func TestManagedWorker_Run_DirectSubject(t *testing.T) {
 
 	workerID := "direct-subject-worker"
 	w, err := NewManagedWorker(ManagedConfig{
-		Type:           "echo",
-		NatsURL:        natsURL,
-		WorkerID:       workerID,
-		HeartbeatEvery: 100 * time.Millisecond,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "echo",
+		NatsURL:         natsURL,
+		WorkerID:        workerID,
+		HeartbeatEvery:  100 * time.Millisecond,
 	})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
@@ -405,10 +415,11 @@ func TestManagedWorker_Run_PublishesResult(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	w, err := NewManagedWorker(ManagedConfig{
-		Type:           "result-test",
-		NatsURL:        natsURL,
-		WorkerID:       "result-worker",
-		HeartbeatEvery: 100 * time.Millisecond,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "result-test",
+		NatsURL:         natsURL,
+		WorkerID:        "result-worker",
+		HeartbeatEvery:  100 * time.Millisecond,
 	})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
@@ -494,10 +505,11 @@ func TestManagedWorker_Run_HandlerError(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	w, err := NewManagedWorker(ManagedConfig{
-		Type:           "error-test",
-		NatsURL:        natsURL,
-		WorkerID:       "error-worker",
-		HeartbeatEvery: 100 * time.Millisecond,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "error-test",
+		NatsURL:         natsURL,
+		WorkerID:        "error-worker",
+		HeartbeatEvery:  100 * time.Millisecond,
 	})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
@@ -576,10 +588,11 @@ func TestManagedWorker_Run_HandlerPanic(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	w, err := NewManagedWorker(ManagedConfig{
-		Type:           "panic-test",
-		NatsURL:        natsURL,
-		WorkerID:       "panic-worker",
-		HeartbeatEvery: 100 * time.Millisecond,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "panic-test",
+		NatsURL:         natsURL,
+		WorkerID:        "panic-worker",
+		HeartbeatEvery:  100 * time.Millisecond,
 	})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
@@ -665,10 +678,11 @@ func TestManagedWorker_Close_GracefulShutdown(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	w, err := NewManagedWorker(ManagedConfig{
-		Type:           "shutdown-test",
-		NatsURL:        natsURL,
-		WorkerID:       "shutdown-worker",
-		HeartbeatEvery: 50 * time.Millisecond,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "shutdown-test",
+		NatsURL:         natsURL,
+		WorkerID:        "shutdown-worker",
+		HeartbeatEvery:  50 * time.Millisecond,
 	})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
@@ -703,9 +717,10 @@ func TestManagedWorker_Close_DoubleClose(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	w, err := NewManagedWorker(ManagedConfig{
-		Type:     "double-close",
-		NatsURL:  natsURL,
-		WorkerID: "double-close-worker",
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "double-close",
+		NatsURL:         natsURL,
+		WorkerID:        "double-close-worker",
 	})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
@@ -724,6 +739,7 @@ func TestManagedWorker_HeartbeatEmission(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	w, err := NewManagedWorker(ManagedConfig{
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
 		Type:            "heartbeat-test",
 		NatsURL:         natsURL,
 		WorkerID:        "heartbeat-worker",
@@ -795,6 +811,7 @@ func TestManagedWorker_AgentNameInHeartbeatAndHandshake(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	w, err := NewManagedWorker(ManagedConfig{
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
 		Type:            "agentname-test",
 		NatsURL:         natsURL,
 		WorkerID:        "agentname-worker",
@@ -895,12 +912,14 @@ func TestManagedWorker_AgentNameInHeartbeatAndHandshake(t *testing.T) {
 func TestManagedWorker_PublishesHandshakeReadyTopics(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
-	readyTopics := []string{"job.echo.submit", "job.audit.submit"}
+	configuredTopics := []string{"job.echo.submit", "job.audit.submit"}
+	readyTopics := managedAdmittedSubjects("handshake-ready-worker", configuredTopics)
 	w, err := NewManagedWorker(ManagedConfig{
-		Subjects:       readyTopics,
-		NatsURL:        natsURL,
-		WorkerID:       "handshake-ready-worker",
-		HeartbeatEvery: 50 * time.Millisecond,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Subjects:        configuredTopics,
+		NatsURL:         natsURL,
+		WorkerID:        "handshake-ready-worker",
+		HeartbeatEvery:  50 * time.Millisecond,
 	})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
@@ -971,10 +990,11 @@ func TestManagedWorker_HeartbeatFailureTracking(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	w, err := NewManagedWorker(ManagedConfig{
-		Type:           "hb-fail-test",
-		NatsURL:        natsURL,
-		WorkerID:       "hb-fail-worker",
-		HeartbeatEvery: 50 * time.Millisecond,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "hb-fail-test",
+		NatsURL:         natsURL,
+		WorkerID:        "hb-fail-worker",
+		HeartbeatEvery:  50 * time.Millisecond,
 	})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
@@ -1005,10 +1025,11 @@ func TestManagedWorker_HeartbeatFailureCounter_ResetOnSuccess(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
 	w, err := NewManagedWorker(ManagedConfig{
-		Type:           "hb-reset-test",
-		NatsURL:        natsURL,
-		WorkerID:       "hb-reset-worker",
-		HeartbeatEvery: 50 * time.Millisecond,
+		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		Type:            "hb-reset-test",
+		NatsURL:         natsURL,
+		WorkerID:        "hb-reset-worker",
+		HeartbeatEvery:  50 * time.Millisecond,
 	})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)

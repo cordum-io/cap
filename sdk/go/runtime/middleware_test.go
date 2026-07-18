@@ -8,6 +8,7 @@ import (
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestMiddlewareExecutionOrder(t *testing.T) {
@@ -19,9 +20,10 @@ func TestMiddlewareExecutionOrder(t *testing.T) {
 	_ = store.Set(nilContext(), ctxKey, payload)
 
 	agent := &Agent{
-		NATS:     mock,
-		Store:    store,
-		SenderID: "worker-mw",
+		HandshakeMode: HandshakeModeOff,
+		NATS:          mock,
+		Store:         store,
+		SenderID:      "worker-mw",
 	}
 
 	var order []string
@@ -60,6 +62,7 @@ func TestMiddlewareExecutionOrder(t *testing.T) {
 	packet := &agentv1.BusPacket{
 		TraceId:         "trace-mw",
 		SenderId:        "client-mw",
+		CreatedAt:       timestamppb.Now(),
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}
@@ -86,9 +89,10 @@ func TestMiddlewareShortCircuit(t *testing.T) {
 	_ = store.Set(nilContext(), ctxKey, payload)
 
 	agent := &Agent{
-		NATS:     mock,
-		Store:    store,
-		SenderID: "worker-short",
+		HandshakeMode: HandshakeModeOff,
+		NATS:          mock,
+		Store:         store,
+		SenderID:      "worker-short",
 	}
 
 	handlerCalled := false
@@ -117,6 +121,7 @@ func TestMiddlewareShortCircuit(t *testing.T) {
 	packet := &agentv1.BusPacket{
 		TraceId:         "trace-short",
 		SenderId:        "client-short",
+		CreatedAt:       timestamppb.Now(),
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}
@@ -153,9 +158,10 @@ func TestLoggingMiddleware(t *testing.T) {
 	testLogger := log.New(&buf, "", 0)
 
 	agent := &Agent{
-		NATS:     mock,
-		Store:    store,
-		SenderID: "worker-log",
+		HandshakeMode: HandshakeModeOff,
+		NATS:          mock,
+		Store:         store,
+		SenderID:      "worker-log",
 	}
 
 	agent.Use(LoggingMiddleware(testLogger))
@@ -176,6 +182,7 @@ func TestLoggingMiddleware(t *testing.T) {
 	packet := &agentv1.BusPacket{
 		TraceId:         "trace-log",
 		SenderId:        "client-log",
+		CreatedAt:       timestamppb.Now(),
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}

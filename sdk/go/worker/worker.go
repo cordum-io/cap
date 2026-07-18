@@ -3,7 +3,6 @@ package worker
 import (
 	"context"
 	"crypto/ecdsa"
-	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -12,7 +11,6 @@ import (
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
-	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -81,17 +79,8 @@ func (w *Worker) Use(mw ...WorkerMiddleware) {
 
 // Start begins consuming and handling JobRequests. It returns after the subscription is created.
 func (w *Worker) Start() error {
-	if w.NATS == nil {
-		return errors.New("worker: NATS connection is nil")
-	}
-	if w.Subject == "" {
-		return errors.New("worker: subject is required")
-	}
-	if w.Handler == nil {
-		return errors.New("worker: handler is required")
-	}
-	if w.SenderID == "" {
-		return errors.New("worker: SenderID is required")
+	if err := w.validateStart(); err != nil {
+		return err
 	}
 	if w.Logger == nil {
 		w.Logger = slog.Default()
@@ -99,104 +88,7 @@ func (w *Worker) Start() error {
 	if w.Metrics == nil {
 		w.Metrics = capsdk.NoopMetrics
 	}
-	_, err := w.NATS.QueueSubscribe(w.Subject, w.Subject, func(msg *nats.Msg) {
-		ctx := context.Background()
-		var packet agentv1.BusPacket
-		if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-			w.Logger.Error("could not decode packet", "error", capsdk.NewMalformedPacketError(err.Error()))
-			return
-		}
-
-		// Verify the signature
-		if w.PublicKeys != nil {
-			pubKey, ok := w.PublicKeys[packet.GetSenderId()]
-			if !ok {
-				w.Logger.Warn("no public key found", "sender_id", packet.GetSenderId())
-				return
-			}
-
-			if len(packet.GetSignature()) == 0 {
-				w.Logger.Warn("missing signature", "error", capsdk.NewSignatureMissingError("packet from sender: "+packet.GetSenderId()), "sender_id", packet.GetSenderId())
-				return
-			}
-			if err := capsdk.VerifyPacketSignature(&packet, pubKey); err != nil {
-				w.Logger.Warn("signature verification failed", "error", capsdk.NewSignatureInvalidError("sender "+packet.GetSenderId()+": "+err.Error()), "sender_id", packet.GetSenderId())
-				return
-			}
-		}
-
-		req := packet.GetJobRequest()
-		if req == nil {
-			return
-		}
-		w.Metrics.OnJobReceived(req.GetJobId(), req.GetTopic())
-		jobLogger := w.Logger.With(
-			"job_id", req.GetJobId(),
-			"trace_id", packet.GetTraceId(),
-			"sender_id", packet.GetSenderId(),
-		)
-		start := time.Now()
-		handler := w.Handler
-		for i := len(w.middlewares) - 1; i >= 0; i-- {
-			handler = w.middlewares[i](handler)
-		}
-		res, err := handler(ctx, req)
-		if err != nil {
-			res = &agentv1.JobResult{
-				JobId:        req.GetJobId(),
-				Status:       agentv1.JobStatus_JOB_STATUS_FAILED,
-				ErrorMessage: err.Error(),
-			}
-		}
-		if res == nil {
-			res = &agentv1.JobResult{
-				JobId:        req.GetJobId(),
-				Status:       agentv1.JobStatus_JOB_STATUS_FAILED,
-				ErrorMessage: "handler returned nil",
-			}
-		}
-		// Fill required metadata if missing
-		if res.JobId == "" {
-			res.JobId = req.GetJobId()
-		}
-		if res.WorkerId == "" {
-			res.WorkerId = w.SenderID
-		}
-		execMs := time.Since(start).Milliseconds()
-		if res.ExecutionMs == 0 {
-			res.ExecutionMs = execMs
-		}
-		if res.Status == agentv1.JobStatus_JOB_STATUS_FAILED {
-			w.Metrics.OnJobFailed(res.JobId, res.ErrorMessage)
-		} else {
-			w.Metrics.OnJobCompleted(res.JobId, execMs, res.Status.String())
-		}
-		out := &agentv1.BusPacket{
-			TraceId:         packet.GetTraceId(),
-			SenderId:        w.SenderID,
-			ProtocolVersion: capsdk.DefaultProtocolVersion,
-			CreatedAt:       timestamppb.Now(),
-			Payload: &agentv1.BusPacket_JobResult{
-				JobResult: res,
-			},
-		}
-
-		// Sign the outgoing packet
-		if w.PrivateKey != nil {
-			if err := capsdk.SignPacket(out, w.PrivateKey); err != nil {
-				jobLogger.Error("could not sign outgoing packet", "error", err)
-				return
-			}
-		}
-
-		data, mErr := capsdk.MarshalDeterministic(out)
-		if mErr != nil {
-			return
-		}
-		if pubErr := w.NATS.Publish(capsdk.SubjectResult, data); pubErr != nil {
-			w.Logger.Error("result publish failed", "error", pubErr)
-		}
-	})
+	_, err := w.NATS.QueueSubscribe(w.Subject, w.Subject, w.handleMessage)
 	if err != nil {
 		return fmt.Errorf("subscribe: %w", err)
 	}
@@ -242,7 +134,7 @@ func HeartbeatPayloadWithProgress(workerID, pool string, activeJobs, maxParallel
 			Heartbeat: heartbeat,
 		},
 	}
-	return capsdk.MarshalDeterministic(hb)
+	return marshalValidatedEnvelope(hb, nil)
 }
 
 // ProgressPayload returns a protobuf-encoded progress envelope.
@@ -261,7 +153,7 @@ func ProgressPayload(senderID, jobID, stepID string, percent int32, message stri
 			},
 		},
 	}
-	return capsdk.MarshalDeterministic(pkt)
+	return marshalValidatedEnvelope(pkt, nil)
 }
 
 // CancelPayload returns a protobuf-encoded cancel envelope.
@@ -279,7 +171,7 @@ func CancelPayload(senderID, jobID, reason, requestedBy string) ([]byte, error) 
 			},
 		},
 	}
-	return capsdk.MarshalDeterministic(pkt)
+	return marshalValidatedEnvelope(pkt, nil)
 }
 
 // EmitProgress publishes a progress packet once.

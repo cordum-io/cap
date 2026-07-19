@@ -129,6 +129,7 @@ func TestReconnectAndResubscribe(t *testing.T) {
 	if err != nil {
 		t.Fatalf("start: %v", err)
 	}
+	t.Cleanup(n1.Close) // idempotent; guards against a Fatalf before the manual close
 	port := n1.Port()
 	reconnected := make(chan struct{}, 1)
 	nc := mustConnect(t, n1,

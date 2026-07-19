@@ -105,7 +105,10 @@ hardest cases.
   killed; the case is recorded as `ERROR` (timeout), never silently skipped.
 - On interrupt the runner sends `bye`, waits a short grace period, then kills the
   process. Every child process, pipe, and temporary directory is released on
-  pass, fail, or interrupt.
+  pass, fail, or interrupt. Release is **bounded**: if an adapter spawns a
+  grandchild that inherits its stderr and lingers, the runner force-closes the
+  inherited handle after a short delay rather than waiting on it, so teardown
+  cannot hang.
 
 ## Reports
 

@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -82,8 +84,61 @@ func serveHelperCase(mode string, cmd Command, emit func(AdapterMessage)) {
 	case "cwd":
 		wd, _ := os.Getwd()
 		emit(AdapterMessage{Type: MsgResult, ID: cmd.ID, Status: StatusPass, Evidence: map[string]string{"cwd": wd}})
+	case "spawn-grandchild":
+		// Spawn a grandchild that inherits this process's stderr (exec's stderr
+		// pipe write end) and outlives us, then return its pid so the test can
+		// reap it. When the parent is killed the grandchild keeps the pipe open,
+		// so Cmd.Wait blocks on the stderr copier until WaitDelay force-closes it.
+		gc := exec.Command(os.Args[0], "-test.run=^TestHelperSleeper$")
+		gc.Stderr = os.Stderr
+		gc.Env = append(os.Environ(), "TCK_SLEEPER=1")
+		pid := "0"
+		if err := gc.Start(); err == nil && gc.Process != nil {
+			pid = strconv.Itoa(gc.Process.Pid)
+		}
+		emit(AdapterMessage{Type: MsgResult, ID: cmd.ID, Status: StatusPass, Evidence: map[string]string{"grandchildPid": pid}})
 	default:
 		emit(AdapterMessage{Type: MsgResult, ID: cmd.ID, Status: StatusPass})
+	}
+}
+
+// TestHelperSleeper is a grandchild process that lingers holding an inherited
+// stderr handle. Inert unless TCK_SLEEPER=1.
+func TestHelperSleeper(t *testing.T) {
+	if os.Getenv("TCK_SLEEPER") != "1" {
+		return
+	}
+	time.Sleep(10 * time.Second)
+	os.Exit(0)
+}
+
+// Close must return within a bounded time even when a grandchild inherits the
+// child's stderr and outlives it — WaitDelay force-closes the stderr copier so
+// Cmd.Wait cannot block Close forever. Without WaitDelay this hangs ~10s.
+func TestAdapterCloseIsBoundedWithLingeringGrandchild(t *testing.T) {
+	a := helperAdapter("spawn-grandchild") // gracePeriod = WaitDelay = 500ms
+	if _, err := a.Start(context.Background()); err != nil {
+		t.Fatalf("start: %v", err)
+	}
+	res, err := a.Run(context.Background(), Command{Type: MsgRun, ID: "c1"}, 2*time.Second)
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	// Reap the grandchild after the test so it does not linger holding a lock on
+	// the test binary (Windows) — it must stay alive across Close() above.
+	if pid, e := strconv.Atoi(res.Evidence["grandchildPid"]); e == nil && pid > 0 {
+		t.Cleanup(func() {
+			if p, e := os.FindProcess(pid); e == nil {
+				_ = p.Kill()
+			}
+		})
+	}
+	done := make(chan struct{})
+	go func() { a.Close(); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("Close hung > 5s: WaitDelay is not bounding the grandchild-held stderr copier")
 	}
 }
 

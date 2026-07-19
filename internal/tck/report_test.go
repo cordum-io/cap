@@ -97,6 +97,37 @@ func TestReportJUnitEscapesDetail(t *testing.T) {
 	}
 }
 
+// A required, applicable case the adapter reports N/A for must be a JUnit
+// <failure>, not <skipped> — the JUnit artifact must not launder the exact
+// declined-hardest-case loophole the exit code already catches.
+func TestReportJUnitRequiredNAIsFailureNotSkipped(t *testing.T) {
+	cases := []CaseResult{
+		{ID: "req-na", Profile: "core", Role: RoleWorker, Required: true, Applicable: true, Status: StatusNA},
+	}
+	out, err := NewReport("go", sampleHS(), "core", "v", cases).JUnit()
+	if err != nil {
+		t.Fatalf("junit: %v", err)
+	}
+	s := string(out)
+	if !strings.Contains(s, `failures="1"`) || strings.Contains(s, `skipped="1"`) {
+		t.Fatalf("required applicable N/A must be a failure, not skipped: %s", s)
+	}
+	if !strings.Contains(s, "<failure") {
+		t.Fatalf("expected a <failure> element: %s", s)
+	}
+}
+
+// An optional (non-required) N/A the adapter legitimately declines stays a skip.
+func TestReportJUnitOptionalNAStaysSkipped(t *testing.T) {
+	cases := []CaseResult{
+		{ID: "opt-na", Profile: "core", Role: RoleWorker, Required: false, Applicable: true, Status: StatusNA},
+	}
+	out, _ := NewReport("go", sampleHS(), "core", "v", cases).JUnit()
+	if !strings.Contains(string(out), `skipped="1"`) {
+		t.Fatalf("optional N/A should be skipped: %s", out)
+	}
+}
+
 func TestReportJUnitMarksNonApplicableSkipped(t *testing.T) {
 	r := NewReport("go", sampleHS(), "core", "v", sampleCases())
 	out, _ := r.JUnit()

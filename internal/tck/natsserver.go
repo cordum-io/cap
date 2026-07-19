@@ -19,6 +19,7 @@ const natsReadyTimeout = 10 * time.Second
 type EmbeddedNATS struct {
 	srv      *natsserver.Server
 	storeDir string
+	closed   bool
 }
 
 // StartEmbeddedNATS starts a server on an ephemeral port.
@@ -70,8 +71,13 @@ func (e *EmbeddedNATS) Port() int {
 // StoreDir exposes the temp store for residual-data assertions.
 func (e *EmbeddedNATS) StoreDir() string { return e.storeDir }
 
-// Close shuts the server down and removes its store deterministically.
+// Close shuts the server down and removes its store deterministically. It is
+// idempotent, so a manual mid-test Close plus a deferred cleanup Close is safe.
 func (e *EmbeddedNATS) Close() {
+	if e.closed {
+		return
+	}
+	e.closed = true
 	e.srv.Shutdown()
 	e.srv.WaitForShutdown()
 	_ = os.RemoveAll(e.storeDir)

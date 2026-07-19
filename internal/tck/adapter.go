@@ -87,21 +87,24 @@ func (a *Adapter) Start(ctx context.Context) (AdapterMessage, error) {
 		return AdapterMessage{}, err
 	}
 	go a.readLoop(NewDecoder(a.outR))
+	// After the reader goroutine exists, every failure path must fully tear down
+	// (close both pipes, reap the child, join the reader) - not just kill - or a
+	// caller that returns on a Start error leaks outR and a zombie child.
 	if err := a.enc.Encode(Command{Type: MsgHello}); err != nil {
-		a.kill()
+		_ = a.Close()
 		return AdapterMessage{}, err
 	}
 	hs, err := a.read(ctx, a.handshakeTimeout)
 	if err != nil {
-		a.kill()
+		_ = a.Close()
 		return AdapterMessage{}, err
 	}
 	if hs.Type != MsgHandshake {
-		a.kill()
+		_ = a.Close()
 		return AdapterMessage{}, fmt.Errorf("tck: expected handshake, got %q", hs.Type)
 	}
 	if hs.ProtocolVersion != ProtocolVersion {
-		a.kill()
+		_ = a.Close()
 		return AdapterMessage{}, fmt.Errorf("tck: adapter protocol version %d, want %d", hs.ProtocolVersion, ProtocolVersion)
 	}
 	a.handshake = hs
@@ -161,8 +164,12 @@ func (a *Adapter) Close() error {
 	return nil
 }
 
-// spawn wires os.Pipe stdin/stdout directly so exec starts no copier goroutines
-// and Wait never contends with our reader for the pipes.
+// spawn wires os.Pipe stdin/stdout directly so exec starts no copier goroutine
+// for them and Wait never contends with our reader. stderr is a bounded
+// io.Writer, so exec DOES run an internal copier for it; a grandchild that
+// inherits the stderr handle and outlives the child would otherwise block
+// Wait (and thus Close) forever. WaitDelay bounds that: after the process
+// exits, Wait force-closes the stderr pipe and returns within the delay.
 func (a *Adapter) spawn(ctx context.Context) error {
 	inR, inW, err := os.Pipe()
 	if err != nil {
@@ -179,6 +186,7 @@ func (a *Adapter) spawn(ctx context.Context) error {
 	cmd.Stdout = outW
 	cmd.Stderr = a.stderr
 	cmd.Dir = a.spec.Dir
+	cmd.WaitDelay = a.gracePeriod
 	if len(a.spec.Env) > 0 {
 		cmd.Env = append(os.Environ(), a.spec.Env...)
 	}

@@ -80,6 +80,26 @@ func TestReportMatchesSchema(t *testing.T) {
 	}
 }
 
+// Guards adapter-v1 wire drift: every field AdapterMessage or Command emits must
+// be a declared property of adapter-message.schema.json.
+func TestAdapterMessageMatchesSchema(t *testing.T) {
+	schema := loadSchema(t, "adapter-message.schema.json")
+	props := propertyNames(t, schema)
+	full := AdapterMessage{
+		Type: MsgResult, ID: "c1", ProtocolVersion: 1, Role: RoleWorker,
+		Profiles: []string{"core"}, Features: []string{"cancel"}, SDK: "go",
+		Transport: "nats", Status: StatusPass, Detail: "d", Evidence: map[string]string{"a": "b"},
+	}
+	cmd := Command{Type: MsgRun, ID: "c1", Scenario: "s", Params: map[string]string{"a": "b"}}
+	for _, keys := range []map[string]bool{jsonKeys(t, full), jsonKeys(t, cmd)} {
+		for k := range keys {
+			if !props[k] {
+				t.Fatalf("wire field %q is not declared in adapter-message.schema.json", k)
+			}
+		}
+	}
+}
+
 func TestScenarioMatchesSchema(t *testing.T) {
 	schema := loadSchema(t, "scenario.schema.json")
 	defs := schema["$defs"].(map[string]any)

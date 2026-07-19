@@ -1,9 +1,15 @@
 // Package sdksupport models the machine-readable SDK support manifest and
 // verifies it against evidence that actually exists in the repository.
 //
-// The manifest never carries hand-set pass booleans: every claim an entry makes
-// is expressed as a gate that names a real workflow or test path, and Verify
-// resolves each of those paths against the repository tree.
+// A gate is not a hand-set pass boolean: it names a real workflow, test, or
+// package file, and Verify resolves each path (owner, docs, and every gate)
+// against the repository tree, failing when evidence is missing. Verify checks
+// that the evidence *exists*, not that a CI job passes. A gate may additionally
+// be marked Pending: the file exists but its content is not yet earned. Verify
+// does not fail a Pending gate — that state is surfaced honestly via
+// Entry.PendingGates and the generated support table, so a stable entry with
+// pending required gates advertises exactly which evidence is still outstanding
+// rather than hiding it.
 package sdksupport
 
 // Kind separates what a component *is* from how well it is supported. A Python

@@ -12,31 +12,46 @@ import (
 	"github.com/cordum-io/cap/v2/internal/tck"
 )
 
+type runFlags struct {
+	suite, profile, adapter, jsonOut, junitOut string
+	deadline, timeout                          time.Duration
+}
+
+// parseRunFlags parses the run subcommand flags. ok is false (and a message is
+// printed) on a parse error or a missing required flag.
+func parseRunFlags(args []string, stderr io.Writer) (runFlags, bool) {
+	fs := flag.NewFlagSet("run", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+	var f runFlags
+	fs.StringVar(&f.suite, "suite", "", "path to the scenario suite JSON (required)")
+	fs.StringVar(&f.profile, "profile", "core", "conformance profile to run")
+	fs.StringVar(&f.adapter, "adapter", "", "adapter as 'label=argv0|arg1|...' (required)")
+	fs.StringVar(&f.jsonOut, "json", "", "write JSON report to this path ('-' for stdout)")
+	fs.StringVar(&f.junitOut, "junit", "", "write JUnit XML report to this path ('-' for stdout)")
+	fs.DurationVar(&f.deadline, "deadline", 30*time.Second, "per-case deadline")
+	fs.DurationVar(&f.timeout, "timeout", 5*time.Minute, "global run deadline")
+	if err := fs.Parse(args); err != nil {
+		return f, false
+	}
+	if f.suite == "" || f.adapter == "" {
+		fmt.Fprintln(stderr, "run: --suite and --adapter are required")
+		return f, false
+	}
+	return f, true
+}
+
 // cmdRun runs one adapter against one profile of a suite and exits non-zero if
 // the run is not conformant.
 func cmdRun(args []string, stdout, stderr io.Writer) int {
-	fs := flag.NewFlagSet("run", flag.ContinueOnError)
-	fs.SetOutput(stderr)
-	suitePath := fs.String("suite", "", "path to the scenario suite JSON (required)")
-	profile := fs.String("profile", "core", "conformance profile to run")
-	adapter := fs.String("adapter", "", "adapter as 'label=argv0|arg1|...' (required)")
-	jsonOut := fs.String("json", "", "write JSON report to this path ('-' for stdout)")
-	junitOut := fs.String("junit", "", "write JUnit XML report to this path ('-' for stdout)")
-	deadline := fs.Duration("deadline", 30*time.Second, "per-case deadline")
-	timeout := fs.Duration("timeout", 5*time.Minute, "global run deadline")
-	if err := fs.Parse(args); err != nil {
+	f, ok := parseRunFlags(args, stderr)
+	if !ok {
 		return 2
 	}
-	if *suitePath == "" || *adapter == "" {
-		fmt.Fprintln(stderr, "run: --suite and --adapter are required")
-		return 2
-	}
-	suite, spec, err := loadRunInputs(*suitePath, *adapter)
+	suite, spec, err := loadRunInputs(f.suite, f.adapter)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 2
 	}
-
 	workdir, err := os.MkdirTemp("", "cap-tck-run-*")
 	if err != nil {
 		fmt.Fprintf(stderr, "run: temp dir: %v\n", err)
@@ -45,7 +60,7 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 	defer os.RemoveAll(workdir)
 	spec.Dir = workdir
 
-	ctx, cancel := signalContext(*timeout)
+	ctx, cancel := signalContext(f.timeout)
 	defer cancel()
 	a := tck.NewAdapter(spec)
 	if _, err := a.Start(ctx); err != nil {
@@ -55,9 +70,9 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 	defer a.Close()
 
 	runner := tck.NewRunner()
-	runner.CaseDeadline = *deadline
-	rep := runner.Run(ctx, a, suite, *profile)
-	if err := writeReports(rep, *jsonOut, *junitOut, stdout); err != nil {
+	runner.CaseDeadline = f.deadline
+	rep := runner.Run(ctx, a, suite, f.profile)
+	if err := writeReports(rep, f.jsonOut, f.junitOut, stdout); err != nil {
 		fmt.Fprintf(stderr, "run: write report: %v\n", err)
 		return 1
 	}

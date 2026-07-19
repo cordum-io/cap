@@ -110,14 +110,25 @@ func (r Report) JUnit() ([]byte, error) {
 
 func applyJUnitStatus(s *junitSuite, tc *junitCase, c CaseResult) {
 	switch {
-	case !c.Applicable || c.Status == StatusNA:
+	case !c.Applicable:
+		// role mismatch: genuinely not applicable to this adapter.
 		tc.Skipped = &junitMsg{Message: string(c.Status)}
 		s.Skipped++
+	case c.Status == StatusPass:
+		// passing case carries no child element.
 	case c.Status == StatusError:
 		tc.Error = &junitMsg{Message: c.Detail, Type: string(StatusError)}
 		s.Errors++
-	case c.Status != StatusPass:
+	case c.Required && IsRequiredNonPass(c.Status):
+		// Required applicable non-PASS (incl. adapter-reported N/A/UNSUPPORTED)
+		// is a failure, never a skip — no laundering the declined-case loophole.
 		tc.Failure = &junitMsg{Message: c.Detail, Type: string(c.Status)}
+		s.Failures++
+	case c.Status == StatusNA:
+		tc.Skipped = &junitMsg{Message: string(c.Status)} // optional, declined
+		s.Skipped++
+	default:
+		tc.Failure = &junitMsg{Message: c.Detail, Type: string(c.Status)} // non-required FAIL/UNSUPPORTED
 		s.Failures++
 	}
 }

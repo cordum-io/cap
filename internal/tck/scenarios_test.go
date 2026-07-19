@@ -23,11 +23,23 @@ func loadShippedSuite(t *testing.T, name string) *Suite {
 	return s
 }
 
+// shippedSuiteFiles is the full set of scenario suites the repo ships.
+var shippedSuiteFiles = []string{
+	"core-lifecycle.json",
+	"core-cancellation.json",
+	"core-negotiation.json",
+	"core-malformed.json",
+	"core-safety.json",
+}
+
 func shippedScenarioIDs(t *testing.T) map[string]Scenario {
 	t.Helper()
 	all := map[string]Scenario{}
-	for _, name := range []string{"core-lifecycle.json", "core-cancellation.json"} {
+	for _, name := range shippedSuiteFiles {
 		for _, sc := range loadShippedSuite(t, name).Scenarios {
+			if _, dup := all[sc.ID]; dup {
+				t.Fatalf("scenario id %q appears in more than one shipped suite", sc.ID)
+			}
 			all[sc.ID] = sc
 		}
 	}
@@ -35,10 +47,35 @@ func shippedScenarioIDs(t *testing.T) map[string]Scenario {
 }
 
 func TestShippedScenarioSuitesAreValid(t *testing.T) {
-	life := loadShippedSuite(t, "core-lifecycle.json")
-	canc := loadShippedSuite(t, "core-cancellation.json")
-	if len(life.Scenarios) == 0 || len(canc.Scenarios) == 0 {
-		t.Fatalf("shipped suites must be non-empty: lifecycle=%d cancellation=%d", len(life.Scenarios), len(canc.Scenarios))
+	for _, name := range shippedSuiteFiles {
+		if s := loadShippedSuite(t, name); len(s.Scenarios) == 0 {
+			t.Fatalf("shipped suite %s must be non-empty", name)
+		}
+	}
+}
+
+// Every malformed/bounds scenario must demand a drop with no side effect, and
+// every safety-gate scenario must forbid dispatch or record ALLOW first — the
+// two properties this step exists to enforce.
+func TestMalformedAndSafetyScenariosDeclareExpectations(t *testing.T) {
+	ids := shippedScenarioIDs(t)
+	var malformed, safety int
+	for id, sc := range ids {
+		switch {
+		case len(id) >= 10 && id[:10] == "malformed/":
+			malformed++
+			if sc.Params["expect"] != "drop" {
+				t.Fatalf("malformed scenario %q must expect drop, got %q", id, sc.Params["expect"])
+			}
+		case len(id) >= 7 && id[:7] == "safety/":
+			safety++
+			if sc.Params["decision"] == "" {
+				t.Fatalf("safety scenario %q must name a decision", id)
+			}
+		}
+	}
+	if malformed < 8 || safety < 4 {
+		t.Fatalf("expected >=8 malformed and >=4 safety scenarios, got %d and %d", malformed, safety)
 	}
 }
 

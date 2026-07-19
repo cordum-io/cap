@@ -56,6 +56,73 @@
       "cases": ["cancellation/cp-rejects-cancel-after-terminal"]
     },
     {
+      "behavior": "version negotiation selects highest common and rejects otherwise",
+      "spec": "spec/14-capability-negotiation.md#L76",
+      "cases": [
+        "negotiation/selects-highest-common-version",
+        "negotiation/rejects-when-no-common-version"
+      ]
+    },
+    {
+      "behavior": "capability and ready-topics dispatch filtering",
+      "spec": "spec/14-capability-negotiation.md",
+      "cases": [
+        "negotiation/required-capability-filters-dispatch",
+        "negotiation/ready-topics-filters-dispatch",
+        "negotiation/missing-ready-topics-is-unspecified-not-error"
+      ]
+    },
+    {
+      "behavior": "malformed and oversize packets are dropped without side effect",
+      "spec": "spec/job.proto ERROR_CODE_PROTOCOL_*",
+      "cases": [
+        "malformed/truncated-wire",
+        "malformed/overlong-wire",
+        "malformed/non-minimal-encoding",
+        "malformed/duplicate-oneof",
+        "malformed/empty-envelope",
+        "malformed/unsupported-protocol-version",
+        "malformed/unknown-payload",
+        "malformed/oversize-string",
+        "malformed/oversize-map",
+        "malformed/oversize-repeated"
+      ]
+    },
+    {
+      "behavior": "safety decision precedes and gates dispatch",
+      "spec": "spec/06-safety.md#L22",
+      "cases": [
+        "safety/allow-precedes-dispatch",
+        "safety/deny-blocks-dispatch",
+        "safety/require-human-pauses-dispatch",
+        "safety/throttle-blocks-immediate-dispatch"
+      ]
+    },
+    {
+      "behavior": "signature validity (invalid/missing/expired/wrong-audience)",
+      "gated": "cap-production",
+      "reason": "the signing/verification and audience model is owned by task-a13f83fa (CAP-PRODUCTION), on no ref",
+      "cases": []
+    },
+    {
+      "behavior": "identity/attempt/resource mismatch rejection",
+      "gated": "cap-production",
+      "reason": "requires DispatchIdentity attempt/resource fields from task-a13f83fa, on no ref",
+      "cases": []
+    },
+    {
+      "behavior": "session mismatch and dispatch-before-authenticated-acceptance rejection",
+      "gated": "handshake",
+      "reason": "requires the authenticated worker handshake/session from task-a4b71af, unmerged",
+      "cases": []
+    },
+    {
+      "behavior": "stale policy/content/snapshot cache reuse rejection",
+      "gated": "cap-production",
+      "reason": "requires the CAP-PRODUCTION policy snapshot model to define freshness",
+      "cases": []
+    },
+    {
       "behavior": "exact-redelivery duplicate suppression",
       "gated": "cap-production",
       "reason": "requires the DispatchIdentity/message-id replay model from task-a13f83fa, which is on no ref",

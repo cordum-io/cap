@@ -61,6 +61,11 @@ jobs:
           cd "$tmp"
           go mod init example.com/echo-released
           go get "github.com/cordum-io/cap/v2@v${VERSION}" github.com/nats-io/nats.go google.golang.org/protobuf
+          # Resolve transitive go.sum entries (the released cordum/agent/v1 package
+          # imports google.golang.org/grpc via policy_grpc.pb.go), so a standalone
+          # consumer must tidy before building. Without this, go run fails on a
+          # missing grpc go.sum entry.
+          go mod tidy
           go run .
       - name: Python released-artifact echo quickstart (manifest-selected version)
         run: |

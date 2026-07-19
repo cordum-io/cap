@@ -17,17 +17,17 @@ func lineWith(s, sub string) string {
 
 func twoBlockDoc() string {
 	return strings.Join([]string{
-		"# Title",                                 // 1
-		"",                                        // 2
-		"<!-- cap-release:begin:spec-count -->",   // 3
-		"OLD-COUNT",                               // 4
-		"<!-- cap-release:end -->",                // 5
-		"",                                        // 6
-		"prose between",                           // 7
+		"# Title",                               // 1
+		"",                                      // 2
+		"<!-- cap-release:begin:spec-count -->", // 3
+		"OLD-COUNT",                             // 4
+		"<!-- cap-release:end -->",              // 5
+		"",                                      // 6
+		"prose between",                         // 7
 		"<!-- cap-release:begin:transport-table -->", // 8
-		"OLD-TABLE",                               // 9
-		"<!-- cap-release:end -->",                // 10
-		"tail",                                    // 11
+		"OLD-TABLE",                // 9
+		"<!-- cap-release:end -->", // 10
+		"tail",                     // 11
 	}, "\n")
 }
 

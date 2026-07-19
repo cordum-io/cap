@@ -39,10 +39,15 @@ func normIdentity(name, email string) string {
 	return n + "|" + e
 }
 
+// isAllowlisted matches allowlist entries against the author EMAIL only. Real bot
+// commits carry the "[bot]" identity in their noreply email, so matching email (not the
+// freely-settable display name) means a human cannot skip sign-off by merely naming
+// themselves "dependabot[bot]". Git author identity is forgeable regardless, so this is
+// a spoofing-surface reduction on an advisory check, not a security boundary.
 func isAllowlisted(c Commit, allowlist []string) bool {
-	hay := strings.ToLower(c.AuthorName + " " + c.AuthorEmail)
+	email := strings.ToLower(c.AuthorEmail)
 	for _, b := range allowlist {
-		if strings.Contains(hay, strings.ToLower(b)) {
+		if strings.Contains(email, strings.ToLower(b)) {
 			return true
 		}
 	}

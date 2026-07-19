@@ -76,3 +76,12 @@ func TestNonAllowlistedBotNotExempt(t *testing.T) {
 		t.Fatalf("a non-allowlisted bot must still require signoff, got %+v", v)
 	}
 }
+
+func TestSpoofedBotNameDoesNotBypass(t *testing.T) {
+	// A human sets their display name to a bot's, but keeps a human email and no signoff.
+	c := Commit{Hash: "d1", AuthorName: "dependabot[bot]", AuthorEmail: "human@example.com",
+		Message: "chore: pretending to be a bot"}
+	if v := CheckDCO([]Commit{c}, DefaultBotAllowlist); len(v) != 1 {
+		t.Fatalf("a spoofed bot display name with a human email must NOT bypass DCO, got %+v", v)
+	}
+}

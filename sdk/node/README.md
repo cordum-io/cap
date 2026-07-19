@@ -2,6 +2,81 @@
 
 Node/TS SDK with NATS helpers. Uses `protobufjs` to load CAP proto definitions at runtime.
 
+## Consumer Quickstart (echo over NATS)
+
+From an empty directory, install the released package and run an echo round-trip
+against a running NATS server (`nats://127.0.0.1:4222`, or set `CAP_NATS_URL`).
+This is the **direct-pool development-lab** wiring (worker on the submit subject,
+no Scheduler/Safety Kernel); production submits through the governed
+Scheduler/Safety path (see `docs/reference.md`).
+
+```bash
+mkdir echo && cd echo && npm init -y
+npm install cap-sdk-node@2.14.0 nats
+# add echo.js below, then:
+node echo.js
+```
+
+> **Known limitation (released `cap-sdk-node@2.14.0`):** the published npm package
+> does not bundle the CAP `.proto` files, and `loadRoot()` resolves them relative
+> to the installed package directory. Running this snippet from a bare `npm
+> install` currently fails with a missing-`.proto` error; it works from a CAP
+> repository checkout. A standalone npm-only run is pending a Node packaging fix
+> that bundles the protos. The Go and Python quickstarts run standalone against
+> their released artifacts today.
+
+<!-- cap-release:snippet:node-echo:node -->
+```js
+const {
+  connectNATS, startWorker, submitJob, loadRoot,
+  SUBJECT_SUBMIT, SUBJECT_RESULT,
+} = require("cap-sdk-node");
+
+async function main() {
+  const url = process.env.CAP_NATS_URL || "nats://127.0.0.1:4222";
+  const nc = await connectNATS({ url });
+  const jobId = "echo-1";
+
+  // Dev-lab worker: consume submitted jobs directly and echo the job id.
+  await startWorker({
+    nc,
+    subject: SUBJECT_SUBMIT,
+    senderId: "echo-worker",
+    handler: async (req) => ({
+      jobId: req.jobId,
+      status: "JOB_STATUS_SUCCEEDED",
+      resultPtr: `echo://${req.jobId}`,
+      workerId: "echo-worker",
+    }),
+  });
+
+  const root = await loadRoot();
+  const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+  const sub = nc.subscribe(SUBJECT_RESULT);
+  await nc.flush(); // barrier: SUB registered before submit
+
+  await submitJob(nc, { jobId, topic: "job.echo" }, jobId, "echo-client");
+
+  const deadline = Date.now() + 10000;
+  for await (const msg of sub) {
+    const r = BusPacket.decode(msg.data).jobResult;
+    if (r && r.jobId === jobId) {
+      if (r.status !== "JOB_STATUS_SUCCEEDED") throw new Error(`job ${r.jobId} ended ${r.status}`);
+      console.log(`job ${r.jobId}: ${r.status} payload=${r.resultPtr}`);
+      break;
+    }
+    if (Date.now() > deadline) throw new Error("timed out waiting for JobResult (no worker?)");
+  }
+  await nc.drain();
+}
+
+main().catch((err) => {
+  console.error("echo:", err.message);
+  process.exit(1);
+});
+```
+<!-- cap-release:snippet-end -->
+
 ## Quick Start
 1. Install deps:
    ```bash

@@ -186,7 +186,8 @@ func checkPythonImports(s Snippet) []ImportProblem {
 		default:
 			continue
 		}
-		if mod == "cap_sdk_python" || strings.HasPrefix(mod, "cap_sdk_python.") {
+		// The cap-sdk-python package installs the top-level `cap` module.
+		if mod == "cap" || strings.HasPrefix(mod, "cap.") {
 			hasSDK = true
 		}
 		if strings.HasPrefix(mod, ".") {
@@ -194,7 +195,7 @@ func checkPythonImports(s Snippet) []ImportProblem {
 		}
 	}
 	if !hasSDK {
-		ps = append(ps, ImportProblem{s.ID, "python", "", "missing published SDK import (cap_sdk_python)"})
+		ps = append(ps, ImportProblem{s.ID, "python", "", "missing published SDK import (cap)"})
 	}
 	return ps
 }

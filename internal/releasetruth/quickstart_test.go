@@ -99,7 +99,7 @@ func TestCheckPublicImports_FlagsRelativeNodeImport(t *testing.T) {
 
 func TestCheckPublicImports_FlagsRelativePythonImport(t *testing.T) {
 	s := Snippet{ID: "py-bad", Language: "python", Code: strings.Join([]string{
-		"import cap_sdk_python",
+		"from cap import client",
 		"from .helpers import thing",
 	}, "\n")}
 	ps := CheckPublicImports(s)

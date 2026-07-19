@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -275,6 +276,21 @@ class ProtoCodegenTest(unittest.TestCase):
             'echo "GEM_PATH=$RUNNER_TEMP/cap-ruby-gems" >> "$GITHUB_ENV"',
             workflow,
         )
+
+    def test_codegen_ci_rust_toolchain_matches_manifest_msrv(self) -> None:
+        manifest = (proto_codegen.REPO_ROOT / "sdk/rust/Cargo.toml").read_text(
+            encoding="utf-8"
+        )
+        workflow = (
+            proto_codegen.REPO_ROOT / ".github/workflows/proto-codegen.yml"
+        ).read_text(encoding="utf-8")
+
+        match = re.search(r'^rust-version = "(\d+\.\d+)"$', manifest, re.MULTILINE)
+        self.assertIsNotNone(match)
+        assert match is not None
+        msrv = match.group(1)
+        self.assertEqual(msrv, "1.88")
+        self.assertIn(f"dtolnay/rust-toolchain@{msrv}.0", workflow)
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 name = "cap-sdk"
 version = "2.5.3"
 edition = "2021"
+rust-version = "1.88"
 description = "Rust SDK for the Cordum Agent Protocol"
 license = "Apache-2.0"
 

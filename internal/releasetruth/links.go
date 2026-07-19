@@ -96,8 +96,13 @@ func checkTarget(repoRoot, file, rawTarget string, root RenderRoot, anchors map[
 }
 
 func resolvePath(repoRoot, file, target, pathPart string, root RenderRoot) (LinkProblem, bool) {
-	if root == RootWiki && (strings.Contains(pathPart, "/") || strings.HasSuffix(pathPart, ".md")) {
-		return LinkProblem{Target: target, Reason: "repo-relative link does not resolve on a wiki page; use an absolute URL"}, true
+	if root == RootWiki {
+		// On a wiki, a flat name is another wiki page (not verifiable here); a path
+		// that still contains a directory segment is a repo path that cannot resolve.
+		if strings.Contains(path.Clean(pathPart), "/") {
+			return LinkProblem{Target: target, Reason: "repo-relative link does not resolve on a wiki page; use an absolute URL"}, true
+		}
+		return LinkProblem{}, false
 	}
 	base := path.Dir(file)
 	if root == RootIssueTemplate {

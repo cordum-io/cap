@@ -14,12 +14,16 @@ Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 - Fixtures are signed deterministically to keep bytes stable across Go patch releases.
 
 ## Versioning
-- `protocol_version` in `BusPacket` is used for wire negotiation. Current wire version: `1` (schema 1.0.0).
-- Protobuf evolution is append-only: add new fields with new numbers; do not delete or reuse.
-- Repository/SDK releases track implementation bits (Go/Python/Node/C++); pin to tags (current: `v2.0.19`) for reproducibility.
-- Protocol vs SDK:
-  - Protocol wire schema: 1.0.0 (stable).
-  - Repository/SDK: 2.0.19 (may add helpers, docs, and generated stubs without wire breaks).
+- `protocol_version` in `BusPacket` is used for wire negotiation; protobuf evolution is append-only (add new field numbers; never delete or reuse).
+- Repository/SDK releases track implementation and are pinned by tag for reproducibility.
+
+<!-- cap-release:begin:release-status -->
+- **Current release:** 2.14.0 (tag `v2.14.0`, 2026-06-02, channel stable)
+- **Wire protocol:** 1 (compatible range 1–1)
+- **Wire schema:** 1.0.0
+- **Specifications:** 19 normative documents
+<!-- cap-release:end -->
+
 - For the full versioning policy, see [17 Versioning Policy](17-versioning-policy.md).
 
 ## Table of Contents

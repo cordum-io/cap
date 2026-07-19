@@ -96,13 +96,22 @@ flowchart LR
     Result --> Scheduler --> Client
 ```
 
+## Release Status
+
+<!-- cap-release:begin:release-status -->
+- **Current release:** 2.14.0 (tag `v2.14.0`, 2026-06-02, channel stable)
+- **Wire protocol:** 1 (compatible range 1–1)
+- **Wire schema:** 1.0.0
+- **Specifications:** 19 normative documents
+<!-- cap-release:end -->
+
 ## Learn More
 
 | Resource | Description |
 | --- | --- |
 | [Getting Started](docs/getting-started.md) | Zero to running job in 5 minutes |
 | [Why CAP](docs/WHY_CAP.md) | The problem CAP solves and design rationale |
-| [Spec](spec/00-index.md) | Full normative specification (17 documents) |
+| [Spec](spec/00-index.md) | Full normative specification |
 | [Examples](examples/) | Job submissions, workflows, heartbeats |
 | [SDK Comparison](docs/sdk-comparison.md) | Which SDK to use and when |
 | [Technical Reference](docs/reference.md) | Protocol contracts, conformance, repo map |

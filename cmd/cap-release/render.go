@@ -70,7 +70,13 @@ func renderAll(m *releasetruth.Manifest, repoRoot string, write bool) int {
 		}
 		drift++
 		if write {
-			if err := atomicWrite(full, canonical); err != nil {
+			// Preserve the file's existing newline style so a CRLF-committed doc is
+			// not rewritten wholesale into LF (which would bury the real change).
+			out := canonical
+			if strings.Contains(string(data), "\r\n") {
+				out = strings.ReplaceAll(canonical, "\n", "\r\n")
+			}
+			if err := atomicWrite(full, out); err != nil {
 				fmt.Fprintf(os.Stderr, "write %s: %v\n", t.path, err)
 				return 1
 			}

@@ -4,18 +4,24 @@ Deep technical content for implementers. For an overview, see the [README](../RE
 
 ## Status
 
-- Protocol (wire): CAP 1.0.0 — Stable; append-only changes only.
-- Implementation / SDK: cap v2.8.3 (tagged releases in this repo).
-- Transport profile: NATS-first; other buses experimental.
+<!-- cap-release:begin:release-status -->
+- **Current release:** 2.14.0 (tag `v2.14.0`, 2026-06-02, channel stable)
+- **Wire protocol:** 1 (compatible range 1–1)
+- **Wire schema:** 1.0.0
+- **Specifications:** 19 normative documents
+<!-- cap-release:end -->
+
 - Reference implementation: Cordum.
 
-### Versioning at a Glance
+### Transport Status
 
-| Component | Version | Notes |
+<!-- cap-release:begin:transport-table -->
+| Transport | Status | Notes |
 | --- | --- | --- |
-| Protocol wire schema | 1.0.0 | Append-only evolution; never renumber fields. |
-| Repo / SDKs | 2.8.3 | Go/Python/Node/C++ SDKs and docs; pinned by tag. |
-| `protocol_version` field | 1 | Used in `BusPacket` for negotiation. |
+| nats | supported | Core NATS request/reply and pub/sub per spec/09-transport-profile.md. |
+| kafka | experimental | No behavioral conformance evidence yet; not a supported binding. |
+| rabbitmq | experimental | No behavioral conformance evidence yet; not a supported binding. |
+<!-- cap-release:end -->
 
 ## Key Concepts
 

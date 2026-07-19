@@ -16,6 +16,7 @@ var validKinds = map[Kind]bool{
 var validGateKinds = map[GateKind]bool{
 	GateWorkflow: true,
 	GateTest:     true,
+	GateManifest: true,
 }
 
 // Verify checks the manifest against evidence resolvable in root and returns

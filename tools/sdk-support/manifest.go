@@ -30,6 +30,7 @@ type GateKind string
 const (
 	GateWorkflow GateKind = "workflow"
 	GateTest     GateKind = "test"
+	GateManifest GateKind = "manifest" // a package manifest proving a publish coordinate
 )
 
 // RequiredStableGates are the gate IDs a stable entry must declare. A stable
@@ -57,6 +58,12 @@ type Gate struct {
 	Kind GateKind `json:"kind"`
 	Path string   `json:"path"`
 	Job  string   `json:"job,omitempty"`
+	// Pending marks a gate whose evidence file exists but whose content is not
+	// yet earned (e.g. a real-NATS test that still skips). BlockedBy names the
+	// task that will complete it. A pending gate is surfaced honestly rather
+	// than presented as satisfied.
+	Pending   bool   `json:"pending,omitempty"`
+	BlockedBy string `json:"blockedBy,omitempty"`
 }
 
 // Package is the registry coordinate a component publishes under.
@@ -82,6 +89,22 @@ type Manifest struct {
 	Version int     `json:"version"`
 	Entries []Entry `json:"entries"`
 }
+
+// PendingGates returns the gates this entry marks as not-yet-earned, so a
+// caller can report exactly which evidence is still outstanding.
+func (e Entry) PendingGates() []Gate {
+	var out []Gate
+	for _, g := range e.Gates {
+		if g.Pending {
+			out = append(out, g)
+		}
+	}
+	return out
+}
+
+// FullyEarned reports whether every gate on the entry is satisfied (none
+// pending). Only a fully-earned stable entry is claim-clean.
+func (e Entry) FullyEarned() bool { return len(e.PendingGates()) == 0 }
 
 // Problem is a single verification failure, tied to the entry that caused it.
 type Problem struct {

@@ -105,6 +105,7 @@ def _job_packet(job_id: str, subject: str, trace_id: str) -> bytes:
         sender_id="cap-python-integration-submitter",
         protocol_version=DEFAULT_PROTOCOL_VERSION,
     )
+    packet.created_at.GetCurrentTime()
     packet.job_request.CopyFrom(job_pb2.JobRequest(job_id=job_id, topic=subject))
     return packet.SerializeToString(deterministic=True)
 

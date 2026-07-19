@@ -25,7 +25,8 @@ jobs:
       CAP_TEST_NATS_URL: nats://127.0.0.1:4222
     services:
       nats:
-        image: nats:2.10.29-alpine
+        image: >-
+          nats:2.12.6-alpine@sha256:1cfc36e2e5e638243d8c722f72c954cd0ec4b15ee82fadbc718ce12e2b3c1652
         ports:
           - 4222:4222
         options: >-

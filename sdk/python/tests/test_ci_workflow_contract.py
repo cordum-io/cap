@@ -8,6 +8,10 @@ import workflow_support
 
 ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "ci.yml"
+NATS_IMAGE = (
+    "nats:2.12.6-alpine@sha256:"
+    "1cfc36e2e5e638243d8c722f72c954cd0ec4b15ee82fadbc718ce12e2b3c1652"
+)
 
 
 def _workflow() -> str:
@@ -190,7 +194,7 @@ def test_real_nats_lane_is_pinned_mandatory_and_explicit() -> None:
     commands = workflow_support.run_text(workflow, "python-nats")
     assert workflow_support.job_value(
         workflow, "python-nats", "services", "nats", "image"
-    ) == "nats:2.10.29-alpine"
+    ) == NATS_IMAGE
     assert workflow_support.job_value(
         workflow, "python-nats", "timeout-minutes"
     ) == "10"
@@ -201,6 +205,25 @@ def test_real_nats_lane_is_pinned_mandatory_and_explicit() -> None:
         workflow, "python-nats",
         "python -m pytest -q sdk/python/tests/integration/test_worker_nats.py",
     )
+    assert "|| true" not in commands
+
+
+def test_node_real_nats_lane_installs_exact_required_binary() -> None:
+    workflow = _workflow()
+    commands = workflow_support.run_text(workflow, "node-nats")
+    assert workflow_support.job_value(
+        workflow, "node-nats", "env", "NATS_IMAGE"
+    ) == NATS_IMAGE
+    for required in (
+        'docker pull "$NATS_IMAGE"',
+        'binary="$RUNNER_TEMP/nats-server"',
+        'docker cp "$cid:/usr/local/bin/nats-server" "$binary"',
+        'chmod 0755 "$binary"',
+        'echo "CAP_NATS_SERVER_BIN=$binary" >> "$GITHUB_ENV"',
+        'nats-server: v2.12.6',
+        "npm run test:nats",
+    ):
+        assert required in commands
     assert "|| true" not in commands
 
 

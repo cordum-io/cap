@@ -18,6 +18,9 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      NATS_IMAGE: >-
+        nats:2.12.6-alpine@sha256:1cfc36e2e5e638243d8c722f72c954cd0ec4b15ee82fadbc718ce12e2b3c1652
     defaults:
       run:
         shell: bash
@@ -72,8 +75,19 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 
-      - name: Pull pinned NATS server
-        run: docker pull nats:2.10.25-alpine
+      - name: Install pinned NATS server binary
+        run: |
+          set -euo pipefail
+          binary="$RUNNER_TEMP/nats-server"
+          docker pull "$NATS_IMAGE"
+          cid="$(docker create "$NATS_IMAGE")"
+          trap 'docker rm -f "$cid" >/dev/null 2>&1' EXIT
+          docker cp "$cid:/usr/local/bin/nats-server" "$binary"
+          docker rm "$cid" >/dev/null
+          trap - EXIT
+          chmod 0755 "$binary"
+          test "$("$binary" -v)" = "nats-server: v2.12.6"
+          echo "CAP_NATS_SERVER_BIN=$binary" >> "$GITHUB_ENV"
 
       - name: Run mandatory real-NATS restart test
         run: npm run test:nats

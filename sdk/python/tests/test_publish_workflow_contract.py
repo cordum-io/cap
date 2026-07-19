@@ -21,6 +21,10 @@ from workflow_support import (
 
 ROOT = Path(__file__).resolve().parents[3]
 WORKFLOW_PATH = ROOT / ".github" / "workflows" / "publish-python.yml"
+NATS_IMAGE = (
+    "nats:2.12.6-alpine@sha256:"
+    "1cfc36e2e5e638243d8c722f72c954cd0ec4b15ee82fadbc718ce12e2b3c1652"
+)
 
 
 def _workflow() -> str:
@@ -92,7 +96,7 @@ def test_release_uses_exact_codegen_and_mandatory_nats() -> None:
     workflow = _workflow()
     assert job_value(
         workflow, "build-and-verify", "services", "nats", "image"
-    ) == "nats:2.10.29-alpine"
+    ) == NATS_IMAGE
     assert job_value(
         workflow, "build-and-verify", "env", "CAP_TEST_NATS_URL"
     ) == "nats://127.0.0.1:4222"

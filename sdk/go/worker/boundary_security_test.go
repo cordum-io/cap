@@ -2,6 +2,9 @@ package worker
 
 import (
 	"context"
+	"crypto/ecdsa"
+	"log/slog"
+	"strings"
 	"sync/atomic"
 	"testing"
 
@@ -11,6 +14,47 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func TestLowLevelWorkerRejectsMissingTrustKeysAtStart(t *testing.T) {
+	worker := &Worker{
+		NATS:    &mockNATSConn{published: make(chan *nats.Msg, 1), subscriptions: map[string]nats.MsgHandler{}},
+		Subject: "job.secure", SenderID: "worker-secure",
+		Handler: func(context.Context, *agentv1.JobRequest) (*agentv1.JobResult, error) {
+			return &agentv1.JobResult{Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED}, nil
+		},
+	}
+	err := worker.Start()
+	if err == nil || !strings.Contains(err.Error(), "unsigned") {
+		t.Fatalf("Start error = %v, want explicit unsigned opt-in requirement", err)
+	}
+}
+
+func TestLowLevelWorkerRejectsUnsignedPacketWithEmptyTrustMap(t *testing.T) {
+	var calls atomic.Int32
+	worker := &Worker{PublicKeys: map[string]*ecdsa.PublicKey{}, Logger: slog.Default(), Metrics: capsdk.NoopMetrics}
+	worker.Handler = func(context.Context, *agentv1.JobRequest) (*agentv1.JobResult, error) {
+		calls.Add(1)
+		return &agentv1.JobResult{Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED}, nil
+	}
+	raw, err := proto.Marshal(validLowLevelJobPacket())
+	if err != nil {
+		t.Fatal(err)
+	}
+	worker.handleMessage(&nats.Msg{Data: raw})
+	if calls.Load() != 0 {
+		t.Fatalf("unsigned packet invoked handler %d time(s)", calls.Load())
+	}
+}
+
+func TestLowLevelWorkerRejectsUnsignedResultWithoutPrivateKey(t *testing.T) {
+	worker := &Worker{NATS: &mockNATSConn{published: make(chan *nats.Msg, 1)}, SenderID: "worker-secure"}
+	err := worker.publishResult("trace-secure", &agentv1.JobResult{
+		JobId: "job-1", WorkerId: "worker-secure", Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED,
+	})
+	if err == nil || !strings.Contains(err.Error(), "private key") {
+		t.Fatalf("publishResult error = %v, want private key requirement", err)
+	}
+}
 
 func TestLowLevelPacketBuildersRejectInvalidEnvelopes(t *testing.T) {
 	tests := []struct {

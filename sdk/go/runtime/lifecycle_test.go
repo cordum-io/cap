@@ -108,3 +108,19 @@ func TestAgentLifecycleRejectsDuplicateStartAndRestartAfterClose(t *testing.T) {
 		t.Fatal("Start after Close succeeded")
 	}
 }
+
+func TestOffModeAllowsHandshakeTuningWithoutTrustConfiguration(t *testing.T) {
+	agent := &Agent{
+		NATS: &lifecycleBus{}, Store: &lifecycleStore{}, Logger: silentLogger(),
+		HandshakeTimeout: 250 * time.Millisecond, HandshakeRetries: 2,
+	}
+	Register(agent, "job.tuning", func(_ Context, _ struct{}) (struct{}, error) {
+		return struct{}{}, nil
+	})
+	if err := agent.Start(); err != nil {
+		t.Fatalf("off-mode Start rejected transport tuning: %v", err)
+	}
+	if err := agent.Close(); err != nil {
+		t.Fatal(err)
+	}
+}

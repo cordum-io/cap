@@ -6,8 +6,6 @@
 // resolves each of those paths against the repository tree.
 package sdksupport
 
-import "io/fs"
-
 // Kind separates what a component *is* from how well it is supported. A Python
 // Guard extension is not a protocol SDK and must never appear in wire matrices.
 type Kind string
@@ -90,13 +88,4 @@ type Problem struct {
 	EntryID string
 	Code    string
 	Detail  string
-}
-
-// Verify checks the manifest against evidence resolvable in root and returns
-// every problem found. An empty result means the manifest is fully backed by
-// files that exist.
-//
-// NOT IMPLEMENTED: returns nil so the behavioral tests fail RED first.
-func Verify(m *Manifest, root fs.FS) []Problem {
-	return nil
 }

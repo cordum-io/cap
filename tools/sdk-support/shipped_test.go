@@ -95,3 +95,18 @@ func TestShippedManifestFailsWhenEvidenceGoesMissing(t *testing.T) {
 		t.Fatalf("expected gate-path-missing when evidence is removed, got %+v", problems)
 	}
 }
+
+// Renaming or deleting an owner path must fail verification: ownership is
+// resolved evidence, not a free-text claim.
+func TestShippedManifestFailsWhenOwnerPathMissing(t *testing.T) {
+	m := loadShipped(t)
+	for i := range m.Entries {
+		if m.Entries[i].ID == "cpp" {
+			m.Entries[i].OwnerPath = "sdk/renamed-away/"
+		}
+	}
+	root := os.DirFS(filepath.Join("..", ".."))
+	if problems := Verify(m, root); !hasCode(problems, CodeOwnerPathMissing) {
+		t.Fatalf("expected owner-path-missing, got %+v", problems)
+	}
+}

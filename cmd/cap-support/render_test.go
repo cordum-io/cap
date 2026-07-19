@@ -41,6 +41,19 @@ func TestRenderSurfacesPendingWithBlocker(t *testing.T) {
 	}
 }
 
+func TestTierMatrixGroupsAndSorts(t *testing.T) {
+	m := tierMatrix(sampleManifest())
+	if got := m["stable"]; len(got) != 2 || got[0] != "go" || got[1] != "node" {
+		t.Fatalf("stable tier not sorted/grouped: %v", got)
+	}
+	if got := m["experimental"]; len(got) != 1 || got[0] != "rust" {
+		t.Fatalf("experimental tier wrong: %v", got)
+	}
+	if _, ok := m["community"]; !ok {
+		t.Fatal("community key must always be present, even if empty")
+	}
+}
+
 func TestSpliceReplacesOnlyBetweenMarkers(t *testing.T) {
 	doc := "intro\n" + beginMarker + "\nOLD\n" + endMarker + "\noutro\n"
 	out, err := spliceTable(doc, "NEW\n")

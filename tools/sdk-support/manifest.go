@@ -44,6 +44,7 @@ const (
 	CodeDuplicateID         = "duplicate_id"
 	CodeDuplicatePackage    = "duplicate_package"
 	CodeMissingOwner        = "missing_owner"
+	CodeOwnerPathMissing    = "owner_path_missing"
 	CodeMissingDocs         = "missing_docs"
 	CodeDocsPathMissing     = "docs_path_missing"
 	CodeGatePathMissing     = "gate_path_missing"

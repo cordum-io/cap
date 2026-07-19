@@ -51,6 +51,22 @@ func pendingCell(e sdksupport.Entry) string {
 	return strings.Join(parts, ", ")
 }
 
+// tierMatrix groups SDK ids by tier in sorted order, for a CI job matrix.
+func tierMatrix(m *sdksupport.Manifest) map[string][]string {
+	out := map[string][]string{
+		string(sdksupport.TierStable):       {},
+		string(sdksupport.TierCommunity):    {},
+		string(sdksupport.TierExperimental): {},
+	}
+	for _, e := range m.Entries {
+		out[string(e.Tier)] = append(out[string(e.Tier)], e.ID)
+	}
+	for k := range out {
+		sort.Strings(out[k])
+	}
+	return out
+}
+
 // spliceTable replaces the content between the markers in doc with block. It
 // fails if either marker is absent, so a hand edit cannot silently drop the
 // generated region.

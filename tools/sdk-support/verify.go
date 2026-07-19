@@ -1,6 +1,9 @@
 package sdksupport
 
-import "io/fs"
+import (
+	"io/fs"
+	"strings"
+)
 
 var validTiers = map[Tier]bool{
 	TierStable:       true,
@@ -54,6 +57,11 @@ func verifyEntry(e Entry, root fs.FS) []Problem {
 	}
 	if e.Owner == "" {
 		p = append(p, prob(e.ID, CodeMissingOwner, ""))
+	}
+	if e.OwnerPath == "" {
+		p = append(p, prob(e.ID, CodeOwnerPathMissing, "empty"))
+	} else if !exists(root, strings.TrimSuffix(e.OwnerPath, "/")) {
+		p = append(p, prob(e.ID, CodeOwnerPathMissing, e.OwnerPath))
 	}
 	if e.Docs == "" {
 		p = append(p, prob(e.ID, CodeMissingDocs, ""))

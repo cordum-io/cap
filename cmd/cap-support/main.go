@@ -36,6 +36,8 @@ func dispatch(args []string, stdout, stderr io.Writer) int {
 		return runCheck(stdout, stderr)
 	case "render":
 		return runRender(stderr)
+	case "matrix":
+		return runMatrix(stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "cap-support: unknown command %q\n", args[0])
 		return 2
@@ -93,6 +95,22 @@ func runRender(stderr io.Writer) int {
 		return 1
 	}
 	fmt.Fprintf(stderr, "cap-support: rendered %s\n", docPath)
+	return 0
+}
+
+// runMatrix emits the tier->ids grouping as JSON for a CI job matrix.
+func runMatrix(stdout, stderr io.Writer) int {
+	m, err := loadManifest()
+	if err != nil {
+		fmt.Fprintf(stderr, "cap-support: %v\n", err)
+		return 1
+	}
+	body, err := json.Marshal(tierMatrix(m))
+	if err != nil {
+		fmt.Fprintf(stderr, "cap-support: %v\n", err)
+		return 1
+	}
+	fmt.Fprintln(stdout, string(body))
 	return 0
 }
 

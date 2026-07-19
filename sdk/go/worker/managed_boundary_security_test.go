@@ -58,6 +58,7 @@ func TestManagedWorkerRejectsInvalidOutboundBeforePublish(t *testing.T) {
 	worker, err := NewManagedWorker(ManagedConfig{
 		WorkerID: "worker-outbound", Subjects: []string{"job.outbound"}, NatsURL: natsURL,
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 	})
 	if err != nil {
 		t.Fatalf("new managed worker: %v", err)

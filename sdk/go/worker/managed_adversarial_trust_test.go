@@ -12,6 +12,7 @@ func TestManagedWorkerZeroTrustModePreservesLegacyOff(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 	worker, err := NewManagedWorker(ManagedConfig{
 		WorkerID: "worker-zero", Subjects: []string{"job.zero"}, NatsURL: natsURL,
+		AllowUnsigned: true,
 	})
 	if err != nil {
 		t.Fatalf("zero trust mode must retain legacy off behavior: %v", err)

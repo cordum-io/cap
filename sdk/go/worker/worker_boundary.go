@@ -26,6 +26,12 @@ func (w *Worker) validateStart() error {
 	if w.SenderID == "" {
 		return errors.New("worker: SenderID is required")
 	}
+	if !w.AllowUnsigned && len(w.PublicKeys) == 0 {
+		return errors.New("worker: public keys required; set AllowUnsigned for explicit unsigned legacy mode")
+	}
+	if !w.AllowUnsigned && w.PrivateKey == nil {
+		return errors.New("worker: private key required; set AllowUnsigned for explicit unsigned legacy mode")
+	}
 	return nil
 }
 
@@ -65,8 +71,11 @@ func (w *Worker) decodeRequest(data []byte) (*agentv1.BusPacket, *agentv1.JobReq
 }
 
 func (w *Worker) verifyPacket(packet *agentv1.BusPacket) error {
-	if w.PublicKeys == nil {
-		return nil
+	if len(w.PublicKeys) == 0 {
+		if w.AllowUnsigned {
+			return nil
+		}
+		return capsdk.NewSignatureMissingError("worker: unsigned inbound packet is not enabled")
 	}
 	publicKey, ok := w.PublicKeys[packet.GetSenderId()]
 	if !ok {
@@ -123,6 +132,9 @@ func (w *Worker) recordResultMetric(result *agentv1.JobResult, execution int64) 
 }
 
 func (w *Worker) publishResult(traceID string, result *agentv1.JobResult) error {
+	if w.PrivateKey == nil && !w.AllowUnsigned {
+		return errors.New("worker: private key required to publish result")
+	}
 	packet := &agentv1.BusPacket{
 		TraceId: traceID, SenderId: w.SenderID,
 		ProtocolVersion: capsdk.DefaultProtocolVersion, CreatedAt: timestamppb.Now(),

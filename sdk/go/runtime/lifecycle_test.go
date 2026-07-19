@@ -2,7 +2,9 @@ package runtime
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"errors"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -76,7 +78,7 @@ func TestStartFailureClosesOnlyRuntimeOwnedResources(t *testing.T) {
 func TestPartialSubscriptionFailureCleansOwnedResources(t *testing.T) {
 	bus := &lifecycleBus{failSubAt: 2}
 	store := &lifecycleStore{}
-	agent := &Agent{HandshakeMode: HandshakeModeOff, Logger: silentLogger()}
+	agent := &Agent{HandshakeMode: HandshakeModeOff, AllowUnsigned: true, Logger: silentLogger()}
 	agent.connectNATS = func(string, string, time.Duration) (NATSConn, error) { return bus, nil }
 	agent.openStore = func(string) (BlobStore, error) { return store, nil }
 	Register(agent, "job.a", func(_ Context, _ struct{}) (struct{}, error) { return struct{}{}, nil })
@@ -112,6 +114,7 @@ func TestAgentLifecycleRejectsDuplicateStartAndRestartAfterClose(t *testing.T) {
 func TestOffModeAllowsHandshakeTuningWithoutTrustConfiguration(t *testing.T) {
 	agent := &Agent{
 		NATS: &lifecycleBus{}, Store: &lifecycleStore{}, Logger: silentLogger(),
+		AllowUnsigned:    true,
 		HandshakeTimeout: 250 * time.Millisecond, HandshakeRetries: 2,
 	}
 	Register(agent, "job.tuning", func(_ Context, _ struct{}) (struct{}, error) {
@@ -122,5 +125,16 @@ func TestOffModeAllowsHandshakeTuningWithoutTrustConfiguration(t *testing.T) {
 	}
 	if err := agent.Close(); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestOffModeRejectsImplicitUnsignedTransport(t *testing.T) {
+	for _, keys := range []map[string]*ecdsa.PublicKey{nil, {}} {
+		agent := &Agent{NATS: &lifecycleBus{}, Store: &lifecycleStore{}, Logger: silentLogger(), PublicKeys: keys}
+		Register(agent, "job.unsigned", func(_ Context, _ struct{}) (struct{}, error) { return struct{}{}, nil })
+		err := agent.Start()
+		if err == nil || !strings.Contains(err.Error(), "unsigned") {
+			t.Fatalf("Start error = %v, want explicit unsigned opt-in requirement", err)
+		}
 	}
 }

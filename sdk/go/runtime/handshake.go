@@ -149,8 +149,11 @@ func (a *Agent) validateTrustStartup() error {
 	}
 	trust := a.workerTrustConfig()
 	if mode == HandshakeModeOff {
-		if workerTrustConfigured(*trust) || a.HandshakeTimeout != 0 || a.HandshakeRetries != 0 {
+		if workerTrustConfigured(*trust) {
 			return errors.New("cap-runtime: handshake mode off conflicts with worker trust configuration")
+		}
+		if !a.AllowUnsigned && (len(a.PublicKeys) == 0 || a.PrivateKey == nil) {
+			return errors.New("cap-runtime: signing keys required; set AllowUnsigned for explicit unsigned legacy mode")
 		}
 		return nil
 	}

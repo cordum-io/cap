@@ -60,15 +60,17 @@ func WithAgentName(name string) HeartbeatOption {
 
 // Worker subscribes to a pool subject and handles jobs.
 type Worker struct {
-	NATS        NATSConn
-	Subject     string
-	Handler     Handler
-	PublicKeys  map[string]*ecdsa.PublicKey
-	PrivateKey  *ecdsa.PrivateKey
-	SenderID    string
-	Logger      *slog.Logger
-	Metrics     capsdk.MetricsHook
-	middlewares []WorkerMiddleware
+	NATS       NATSConn
+	Subject    string
+	Handler    Handler
+	PublicKeys map[string]*ecdsa.PublicKey
+	PrivateKey *ecdsa.PrivateKey
+	// AllowUnsigned explicitly opts into legacy unsigned packet transport.
+	AllowUnsigned bool
+	SenderID      string
+	Logger        *slog.Logger
+	Metrics       capsdk.MetricsHook
+	middlewares   []WorkerMiddleware
 }
 
 // Use appends middleware to the Worker. Middleware executes in registration order

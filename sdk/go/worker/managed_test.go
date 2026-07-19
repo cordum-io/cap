@@ -21,6 +21,7 @@ func TestNewManagedWorker_ValidConfig(t *testing.T) {
 
 	cfg := ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "echo",
 		Pool:            "test-pool",
 		NatsURL:         natsURL,
@@ -56,6 +57,7 @@ func TestNewManagedWorker_DefaultsApplied(t *testing.T) {
 
 	cfg := ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "processor",
 		NatsURL:         natsURL,
 	}
@@ -91,6 +93,7 @@ func TestNewManagedWorker_SubjectsProvided(t *testing.T) {
 
 	cfg := ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Subjects:        []string{"custom.subject.1", "custom.subject.2"},
 		NatsURL:         natsURL,
 		WorkerID:        "subject-worker",
@@ -112,6 +115,7 @@ func TestNewManagedWorker_SubjectDeduplication(t *testing.T) {
 
 	cfg := ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Subjects:        []string{"job.echo.*", "job.echo.*", "  job.echo.*  "},
 		NatsURL:         natsURL,
 		WorkerID:        "dedup-worker",
@@ -133,6 +137,7 @@ func TestNewManagedWorker_InvalidSubjects(t *testing.T) {
 
 	cfg := ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		NatsURL:         natsURL,
 		WorkerID:        "no-subjects-worker",
 	}
@@ -146,6 +151,7 @@ func TestNewManagedWorker_InvalidSubjects(t *testing.T) {
 func TestNewManagedWorker_ConnectionFailure(t *testing.T) {
 	cfg := ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "echo",
 		NatsURL:         "nats://invalid-host-that-does-not-exist:4222",
 	}
@@ -162,6 +168,7 @@ func TestNewManagedWorker_NatsURLFromEnv(t *testing.T) {
 
 	cfg := ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "echo",
 		WorkerID:        "env-nats-worker",
 	}
@@ -176,7 +183,7 @@ func TestNewManagedWorker_NatsURLFromEnv(t *testing.T) {
 func TestManagedWorker_Run_HandlerRequired(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 
-	w, err := NewManagedWorker(ManagedConfig{WorkerTrustMode: capsdk.WorkerTrustModeOff, Type: "echo", NatsURL: natsURL})
+	w, err := NewManagedWorker(ManagedConfig{WorkerTrustMode: capsdk.WorkerTrustModeOff, AllowUnsigned: true, Type: "echo", NatsURL: natsURL})
 	if err != nil {
 		t.Fatalf("NewManagedWorker failed: %v", err)
 	}
@@ -196,6 +203,7 @@ func TestManagedWorker_Run_ProcessesJobs(t *testing.T) {
 
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "echo",
 		NatsURL:         natsURL,
 		WorkerID:        "process-jobs-worker",
@@ -282,6 +290,7 @@ func TestManagedWorker_Run_ConcurrencyLimit(t *testing.T) {
 	maxParallel := int32(2)
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "slow",
 		NatsURL:         natsURL,
 		WorkerID:        "concurrency-worker",
@@ -350,6 +359,7 @@ func TestManagedWorker_Run_DirectSubject(t *testing.T) {
 	workerID := "direct-subject-worker"
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "echo",
 		NatsURL:         natsURL,
 		WorkerID:        workerID,
@@ -416,6 +426,7 @@ func TestManagedWorker_Run_PublishesResult(t *testing.T) {
 
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "result-test",
 		NatsURL:         natsURL,
 		WorkerID:        "result-worker",
@@ -506,6 +517,7 @@ func TestManagedWorker_Run_HandlerError(t *testing.T) {
 
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "error-test",
 		NatsURL:         natsURL,
 		WorkerID:        "error-worker",
@@ -589,6 +601,7 @@ func TestManagedWorker_Run_HandlerPanic(t *testing.T) {
 
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "panic-test",
 		NatsURL:         natsURL,
 		WorkerID:        "panic-worker",
@@ -679,6 +692,7 @@ func TestManagedWorker_Close_GracefulShutdown(t *testing.T) {
 
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "shutdown-test",
 		NatsURL:         natsURL,
 		WorkerID:        "shutdown-worker",
@@ -718,6 +732,7 @@ func TestManagedWorker_Close_DoubleClose(t *testing.T) {
 
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "double-close",
 		NatsURL:         natsURL,
 		WorkerID:        "double-close-worker",
@@ -740,6 +755,7 @@ func TestManagedWorker_HeartbeatEmission(t *testing.T) {
 
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "heartbeat-test",
 		NatsURL:         natsURL,
 		WorkerID:        "heartbeat-worker",
@@ -812,6 +828,7 @@ func TestManagedWorker_AgentNameInHeartbeatAndHandshake(t *testing.T) {
 
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "agentname-test",
 		NatsURL:         natsURL,
 		WorkerID:        "agentname-worker",
@@ -916,6 +933,7 @@ func TestManagedWorker_PublishesHandshakeReadyTopics(t *testing.T) {
 	readyTopics := managedAdmittedSubjects("handshake-ready-worker", configuredTopics)
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Subjects:        configuredTopics,
 		NatsURL:         natsURL,
 		WorkerID:        "handshake-ready-worker",
@@ -997,6 +1015,7 @@ func TestManagedWorker_HeartbeatFailureTracking(t *testing.T) {
 
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "hb-fail-test",
 		NatsURL:         natsURL,
 		WorkerID:        "hb-fail-worker",
@@ -1032,6 +1051,7 @@ func TestManagedWorker_HeartbeatFailureCounter_ResetOnSuccess(t *testing.T) {
 
 	w, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		Type:            "hb-reset-test",
 		NatsURL:         natsURL,
 		WorkerID:        "hb-reset-worker",

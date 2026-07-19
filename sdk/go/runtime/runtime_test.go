@@ -74,6 +74,7 @@ func TestRuntimeSuccess(t *testing.T) {
 
 	agent := &Agent{
 		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
 		NATS:          mock,
 		Store:         store,
 		SenderID:      "worker-1",
@@ -140,6 +141,7 @@ func TestRuntimeInvalidJSON(t *testing.T) {
 
 	agent := &Agent{
 		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
 		NATS:          mock,
 		Store:         store,
 		SenderID:      "worker-2",
@@ -191,6 +193,7 @@ func TestRuntimeRetries(t *testing.T) {
 
 	agent := &Agent{
 		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
 		NATS:          mock,
 		Store:         store,
 		SenderID:      "worker-3",
@@ -248,6 +251,7 @@ func TestAgentStartPublishesHandshake(t *testing.T) {
 
 	agent := &Agent{
 		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
 		NATS:          mock,
 		Store:         store,
 		SenderID:      "worker-handshake",
@@ -323,6 +327,7 @@ func TestAgentHandshakeCarriesSanitizedAgentName(t *testing.T) {
 
 	agent := &Agent{
 		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
 		NATS:          mock,
 		Store:         store,
 		SenderID:      "worker-named",

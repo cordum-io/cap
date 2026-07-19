@@ -56,9 +56,9 @@ func TestPublicGoBuildersPassOwnValidator(t *testing.T) {
 
 func buildJobRequest() ([]byte, error) {
 	capture := &builderCapture{}
-	err := capclient.Submit(context.Background(), capture, &agentv1.JobRequest{
+	err := capclient.SubmitUnsigned(context.Background(), capture, &agentv1.JobRequest{
 		JobId: "job-1",
 		Topic: "job.security",
-	}, "trace-1", "client-1", nil)
+	}, "trace-1", "client-1")
 	return capture.data, err
 }

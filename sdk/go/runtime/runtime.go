@@ -149,7 +149,9 @@ type Agent struct {
 	Store      BlobStore
 	PublicKeys map[string]*ecdsa.PublicKey
 	PrivateKey *ecdsa.PrivateKey
-	SenderID   string
+	// AllowUnsigned explicitly opts into legacy unsigned packet transport.
+	AllowUnsigned bool
+	SenderID      string
 	// AgentName is an optional human-facing display label advertised on the
 	// handshake. It is sanitized/bounded before transport and is a DISPLAY
 	// label only, never an authentication authority.

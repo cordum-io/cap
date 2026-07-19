@@ -47,6 +47,7 @@ func TestManagedWorkerCleansPartialSubscriptionFailure(t *testing.T) {
 	worker, err := NewManagedWorker(ManagedConfig{
 		WorkerID: "worker-partial", Subjects: []string{"job.partial", "invalid subject"}, NatsURL: natsURL,
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 	})
 	if err != nil {
 		t.Fatalf("new managed worker: %v", err)
@@ -75,6 +76,7 @@ func TestManagedWorkerRejectsConcurrentAndRepeatedRun(t *testing.T) {
 	worker, err := NewManagedWorker(ManagedConfig{
 		WorkerID: "worker-run-once", Subjects: []string{"job.run.once"}, NatsURL: natsURL,
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 	})
 	if err != nil {
 		t.Fatal(err)

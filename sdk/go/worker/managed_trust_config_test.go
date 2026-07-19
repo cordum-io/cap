@@ -49,6 +49,7 @@ func TestManagedWorkerExplicitOffConnectsWithoutTrustMaterial(t *testing.T) {
 	worker, err := NewManagedWorker(ManagedConfig{
 		WorkerID: "worker-off", Subjects: []string{"job.off"}, NatsURL: natsURL,
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 	})
 	if err != nil {
 		t.Fatalf("explicit off must connect without trust material: %v", err)

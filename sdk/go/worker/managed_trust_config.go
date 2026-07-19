@@ -16,6 +16,9 @@ func validateManagedTrustConfig(config ManagedConfig, resolvedWorkerID string) e
 		if config.WorkerTrust != nil || config.WorkerTrustTimeout != 0 {
 			return fmt.Errorf("worker trust: off mode cannot retain trust configuration")
 		}
+		if !config.AllowUnsigned && (len(config.PublicKeys) == 0 || config.PrivateKey == nil) {
+			return fmt.Errorf("worker trust: signing keys required; set AllowUnsigned for explicit unsigned legacy mode")
+		}
 		return nil
 	case capsdk.WorkerTrustModeWarn, capsdk.WorkerTrustModeEnforce:
 		if err := capsdk.ValidateWorkerTrustConfig(config.WorkerTrust); err != nil {

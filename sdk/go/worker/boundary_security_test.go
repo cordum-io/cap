@@ -29,6 +29,19 @@ func TestLowLevelWorkerRejectsMissingTrustKeysAtStart(t *testing.T) {
 	}
 }
 
+func TestLowLevelWorkerAllowsExplicitUnsignedMode(t *testing.T) {
+	worker := &Worker{
+		NATS:    &mockNATSConn{published: make(chan *nats.Msg, 1), subscriptions: map[string]nats.MsgHandler{}},
+		Subject: "job.legacy", SenderID: "worker-legacy", AllowUnsigned: true,
+		Handler: func(context.Context, *agentv1.JobRequest) (*agentv1.JobResult, error) {
+			return &agentv1.JobResult{Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED}, nil
+		},
+	}
+	if err := worker.Start(); err != nil {
+		t.Fatalf("explicit unsigned Start: %v", err)
+	}
+}
+
 func TestLowLevelWorkerRejectsUnsignedPacketWithEmptyTrustMap(t *testing.T) {
 	var calls atomic.Int32
 	worker := &Worker{PublicKeys: map[string]*ecdsa.PublicKey{}, Logger: slog.Default(), Metrics: capsdk.NoopMetrics}
@@ -85,6 +98,7 @@ func TestLowLevelWorkerRejectsInvalidEnvelopeBeforeHandler(t *testing.T) {
 	var calls atomic.Int32
 	worker := &Worker{
 		NATS: conn, Subject: "job.secure", SenderID: "worker-secure",
+		AllowUnsigned: true,
 		Handler: func(context.Context, *agentv1.JobRequest) (*agentv1.JobResult, error) {
 			calls.Add(1)
 			return &agentv1.JobResult{Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED}, nil

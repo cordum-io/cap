@@ -49,6 +49,7 @@ func TestMetricsOnSuccess(t *testing.T) {
 
 	agent := &Agent{
 		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
 		NATS:          mock,
 		Store:         store,
 		SenderID:      "worker-m1",
@@ -99,6 +100,7 @@ func TestMetricsOnFailure(t *testing.T) {
 	// Empty context_ptr triggers failure
 	agent := &Agent{
 		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
 		NATS:          mock,
 		Store:         store,
 		SenderID:      "worker-m2",

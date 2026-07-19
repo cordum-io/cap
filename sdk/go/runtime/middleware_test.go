@@ -21,6 +21,7 @@ func TestMiddlewareExecutionOrder(t *testing.T) {
 
 	agent := &Agent{
 		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
 		NATS:          mock,
 		Store:         store,
 		SenderID:      "worker-mw",
@@ -90,6 +91,7 @@ func TestMiddlewareShortCircuit(t *testing.T) {
 
 	agent := &Agent{
 		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
 		NATS:          mock,
 		Store:         store,
 		SenderID:      "worker-short",
@@ -159,6 +161,7 @@ func TestLoggingMiddleware(t *testing.T) {
 
 	agent := &Agent{
 		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
 		NATS:          mock,
 		Store:         store,
 		SenderID:      "worker-log",

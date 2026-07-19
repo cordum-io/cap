@@ -19,8 +19,11 @@ func (w *ManagedWorker) validateInboundPacket(packet *agentv1.BusPacket) error {
 		}
 		return w.verifyTrustedSchedulerPacket(packet)
 	}
-	if w.cfg.PublicKeys == nil {
-		return nil
+	if len(w.cfg.PublicKeys) == 0 {
+		if w.cfg.AllowUnsigned {
+			return nil
+		}
+		return errors.New("worker: unsigned inbound packet is not enabled")
 	}
 	publicKey, ok := w.cfg.PublicKeys[packet.GetSenderId()]
 	if !ok {

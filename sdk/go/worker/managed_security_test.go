@@ -33,6 +33,7 @@ func TestManagedWorkerBuildersPassOwnValidator(t *testing.T) {
 
 	managed, err := NewManagedWorker(ManagedConfig{
 		WorkerTrustMode: capsdk.WorkerTrustModeOff,
+		AllowUnsigned:   true,
 		NatsURL:         natsURL, WorkerID: "worker-builder", Subjects: []string{"job.builder"}, HeartbeatEvery: 20 * time.Millisecond,
 	})
 	if err != nil {

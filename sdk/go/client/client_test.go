@@ -6,6 +6,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -135,10 +136,22 @@ func TestSubmit_NilContextStillPublishes(t *testing.T) {
 	}
 
 	var nilCtx context.Context
-	if err := Submit(nilCtx, nc, req, "test-trace", "test-sender", nil); err != nil {
+	if err := SubmitUnsigned(nilCtx, nc, req, "test-trace", "test-sender"); err != nil {
 		t.Fatalf("Submit with nil ctx failed: %v", err)
 	}
 	if got := len(nc.published); got != 1 {
 		t.Fatalf("Submit with nil ctx published %d packets, want exactly 1", got)
+	}
+}
+
+func TestSubmitRejectsImplicitUnsignedPacket(t *testing.T) {
+	nc := &mockNATSPublisher{published: make(chan []byte, 1)}
+	err := Submit(context.Background(), nc, &agentv1.JobRequest{JobId: "job-unsigned", Topic: "test.topic"},
+		"trace-unsigned", "test-sender", nil)
+	if err == nil || !strings.Contains(err.Error(), "SubmitUnsigned") {
+		t.Fatalf("Submit error = %v, want explicit unsigned opt-in requirement", err)
+	}
+	if len(nc.published) != 0 {
+		t.Fatal("implicit unsigned Submit published a packet")
 	}
 }

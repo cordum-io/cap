@@ -41,8 +41,11 @@ func (a *Agent) verifyPinnedSchedulerPacket(packet *agentv1.BusPacket) error {
 }
 
 func (a *Agent) verifyLegacyInboundPacket(packet *agentv1.BusPacket) error {
-	if a.PublicKeys == nil {
-		return nil
+	if len(a.PublicKeys) == 0 {
+		if a.AllowUnsigned {
+			return nil
+		}
+		return capsdk.NewSignatureMissingError("cap-runtime: unsigned inbound packet is not enabled")
 	}
 	publicKey, ok := a.PublicKeys[packet.GetSenderId()]
 	if !ok {

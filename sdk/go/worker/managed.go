@@ -43,6 +43,8 @@ type ManagedConfig struct {
 	HeartbeatEvery time.Duration
 	PublicKeys     map[string]*ecdsa.PublicKey
 	PrivateKey     *ecdsa.PrivateKey
+	// AllowUnsigned explicitly opts into legacy unsigned packet transport.
+	AllowUnsigned bool
 	// NATSTLSConfig is an optional TLS configuration for the NATS connection.
 	// When nil, NewManagedWorker attempts to build one from NATS_TLS_* env vars.
 	NATSTLSConfig *tls.Config

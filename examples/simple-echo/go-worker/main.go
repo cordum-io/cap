@@ -38,12 +38,7 @@ func run() (err error) {
 			err = cleanupErr
 		}
 	}()
-	w := &worker.Worker{
-		NATS:     nc,
-		Subject:  workerSubject,
-		Handler:  echo,
-		SenderID: workerID,
-	}
+	w := newEchoWorker(nc)
 	if err := w.Start(); err != nil {
 		return fmt.Errorf("start worker: %w", err)
 	}
@@ -56,6 +51,13 @@ func run() (err error) {
 	defer stop()
 	<-ctx.Done()
 	return nil
+}
+
+func newEchoWorker(nc worker.NATSConn) *worker.Worker {
+	return &worker.Worker{
+		NATS: nc, Subject: workerSubject, Handler: echo, SenderID: workerID,
+		AllowUnsigned: true,
+	}
 }
 
 func echo(_ context.Context, req *agentv1.JobRequest) (*agentv1.JobResult, error) {

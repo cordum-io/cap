@@ -38,7 +38,7 @@
     "lint:package": "publint --pack false --level error",
     "sample:worker": "node dist/sample-worker.js",
     "test": "node -e \"require('fs').rmSync('.build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && mocha \".build/test/*.test.js\"",
-    "test:nats": "node -e \"require('fs').rmSync('.build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && mocha \".build/test/integration/nats.e2e.js\"",
+    "test:nats": "node -e \"require('fs').rmSync('.build',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && mocha \".build/test/integration/*.e2e.js\"",
     "test:package": "node scripts/verify-package.cjs",
     "docs": "typedoc --out docs src/index.ts"
   },

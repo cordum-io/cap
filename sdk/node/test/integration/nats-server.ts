@@ -2,8 +2,7 @@ import { ChildProcess, execFileSync, spawn } from "node:child_process";
 import net from "node:net";
 import { setTimeout as delay } from "node:timers/promises";
 
-const NATS_IMAGE = "nats:2.10.25-alpine";
-const NATS_VERSION = "2.10.25";
+const NATS_VERSION = "2.12.6";
 const START_TIMEOUT_MS = 8_000;
 
 interface CommandSpec {
@@ -14,9 +13,7 @@ interface CommandSpec {
 export class NatsServer {
   private child?: ChildProcess;
   private output = "";
-  private readonly binary =
-    process.env.CAP_NATS_SERVER_BIN ?? process.env.NATS_SERVER_BIN;
-  private readonly containerName = `cap-node-e2e-${process.pid}-${Date.now()}`;
+  private readonly binary = process.env.CAP_NATS_SERVER_BIN;
 
   constructor(readonly port: number) {}
 
@@ -54,14 +51,8 @@ export class NatsServer {
     const child = this.child;
     if (!child) return;
     try {
-      if (child.exitCode === null && this.binary) {
+      if (child.exitCode === null) {
         child.kill();
-      } else if (child.exitCode === null) {
-        execFileSync("docker", ["stop", "-t", "1", this.containerName], {
-          stdio: "pipe",
-          timeout: 10_000,
-          windowsHide: true,
-        });
       }
       await waitForExit(child);
       await waitForCondition(
@@ -77,26 +68,20 @@ export class NatsServer {
   }
 
   private command(): CommandSpec {
-    if (this.binary) {
-      const version = execFileSync(this.binary, ["-v"], {
-        encoding: "utf8",
-        timeout: 5_000,
-        windowsHide: true,
-      });
-      if (!version.includes(`v${NATS_VERSION}`)) {
-        throw new Error(`expected nats-server v${NATS_VERSION}, got ${version.trim()}`);
-      }
-      return {
-        command: this.binary,
-        args: ["-a", "127.0.0.1", "-p", String(this.port)],
-      };
+    if (!this.binary) {
+      throw new Error("CAP_NATS_SERVER_BIN must name the pinned nats-server v2.12.6 binary");
+    }
+    const version = execFileSync(this.binary, ["-v"], {
+      encoding: "utf8",
+      timeout: 5_000,
+      windowsHide: true,
+    });
+    if (version.trim() !== `nats-server: v${NATS_VERSION}`) {
+      throw new Error(`expected nats-server v${NATS_VERSION}, got ${version.trim()}`);
     }
     return {
-      command: "docker",
-      args: [
-        "run", "--rm", "--name", this.containerName,
-        "-p", `127.0.0.1:${this.port}:4222`, NATS_IMAGE,
-      ],
+      command: this.binary,
+      args: ["-a", "127.0.0.1", "-p", String(this.port)],
     };
   }
 

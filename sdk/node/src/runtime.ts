@@ -1,24 +1,28 @@
 import {
   connect,
+  Events,
   NatsConnection,
   Subscription,
   SubscriptionOptions,
 } from "nats";
 import { createClient, RedisClientType } from "redis";
 import { z, ZodTypeAny } from "zod";
-import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import type { Middleware } from "./middleware";
-import * as crypto from "crypto";
 import { heartbeatLoop, heartbeatPayload } from "./heartbeat";
 import { MalformedPacketError, InvalidInputError } from "./errors";
 import type { Logger } from "./logger";
 import type { MetricsHook } from "./metrics";
 import { noopMetrics } from "./metrics";
 import { handshakePayload, publishHandshake } from "./handshake";
-import { verifyInboundPacket } from "./security";
+import { encodeOutboundPacket, prepareOutboundPacket } from "./packet-boundary";
+import {
+  RuntimeWorkerTrust,
+  type RuntimeTrustOptions,
+} from "./runtime-worker-trust";
 
 export type { Logger } from "./logger";
+export type { RuntimeTrustOptions } from "./runtime-worker-trust";
 
 const DEFAULT_NATS_URL = "nats://127.0.0.1:4222";
 const DEFAULT_REDIS_URL = "redis://127.0.0.1:6379/0";
@@ -123,6 +127,7 @@ export interface AgentOptions {
   heartbeatInterval?: number;
   pool?: string;
   maxParallel?: number;
+  workerTrust?: RuntimeTrustOptions;
 }
 
 /** Per-handler options for {@link Agent.job}. */
@@ -205,6 +210,7 @@ export class Agent {
   private readonly heartbeatInterval: number;
   private readonly pool: string;
   private readonly maxParallel: number;
+  private readonly workerTrustOptions: RuntimeTrustOptions;
   private readonly handlers = new Map<string, HandlerSpec>();
   private readonly middlewares: Middleware[] = [];
   private nc?: NatsConnection;
@@ -217,6 +223,9 @@ export class Agent {
   private state: AgentState = "idle";
   private startPromise?: Promise<void>;
   private closePromise?: Promise<void>;
+  private trust?: RuntimeWorkerTrust;
+  private statusWatchActive = false;
+  private statusTask?: Promise<void>;
 
   constructor(options: AgentOptions = {}) {
     this.natsUrl = options.natsUrl ?? process.env.NATS_URL ?? DEFAULT_NATS_URL;
@@ -245,6 +254,7 @@ export class Agent {
     this.heartbeatInterval = options.heartbeatInterval ?? 5000;
     this.pool = options.pool ?? "";
     this.maxParallel = Math.max(1, options.maxParallel ?? 1);
+    this.workerTrustOptions = { ...(options.workerTrust ?? {}) };
   }
 
   /** Appends middleware to the agent. Middleware executes in registration order before the handler. */
@@ -303,6 +313,12 @@ export class Agent {
     if (this.state !== "idle") {
       throw new Error(`Agent already started or closed (state: ${this.state})`);
     }
+    this.trust = new RuntimeWorkerTrust(
+      this.workerTrustOptions,
+      this.senderId,
+      [...this.handlers.keys()],
+      this.logger
+    );
     this.state = "starting";
     this.startPromise = this.startInternal();
     return this.startPromise;
@@ -315,12 +331,21 @@ export class Agent {
     return this.closePromise;
   }
 
+  get sessionToken(): string | undefined {
+    return this.trust?.sessionToken;
+  }
+
   private async startInternal(): Promise<void> {
     try {
       await this.initializeRuntime();
+      if (!this.nc || !this.trust) throw new Error("runtime trust is unavailable");
+      await this.trust.authenticate(this.nc);
+      this.subscribeHandlers(this.nc);
       await this.publishStartupHandshake();
       this.startHeartbeat();
       this.state = "running";
+      this.trust.startRenewal((error) => this.onTrustFailure(error));
+      this.startStatusWatcher();
     } catch (error) {
       try {
         await this.closeResources();
@@ -343,6 +368,9 @@ export class Agent {
     const root = await loadRoot();
     this.busPacketType = root.lookupType("cordum.agent.v1.BusPacket");
     this.jobResultType = root.lookupType("cordum.agent.v1.JobResult");
+  }
+
+  private subscribeHandlers(connection: NatsConnection): void {
     for (const spec of this.handlers.values()) {
       this.subscriptions.push(this.subscribe(connection, spec));
     }
@@ -400,17 +428,22 @@ export class Agent {
     }
     try {
       const readyTopics = Array.from(this.handlers.keys()).sort();
-      const capabilities = Object.fromEntries(
-        Array.from(this.handlers.keys(), (topic) => [topic, true])
-      );
+      const capability = this.trust?.capability;
+      const advertisedCapabilities = this.trust?.enabled
+        ? capability?.capabilities ?? {}
+        : Object.fromEntries(readyTopics.map((topic) => [topic, true]));
       const packet = await handshakePayload(
         this.senderId,
-        capabilities,
+        advertisedCapabilities,
         this.senderId,
-        readyTopics
+        readyTopics,
+        this.senderId,
+        capability?.sdkVersion ?? "cap-node/v2",
+        this.trust?.outboundSessionToken() ?? ""
       );
       await publishHandshake(this.nc, packet, this.privateKey);
     } catch (error) {
+      if (this.trust?.enabled) throw error;
       this.logger.warn("handshake publish failed", {
         senderId: this.senderId,
         error: String(error),
@@ -429,7 +462,10 @@ export class Agent {
         this.pool,
         this.activeJobCount,
         this.maxParallel,
-        0
+        0,
+        "",
+        this.senderId,
+        this.trust?.outboundSessionToken() ?? ""
       ),
       {
         interval: this.heartbeatInterval,
@@ -440,8 +476,80 @@ export class Agent {
     );
   }
 
+  private startStatusWatcher(): void {
+    if (!this.nc || !this.trust?.enabled || this.statusTask) return;
+    this.statusWatchActive = true;
+    this.statusTask = this.watchConnectionStatus(this.nc).finally(() => {
+      this.statusTask = undefined;
+    });
+  }
+
+  private async watchConnectionStatus(connection: NatsConnection): Promise<void> {
+    try {
+      for await (const status of connection.status()) {
+        if (!this.statusWatchActive) return;
+        if (status.type === Events.Disconnect) {
+          this.trust?.stopAdmission();
+          this.stopHeartbeat();
+        } else if (status.type === Events.Reconnect) {
+          await this.reauthenticateAfterReconnect();
+        }
+      }
+    } catch (error) {
+      if (this.statusWatchActive) {
+        this.logger.error("NATS status watcher failed", { errorType: this.errorType(error) });
+      }
+    }
+  }
+
+  private async reauthenticateAfterReconnect(): Promise<void> {
+    if (this.state !== "running" || !this.nc || !this.trust?.enabled) return;
+    this.trust.stopAdmission();
+    this.stopHeartbeat();
+    await this.drainHandlerSubscriptions();
+    try {
+      await this.trust.reauthenticate();
+      if (this.state !== "running") return;
+      this.subscribeHandlers(this.nc);
+      await this.publishStartupHandshake();
+      this.startHeartbeat();
+      this.trust.startRenewal((error) => this.onTrustFailure(error));
+    } catch (error) {
+      if (this.trust.enforcing) await this.onTrustFailure(this.asError(error));
+      else this.logger.warn("worker trust reconnect failed", { errorType: this.errorType(error) });
+    }
+  }
+
+  private async onTrustFailure(error: Error): Promise<void> {
+    this.trust?.stopAdmission();
+    this.stopHeartbeat();
+    await this.drainHandlerSubscriptions();
+    this.logger.error("authenticated session renewal failed; admissions stopped", {
+      errorType: error.name,
+    });
+  }
+
+  private stopHeartbeat(): void {
+    this.heartbeatHandle?.stop();
+    this.heartbeatHandle = undefined;
+  }
+
+  private async drainHandlerSubscriptions(): Promise<void> {
+    const subscriptions = this.subscriptions.splice(0);
+    await Promise.all(subscriptions.map((subscription) => this.drainSubscription(subscription)));
+  }
+
+  private asError(error: unknown): Error {
+    return error instanceof Error ? error : new Error(String(error));
+  }
+
+  private errorType(error: unknown): string {
+    return this.asError(error).name;
+  }
+
   private async closeInternal(): Promise<void> {
     if (this.state === "starting" && this.startPromise) {
+      await this.trust?.close();
       try {
         await this.startPromise;
       } catch {
@@ -460,13 +568,13 @@ export class Agent {
   }
 
   private async closeResources(): Promise<void> {
-    this.heartbeatHandle?.stop();
-    this.heartbeatHandle = undefined;
-    const subscriptions = this.subscriptions.splice(0);
-    await Promise.all(subscriptions.map((subscription) => this.drainSubscription(subscription)));
+    this.statusWatchActive = false;
+    this.stopHeartbeat();
+    await this.drainHandlerSubscriptions();
     while (this.inFlight.size > 0) {
       await Promise.all([...this.inFlight]);
     }
+    await this.trust?.close();
     const connection = this.nc;
     try {
       if (connection) {
@@ -527,7 +635,9 @@ export class Agent {
     }
 
     try {
-      verifyInboundPacket(this.busPacketType, packet, this.publicKeyMap);
+      if (!this.trust?.verifyInbound(this.busPacketType, packet, this.publicKeyMap)) {
+        throw new Error("worker trust admission rejected packet");
+      }
     } catch (error) {
       this.logger.warn("Agent rejected inbound packet", { error: String(error) });
       return;
@@ -681,15 +791,8 @@ export class Agent {
       createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
       jobResult: jrMsg,
     }) as any;
-
-    if (this.privateKey) {
-      const unsignedOut = encodeUnsignedForSignature(this.busPacketType, out);
-      const sign = crypto.createSign("sha256");
-      sign.update(unsignedOut);
-      out.signature = sign.sign(this.privateKey);
-    }
-
-    const data = encodeDeterministic(this.busPacketType, out);
+    prepareOutboundPacket(out, this.trust?.outboundSessionToken() ?? "");
+    const data = encodeOutboundPacket(this.busPacketType, out, this.privateKey);
     await (this.nc.publish(SUBJECT_RESULT, data) as any);
   }
 }

@@ -40,6 +40,28 @@ def _snapshot(root: Path) -> dict[str, str]:
     }
 
 
+class RepositoryContractTests(unittest.TestCase):
+    def test_repository_contract_does_not_use_temporary_git_fixture(self) -> None:
+        self.assertNotIn("test_documented_artifact_directory_is_git_ignored", GoProxyBuilderTests.__dict__)
+
+    def test_documented_artifact_directory_is_git_ignored(self) -> None:
+        documented_paths = (
+            ".artifacts/onboarding-probe",
+            ".artifact-venv/onboarding-probe",
+        )
+        for path in documented_paths:
+            with self.subTest(path=path):
+                result = _run(
+                    ["git", "check-ignore", "--quiet", path],
+                    cwd=REPOSITORY_ROOT,
+                )
+                self.assertEqual(
+                    result.returncode,
+                    0,
+                    "documented in-clone artifacts must not dirty git status",
+                )
+
+
 class GoProxyBuilderTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temporary = tempfile.TemporaryDirectory(prefix="cap-go-proxy-")
@@ -272,24 +294,6 @@ class GoProxyBuilderTests(unittest.TestCase):
                 result = self._build(Path(self.temporary.name) / version.replace("/", "_"), version)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("version", (result.stdout + result.stderr).lower())
-
-    def test_documented_artifact_directory_is_git_ignored(self) -> None:
-        documented_paths = (
-            ".artifacts/onboarding-probe",
-            ".artifact-venv/onboarding-probe",
-        )
-        for path in documented_paths:
-            with self.subTest(path=path):
-                result = _run(
-                    ["git", "check-ignore", "--quiet", path],
-                    cwd=REPOSITORY_ROOT,
-                )
-                self.assertEqual(
-                    result.returncode,
-                    0,
-                    "documented in-clone artifacts must not dirty git status",
-                )
-
 
 if __name__ == "__main__":
     unittest.main()

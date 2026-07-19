@@ -98,6 +98,40 @@ async def summarize(ctx: Context, data: Input) -> Output:
 asyncio.run(agent.run())
 ```
 
+The minimal local example uses the SDK's legacy/off compatibility path. It does
+not establish an authenticated worker session and must not be treated as a
+production trust configuration.
+
+## Authenticated Worker Sessions
+
+The unreleased Go, Python, and Node runtime sources implement the CAP v1 signed
+worker challenge/authenticate exchange over core NATS request/reply. A worker
+proves possession of an enrolled P-256 key, pins the scheduler signing identity,
+and receives an opaque short-lived `BusPacket.auth_token` bound to the exact
+`cordum-scheduler` audience plus its authoritative worker, agent, tenant, and
+key records. RENEW signs the current live token and never falls back to ISSUE.
+
+Proof-key enrollment, rotation, and revocation are control-plane operations:
+register only the public key, keep private material in the worker, overlap key
+pins during rotation, and revoke/supersede old records in the shared authority.
+Packets cannot self-enroll a key or choose identity/allowed-topic bindings.
+
+Runtime migration modes are:
+
+- `off`: legacy compatibility; no proof-bound session;
+- `warn`: strict exchange verification with worker-local migration availability;
+  tokenless registry input remains telemetry-only and cannot refresh dispatch
+  authority;
+- `enforce`: a live verified session is required for admission.
+
+WARN never accepts an invalid signature or result and never labels tokenless
+capability/readiness state authenticated. Public low-level builders, codecs,
+signers, verifiers, and standalone `sys.handshake` helpers exist for adapters
+and compatibility; they do not enroll keys, issue/revoke sessions, or authorize
+dispatch. See [Capability Negotiation](spec/14-capability-negotiation.md),
+[Security and Observability](spec/10-security-observability.md), and the
+[Go runtime guide](sdk/go/runtime/README_HANDSHAKE.md).
+
 ## Governed Deployment Architecture
 
 Production deployments add the Gateway, Scheduler, and Safety Kernel between submission and

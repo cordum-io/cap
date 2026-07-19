@@ -123,6 +123,15 @@ async def summarize(ctx: Context, data: Input) -> Output:
 asyncio.run(agent.run())
 ```
 
+### Authenticated worker trust
+
+- In this unreleased source tree, `Agent` accepts `worker_trust_mode`, `worker_trust`, bounded timeout/retry/renewal tuning, or the `CORDUM_SDK_HANDSHAKE` mode. `warn`/`enforce` require a complete `WorkerTrustConfig` with enrolled identities, exact audience, active P-256 proof key, scheduler identity/pins, and SDK version.
+- Omitting every trust option retains legacy `off` for source compatibility. Once configuration or tuning is present, mode is explicit and `off` rejects dormant material; use `warn` only for visible migration and `enforce` for fail-closed admission.
+- Before handlers, the runtime uses bounded protobuf request/reply on `sys.worker.handshake.challenge` and `sys.worker.handshake.authenticate`, verifies the pinned scheduler, installs and attaches the opaque token, and renews with the current token. It never falls back to ISSUE; expired, revoked, superseded, wrong-audience, or binding-mismatched sessions are invalid.
+- Enroll/rotate through an authenticated control plane: register only the public key, retain the private key in the worker, overlap scheduler pins, then revoke old authoritative key/session records.
+- `build_challenge_request`, `build_authenticate`, trust codecs/signers/verifiers, and `handshake_payload` / `publish_handshake` support adapters and compatibility; they do not enroll keys, issue/revoke sessions, grant topics, or authenticate `sys.handshake`.
+- Never log key material, tokens, signatures, nonces, complete trust packets, or raw rejections; use bounded mode/phase/outcome/coarse-reason telemetry.
+
 ### Failure and shutdown contract
 
 - In both `run_worker()` and the high-level `Agent`, an ordinary handler
@@ -192,7 +201,7 @@ python sdk/python/scripts/generate_protos.py --check
 ```
 
 The real-NATS test is mandatory in CI and never skips. Run it against an
-explicit broker URL (CI uses NATS 2.10.29):
+explicit broker URL (CI and publishing pin NATS 2.12.6 by image digest):
 
 ```bash
 CAP_TEST_NATS_URL=nats://127.0.0.1:4222 \

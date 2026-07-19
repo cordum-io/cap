@@ -1,17 +1,29 @@
 # Envelope - BusPacket
 
-All CAP traffic is wrapped in a `BusPacket`. The envelope provides tracing, sender identity, and protocol negotiation around a single payload.
+All CAP traffic is wrapped in a `BusPacket`. The envelope provides tracing,
+sender identity, protocol selection, a single payload, and optional packet
+authentication context.
 
 ## Envelope Fields
-- `trace_id`: correlates all packets for a request or workflow.
-- `sender_id`: stable identifier for the emitting component (gateway, scheduler, worker, orchestrator, controller).
-- `created_at`: timestamp of emission.
-- `protocol_version`: CAP wire version. Consumers MAY reject packets with unsupported versions.
-- `payload`: exactly one of `JobRequest`, `JobResult`, `Heartbeat`, `SystemAlert`, `JobProgress`, `JobCancel`, or `Handshake`. Old consumers that do not recognize a variant will ignore it per standard protobuf oneof behavior.
-- `signature` (optional but recommended): digital signature of the serialized `BusPacket` for authenticity and integrity. Producers SHOULD sign; consumers SHOULD verify when configured with public keys.
-- `auth_token` (optional): trusted runtime session token attached by CAP SDK/runtime code after handshake or scheduler-issued session establishment. Implementations MUST treat it as sensitive and MUST NOT populate it from untrusted client input.
 
-## Canonical Proto (see `proto/cordum/agent/v1/buspacket.proto`)
+- `trace_id`: correlates packets for one request, workflow, or trust exchange.
+- `sender_id`: stable identifier for the emitting component. It is a claim until
+  bound to authenticated transport and, where required, a CAP trust session.
+- `created_at`: UTC time of emission.
+- `protocol_version`: CAP wire version. Version `1` is the only defined value.
+- `payload`: exactly one of the ordinary payloads at tags 10-17 or the worker
+  trust-handshake payloads at tags 19-22.
+- `signature`: packet signature. Worker trust packets require it; other packet
+  classes follow the signature policy for their profile.
+- `auth_token`: opaque trusted runtime session token. Runtime code attaches it
+  after an authenticated exchange; callers MUST NOT populate it from
+  untrusted input.
+
+## Canonical Proto
+
+The source of truth is
+`proto/cordum/agent/v1/buspacket.proto`. The v1 field layout is:
+
 ```proto
 message BusPacket {
   string trace_id = 1;
@@ -27,33 +39,85 @@ message BusPacket {
     JobProgress job_progress = 15;
     JobCancel job_cancel = 16;
     Handshake handshake = 17;
+    WorkerHandshakeChallengeRequest worker_handshake_challenge_request = 19;
+    WorkerHandshakeChallenge worker_handshake_challenge = 20;
+    WorkerHandshakeAuthenticate worker_handshake_authenticate = 21;
+    WorkerHandshakeResult worker_handshake_result = 22;
   }
 
-  bytes signature = 14; // digital signature of the serialized BusPacket
-  string auth_token = 18; // trusted runtime session token
+  bytes signature = 14;
+  string auth_token = 18;
 }
 ```
 
+Field numbers MUST NOT be renumbered or reused. Evolution is append-only.
+
+## Version and Unknown-field Rules
+
+- Ordinary v1 producers MUST set `protocol_version = 1`. A v1 consumer MUST
+  reject every other value and MUST NOT execute its payload; a future
+  multi-version consumer may accept only versions it explicitly implements.
+- Generic protobuf compatibility permits an ordinary v1 consumer to preserve
+  or ignore unknown fields. An older consumer sees an unknown oneof variant as
+  no selected payload and MUST NOT execute it.
+- Worker trust packets are stricter: the envelope version and inner version
+  MUST both equal `1`, and `Handshake.supported_versions` MUST be exactly
+  `[1]`. Unknown fields anywhere in the trust envelope, selected trust message,
+  or nested messages MUST cause rejection before signature verification or
+  state access. This rule prevents version-skewed parsers from signing different
+  transcripts.
+- Trust decoders MUST bound the raw packet before parsing. The SDK contract caps
+  a trust packet at 65,536 bytes.
+
+## Signing Rules
+
+Ordinary CAP packet signatures clear `signature` and use the CAP deterministic
+unsigned-envelope encoding. For ordinary payload tags 10-17, the payload
+precedes `auth_token` tag 18. Map entries are ordered by key. Implementations
+SHOULD use an SDK helper rather than re-create this encoding.
+
+Worker trust packets MUST NOT use that undomained generic transcript. They use
+the phase domain and algorithm defined in
+[14 Capability Negotiation](14-capability-negotiation.md):
+
+1. Clone the complete packet and clear only `signature`.
+2. Retain `auth_token`, including the current token on RENEW and the new token
+   on an accepted result.
+3. Deterministically encode known fields in ascending tag order. Consequently,
+   `auth_token` tag 18 precedes trust payload tags 19-22.
+4. Sign `ASCII(domain) || 0x00 || unsigned_packet` with ECDSA P-256/SHA-256 and
+   encode the signature as strict ASN.1 DER.
+
+Signature verification, identity/audience binding, freshness checks, and
+session validation MUST succeed before a trust packet changes challenge,
+session, registry, readiness, or dispatch state.
+
 ## Subject Recommendations
-- Submission: publish `BusPacket{JobRequest}` to `sys.job.submit`.
-- Results: publish `BusPacket{JobResult}` to `sys.job.result`.
-- Heartbeats: publish `BusPacket{Heartbeat}` to `sys.heartbeat` (often with queue groups disabled so all schedulers can see them).
-- Alerts: publish `BusPacket{SystemAlert}` to `sys.alert`.
-- Handshake: publish `BusPacket{Handshake}` to `sys.handshake` on connect or reconnect (see [14 Capability Negotiation](14-capability-negotiation.md)).
-- Work pools: workers subscribe to `job.<pool>` subjects (e.g., `job.code.llm`, `job.tools`, `job.image`).
 
-## Envelope Rules
-- Field numbers MUST NOT be renumbered; evolve by adding new fields.
-- All timestamps SHOULD be UTC.
-- Producers SHOULD set `protocol_version = 1` until a new major is defined.
-- Consumers SHOULD treat unknown fields as optional and ignore them.
-- Bus-level metadata (headers) MAY be used for auth or routing, but message-level fields remain canonical.
-- `auth_token` is trusted runtime context, not an application payload field. Gateways and schedulers MUST NOT copy caller-supplied values into it unless the caller is already authenticated as trusted control-plane/runtime code.
-- When signatures are enabled, verify the `signature` against the serialized packet with the field zeroed; drop or flag packets that fail verification.
-- Signatures MUST be computed over deterministic protobuf serialization. Map entries MUST be ordered by key. Implementations SHOULD use the SDK signing helpers when available. In particular, packets that carry both a oneof `payload` and `auth_token` MUST use the CAP unsigned BusPacket signing order with `signature` cleared and the payload serialized before `auth_token` so Go, Python, and Node verify the same bytes.
+- Submission: `BusPacket{JobRequest}` on `sys.job.submit`.
+- Results: `BusPacket{JobResult}` on `sys.job.result`.
+- Heartbeats: `BusPacket{Heartbeat}` on `sys.heartbeat`.
+- Alerts: `BusPacket{SystemAlert}` on `sys.alert`.
+- Legacy capability advertisement: `BusPacket{Handshake}` on `sys.handshake`.
+- Authenticated worker trust: core-NATS request/reply on
+  `sys.worker.handshake.challenge` and
+  `sys.worker.handshake.authenticate`.
+- Work pools: `BusPacket{JobRequest}` on application-defined `job.<pool>`.
 
-## Protocol Error Handling
-- When a consumer receives a BusPacket with an unsupported `protocol_version`, it SHOULD publish a `SystemAlert` with `error_code_enum = PROTOCOL_VERSION_MISMATCH` and `severity = ERROR` to `sys.alert`.
-- When signature verification fails, the consumer SHOULD publish a `SystemAlert` with `error_code_enum = PROTOCOL_SIGNATURE_INVALID` and `severity = CRITICAL`.
-- When a BusPacket fails to deserialize, the consumer SHOULD publish a `SystemAlert` with `error_code_enum = PROTOCOL_MALFORMED_PACKET` and `severity = ERROR`.
-- See [16 Protocol Errors](16-protocol-errors.md) for the full error reporting specification.
+See [09 Transport Profile](09-transport-profile.md) for queueing, persistence,
+and ACL requirements.
+
+## Secret Handling and Rejection
+
+`auth_token`, proof private keys, raw credentials, packet signatures, nonces,
+and complete trust packets are security material. They MUST NOT appear in logs,
+metrics labels, traces, alerts, rejection payloads, crash reports, or test
+artifacts. A rejected `WorkerHandshakeResult` MUST carry no `auth_token` and no
+token expiry.
+
+Malformed or unauthenticated traffic MUST be rejected before handler or state
+mutation. Implementations MAY emit a bounded protocol alert for ordinary
+traffic, but MUST NOT echo attacker-controlled fields. Trust endpoints return
+only the coarse `WorkerHandshakeRejectionReason` when it is safe to reply; an
+unparseable or unsafe request may be dropped without a reply. See
+[16 Protocol Errors](16-protocol-errors.md).

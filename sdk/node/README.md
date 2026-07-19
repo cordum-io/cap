@@ -82,6 +82,41 @@ agent.job("job.summarize", Input, async (_ctx, data) => {
 agent.run().catch(console.error);
 ```
 
+### Authenticated worker trust
+
+In this unreleased source tree, `Agent` accepts a `workerTrust` option with `mode`, `config`, `timeoutMs`,
+`retries`, and `renewMinIntervalMs`. Modes are `off`, `warn`, and `enforce`;
+`CORDUM_SDK_HANDSHAKE` may supply the mode. `warn` and `enforce` require a
+complete `WorkerTrustConfig`: enrolled worker/agent/tenant identities, exact
+`WORKER_HANDSHAKE_AUDIENCE`, active P-256 proof key ID/private key, expected
+scheduler identity, pinned scheduler public keys, and SDK version.
+
+Omitting the entire option and environment mode retains legacy `off` behavior
+for source compatibility. That implicit default is compatibility-only. If any
+trust configuration or tuning is present, mode must be explicit and `off`
+rejects dormant security material. Use `warn` only during an observable
+migration and `enforce` for fail-closed admission.
+
+The runtime performs bounded protobuf request/reply on
+`sys.worker.handshake.challenge` and `sys.worker.handshake.authenticate` before handler admission, verifies the pinned
+scheduler challenge/result, installs the opaque short-lived session, and
+attaches it before signing outbound packets. RENEW signs the current token and
+never falls back to ISSUE. Expired, revoked, superseded, wrong-audience, or
+identity/key-mismatched sessions are invalid.
+
+Proof-key enrollment/rotation/revocation belongs to an authenticated control
+plane: register only the public P-256 key, keep the private key in the worker,
+overlap scheduler pins during rotation, then revoke old authoritative records.
+Exported low-level trust builders, codecs, validators, transcript/signature
+helpers, and response verifiers support custom adapters and compatibility
+tests; they are not an enrollment or issuer API. Likewise `handshakePayload()`
+and `publishHandshake()` are legacy capability helpers and cannot create an
+authenticated session or grant topics.
+
+Never log key material, session tokens, signatures, nonces, complete trust
+packets, or raw rejection errors. Use bounded mode/phase/outcome/coarse-reason
+telemetry.
+
 ### Validation
 The Node SDK provides opt-in validation helpers for CAP protobuf messages. Each function
 returns an array of `ValidationError` objects; an empty array means the message is valid.
@@ -150,6 +185,16 @@ it("runs echo handler without NATS", async () => {
 - `createTestAgent(options?)` — returns `{ agent, bus, store }` pre-wired with
   `MockNatsConnection` and `InMemoryBlobStore`.
 - `MockNatsConnection` — in-memory NATS mock for custom test setups.
+
+The mandatory restart/in-flight real-NATS gate requires an explicit
+`CAP_NATS_SERVER_BIN` whose `-v` output is exactly `nats-server: v2.12.6`:
+
+```bash
+CAP_NATS_SERVER_BIN=/path/to/nats-server npm run test:nats
+```
+
+CI and publishing extract that binary from the digest-pinned NATS 2.12.6 image;
+the test never searches `PATH` or silently substitutes another broker version.
 
 ## Middleware
 

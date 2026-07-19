@@ -17,6 +17,35 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Unreleased — Protocol Hardening
 
+- **[WIRE]** Added the version-1 authenticated worker trust messages
+  (`WorkerHandshakeChallengeRequest`, `WorkerHandshakeChallenge`,
+  `WorkerHandshakeAuthenticate`, and `WorkerHandshakeResult`) and append-only
+  `BusPacket` oneof tags 19-22. The exchange uses exact-v1, recursively
+  unknown-field-free protobuf packets, P-256 proof keys, phase-domain signing,
+  bounded core-NATS request/reply, and an accepted result's short-lived session
+  token in existing `BusPacket.auth_token` tag 18.
+- **Go/Python/Node SDKs:** Added pinned worker-trust client/runtime lifecycles
+  with `off`/`warn`/`enforce` admission modes, proof-key and scheduler-key
+  binding, exact `cordum-scheduler` audience validation, ISSUE before admission,
+  token-covering RENEW without tokenless fallback, reconnect handling, and
+  expiry-safe token attachment. WARN changes only compatibility admission after
+  operational failure; it does not weaken packet, signature, identity, result,
+  or session verification.
+- **Security documentation:** Defined out-of-band proof public-key enrollment,
+  overlap-based worker/scheduler key rotation, authoritative session
+  supersession/revocation, shared challenge/replay/session authority, safe
+  coarse rejections, and secret-free observability. Legacy heartbeat bearer
+  credentials and standalone capability handshakes are explicitly distinct
+  from proof-bound sessions.
+- **SDK API boundary:** Documented public trust builders, codecs, validators,
+  transcript/signature helpers, and response verifiers as client adapter and
+  compatibility primitives only. They are not a key-enrollment API, scheduler
+  issuer, revocation/session store, or dispatch authorization decision.
+- **CI/release:** Pinned mandatory Python and Node real-NATS gates to NATS
+  2.12.6 by immutable image digest. Node CI and publishing extract and verify
+  the exact `nats-server` binary and pass it through
+  `CAP_NATS_SERVER_BIN`; workflow contract tests reject version drift or a
+  missing binary binding.
 - **Onboarding docs/examples (no wire change):** Reworked the local playground and
   simple-echo documentation to distinguish direct development-only `job.echo` publishing
   from governed `sys.job.submit` routing, document the absent security/state/retry

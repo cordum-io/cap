@@ -1,15 +1,15 @@
 # Capability Negotiation
 
-CAP components advertise their role, supported protocol versions, and feature capabilities via a `Handshake` message published on connect. This enables schedulers and controllers to build a live registry of the topology and tailor behavior to each component's capabilities.
+CAP components advertise their role, supported protocol versions, and feature capabilities with a `Handshake`. A standalone `Handshake` broadcast is a legacy capability advertisement, not proof of identity. The authenticated worker trust exchange below binds the same capability payload to a registered worker proof key and a short-lived session.
 
-## Handshake Flow
+## Capability Advertisement Flow
 
 1. Component connects to the message bus.
 2. Component publishes `BusPacket{Handshake}` to `sys.handshake`.
-3. Schedulers and controllers consume `sys.handshake` and record the component's role, supported versions, and capabilities in their component registry.
-4. Schedulers MAY use the registry to route jobs only to workers that advertise required capabilities (e.g., `compensation`, `progress`).
+3. Schedulers and controllers consume `sys.handshake` and record the role, versions, and capabilities as legacy/untrusted unless an authenticated session already binds the same record.
+4. An advertisement MAY narrow a candidate set (for example `compensation` or `progress`), but it MUST NOT grant or refresh dispatch authority.
 
-Components SHOULD publish a Handshake immediately after establishing a bus connection. The Handshake is informational; no explicit acknowledgment is defined. Schedulers that need confirmation of capability support SHOULD use the registry rather than waiting for a response.
+Components SHOULD publish a Handshake immediately after establishing a bus connection. This standalone broadcast is informational; no explicit acknowledgment is defined. It MUST NOT create a proof-bound registry record or mint a session. In authenticated modes the worker includes the capability payload in `WorkerHandshakeAuthenticate`; a later `sys.handshake` broadcast cannot expand or override the authenticated record.
 
 ## Handshake Message
 
@@ -61,7 +61,7 @@ Implementations MAY define additional capability keys. Custom keys SHOULD use a 
 - `capabilities` answers **what** the component can do.
 - `ready_topics` answers **where** the worker is currently available to receive work.
 
-Schedulers MAY use `ready_topics` as an additional dispatch filter before selecting a worker. This lets a worker advertise broad static capabilities while temporarily narrowing the set of routed topics during startup or reconfiguration.
+Schedulers MAY use `ready_topics` as an additional dispatch filter before selecting a worker. This lets a worker advertise broad static capabilities while temporarily narrowing the set of routed topics during startup or reconfiguration. In an authenticated session, effective readiness is the intersection of the advertised topics and the server-authoritative topics allowed for that worker/agent/tenant. A worker-controlled topic can only narrow authority; it can never grant a subject absent from the authoritative session or enrollment record.
 
 Workers SHOULD publish `ready_topics` in a stable order so registries and tests can compare handshake payloads deterministically. Older workers that omit `ready_topics` remain wire-compatible; schedulers SHOULD treat the field as unknown/unspecified rather than as an error.
 
@@ -75,20 +75,21 @@ Workers SHOULD publish `ready_topics` in a stable order so registries and tests 
 
 Components advertise the wire versions they support via `supported_versions`. Schedulers SHOULD pick the highest version common to both the scheduler and the target component. If no common version exists, the scheduler SHOULD reject jobs to that component with `ERROR_CODE_PROTOCOL_VERSION_MISMATCH`.
 
-Currently, the only defined wire version is `1`. Components SHOULD include `1` in `supported_versions`.
+Currently, the only defined wire version is `1`. Components SHOULD include `1` in `supported_versions`. The authenticated worker trust profile does not negotiate a range: the envelope, trust payload, and embedded capability handshake MUST meet the exact v1 rules below.
 
 ## Reconnection and Liveness
 
 - Components SHOULD re-publish their Handshake on every reconnect to the bus.
-- Schedulers MAY expire registry entries for components that have not sent a Heartbeat or Handshake within a configured timeout.
-- Components that never send a Handshake are assumed to support CORE-level capabilities only (backward compatibility with pre-handshake deployments). Schedulers SHOULD NOT require Handshake for basic job dispatch.
-- If `ready_topics` is absent, schedulers SHOULD fall back to legacy behavior and rely on the existing routing/heartbeat signals rather than rejecting the worker outright.
+- Schedulers MAY expire legacy registry entries after a configured timeout. Authenticated liveness/readiness expiry and refresh MUST use a live bound session; tokenless Handshake or Heartbeat traffic cannot refresh it.
+- In `off` mode or an explicitly configured legacy migration path, components that never send a Handshake may be treated as CORE-only for compatibility. That fallback is not authenticated identity, readiness, or session evidence.
+- If `ready_topics` is absent, legacy policy may use existing routing/heartbeat signals. An authenticated registry MUST NOT infer additional authorized topics from absence.
+- After reconnect, a worker that requires authenticated admission MUST re-establish and verify its live trust state before it is counted as authenticated or receives session-required dispatch. A prior connection's token does not make the new transport authenticated by itself.
 
 ## Security
 
 - A legacy `Handshake` is a capability advertisement, not an authentication exchange and not authority to mint a session.
-- Handshake packets SHOULD be signed like any other BusPacket when signatures are enabled.
-- Schedulers SHOULD verify Handshake signatures before trusting the advertised capabilities.
+- Handshake packets SHOULD be signed like any other BusPacket when signatures are enabled, but a generic packet signature alone does not perform proof-key enrollment or create a session.
+- Schedulers SHOULD verify Handshake signatures before recording the advertisement. Only a successfully verified trust authenticate phase may make the capability record proof-bound.
 - The `component_id` in a Handshake MUST match the `sender_id` in the enclosing BusPacket.
 
 ## Authenticated Worker Trust Handshake
@@ -107,6 +108,12 @@ All four messages are carried in `BusPacket` and use NATS request/reply. The rep
 `WorkerHandshakePurpose` selects `ISSUE` or `RENEW`; there are no purpose-specific subjects. A deployment MAY use a scheduler queue group for the two request subjects only when all members share the authoritative credential, challenge, replay, and session stores. Trust-handshake traffic MUST NOT be persisted in JetStream or another durable log because result packets carry session tokens.
 
 The older `sys.worker.handshake` and `sys.worker.handshake.renew` JSON exchanges are not CAP trust-handshake subjects. A conforming issuer MUST NOT mint or renew a session from those unsigned payloads.
+
+### Enrollment boundary
+
+Proof-key enrollment happens through an authenticated administrative control-plane path, not through these NATS subjects. The control plane registers an active P-256 public key and `proof_key_id` against an existing worker and derives the agent and tenant bindings from authoritative records. A worker retains the private key and pins the scheduler identity and scheduler signing public keys. An issuer MUST NOT trust a public key, agent ID, tenant ID, allowed topic, or scheduler key supplied by the packet being authenticated.
+
+Rotation activates a new registered proof-key ID before workers switch to it, then revokes the old ID after the rollout. Scheduler signing-key rotation distributes a new pin before `server_key_id` changes. A revoked worker proof key cannot ISSUE or RENEW, and an unpinned scheduler key cannot authenticate a challenge or result.
 
 ### Required bindings
 
@@ -134,6 +141,13 @@ The enclosing `BusPacket.auth_token` has a single meaning in this exchange:
 | Rejected result | MUST be empty |
 
 Because `auth_token` is part of the signed envelope transcript, stripping, substituting, or copying a prior token invalidates the phase signature. Session tokens are opaque to CAP clients. An accepted result MUST set `accepted=true`, `rejection_reason=UNSPECIFIED`, and a future `token_expires_at`. A rejected result MUST set `accepted=false`, a non-zero rejection reason, no token, and no token expiry.
+
+ISSUE and RENEW have different authority:
+
+- ISSUE proves the registered worker key with an empty prior token and may mint the first short-lived session only after the challenge is atomically consumed.
+- RENEW proves the same bindings and MUST present the current active token in the signed authenticate envelope. Success returns a newly issued token and supersedes the prior session in the authoritative store.
+- RENEW MUST NOT fall back to tokenless ISSUE. Expired, revoked, superseded, malformed, wrong-audience, wrong-worker, wrong-agent, wrong-tenant, or wrong-key sessions fail as `SESSION_INVALID`.
+- Revocation and expiry are server-authoritative. A cached client token cannot extend its own lifetime, and challenge/session-store unavailability cannot be treated as acceptance.
 
 ### Signing transcript
 
@@ -167,12 +181,22 @@ Verifiers MUST select the domain from the concrete oneof payload, reject an unex
 5. Only after successful signature and token verification, the scheduler atomically compares and consumes the stored challenge. Consumption MUST occur before token minting. Concurrent or repeated authenticate packets therefore produce at most one accepted result.
 6. The worker verifies the result signature and all challenge/result correlations before installing the new token. A malformed, unsigned, mismatched, expired, or rejected result MUST NOT change local token state.
 
-Challenge, replay, credential, or session-store unavailability MUST fail closed. WARN or migration modes MAY admit a legacy worker without a session according to local policy, but MUST NOT mint a token without the authenticated exchange.
+Challenge, replay, credential, or session-store unavailability MUST fail closed. In WARN a worker runtime MAY remain locally available without a session, but tokenless registry input is telemetry-only and cannot refresh dispatch authority. No migration mode may mint a token without the authenticated exchange.
+
+### Runtime mode semantics
+
+| Mode | Trust exchange | Behavior after failure |
+|---|---|---|
+| `off` | disabled | legacy capability/heartbeat behavior only; no proof-bound session |
+| `warn` | attempted with the full strict contract | worker runtime may remain available for migration; tokenless registry input is telemetry-only and cannot refresh dispatch authority |
+| `enforce` | required | startup/reconnect/renewal failure blocks or stops session-required admission |
+
+WARN does not weaken signature, transcript, unknown-field, identity, audience, freshness, challenge, or result validation. It changes only worker-local admission behavior after an operational failure. Tokenless registry traffic may be observed as unauthenticated telemetry but MUST NOT refresh liveness, readiness, pool/capacity, or dispatch authority. WARN MUST NOT convert a malformed or unsigned response into a session or let worker-advertised topics expand server-authoritative allowed topics. Mode `off` SHOULD reject dormant proof material or trust tuning rather than silently ignoring security configuration.
 
 ### Rejections
 
 `WorkerHandshakeRejectionReason` is intentionally coarse. `AUTHENTICATION_FAILED` covers unknown, missing, revoked, or mismatched identities and keys as well as bad proof, so the wire response does not become an identity oracle. `SESSION_INVALID` likewise covers expired, revoked, superseded, mismatched, or malformed prior sessions. Operators SHOULD record a more detailed internal audit reason, but logs, metrics, traces, and rejection payloads MUST NOT contain proof material, session tokens, private keys, or raw credentials.
 
-## Subject
+## Legacy Capability Broadcast Subject
 
-Handshake messages are published to `sys.handshake`. Schedulers and controllers SHOULD subscribe to this subject. Queue groups SHOULD NOT be used for `sys.handshake` so that all schedulers receive every Handshake.
+Standalone capability Handshake messages are published to `sys.handshake`. Schedulers and controllers SHOULD subscribe to this subject. Queue groups SHOULD NOT be used so every registry observer receives the broadcast. This subject is never a substitute for the two core-NATS authenticated request/reply subjects.

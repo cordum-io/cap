@@ -36,7 +36,8 @@ type Output struct {
 }
 
 agent := &runtime.Agent{
-    Retries: 2,
+    Retries:       2,
+    HandshakeMode: runtime.HandshakeModeOff, // local legacy compatibility only
 }
 
 runtime.Register(agent, "job.summarize", func(ctx runtime.Context, input Input) (Output, error) {
@@ -52,6 +53,31 @@ select {}
 Environment:
 - `NATS_URL` (default `nats://127.0.0.1:4222`)
 - `REDIS_URL` (default `redis://127.0.0.1:6379/0`)
+
+### Authenticated worker trust
+
+In this unreleased source tree, production workers should use `HandshakeModeWarn` only for a measured migration
+and `HandshakeModeEnforce` for fail-closed admission. Both require a complete
+`capsdk.WorkerTrustConfig`: enrolled worker/agent/tenant identities, exact
+`capsdk.WorkerHandshakeAudience`, an active P-256 proof key ID/private key,
+expected scheduler identity, pinned scheduler public keys, and SDK version.
+`CORDUM_SDK_HANDSHAKE` can supply the mode. Go requires an explicit mode;
+`off` rejects dormant trust material and is compatibility-only.
+
+The runtime performs bounded protobuf request/reply on
+`sys.worker.handshake.challenge` and `sys.worker.handshake.authenticate` before subscriptions, verifies the pinned
+scheduler challenge/result, installs the short-lived opaque session, attaches
+it before signing outbound packets, and renews with the current token. Renewal
+never falls back to ISSUE; expiry, revocation, supersession, or a binding or
+audience mismatch invalidates the session.
+
+Proof-key enrollment/rotation/revocation is a control-plane operation. Register
+only the worker public key, overlap scheduler pins during rotation, and never
+put private keys or tokens in logs. The public low-level trust builders/codecs/
+signers/verifiers support custom adapters and compatibility testing; they do
+not enroll keys, issue or revoke sessions, authorize topics, or turn a legacy
+`sys.handshake` capability advertisement into authenticated identity. See
+[`runtime/README_HANDSHAKE.md`](runtime/README_HANDSHAKE.md).
 
 ### Heartbeats
 - `HeartbeatPayload` builds a heartbeat with CPU load only.
@@ -106,6 +132,7 @@ mgr, _ := worker.NewManagedWorker(worker.ManagedConfig{
     Type:            "summarizer",
     MaxParallelJobs: 4,
     Capabilities:    []string{"text-processing", "nlp"},
+    WorkerTrustMode: capsdk.WorkerTrustModeOff, // local legacy compatibility only
 })
 
 err := mgr.Run(ctx, func(ctx context.Context, req *agentv1.JobRequest) (*agentv1.JobResult, error) {
@@ -115,6 +142,10 @@ err := mgr.Run(ctx, func(ctx context.Context, req *agentv1.JobRequest) (*agentv1
 ```
 
 ManagedWorker automatically calls `NATSTLSConfigFromEnv()` if `NATSTLSConfig` is not provided in the config.
+For authenticated deployments, replace `WorkerTrustModeOff` with
+`WorkerTrustModeWarn` or `WorkerTrustModeEnforce` and supply `WorkerTrust` plus a
+bounded `WorkerTrustTimeout`. Its capability topics can narrow, but never expand,
+the topics authorized by the control plane.
 
 ### TLS Helpers
 CAP Go SDK provides helpers to build `*tls.Config` from standard environment variables. These are used by `ManagedWorker` and the `runtime.Agent` by default.

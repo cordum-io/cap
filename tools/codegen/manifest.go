@@ -9,8 +9,6 @@
 // failure rather than a silent skip.
 package codegen
 
-import "io/fs"
-
 // Problem codes reported by Check.
 const (
 	CodeUnsortedPaths      = "unsorted_paths"
@@ -56,12 +54,4 @@ type Problem struct {
 	Code   string
 	Path   string
 	Detail string
-}
-
-// Check validates the manifest's internal shape and compares it against root.
-// An empty result means the generated tree exactly matches the declaration.
-//
-// NOT IMPLEMENTED: returns nil so the behavioral tests fail RED first.
-func Check(m *Manifest, root fs.FS) []Problem {
-	return nil
 }

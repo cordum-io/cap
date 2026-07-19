@@ -88,10 +88,10 @@
       "package": "cordum-guard",
       "registry": "pypi.org",
       "import": "cordum-guard",
-      "version": "0.1.0",
+      "version": "2.14.0",
       "toolchain": "python3.11",
       "publication": "published",
-      "evidence": "unit tests; independent extension versioning (source variants 0.1.0/0.1.1 reconciled separately)"
+      "evidence": "unit tests; published on PyPI on the release train (latest 2.14.0). Source pyproject carries an in-development version (0.1.0) that is drift and must not be treated as the published artifact."
     },
     { "name": "cap-cpp", "kind": "sdk", "tier": "experimental", "language": "cpp", "package": "", "registry": "", "import": "", "version": "", "toolchain": "", "publication": "source-only", "evidence": "" },
     { "name": "cap-dotnet", "kind": "sdk", "tier": "experimental", "language": "dotnet", "package": "", "registry": "", "import": "", "version": "", "toolchain": "", "publication": "source-only", "evidence": "" },

@@ -43,6 +43,26 @@ func TestGoldenManifest_IsValidAndOnDisk(t *testing.T) {
 	}
 }
 
+// TestGoldenManifest_GuardTracksReleaseVersion pins the released cordum-guard
+// artifact to the release train. The PyPI cordum-guard package publishes on the
+// same version line as the SDKs (latest 2.14.0); source pyproject carries an
+// in-development version that must not masquerade as the published artifact.
+func TestGoldenManifest_GuardTracksReleaseVersion(t *testing.T) {
+	m, _ := loadGolden(t)
+	var guard *Component
+	for i := range m.Components {
+		if m.Components[i].Name == "cordum-guard" {
+			guard = &m.Components[i]
+		}
+	}
+	if guard == nil {
+		t.Fatal("cordum-guard component not found in manifest")
+	}
+	if guard.Version != m.Release.Version {
+		t.Errorf("cordum-guard published version = %q, want release version %q", guard.Version, m.Release.Version)
+	}
+}
+
 // TestGoldenManifest_SpecCountMatchesDisk enforces that the manifest lists
 // exactly the normative spec files on disk (spec/*.md excluding the index), so
 // the count cannot silently drift when specs are added or removed.

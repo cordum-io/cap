@@ -63,7 +63,7 @@ func guardComponent() Component {
 		Package:     "cordum-guard",
 		Registry:    "pypi.org",
 		Import:      "cordum_guard",
-		Version:     "0.1.0",
+		Version:     "2.14.0",
 		Toolchain:   "python3.12",
 		Publication: "published",
 		Evidence:    "unit",

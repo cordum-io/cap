@@ -33,66 +33,42 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install build packaging
 
-      - name: Set version from tag
+      - name: Verify pyproject matches the release tag
         env:
           VERSION: ${{ github.ref_name }}
+          PYTHON_BIN: python
         run: |
+          # Fail closed: never rewrite source at publish time. The version must
+          # already be synchronized by the approved release-prep commit this tag
+          # points at, so the published artifact is reproducible from source.
           if [[ -z "${VERSION}" ]]; then
             echo "VERSION not set from tag"; exit 1
           fi
-
-          python - <<'PY'
-          import os
-          import re
-          import tomllib
+          "$PYTHON_BIN" - <<'PY'
+          import os, tomllib
           from pathlib import Path
           from packaging.version import InvalidVersion, Version
 
-          raw_version = os.environ.get("VERSION", "").strip()
-          if not raw_version:
-              raise SystemExit("VERSION not set from tag or input")
-
-          # Strip 'v' prefix if present, then ensure PEP 440 compatibility.
-          candidate = raw_version.lstrip("v")
+          raw = os.environ.get("VERSION", "").strip()
+          candidate = raw[1:] if raw.startswith("v") else raw
           try:
-              version = str(Version(candidate))
+              expected = Version(candidate)
           except InvalidVersion:
-              # Fallback: turn branch names (e.g. "main") into a local version.
-              sanitized = re.sub(r"[^0-9A-Za-z]+", ".", raw_version.lower()).strip(".")
-              if not sanitized:
-                  raise SystemExit(f"Cannot derive PEP 440 version from {raw_version!r}")
-              version = f"0.0.0+{sanitized}"
-              print(f"Using fallback PEP 440 version: {version}")
-
-          path = Path("pyproject.toml")
-
-          # Verify TOML is valid
-          data = tomllib.loads(path.read_text())
-          if "project" not in data:
-              raise SystemExit("No [project] section in pyproject.toml")
-
-          out_lines = []
-          in_project = False
-
-          # Naive replacement to preserve comments/formatting
-          for line in path.read_text().splitlines():
-              if line.strip().startswith("[project]"):
-                  in_project = True
-                  out_lines.append(line)
-                  continue
-              if in_project and line.startswith("[") and line.strip() != "[project.urls]":
-                  in_project = False
-
-              # Replace version line
-              if in_project and line.strip().startswith("version"):
-                  out_lines.append(f'version = "{version}"')
-              else:
-                  out_lines.append(line)
-
-          path.write_text("\n".join(out_lines) + "\n")
-          print(f"Set version to {version}")
+              raise SystemExit(
+                  f"Refusing to publish: {raw!r} is not a PEP 440 version. "
+                  "Publish from a release tag, not a branch."
+              )
+          data = tomllib.loads(Path("pyproject.toml").read_text())
+          source = data.get("project", {}).get("version")
+          if source is None:
+              raise SystemExit("No [project].version in pyproject.toml")
+          if Version(source) != expected:
+              raise SystemExit(
+                  f"pyproject version ({source}) does not match the release tag ({expected}). "
+                  "Land a release-prep commit that sets pyproject.toml to the tag version, then tag it."
+              )
+          print(f"pyproject.toml matches release tag {expected}")
           PY
-
       - name: Build package
         run: python -m build
 

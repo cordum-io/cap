@@ -106,9 +106,11 @@ func TestEncodeRejectsOverlongCommand(t *testing.T) {
 }
 
 func TestIsRequiredNonPass(t *testing.T) {
+	// For a required, applicable case only PASS satisfies it; an adapter that
+	// reports N/A for a case it was asked to run has declined proof and fails.
 	cases := map[Status]bool{
 		StatusPass:        false,
-		StatusNA:          false,
+		StatusNA:          true,
 		StatusFail:        true,
 		StatusError:       true,
 		StatusUnsupported: true,

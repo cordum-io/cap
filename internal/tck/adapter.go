@@ -69,6 +69,9 @@ func NewAdapter(spec AdapterSpec) *Adapter {
 // Handshake returns the capability declaration captured at Start.
 func (a *Adapter) Handshake() AdapterMessage { return a.handshake }
 
+// Name returns the adapter's display label.
+func (a *Adapter) Name() string { return a.spec.Name }
+
 // Stderr returns the bounded captured stderr for diagnostics.
 func (a *Adapter) Stderr() string { return a.stderr.String() }
 

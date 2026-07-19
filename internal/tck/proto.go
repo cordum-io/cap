@@ -13,6 +13,9 @@ package tck
 // declaring a different version is rejected rather than guessed at.
 const ProtocolVersion = 1
 
+// HarnessVersion identifies the TCK build in emitted reports.
+const HarnessVersion = "cap-tck/1"
+
 // MsgType tags each line on the adapter-v1 wire.
 type MsgType string
 
@@ -92,9 +95,12 @@ func ValidStatus(s Status) bool {
 	}
 }
 
-// IsRequiredNonPass reports whether an outcome should fail a run that required
-// the case: anything that is not an explicit PASS or a legitimately
-// inapplicable N/A. UNSUPPORTED of a required case is a failure.
+// IsRequiredNonPass reports whether an outcome fails a case that was required
+// and applicable to the adapter. Only PASS satisfies such a case; FAIL, ERROR,
+// UNSUPPORTED, and an adapter-reported N/A are all failures — a suite must not
+// pass by declining its own hardest cases. Inapplicability (a scenario the
+// adapter's role does not own) is handled by the runner before this is
+// consulted, so it never reaches here as a false failure.
 func IsRequiredNonPass(s Status) bool {
-	return s != StatusPass && s != StatusNA
+	return s != StatusPass
 }

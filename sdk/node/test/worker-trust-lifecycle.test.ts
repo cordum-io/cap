@@ -87,6 +87,21 @@ describe("WorkerTrustLifecycle", () => {
     ]);
   });
 
+  it("fails every coalesced renew when the leading security failure clears the session", async () => {
+    const exchange = new QueueExchange([
+      session("token-one"),
+      new WorkerHandshakePacketError("tampered renewal"),
+    ]);
+    const lifecycle = new WorkerTrustLifecycle(exchange, settings("enforce"), silentLogger);
+    await lifecycle.authenticate();
+
+    const outcomes = await Promise.allSettled([lifecycle.renew(), lifecycle.renew()]);
+
+    assert.deepEqual(outcomes.map(({ status }) => status), ["rejected", "rejected"]);
+    assert.equal(lifecycle.sessionToken, undefined);
+    assert.equal(exchange.calls.length, 2);
+  });
+
   it("warn mode proceeds tokenless after a bounded exchange failure", async () => {
     const exchange = new QueueExchange([
       new WorkerTrustOperationalError(new Error("scheduler unavailable")),

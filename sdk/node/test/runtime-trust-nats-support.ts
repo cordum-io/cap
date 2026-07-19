@@ -108,6 +108,7 @@ export class RuntimeTrustConnection extends FakeTrustRequester {
   }
 
   status(): AsyncIterable<Status> {
+    this.events.push("status:watch");
     return this.statuses;
   }
 

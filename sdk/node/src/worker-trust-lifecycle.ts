@@ -118,7 +118,11 @@ export class WorkerTrustLifecycle {
     purpose: WorkerHandshakePurpose,
     currentToken: string
   ): Promise<boolean> {
-    if (purpose === PURPOSE_RENEW && this.sessionToken !== currentToken) return true;
+    const activeToken = this.sessionToken;
+    if (purpose === PURPOSE_RENEW && activeToken !== currentToken) {
+      if (activeToken) return true;
+      return this.handleFailure(new Error("renew requires a live session"), true);
+    }
     let failure: Error = new Error("worker trust exchange failed");
     for (let attempt = 0; attempt < this.settings.retries; attempt += 1) {
       try {

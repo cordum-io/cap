@@ -157,7 +157,10 @@ unsigned compatibility.
 
 `startWorker()` is the low-level API and returns its NATS `Subscription`. The caller owns
 that subscription and the supplied NATS connection; drain or unsubscribe the subscription
-before draining the connection.
+before draining the connection. Its `sessionToken` option is compatibility-only and
+caller-managed: `startWorker()` does not authenticate, renew, rotate, or re-establish that
+token after reconnect. Use `Agent` with explicit `workerTrust` configuration for the
+normative authenticated worker lifecycle.
 
 `Agent` owns the NATS connection and blob store configured for it, including injected
 implementations. `await agent.close()` stops new intake, waits for in-flight handlers and

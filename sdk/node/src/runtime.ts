@@ -170,21 +170,25 @@ function withContextLogger(base: Logger, meta: { jobId: string; traceId: string;
   };
 }
 
-async function withTimeout<T>(promise: Promise<T>, ms: number | undefined, label: string): Promise<T> {
-  if (!ms || ms <= 0) {
-    return promise;
-  }
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number | undefined,
+  label: string,
+  cancellation?: Promise<never>
+): Promise<T> {
+  if (!ms || ms <= 0) return cancellation ? Promise.race([promise, cancellation]) : promise;
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => reject(new OperationTimeoutError(`${label} timed out`)), ms);
-    promise
-      .then((value) => {
-        clearTimeout(timer);
-        resolve(value);
-      })
-      .catch((err) => {
-        clearTimeout(timer);
-        reject(err);
-      });
+    const succeed = (value: T) => {
+      clearTimeout(timer);
+      resolve(value);
+    };
+    const fail = (error: unknown) => {
+      clearTimeout(timer);
+      reject(error);
+    };
+    promise.then(succeed, fail);
+    cancellation?.then(undefined, fail);
   });
 }
 
@@ -226,8 +230,16 @@ export class Agent {
   private trust?: RuntimeWorkerTrust;
   private statusWatchActive = false;
   private statusTask?: Promise<void>;
+  private readonly startupCloseSignal: Promise<never>;
+  private signalStartupClose!: (error: Error) => void;
+  private startupCancelled = false;
+  private startupTransportInterrupted = false;
 
   constructor(options: AgentOptions = {}) {
+    this.startupCloseSignal = new Promise<never>((_, reject) => {
+      this.signalStartupClose = reject;
+    });
+    void this.startupCloseSignal.catch(() => undefined);
     this.natsUrl = options.natsUrl ?? process.env.NATS_URL ?? DEFAULT_NATS_URL;
     this.redisUrl = options.redisUrl ?? process.env.REDIS_URL ?? DEFAULT_REDIS_URL;
     this.store = options.store;
@@ -326,6 +338,7 @@ export class Agent {
 
   async close(): Promise<void> {
     if (!this.closePromise) {
+      this.cancelStartup();
       this.closePromise = this.closeInternal();
     }
     return this.closePromise;
@@ -339,13 +352,16 @@ export class Agent {
     try {
       await this.initializeRuntime();
       if (!this.nc || !this.trust) throw new Error("runtime trust is unavailable");
+      this.requireStartupContinuity();
+      this.startStatusWatcher();
       await this.trust.authenticate(this.nc);
+      this.requireStartupContinuity();
       this.subscribeHandlers(this.nc);
       await this.publishStartupHandshake();
+      this.requireStartupContinuity();
       this.startHeartbeat();
       this.state = "running";
       this.trust.startRenewal((error) => this.onTrustFailure(error));
-      this.startStatusWatcher();
     } catch (error) {
       try {
         await this.closeResources();
@@ -379,9 +395,14 @@ export class Agent {
   private async connectRuntime(): Promise<NatsConnection> {
     const pending = this.connectFn({ servers: this.natsUrl, name: this.senderId });
     try {
-      return await withTimeout(pending, this.ioTimeoutMs, "nats connect");
+      return await withTimeout(
+        pending,
+        this.ioTimeoutMs,
+        "nats connect",
+        this.startupCloseSignal
+      );
     } catch (error) {
-      if (error instanceof OperationTimeoutError) {
+      if (error instanceof OperationTimeoutError || this.startupCancelled) {
         void pending.then(
           (connection) => this.closeLateConnection(connection),
           () => undefined
@@ -489,6 +510,7 @@ export class Agent {
       for await (const status of connection.status()) {
         if (!this.statusWatchActive) return;
         if (status.type === Events.Disconnect) {
+          if (this.state === "starting") this.startupTransportInterrupted = true;
           this.trust?.stopAdmission();
           this.stopHeartbeat();
         } else if (status.type === Events.Reconnect) {
@@ -549,6 +571,7 @@ export class Agent {
 
   private async closeInternal(): Promise<void> {
     if (this.state === "starting" && this.startPromise) {
+      this.state = "closing";
       await this.trust?.close();
       try {
         await this.startPromise;
@@ -564,6 +587,19 @@ export class Agent {
       await this.closeResources();
     } finally {
       this.state = "closed";
+    }
+  }
+
+  private cancelStartup(): void {
+    if (this.state !== "starting" || this.startupCancelled) return;
+    this.startupCancelled = true;
+    this.signalStartupClose(new Error("Agent start cancelled by close"));
+  }
+
+  private requireStartupContinuity(): void {
+    if (this.state !== "starting") throw new Error("Agent start cancelled by close");
+    if (this.startupTransportInterrupted) {
+      throw new Error("worker trust transport interrupted during startup");
     }
   }
 

@@ -30,7 +30,11 @@ export interface WorkerConfig {
   handler: Handler;
   publicKeyMap?: { [senderId: string]: string }; // senderId -> public key in PEM format
   privateKey?: string; // private key in PEM format for signing outgoing messages
-  sessionToken?: string; // authenticated session attached before signing results
+  /**
+   * Compatibility-only, caller-managed token attached before signing results.
+   * This low-level API does not issue, renew, or reauthenticate the token.
+   */
+  sessionToken?: string;
   senderId: string;
   /** Optional middleware applied in FIFO order before the handler. */
   middlewares?: WorkerMiddleware[];

@@ -33,10 +33,12 @@ import {
 } from "./worker-trust-packet";
 import { requireFreshTimestamp, requireLiveChallenge } from "./worker-trust-time";
 
-const GENUINE = new WeakSet<VerifiedWorkerHandshakeChallenge>();
+const VERIFIED = new WeakMap<
+  VerifiedWorkerHandshakeChallenge,
+  readonly [ChallengeRequestTrustPacket, ChallengeTrustPacket]
+>();
 
 export class VerifiedWorkerHandshakeChallenge {
-  readonly #request: ChallengeRequestTrustPacket;
   readonly #response: ChallengeTrustPacket;
 
   constructor(
@@ -45,21 +47,13 @@ export class VerifiedWorkerHandshakeChallenge {
     secret: symbol
   ) {
     if (secret !== verifiedSecret) throw new WorkerHandshakeBindingError("verified challenge is required");
-    this.#request = request;
     this.#response = response;
-    GENUINE.add(this);
+    VERIFIED.set(this, [request, response]);
     Object.freeze(this);
   }
 
   message(): WorkerHandshakeChallenge {
     return cloneChallenge(this.#response.workerHandshakeChallenge);
-  }
-
-  packets(secret: symbol): readonly [ChallengeRequestTrustPacket, ChallengeTrustPacket] {
-    if (secret !== verifiedSecret || !GENUINE.has(this)) {
-      throw new WorkerHandshakeBindingError("verified challenge is required");
-    }
-    return [this.#request, this.#response];
   }
 }
 
@@ -107,6 +101,7 @@ export async function verifyChallenge(
   await requireValidSignature(request, {
     [config.proofKeyId]: crypto.createPublicKey(config.proofPrivateKey),
   }, "request");
+  requireFreshTimestamp(request.createdAt, now, "request created_at");
   const resolved = await response;
   await verifySchedulerPacket(config, resolved, now);
   correlateChallenge(config, request, resolved.workerHandshakeChallenge);
@@ -164,6 +159,7 @@ export async function verifyResult(
   requireSameChallenge(resolved.workerHandshakeResult.challenge,
     challengeResponse.workerHandshakeChallenge);
   const result = resolved.workerHandshakeResult;
+  requireLiveChallenge(result.challenge, now);
   requireFreshTimestamp(result.issuedAt, now, "result issued_at");
   if (!result.accepted) throw new WorkerHandshakeRejectionError(result.rejectionReason);
   const expiresAt = dateFromTimestamp(result.tokenExpiresAt);
@@ -183,10 +179,11 @@ export async function verifyResult(
 function verifiedPackets(
   value: VerifiedWorkerHandshakeChallenge
 ): readonly [ChallengeRequestTrustPacket, ChallengeTrustPacket] {
-  if (!(value instanceof VerifiedWorkerHandshakeChallenge) || !GENUINE.has(value)) {
+  const packets = VERIFIED.get(value);
+  if (!packets) {
     throw new WorkerHandshakeBindingError("verified challenge is required");
   }
-  return value.packets(verifiedSecret);
+  return packets;
 }
 
 async function verifySchedulerPacket(

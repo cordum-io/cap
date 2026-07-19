@@ -213,8 +213,13 @@ function validateSessionForPurpose(purpose: number, token: string): void {
 }
 
 function validToken(token: string): boolean {
-  return typeof token === "string" && token.length > 0 && token === token.trim() &&
-    Buffer.byteLength(token, "utf8") <= WORKER_HANDSHAKE_MAX_SESSION_TOKEN_SIZE;
+  if (typeof token !== "string" || token.length === 0 ||
+      token.length > WORKER_HANDSHAKE_MAX_SESSION_TOKEN_SIZE) return false;
+  for (const character of token) {
+    const code = character.charCodeAt(0);
+    if (code < 0x21 || code > 0x7e) return false;
+  }
+  return true;
 }
 
 function nonce(value: Uint8Array, field: string): void {

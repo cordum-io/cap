@@ -28,8 +28,10 @@ func run(args []string) int {
 		return runRender(args[1:])
 	case "links":
 		return runLinks(args[1:])
+	case "release-check":
+		return runReleaseCheck(args[1:])
 	default:
-		fmt.Fprintf(os.Stderr, "unknown subcommand %q (supported: check, render, links)\n", args[0])
+		fmt.Fprintf(os.Stderr, "unknown subcommand %q (supported: check, render, links, release-check)\n", args[0])
 		return 2
 	}
 }

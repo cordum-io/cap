@@ -42,3 +42,25 @@ hand-set boolean.
 
 _Pending evidence names the task that will complete a gate; see
 `spec/tck/MATRIX-STATUS.md` for the cross-language matrix status._
+
+## Promotion & demotion
+
+Tier is a function of resolvable evidence, not intent. `cap-support check`
+verifies every gate against the tree, so a claim can only be made once its
+evidence exists.
+
+- **experimental → community**: add explicit CODEOWNERS ownership, CI source
+  tests, and conformance decode/verify; for a compiled SDK, an install/export
+  and a clean external consumer. Label absent transport/release honestly.
+- **community → stable**: add a publish workflow and package coordinate, an
+  installed-artifact consumer, the bidirectional fixture/signature matrix edge,
+  a role-applicable TCK run, and mandatory (no-skip) real NATS. A stable entry
+  may temporarily list a gate as `pending` with the blocking task while its
+  evidence lands; a fully-earned stable entry has no pending gates.
+- **demotion**: if a required gate's evidence is removed or a workflow/owner/
+  package path stops resolving, `cap-support check` fails — the entry must be
+  demoted or the evidence restored. Tiers never silently degrade.
+
+External publication, registry pushes, and adopter claims are **out of scope**
+of this manifest and require separate evidence and human approval.
+

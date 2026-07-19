@@ -1,45 +1,80 @@
 package releasetruth
 
+import (
+	"fmt"
+	"strings"
+)
+
 // GitHubSlug converts one heading's text to its GitHub anchor slug: lowercased,
-// spaces collapsed to single hyphens, and characters other than [a-z0-9-_]
-// dropped. It does not apply duplicate suffixes.
+// characters other than [a-z0-9_-] and whitespace dropped, then runs of
+// whitespace collapsed to a single hyphen. It does not apply duplicate suffixes.
 func GitHubSlug(text string) string {
-	return ""
+	var b strings.Builder
+	for _, r := range strings.ToLower(text) {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9', r == '_', r == '-':
+			b.WriteRune(r)
+		case r == ' ' || r == '\t':
+			b.WriteRune(' ')
+		default:
+			// drop punctuation and other symbols
+		}
+	}
+	return strings.Join(strings.Fields(b.String()), "-")
+}
+
+// isFenceLine reports whether a trimmed line opens or closes a code fence.
+func isFenceLine(trimmed string) bool {
+	return strings.HasPrefix(trimmed, "```") || strings.HasPrefix(trimmed, "~~~")
+}
+
+// parseATXHeading returns the heading text if line is an ATX heading (1-6 '#'
+// followed by a space or end of line), stripping the leading and optional
+// closing '#' sequence.
+func parseATXHeading(line string) (string, bool) {
+	i := 0
+	for i < len(line) && line[i] == '#' {
+		i++
+	}
+	if i == 0 || i > 6 {
+		return "", false
+	}
+	if i < len(line) && line[i] != ' ' && line[i] != '\t' {
+		return "", false
+	}
+	text := strings.TrimSpace(line[i:])
+	text = strings.TrimSpace(strings.TrimRight(text, "#"))
+	return text, true
 }
 
 // DocumentAnchors returns the ordered anchor slugs for all ATX headings in the
 // document, applying GitHub duplicate-slug suffixes (foo, foo-1, foo-2) and
 // ignoring fenced code blocks.
 func DocumentAnchors(content string) []string {
-	return nil
-}
-
-// RenderRoot selects how repo-relative links in a file resolve on GitHub.
-type RenderRoot string
-
-const (
-	// RootNormal: relative links resolve from the file's own directory.
-	RootNormal RenderRoot = "normal"
-	// RootDocs: docs-tree file; relative links resolve from the file's directory.
-	RootDocs RenderRoot = "docs"
-	// RootWiki: wiki page; repo-relative file links do not resolve.
-	RootWiki RenderRoot = "wiki"
-	// RootIssueTemplate: issue-template file; relative links resolve from repo root.
-	RootIssueTemplate RenderRoot = "issue-template"
-)
-
-// LinkProblem is one broken markdown link or anchor with file:line context.
-type LinkProblem struct {
-	File   string
-	Line   int
-	Target string
-	Reason string
-}
-
-// CheckLinks validates every markdown link in content (the file `file` relative
-// to repoRoot, rendered under `root`): same-file "#anchor" links against the
-// document's headings, and repo-relative file targets against disk. Links inside
-// fenced code blocks are ignored. Problems are returned in ascending line order.
-func CheckLinks(repoRoot, file, content string, root RenderRoot) []LinkProblem {
-	return []LinkProblem{{Reason: "not implemented"}}
+	var anchors []string
+	counts := map[string]int{}
+	inFence := false
+	for _, raw := range strings.Split(normalizeNewlines(content), "\n") {
+		t := strings.TrimSpace(raw)
+		if isFenceLine(t) {
+			inFence = !inFence
+			continue
+		}
+		if inFence {
+			continue
+		}
+		text, ok := parseATXHeading(t)
+		if !ok {
+			continue
+		}
+		slug := GitHubSlug(text)
+		n := counts[slug]
+		counts[slug]++
+		if n == 0 {
+			anchors = append(anchors, slug)
+		} else {
+			anchors = append(anchors, fmt.Sprintf("%s-%d", slug, n))
+		}
+	}
+	return anchors
 }

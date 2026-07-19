@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cordum.io/cap/tck/adapter-message-v1.schema.json",
+  "title": "CAP TCK adapter-v1 Message",
+  "description": "One line-delimited JSON message on the adapter-v1 wire, in either direction.",
+  "type": "object",
+  "required": ["type"],
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["hello", "handshake", "run", "result", "bye"]
+    },
+    "id": { "type": "string" },
+    "scenario": { "type": "string" },
+    "params": { "type": "object", "additionalProperties": { "type": "string" } },
+    "protocolVersion": { "type": "integer" },
+    "role": { "type": "string", "enum": ["worker", "control-plane"] },
+    "profiles": { "type": "array", "items": { "type": "string" } },
+    "features": { "type": "array", "items": { "type": "string" } },
+    "sdk": { "type": "string" },
+    "transport": { "type": "string" },
+    "status": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "ERROR", "UNSUPPORTED", "N/A"]
+    },
+    "detail": { "type": "string" },
+    "evidence": { "type": "object", "additionalProperties": { "type": "string" } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "handshake" } } },
+      "then": { "required": ["protocolVersion", "role"] }
+    },
+    {
+      "if": { "properties": { "type": { "const": "run" } } },
+      "then": { "required": ["id", "scenario"] }
+    },
+    {
+      "if": { "properties": { "type": { "const": "result" } } },
+      "then": { "required": ["id", "status"] }
+    }
+  ]
+}

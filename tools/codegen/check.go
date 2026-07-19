@@ -1,8 +1,6 @@
 package codegen
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"io/fs"
 	"path"
 	"sort"
@@ -76,7 +74,7 @@ func checkOutputsOnDisk(m *Manifest, root fs.FS) []Problem {
 			p = append(p, cprob(CodeOutputEmpty, o.Path, ""))
 			continue
 		}
-		if !strings.EqualFold(sha256hex(data), o.SHA256) {
+		if !strings.EqualFold(hashContent(data), o.SHA256) {
 			p = append(p, cprob(CodeOutputStale, o.Path, ""))
 		}
 	}
@@ -135,11 +133,6 @@ func checkGenerators(m *Manifest) []Problem {
 
 func cprob(code, filePath, detail string) Problem {
 	return Problem{Code: code, Path: filePath, Detail: detail}
-}
-
-func sha256hex(b []byte) string {
-	sum := sha256.Sum256(b)
-	return hex.EncodeToString(sum[:])
 }
 
 // isAbsPath reports rooted paths, including Windows volume-qualified ones, so a

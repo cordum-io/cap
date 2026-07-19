@@ -1,0 +1,20 @@
+# Keep the codegen build context small and hermetic. Notably excludes the
+# tracked .cache/go-build tree so it never re-enters a Docker build context.
+.git
+.gitignore
+.cache
+.gocache
+.gomodcache
+**/node_modules
+**/.venv
+**/venv
+**/__pycache__
+**/*.egg-info
+.worktrees
+dist
+build
+out
+tmp
+temp
+*.log
+*.tmp

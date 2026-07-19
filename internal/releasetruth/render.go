@@ -85,6 +85,18 @@ func FindBlocks(content string) ([]Block, error) {
 	return blocks, nil
 }
 
+// CheckDrift renders content and reports whether it differs from the current
+// content ignoring newline style, returning the canonical rendered form. It lets
+// check-mode compare content on a CRLF checkout without false-flagging newline
+// style, so only real block drift is reported.
+func CheckDrift(m *Manifest, content string) (canonical string, drifted bool, err error) {
+	canonical, err = Render(m, content)
+	if err != nil {
+		return "", false, err
+	}
+	return canonical, canonical != normalizeNewlines(content), nil
+}
+
 // Render rewrites the inner content of every protected block in content with
 // RenderBlock output for its id, preserving all text outside blocks and
 // emitting LF newlines. It is idempotent and fails closed on an unknown id.

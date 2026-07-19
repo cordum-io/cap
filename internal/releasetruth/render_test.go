@@ -195,6 +195,28 @@ func TestRender_FailsClosedOnUnknownBlockID(t *testing.T) {
 	}
 }
 
+func TestCheckDrift_IgnoresNewlineStyleButCatchesContent(t *testing.T) {
+	m := validManifest()
+	clean, err := Render(m, twoBlockDoc())
+	if err != nil {
+		t.Fatalf("Render clean: %v", err)
+	}
+	// A rendered doc is not drifted.
+	if _, drifted, err := CheckDrift(m, clean); err != nil || drifted {
+		t.Errorf("CheckDrift(clean) = drifted %v err %v, want false/nil", drifted, err)
+	}
+	// The same doc with CRLF newlines is still not drifted (newline style ignored).
+	crlf := strings.ReplaceAll(clean, "\n", "\r\n")
+	if _, drifted, _ := CheckDrift(m, crlf); drifted {
+		t.Errorf("CheckDrift(CRLF of clean) = drifted true, want false (newline style must be ignored)")
+	}
+	// A one-byte content change inside a block is drift.
+	stale := strings.Replace(clean, "\n2\n", "\n7\n", 1)
+	if _, drifted, _ := CheckDrift(m, stale); !drifted {
+		t.Errorf("CheckDrift(stale) = drifted false, want true")
+	}
+}
+
 func TestRenderBlock_GoldenSpecCountIsNineteen(t *testing.T) {
 	m, _ := loadGolden(t)
 	got, err := RenderBlock(m, "spec-count")

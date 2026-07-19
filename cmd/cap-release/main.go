@@ -18,14 +18,18 @@ func main() {
 
 func run(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: cap-release check [--manifest path] [--repo-root path]")
+		fmt.Fprintln(os.Stderr, "usage: cap-release <check|render|links> [flags]")
 		return 2
 	}
 	switch args[0] {
 	case "check":
 		return runCheck(args[1:])
+	case "render":
+		return runRender(args[1:])
+	case "links":
+		return runLinks(args[1:])
 	default:
-		fmt.Fprintf(os.Stderr, "unknown subcommand %q (supported: check)\n", args[0])
+		fmt.Fprintf(os.Stderr, "unknown subcommand %q (supported: check, render, links)\n", args[0])
 		return 2
 	}
 }

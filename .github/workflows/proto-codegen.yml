@@ -10,9 +10,6 @@ permissions:
 jobs:
   generated-contract:
     runs-on: ubuntu-latest
-    env:
-      GEM_HOME: ${{ runner.temp }}/cap-ruby-gems
-      GEM_PATH: ${{ runner.temp }}/cap-ruby-gems
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +34,10 @@ jobs:
           java-version: 17.0.13+11
           cache: maven
       - uses: dtolnay/rust-toolchain@1.85.1
+      - name: Configure non-root Ruby gem path
+        run: |
+          echo "GEM_HOME=$RUNNER_TEMP/cap-ruby-gems" >> "$GITHUB_ENV"
+          echo "GEM_PATH=$RUNNER_TEMP/cap-ruby-gems" >> "$GITHUB_ENV"
       - name: Install generated-language build tools
         run: |
           sudo apt-get update

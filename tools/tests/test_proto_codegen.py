@@ -266,8 +266,15 @@ class ProtoCodegenTest(unittest.TestCase):
             "cargo test",
         ):
             self.assertIn(token, workflow)
-        self.assertIn("GEM_HOME: ${{ runner.temp }}/cap-ruby-gems", workflow)
-        self.assertIn("GEM_PATH: ${{ runner.temp }}/cap-ruby-gems", workflow)
+        self.assertNotIn("${{ runner.temp }}", workflow)
+        self.assertIn(
+            'echo "GEM_HOME=$RUNNER_TEMP/cap-ruby-gems" >> "$GITHUB_ENV"',
+            workflow,
+        )
+        self.assertIn(
+            'echo "GEM_PATH=$RUNNER_TEMP/cap-ruby-gems" >> "$GITHUB_ENV"',
+            workflow,
+        )
 
 
 if __name__ == "__main__":

@@ -32,9 +32,28 @@ func safeRelPath(p string) error {
 	return nil
 }
 
+// withinRoot reports whether the fully symlink-resolved path stays inside the
+// resolved repository root. It defends against a spec entry that passes the
+// string safeRelPath check but is a symlink escaping the repository.
+func withinRoot(repoRoot, full string) (bool, error) {
+	rr, err := filepath.EvalSymlinks(repoRoot)
+	if err != nil {
+		return false, err
+	}
+	rf, err := filepath.EvalSymlinks(full)
+	if err != nil {
+		return false, err
+	}
+	rel, err := filepath.Rel(rr, rf)
+	if err != nil {
+		return false, err
+	}
+	return rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)), nil
+}
+
 // CheckSpecsOnDisk verifies each spec file resolves to an existing regular file
-// under repoRoot without escaping it. It performs local file I/O only, no
-// network access.
+// under repoRoot without escaping it (including via symlink). It performs local
+// file I/O only, no network access.
 func CheckSpecsOnDisk(m *Manifest, repoRoot string) []Problem {
 	var ps []Problem
 	for _, s := range m.Specs {
@@ -46,6 +65,10 @@ func CheckSpecsOnDisk(m *Manifest, repoRoot string) []Problem {
 		info, err := os.Stat(full)
 		if err != nil || info.IsDir() {
 			ps = append(ps, Problem{"specs.file.missing", s.File})
+			continue
+		}
+		if ok, err := withinRoot(repoRoot, full); err != nil || !ok {
+			ps = append(ps, Problem{"specs.file.escape", s.File + " resolves outside the repository (symlink escape)"})
 		}
 	}
 	return ps

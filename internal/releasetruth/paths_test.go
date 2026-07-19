@@ -54,3 +54,25 @@ func TestCheckSpecsOnDisk_RejectsTraversal(t *testing.T) {
 		t.Fatalf("expected specs.file for traversal, got %v", ps)
 	}
 }
+
+func TestCheckSpecsOnDisk_RejectsSymlinkEscape(t *testing.T) {
+	root := t.TempDir()
+	outside := t.TempDir()
+	secret := filepath.Join(outside, "secret.md")
+	if err := os.WriteFile(secret, []byte("secret"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "spec"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(root, "spec", "evil.md")
+	if err := os.Symlink(secret, link); err != nil {
+		t.Skipf("symlinks not creatable in this environment: %v", err)
+	}
+	m := validManifest()
+	m.Specs = []Spec{{ID: "x", File: "spec/evil.md", Title: "Evil"}}
+	ps := CheckSpecsOnDisk(m, root)
+	if !hasField(ps, "specs.file.escape") {
+		t.Fatalf("expected specs.file.escape for a symlink escaping the repo, got %v", ps)
+	}
+}

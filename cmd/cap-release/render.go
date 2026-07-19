@@ -57,6 +57,12 @@ func renderAll(m *releasetruth.Manifest, repoRoot string, write bool) int {
 		full := filepath.Join(repoRoot, filepath.FromSlash(t.path))
 		data, err := os.ReadFile(full)
 		if err != nil {
+			if !write {
+				// Fail closed: a canonical target must exist for the drift gate.
+				fmt.Fprintf(os.Stderr, "MISSING target %s: %v\n", t.path, err)
+				drift++
+				continue
+			}
 			fmt.Fprintf(os.Stderr, "skip %s: %v\n", t.path, err)
 			continue
 		}

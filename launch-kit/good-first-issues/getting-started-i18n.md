@@ -11,8 +11,8 @@ The CAP getting-started guide (`docs/getting-started.md`) is currently only avai
 2. Create a translated version at `docs/getting-started.<lang>.md` (e.g., `docs/getting-started.zh.md`)
 3. Translate all prose content — keep code blocks, command examples, and file paths unchanged
 4. Keep the same heading structure and section order as the original
-5. Add a note at the top: "This is a community translation of [Getting Started](getting-started.md). For the latest version, refer to the English original."
-6. Add a link to the translation from the original `docs/getting-started.md` (e.g., "Translations: [Chinese](getting-started.zh.md)")
+5. Add a note at the top: "This is a community translation of `getting-started.md`. For the latest version, refer to the English original."
+6. Add a link to the translation from the original `docs/getting-started.md` (e.g., a "Translations" line pointing to `getting-started.zh.md`)
 
 ## Files to Look At
 - `docs/getting-started.md` — source document to translate

@@ -1,6 +1,0 @@
-./alert.pb.go
-./buspacket.pb.go
-./heartbeat.pb.go
-./job.pb.go
-./safety.pb.go
-./safety_grpc.pb.go

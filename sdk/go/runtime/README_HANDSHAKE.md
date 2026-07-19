@@ -22,7 +22,9 @@ signs ordinary CAP packets. `SenderID`, when set, must equal
 `WorkerTrust.WorkerID`; otherwise the runtime derives it from the trust
 configuration. Partial configuration fails before the runtime opens NATS or
 Redis. `off` accepts no trust configuration or trust retry/timeout tuning, so
-an operator cannot silently disable a configured trust exchange.
+an operator cannot silently disable a configured trust exchange. Off mode also
+requires ordinary packet signing/verification keys unless the caller sets
+`AllowUnsigned: true` as an explicit legacy opt-in.
 
 `CORDUM_SDK_HANDSHAKE` may provide the explicit mode when `HandshakeMode` is
 empty. `Tenant` and `SDKVersion` remain legacy generic-advertisement settings

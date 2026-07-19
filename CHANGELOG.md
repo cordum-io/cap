@@ -17,6 +17,30 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Unreleased — Protocol Hardening
 
+### Breaking changes (Go SDK)
+
+- `ValidateBusPacket` now accepts exactly `protocol_version == 1`; earlier Go
+  releases accepted any positive version. Callers carrying future or private
+  versions must use a matching validator rather than passing them through the
+  v1 API.
+- `ValidateBusPacket` now requires `BusPacket.sender_id` to equal
+  `JobResult.worker_id`, `Heartbeat.worker_id`, or `Handshake.component_id` for
+  those three payloads. We deliberately keep these constraints instead of
+  gating them behind a permissive validator: accepting two conflicting sender
+  authorities makes signature and policy attribution ambiguous. This narrows
+  the old acceptance set without changing protobuf fields.
+- Go runtime `warn` and `enforce` modes require a complete
+  `WorkerTrustConfig`; an explicitly configured `SenderID` must equal
+  `WorkerTrust.WorkerID`.
+- Unsigned Go transport is no longer inferred from missing keys. Low-level
+  workers, `ManagedWorker`, runtime `Agent`, and `client.Client` require
+  `AllowUnsigned: true`; package-level submission uses the explicitly named
+  `SubmitUnsigned`. The ordinary `Submit` path requires a private key.
+- `off` remains the compatibility mode, but `Start` rejects dormant trust
+  configuration/tuning and also rejects missing ordinary signing/verification
+  keys unless `AllowUnsigned` is explicit. This prevents a key deployment typo
+  from silently selecting unauthenticated transport.
+
 - **[WIRE]** Added the version-1 authenticated worker trust messages
   (`WorkerHandshakeChallengeRequest`, `WorkerHandshakeChallenge`,
   `WorkerHandshakeAuthenticate`, and `WorkerHandshakeResult`) and append-only

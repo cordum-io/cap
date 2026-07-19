@@ -234,7 +234,9 @@ measure timing, or short-circuit by returning without calling `next`.
   priv, _ := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
   pub := &priv.PublicKey
   ```
- - Pass `nil` as the private key to send unsigned envelopes.
+- Unsigned legacy transport is explicit: set `AllowUnsigned: true` on Go
+  clients/workers/runtimes. Package-level callers use `SubmitUnsigned`;
+  ordinary `Submit` rejects a nil private key.
 
 ## Generating API Docs
 

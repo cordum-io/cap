@@ -87,6 +87,16 @@ authoritative credential, proof-key, or session record.
 | `warn` | attempted and strictly verified | worker runtime may remain available for migration; tokenless registry input is telemetry-only | never refresh authority from tokenless input |
 | `enforce` | required before admission | blocked; expired/failed renewal stops admission | only a live verified session |
 
+A deployment MUST NOT claim `enforce` from worker session issuance alone. The
+enforced boundary includes worker reporting, authenticated capability/readiness
+advertisement, session ISSUE/RENEW, and every governed `JobRequest` submission.
+All job publishers (API gateway, scheduler retry/continuation paths, workflow
+engine, MCP and other control-plane producers) must attach an authenticated
+worker session or a separately authenticated, audience-bound control-plane
+service credential accepted by the receiver. Upgrade these publishers before
+moving from `warn` to `enforce`; tokenless submissions must be rejected rather
+than admitted as migration telemetry.
+
 Mode selection MUST be explicit once trust configuration or tuning is present.
 `off` MUST reject dormant proof keys, pins, or trust retry/timeout settings so a
 configuration typo cannot silently disable authentication. WARN changes only

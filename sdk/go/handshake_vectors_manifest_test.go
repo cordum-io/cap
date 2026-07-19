@@ -1,6 +1,7 @@
 package capsdk
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -8,6 +9,23 @@ import (
 	"sort"
 	"testing"
 )
+
+func TestHandshakeFixturesContainNoPrivateKeyMaterial(t *testing.T) {
+	root := filepath.Join("..", "..", "spec", "conformance", "fixtures", "handshake")
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		data, readErr := os.ReadFile(filepath.Join(root, entry.Name()))
+		if readErr != nil {
+			t.Fatal(readErr)
+		}
+		if bytes.Contains(bytes.ToUpper(data), []byte("PRIVATE KEY")) {
+			t.Fatalf("fixture %q contains private key material", entry.Name())
+		}
+	}
+}
 
 type handshakeVectorManifest struct {
 	SchemaVersion   int                          `json:"schema_version"`

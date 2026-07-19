@@ -148,6 +148,10 @@ ISSUE and RENEW have different authority:
 - RENEW proves the same bindings and MUST present the current active token in the signed authenticate envelope. Success returns a newly issued token and supersedes the prior session in the authoritative store.
 - RENEW MUST NOT fall back to tokenless ISSUE. Expired, revoked, superseded, malformed, wrong-audience, wrong-worker, wrong-agent, wrong-tenant, or wrong-key sessions fail as `SESSION_INVALID`.
 - Revocation and expiry are server-authoritative. A cached client token cannot extend its own lifetime, and challenge/session-store unavailability cannot be treated as acceptance.
+- An implementation claiming `enforce` MUST apply authenticated admission to
+  worker reports, capability/readiness updates, session issuance/renewal, and
+  governed `JobRequest` submissions. Securing only worker output while
+  admitting tokenless job producers is not enforce mode.
 
 ### Signing transcript
 

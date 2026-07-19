@@ -950,6 +950,12 @@ func TestManagedWorker_PublishesHandshakeReadyTopics(t *testing.T) {
 		t.Fatalf("subscribe to handshake: %v", err)
 	}
 	defer sub.Unsubscribe()
+	// The startup handshake is a one-shot Core NATS publish. Wait until the
+	// server has processed this subscription so a slow client write loop cannot
+	// make the assertion race the worker's publish.
+	if err := nc.Flush(); err != nil {
+		t.Fatalf("flush handshake subscription: %v", err)
+	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

@@ -12,3 +12,24 @@ sdk/python-guard/ @yaront1111
 
 # CI/CD
 .github/ @yaront1111
+
+# Governance documents and records (maintainer-owned)
+GOVERNANCE.md @yaront1111
+MAINTAINERS.md @yaront1111
+DCO.md @yaront1111
+COI.md @yaront1111
+DECISIONS.md @yaront1111
+CODE_OF_CONDUCT.md @yaront1111
+SECURITY.md @yaront1111
+rfcs/ @yaront1111
+decisions/ @yaront1111
+community/ @yaront1111
+
+# Adoption / readiness evidence registry and generated views
+ADOPTERS.md @yaront1111
+governance/ @yaront1111
+partnerships/ @yaront1111
+
+# Governance checker and its tests
+internal/governance/ @yaront1111
+cmd/cap-governance/ @yaront1111

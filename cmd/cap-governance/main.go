@@ -38,6 +38,7 @@ func main() {
 		"dco":       runDCO,
 		"readiness": runReadiness,
 		"render":    runRender,
+		"triage":    runTriage,
 	}[os.Args[1]]
 	if run == nil {
 		usage()

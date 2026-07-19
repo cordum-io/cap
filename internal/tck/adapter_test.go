@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -78,6 +79,9 @@ func serveHelperCase(mode string, cmd Command, emit func(AdapterMessage)) {
 		emit(AdapterMessage{Type: MsgResult, ID: cmd.ID, Status: StatusPass, Detail: strings.Repeat("x", 2<<20)})
 	case "echo-status":
 		emit(AdapterMessage{Type: MsgResult, ID: cmd.ID, Status: Status(cmd.Params["status"])})
+	case "cwd":
+		wd, _ := os.Getwd()
+		emit(AdapterMessage{Type: MsgResult, ID: cmd.ID, Status: StatusPass, Evidence: map[string]string{"cwd": wd}})
 	default:
 		emit(AdapterMessage{Type: MsgResult, ID: cmd.ID, Status: StatusPass})
 	}
@@ -227,6 +231,44 @@ func TestAdapterDuplicateIdSurfacesOnNextRun(t *testing.T) {
 	_, err = a.Run(context.Background(), Command{Type: MsgRun, ID: "c2"}, 2*time.Second)
 	if err == nil || !strings.Contains(err.Error(), "does not match") {
 		t.Fatalf("expected duplicate to surface as id mismatch, got %v", err)
+	}
+}
+
+// A cancelled context must abort a running case with context.Canceled,
+// distinct from a deadline timeout, and still tear the child down.
+func TestAdapterRunHonorsContextCancel(t *testing.T) {
+	a := helperAdapter("hang-run")
+	if _, err := a.Start(context.Background()); err != nil {
+		t.Fatalf("start: %v", err)
+	}
+	defer a.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		cancel()
+	}()
+	_, err := a.Run(ctx, Command{Type: MsgRun, ID: "c1"}, 5*time.Second)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected context.Canceled, got %v", err)
+	}
+}
+
+func TestAdapterRunsInSpecifiedDir(t *testing.T) {
+	dir := t.TempDir()
+	a := helperAdapter("cwd")
+	a.spec.Dir = dir
+	if _, err := a.Start(context.Background()); err != nil {
+		t.Fatalf("start: %v", err)
+	}
+	defer a.Close()
+	res, err := a.Run(context.Background(), Command{Type: MsgRun, ID: "c1"}, 2*time.Second)
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	got, _ := filepath.EvalSymlinks(res.Evidence["cwd"])
+	want, _ := filepath.EvalSymlinks(dir)
+	if got != want {
+		t.Fatalf("adapter cwd = %q, want %q", got, want)
 	}
 }
 

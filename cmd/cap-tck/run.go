@@ -37,6 +37,14 @@ func cmdRun(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 
+	workdir, err := os.MkdirTemp("", "cap-tck-run-*")
+	if err != nil {
+		fmt.Fprintf(stderr, "run: temp dir: %v\n", err)
+		return 1
+	}
+	defer os.RemoveAll(workdir)
+	spec.Dir = workdir
+
 	ctx, cancel := signalContext(*timeout)
 	defer cancel()
 	a := tck.NewAdapter(spec)

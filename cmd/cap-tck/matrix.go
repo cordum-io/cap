@@ -79,6 +79,13 @@ func runOneAdapter(specStr string, suite *tck.Suite, profile string, deadline, t
 	if err != nil {
 		return tck.Report{}, err
 	}
+	workdir, err := os.MkdirTemp("", "cap-tck-matrix-*")
+	if err != nil {
+		return tck.Report{}, err
+	}
+	defer os.RemoveAll(workdir)
+	spec.Dir = workdir
+
 	ctx, cancel := signalContext(timeout)
 	defer cancel()
 	a := tck.NewAdapter(spec)

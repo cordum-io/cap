@@ -28,6 +28,7 @@ type AdapterSpec struct {
 	Name string
 	Argv []string
 	Env  []string // extra environment appended to the parent's
+	Dir  string   // working directory; empty inherits the parent's
 }
 
 // Adapter is a running adapter process driven over adapter-v1. A single reader
@@ -177,6 +178,7 @@ func (a *Adapter) spawn(ctx context.Context) error {
 	cmd.Stdin = inR
 	cmd.Stdout = outW
 	cmd.Stderr = a.stderr
+	cmd.Dir = a.spec.Dir
 	if len(a.spec.Env) > 0 {
 		cmd.Env = append(os.Environ(), a.spec.Env...)
 	}

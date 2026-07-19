@@ -24,6 +24,7 @@ type managedTrustScheduler struct {
 	tokenTTL         time.Duration
 	invalidChallenge bool
 	failAuthFrom     int
+	dropAuthFrom     int
 
 	mu             sync.Mutex
 	challengeCalls int
@@ -131,6 +132,9 @@ func (s *managedTrustScheduler) handleAuthenticate(message *nats.Msg) {
 	s.authenticates = append(s.authenticates, proto.Clone(packet).(*agentv1.BusPacket))
 	sequence := len(s.authenticates)
 	s.mu.Unlock()
+	if s.dropAuthFrom > 0 && sequence >= s.dropAuthFrom {
+		return
+	}
 	if s.failAuthFrom > 0 && sequence >= s.failAuthFrom {
 		_ = message.Respond([]byte("invalid authenticate result"))
 		return

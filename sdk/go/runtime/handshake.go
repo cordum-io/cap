@@ -45,14 +45,23 @@ type natsContextRequester interface {
 	RequestWithContext(ctx context.Context, subj string, data []byte) (*nats.Msg, error)
 }
 
-// HandshakeRejectedError is an opaque scheduler rejection.
+// HandshakeRejectedError preserves the legacy string fields while exposing
+// the normative protobuf reason separately.
 type HandshakeRejectedError struct {
-	Reason   agentv1.WorkerHandshakeRejectionReason
-	WorkerID string
+	Reason          string
+	RequestID       string
+	AgentID         string
+	WorkerID        string
+	RejectionReason agentv1.WorkerHandshakeRejectionReason
 }
 
 func (e *HandshakeRejectedError) Error() string {
-	return fmt.Sprintf("cap-runtime: worker handshake rejected: reason=%s worker_id=%s", e.Reason, e.WorkerID)
+	return fmt.Sprintf("cap-runtime: handshake rejected: reason=%s agent_id=%s request_id=%s", e.Reason, e.AgentID, e.RequestID)
+}
+
+func legacyRejectionReason(reason agentv1.WorkerHandshakeRejectionReason) string {
+	const prefix = "WORKER_HANDSHAKE_REJECTION_REASON_"
+	return strings.ToLower(strings.TrimPrefix(reason.String(), prefix))
 }
 
 type sessionState struct {
@@ -111,25 +120,32 @@ func (a *Agent) resolveHandshakeMode() (HandshakeMode, error) {
 	if raw == "" {
 		raw = strings.TrimSpace(os.Getenv(EnvHandshakeMode))
 	}
+	if raw == "" {
+		return HandshakeModeOff, nil
+	}
 	mode, err := capsdk.ParseWorkerTrustMode(raw)
 	if err != nil {
-		if raw == "" {
-			return "", errors.New("cap-runtime: handshake mode must be explicit: off, warn, or enforce")
-		}
 		return "", fmt.Errorf("cap-runtime: invalid handshake mode %q: %w", raw, err)
 	}
 	return HandshakeMode(mode.String()), nil
 }
 
 func (a *Agent) activeHandshakeMode() HandshakeMode {
+	if a != nil && a.trustMode != "" {
+		return a.trustMode
+	}
 	mode, _ := a.resolveHandshakeMode()
 	return mode
 }
 
 func (a *Agent) validateTrustStartup() error {
-	mode, err := a.resolveHandshakeMode()
-	if err != nil {
-		return err
+	mode := a.trustMode
+	if mode == "" {
+		var err error
+		mode, err = a.resolveHandshakeMode()
+		if err != nil {
+			return err
+		}
 	}
 	trust := a.workerTrustConfig()
 	if mode == HandshakeModeOff {

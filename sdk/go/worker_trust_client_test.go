@@ -109,6 +109,9 @@ func TestVerifyWorkerHandshakeResultRejectsTamperAndOpaqueRejection(t *testing.T
 	if !errors.As(err, &rejection) || rejection.Reason != agentv1.WorkerHandshakeRejectionReason_WORKER_HANDSHAKE_REJECTION_REASON_AUTHENTICATION_FAILED {
 		t.Fatalf("rejection error=%v", err)
 	}
+	if rejection.RequestID != "request-1" || rejection.AgentID != fixture.config.ExpectedAgentID || rejection.WorkerID != fixture.config.WorkerID {
+		t.Fatalf("rejection correlation fields=%#v", rejection)
+	}
 	tampered := fixture.buildResult(t, verified.Message(), "session-token", true)
 	tampered.GetWorkerHandshakeResult().Challenge.TraceId = "other"
 	fixture.resignScheduler(t, tampered)

@@ -107,6 +107,9 @@ func (a *Agent) failStart(startErr error) error {
 		_ = a.Store.Close()
 		a.Store, a.ownedStore = nil, false
 	}
+	a.clearSession()
+	a.trustMode = ""
+	a.trustConfig = nil
 	return startErr
 }
 

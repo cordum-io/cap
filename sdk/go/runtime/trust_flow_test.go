@@ -95,7 +95,7 @@ func TestAgentStartTrustFailureHonorsModeWithoutInstallingToken(t *testing.T) {
 		wantError bool
 		wantSubs  int
 	}{
-		{mode: HandshakeModeWarn, wantSubs: 1},
+		{mode: HandshakeModeWarn, wantError: true},
 		{mode: HandshakeModeEnforce, wantError: true},
 	} {
 		t.Run(string(test.mode), func(t *testing.T) {
@@ -190,7 +190,7 @@ func TestPerformRenewAuthenticatesCurrentSession(t *testing.T) {
 
 func TestWarnRenewFailureRetainsOnlyUnexpiredSession(t *testing.T) {
 	agent, bus := newTrustTestAgent(t, HandshakeModeWarn)
-	bus.unsignedResult = true
+	bus.requestErr = errors.New("trust transport unavailable")
 	agent.setSession("still-live", time.Now().Add(time.Hour))
 	if obtained, err := agent.performRenew(nil); err != nil || obtained {
 		t.Fatalf("live-token renew=(%v,%v), want (false,nil)", obtained, err)

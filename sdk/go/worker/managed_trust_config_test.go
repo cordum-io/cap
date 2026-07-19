@@ -20,7 +20,6 @@ func TestManagedWorkerRejectsInvalidTrustConfigBeforeConnect(t *testing.T) {
 		worker  string
 		timeout time.Duration
 	}{
-		{name: "missing explicit mode", worker: "worker-trust"},
 		{name: "unknown mode", mode: capsdk.WorkerTrustMode(99), worker: "worker-trust"},
 		{name: "warn missing config", mode: capsdk.WorkerTrustModeWarn, worker: "worker-trust"},
 		{name: "enforce missing config", mode: capsdk.WorkerTrustModeEnforce, worker: "worker-trust"},

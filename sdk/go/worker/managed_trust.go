@@ -43,7 +43,7 @@ func (w *ManagedWorker) performInitialTrust(ctx context.Context) error {
 	}
 	session, err := w.performTrustExchange(ctx, issueHandshakePurpose(), "")
 	if err != nil {
-		if w.trust.mode == capsdk.WorkerTrustModeWarn {
+		if w.trust.mode == capsdk.WorkerTrustModeWarn && isManagedTrustOperationalError(err) {
 			w.logger.Printf("worker: WARN worker trust failed; continuing tokenless: %v", err)
 			return nil
 		}
@@ -90,10 +90,10 @@ func (w *ManagedWorker) requestTrustPacket(ctx context.Context, subject string, 
 	defer cancel()
 	message, err := w.conn.RequestWithContext(requestCtx, subject, data)
 	if err != nil {
-		return nil, fmt.Errorf("request %s: %w", subject, err)
+		return nil, newManagedTrustOperationalError(fmt.Errorf("request %s: %w", subject, err))
 	}
 	if message == nil {
-		return nil, fmt.Errorf("request %s: empty response", subject)
+		return nil, newManagedTrustOperationalError(fmt.Errorf("request %s: empty response", subject))
 	}
 	return capsdk.UnmarshalWorkerTrustPacket(message.Data)
 }
@@ -163,7 +163,7 @@ func (w *ManagedWorker) renewTrustLoop(ctx context.Context) {
 			continue
 		}
 		w.logger.Printf("worker: WARN session renewal failed: %v", err)
-		if w.trust.mode == capsdk.WorkerTrustModeEnforce {
+		if w.trust.mode == capsdk.WorkerTrustModeEnforce || !isManagedTrustOperationalError(err) {
 			w.trust.clearSession()
 			w.trust.signalFatal(fmt.Errorf("worker trust: session renewal failed: %w", err))
 			return

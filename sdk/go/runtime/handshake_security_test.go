@@ -13,7 +13,6 @@ func TestAgentStartRejectsUnknownHandshakeModeBeforeConnect(t *testing.T) {
 		env      string
 		want     string
 	}{
-		{name: "missing", want: "explicit"},
 		{name: "explicit", explicit: HandshakeMode("enforec"), want: "enforec"},
 		{name: "environment", env: "enforec", want: "enforec"},
 	} {

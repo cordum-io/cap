@@ -61,8 +61,9 @@ and `HandshakeModeEnforce` for fail-closed admission. Both require a complete
 `capsdk.WorkerTrustConfig`: enrolled worker/agent/tenant identities, exact
 `capsdk.WorkerHandshakeAudience`, an active P-256 proof key ID/private key,
 expected scheduler identity, pinned scheduler public keys, and SDK version.
-`CORDUM_SDK_HANDSHAKE` can supply the mode. Go requires an explicit mode;
-`off` rejects dormant trust material and is compatibility-only.
+`CORDUM_SDK_HANDSHAKE` can supply the mode. An unset mode preserves legacy
+`off`, while an unknown non-empty value fails startup. Off mode rejects dormant
+trust material and is compatibility-only.
 
 The runtime performs bounded protobuf request/reply on
 `sys.worker.handshake.challenge` and `sys.worker.handshake.authenticate` before subscriptions, verifies the pinned
@@ -145,7 +146,10 @@ ManagedWorker automatically calls `NATSTLSConfigFromEnv()` if `NATSTLSConfig` is
 For authenticated deployments, replace `WorkerTrustModeOff` with
 `WorkerTrustModeWarn` or `WorkerTrustModeEnforce` and supply `WorkerTrust` plus a
 bounded `WorkerTrustTimeout`. Its capability topics can narrow, but never expand,
-the topics authorized by the control plane.
+the topics authorized by the control plane. Warn mode fails open only for
+operational request unavailability; malformed, unpinned, tampered, mismatched,
+or rejected trust responses stop admission. Privileged results require a live
+session in both trust modes, while tokenless warn telemetry remains observable.
 
 ### TLS Helpers
 CAP Go SDK provides helpers to build `*tls.Config` from standard environment variables. These are used by `ManagedWorker` and the `runtime.Agent` by default.

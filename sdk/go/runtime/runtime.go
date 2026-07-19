@@ -176,6 +176,7 @@ type Agent struct {
 
 	handlers    map[string]handlerSpec
 	middlewares []Middleware
+	trustMode   HandshakeMode
 	trustConfig *capsdk.WorkerTrustConfig
 	session     *sessionState
 	renew       *renewer
@@ -241,9 +242,15 @@ func (a *Agent) Start() error {
 	if len(a.handlers) == 0 {
 		return errors.New("runtime: no handlers registered")
 	}
+	frozenMode, err := a.resolveHandshakeMode()
+	if err != nil {
+		return err
+	}
+	a.trustMode = frozenMode
 	frozenTrust := cloneRuntimeWorkerTrust(a.WorkerTrust)
 	a.trustConfig = &frozenTrust
 	if err := a.validateTrustStartup(); err != nil {
+		a.trustMode = ""
 		a.trustConfig = nil
 		return err
 	}
@@ -322,6 +329,7 @@ func (a *Agent) Close() error {
 		if a.Store != nil {
 			a.closeErr = a.Store.Close()
 		}
+		a.clearSession()
 	})
 	return a.closeErr
 }
@@ -472,7 +480,12 @@ func (a *Agent) publishResult(ctx Context, result *agentv1.JobResult) {
 	// signature covers the token bytes. A stripped/tampered token
 	// would invalidate the packet signature — belt-and-suspenders
 	// with the scheduler-side token verification.
-	a.withSessionToken(packet)
+	token, _ := a.SessionToken()
+	if a.activeHandshakeMode() != HandshakeModeOff && token == "" {
+		ctx.Logger.Error("cannot publish privileged result without a live worker session")
+		return
+	}
+	attachSessionToken(packet, token)
 	if err := capsdk.ValidateBusPacket(packet); err != nil {
 		ctx.Logger.Error("invalid outbound packet", "error", err)
 		return

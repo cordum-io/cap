@@ -95,13 +95,10 @@ func TestManagedWorkerEnforceTrustFailureInstallsNoJobSubscription(t *testing.T)
 	}
 }
 
-func TestManagedWorkerWarnTrustFailureContinuesWithoutToken(t *testing.T) {
+func TestManagedWorkerWarnRejectsMalformedTrustResponse(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 	scheduler := newManagedTrustScheduler(t, natsURL, "worker-warn")
 	scheduler.invalidChallenge = true
-	observer := testNATSConn(t, natsURL)
-	legacy := make(chan *agentv1.BusPacket, 1)
-	subscribeManagedCapture(t, observer, capsdk.SubjectHandshake, legacy)
 	worker, err := NewManagedWorker(ManagedConfig{
 		WorkerID: "worker-warn", Subjects: []string{"job.warn"}, NatsURL: natsURL,
 		WorkerTrustMode: capsdk.WorkerTrustModeWarn, WorkerTrust: scheduler.config,
@@ -110,19 +107,43 @@ func TestManagedWorkerWarnTrustFailureContinuesWithoutToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("new managed worker: %v", err)
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	done := runManagedWorker(t, worker, ctx, successfulManagedHandler)
-	packet := awaitManagedPacket(t, legacy)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	err = worker.Run(ctx, successfulManagedHandler)
 	if scheduler.challengeCount() == 0 {
-		t.Fatal("warn mode continued without attempting authenticated trust")
+		t.Fatal("warn mode did not attempt authenticated trust")
 	}
-	if packet.GetAuthToken() != "" {
-		t.Fatalf("warn failure installed unverified token %q", packet.GetAuthToken())
+	if err == nil || !strings.Contains(err.Error(), "worker trust") {
+		t.Fatalf("Run() error=%v, want hard malformed trust failure", err)
+	}
+	if err := worker.Close(); err != nil {
+		t.Fatalf("close worker: %v", err)
+	}
+}
+
+func TestManagedWorkerWarnOperationalFailureContinuesTokenless(t *testing.T) {
+	_, natsURL := startTestNATS(t)
+	observer := testNATSConn(t, natsURL)
+	legacy := make(chan *agentv1.BusPacket, 1)
+	subscribeManagedCapture(t, observer, capsdk.SubjectHandshake, legacy)
+	trust := managedTrustConfig(t, "worker-warn-operational")
+	worker, err := NewManagedWorker(ManagedConfig{
+		WorkerID: trust.WorkerID, Subjects: []string{"job.warn.operational"}, NatsURL: natsURL,
+		WorkerTrustMode: capsdk.WorkerTrustModeWarn, WorkerTrust: trust, WorkerTrustTimeout: 50 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	done := runManagedWorker(t, worker, ctx, successfulManagedHandler)
+	if packet := awaitManagedPacket(t, legacy); packet.GetAuthToken() != "" {
+		t.Fatalf("operational WARN failure installed token %q", packet.GetAuthToken())
 	}
 	cancel()
 	<-done
 	if err := worker.Close(); err != nil {
-		t.Fatalf("close worker: %v", err)
+		t.Fatal(err)
 	}
 }
 
@@ -204,7 +225,7 @@ func TestManagedWorkerEnforceRenewFailureClearsLiveSession(t *testing.T) {
 	}
 }
 
-func TestManagedWorkerWarnRenewFailureRetainsOnlyUnexpiredSession(t *testing.T) {
+func TestManagedWorkerWarnRenewSecurityFailureStopsAdmission(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 	scheduler := newManagedTrustScheduler(t, natsURL, "worker-warn-renew")
 	scheduler.tokenTTL = 300 * time.Millisecond
@@ -218,21 +239,51 @@ func TestManagedWorkerWarnRenewFailureRetainsOnlyUnexpiredSession(t *testing.T) 
 		t.Fatalf("new managed worker: %v", err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	done := runManagedWorker(t, worker, ctx, successfulManagedHandler)
+	_ = awaitManagedAuthenticate(t, scheduler, 1)
+	select {
+	case runErr := <-done:
+		if runErr == nil || !strings.Contains(runErr.Error(), "renewal failed") {
+			t.Fatalf("Run() error=%v, want security renewal failure", runErr)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("warn worker retained admission after malformed renewal")
+	}
+	if token := worker.sessionToken(); token != "" {
+		t.Fatalf("warn security renewal retained token %q", token)
+	}
+	if err := worker.Close(); err != nil {
+		t.Fatalf("close worker: %v", err)
+	}
+}
+
+func TestManagedWorkerWarnOperationalRenewRetainsOnlyUnexpiredSession(t *testing.T) {
+	_, natsURL := startTestNATS(t)
+	scheduler := newManagedTrustScheduler(t, natsURL, "worker-warn-renew-operational")
+	scheduler.tokenTTL = 300 * time.Millisecond
+	scheduler.dropAuthFrom = 2
+	worker, err := NewManagedWorker(ManagedConfig{
+		WorkerID: "worker-warn-renew-operational", Subjects: []string{"job.warn.renew.operational"}, NatsURL: natsURL,
+		WorkerTrustMode: capsdk.WorkerTrustModeWarn, WorkerTrust: scheduler.config,
+		WorkerTrustTimeout: 100 * time.Millisecond,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
 	done := runManagedWorker(t, worker, ctx, successfulManagedHandler)
 	_ = awaitManagedAuthenticate(t, scheduler, 1)
 	if token := worker.sessionToken(); token != "session-1" {
-		t.Fatalf("warn renewal failure token=%q, want still-live session", token)
+		t.Fatalf("operational renewal token=%q, want live session", token)
 	}
-	time.Sleep(200 * time.Millisecond)
-	if scheduler.authenticateAt(2) != nil {
-		t.Fatal("warn renewal failure retried without bounded backoff")
-	}
+	time.Sleep(250 * time.Millisecond)
 	if token := worker.sessionToken(); token != "" {
-		t.Fatalf("warn renewal failure retained expired token %q", token)
+		t.Fatalf("operational renewal retained expired token %q", token)
 	}
 	cancel()
 	<-done
 	if err := worker.Close(); err != nil {
-		t.Fatalf("close worker: %v", err)
+		t.Fatal(err)
 	}
 }

@@ -53,6 +53,17 @@ func (w *ManagedWorker) sessionToken() string {
 	return w.trust.token(time.Now())
 }
 
+func (w *ManagedWorker) privilegedSessionToken() (string, error) {
+	if w.trust == nil || w.trust.mode == capsdk.WorkerTrustModeOff {
+		return "", nil
+	}
+	token := w.trust.token(time.Now())
+	if token == "" {
+		return "", fmt.Errorf("worker trust: privileged publish requires a live session")
+	}
+	return token, nil
+}
+
 func managedAdmittedSubjects(workerID string, configured []string) []string {
 	subjects := append([]string(nil), configured...)
 	direct := DirectSubject(workerID)

@@ -73,7 +73,10 @@ type WorkerHandshakeSession struct {
 
 // WorkerHandshakeRejectionError exposes only the protocol rejection enum.
 type WorkerHandshakeRejectionError struct {
-	Reason agentv1.WorkerHandshakeRejectionReason
+	Reason    agentv1.WorkerHandshakeRejectionReason
+	RequestID string
+	AgentID   string
+	WorkerID  string
 }
 
 func (e *WorkerHandshakeRejectionError) Error() string {

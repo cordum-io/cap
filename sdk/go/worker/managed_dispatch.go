@@ -98,8 +98,12 @@ func managedHandlerResult(request *agentv1.JobRequest, result *agentv1.JobResult
 }
 
 func (w *ManagedWorker) publishManagedResult(traceID string, result *agentv1.JobResult) error {
+	token, err := w.privilegedSessionToken()
+	if err != nil {
+		return err
+	}
 	packet := &agentv1.BusPacket{
-		TraceId: traceID, SenderId: w.workerID, AuthToken: w.sessionToken(),
+		TraceId: traceID, SenderId: w.workerID, AuthToken: token,
 		ProtocolVersion: capsdk.DefaultProtocolVersion, CreatedAt: timestamppb.Now(),
 		Payload: &agentv1.BusPacket_JobResult{JobResult: result},
 	}

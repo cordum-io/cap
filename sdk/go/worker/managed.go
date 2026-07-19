@@ -51,8 +51,8 @@ type ManagedConfig struct {
 	// Metrics receives job lifecycle events for observability (Prometheus, OTel, etc.).
 	// When nil, no metrics callbacks are fired.
 	Metrics capsdk.MetricsHook
-	// WorkerTrustMode is mandatory. Only explicit off bypasses the authenticated
-	// worker handshake; warn and enforce both require complete pinned trust.
+	// WorkerTrustMode zero retains legacy off behavior. Unknown nonzero values
+	// fail; warn and enforce both require complete pinned trust.
 	WorkerTrustMode capsdk.WorkerTrustMode
 	// WorkerTrust is separate from generic packet signing keys because proof-key
 	// possession is bound to the authoritative worker identity.
@@ -95,6 +95,9 @@ type ManagedWorker struct {
 
 // NewManagedWorker builds a worker with a NATS connection.
 func NewManagedWorker(cfg ManagedConfig) (*ManagedWorker, error) {
+	if cfg.WorkerTrustMode == 0 {
+		cfg.WorkerTrustMode = capsdk.WorkerTrustModeOff
+	}
 	cfg = cloneManagedTrustConfig(cfg)
 	resolved, err := resolveManagedConfig(cfg)
 	if err != nil {
@@ -167,10 +170,14 @@ func (w *ManagedWorker) Close() error {
 
 	w.wg.Wait()
 
+	var err error
 	if w.conn != nil {
-		return w.conn.Drain()
+		err = w.conn.Drain()
 	}
-	return nil
+	if w.trust != nil {
+		w.trust.clearSession()
+	}
+	return err
 }
 
 func (w *ManagedWorker) publishHandshake() {

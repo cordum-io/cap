@@ -32,7 +32,10 @@ func VerifyWorkerHandshakeResult(config *WorkerTrustConfig, verified *VerifiedWo
 	}
 	result := response.GetWorkerHandshakeResult()
 	if !result.GetAccepted() {
-		return nil, &WorkerHandshakeRejectionError{Reason: result.GetRejectionReason()}
+		return nil, &WorkerHandshakeRejectionError{
+			Reason: result.GetRejectionReason(), RequestID: result.GetChallenge().GetRequestId(),
+			AgentID: config.ExpectedAgentID, WorkerID: config.WorkerID,
+		}
 	}
 	issuedAt, _ := checkedProtoTime(result.GetIssuedAt())
 	expiresAt, _ := checkedProtoTime(result.GetTokenExpiresAt())
@@ -42,6 +45,9 @@ func VerifyWorkerHandshakeResult(config *WorkerTrustConfig, verified *VerifiedWo
 func validateChallengePackets(config *WorkerTrustConfig, request, response *agentv1.BusPacket, now time.Time) error {
 	if err := ValidateWorkerTrustPacket(request); err != nil {
 		return fmt.Errorf("%w: request: %w", ErrWorkerHandshakePacket, err)
+	}
+	if err := validateTimestampSkew(request.GetCreatedAt(), now, "request.created_at"); err != nil {
+		return err
 	}
 	workerKeys := map[string]*ecdsa.PublicKey{config.ProofKeyID: &config.ProofPrivateKey.PublicKey}
 	if err := VerifyTrustHandshake(request, workerKeys); err != nil {

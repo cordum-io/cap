@@ -1,7 +1,8 @@
 # Authenticated worker trust handshake (Go runtime)
 
-`Agent.Start()` requires an explicit `HandshakeMode`: `off`, `warn`, or
-`enforce`. In `warn` and `enforce`, it completes the signed protobuf
+`Agent.Start()` accepts `HandshakeMode` values `off`, `warn`, or `enforce`.
+An unset mode preserves legacy `off`; an unknown non-empty code or environment
+value fails startup. In `warn` and `enforce`, it completes the signed protobuf
 challenge/authenticate exchange before subscribing to job subjects.
 
 ## Configuration
@@ -55,8 +56,11 @@ packets.
 
 A renewal sets purpose `RENEW` and signs the current unexpired token into the
 authenticate envelope. Renewal never falls back to a tokenless `ISSUE`, which
-would bypass session revocation or supersession. On renewal failure, `warn`
-may retain the old token only until its existing expiry. `enforce` clears it.
+would bypass session revocation or supersession. On an operational renewal
+failure, `warn` may retain the old token only until its existing expiry.
+Malformed, unpinned, tampered, mismatched, or rejected renewal responses clear
+the session and admissions in both trust modes; `enforce` also clears on
+operational failure.
 Expired tokens are never returned by `SessionToken` or attached to packets.
 The token is opaque and valid only for the exact `cordum-scheduler` audience
 and worker/agent/tenant/key bindings verified during the exchange. Successful
@@ -67,8 +71,9 @@ recovered locally.
 `warn` is an admission migration mode only: an operational trust failure may
 allow subscriptions without a token, but it never accepts or installs an
 unsigned, malformed, mismatched, or unpinned result and does not make tokenless
-registry input dispatch authority. `enforce` blocks startup before
-subscriptions.
+registry input dispatch authority. Privileged job results are not published
+without a live session in either trust mode; tokenless `warn` output is limited
+to capability/heartbeat telemetry. `enforce` blocks startup before subscriptions.
 
 `Close()` cancels and waits for the renewal loop, unsubscribes tracked job
 subscriptions, drains a native NATS connection, and closes the blob store.

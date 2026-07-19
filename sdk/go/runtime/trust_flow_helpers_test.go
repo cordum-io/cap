@@ -28,7 +28,9 @@ type trustTestBus struct {
 	authTokens     []string
 	capability     *agentv1.Handshake
 	unsignedResult bool
+	rejectResult   bool
 	nilResponse    bool
+	requestErr     error
 }
 
 func newTrustTestAgent(t *testing.T, mode HandshakeMode) (*Agent, *trustTestBus) {
@@ -60,7 +62,11 @@ func (b *trustTestBus) Request(subject string, data []byte, _ time.Duration) (*n
 	b.record("request:" + subject)
 	b.mu.Lock()
 	nilResponse := b.nilResponse
+	requestErr := b.requestErr
 	b.mu.Unlock()
+	if requestErr != nil {
+		return nil, requestErr
+	}
 	if nilResponse {
 		return nil, nil
 	}
@@ -115,23 +121,32 @@ func (b *trustTestBus) result(authenticate *agentv1.BusPacket) (*nats.Msg, error
 	b.traceIDs = append(b.traceIDs, authenticate.GetTraceId())
 	b.capability = proto.Clone(authenticate.GetWorkerHandshakeAuthenticate().GetCapabilityHandshake()).(*agentv1.Handshake)
 	unsigned := b.unsignedResult
+	rejected := b.rejectResult
 	b.mu.Unlock()
 	now := time.Now().UTC()
 	challenge := authenticate.GetWorkerHandshakeAuthenticate().GetChallenge()
 	response := trustPacket(challenge.GetTraceId(), b.config.ExpectedSchedulerID)
-	response.Payload = &agentv1.BusPacket_WorkerHandshakeResult{WorkerHandshakeResult: &agentv1.WorkerHandshakeResult{
-		Challenge: proto.Clone(challenge).(*agentv1.WorkerHandshakeChallenge), Accepted: true,
-		IssuedAt: timestamppb.New(now), TokenExpiresAt: timestamppb.New(now.Add(time.Hour)),
-	}}
-	response.AuthToken = "session-" + challenge.GetPurpose().String()
+	result := &agentv1.WorkerHandshakeResult{
+		Challenge: proto.Clone(challenge).(*agentv1.WorkerHandshakeChallenge), Accepted: !rejected,
+		IssuedAt: timestamppb.New(now),
+	}
+	if rejected {
+		result.RejectionReason = agentv1.WorkerHandshakeRejectionReason_WORKER_HANDSHAKE_REJECTION_REASON_REPLAY_DETECTED
+	} else {
+		result.TokenExpiresAt = timestamppb.New(now.Add(time.Hour))
+		response.AuthToken = "session-" + challenge.GetPurpose().String()
+	}
+	response.Payload = &agentv1.BusPacket_WorkerHandshakeResult{WorkerHandshakeResult: result}
 	return b.signedMessage(response, unsigned)
 }
 
 func (b *trustTestBus) signedMessage(packet *agentv1.BusPacket, unsigned bool) (*nats.Msg, error) {
-	if !unsigned {
-		if err := capsdk.SignTrustHandshake(packet, b.schedulerKey); err != nil {
-			return nil, err
-		}
+	if unsigned {
+		data, err := proto.Marshal(packet)
+		return &nats.Msg{Data: data}, err
+	}
+	if err := capsdk.SignTrustHandshake(packet, b.schedulerKey); err != nil {
+		return nil, err
 	}
 	data, err := capsdk.MarshalWorkerTrustPacket(packet)
 	return &nats.Msg{Data: data}, err

@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"fmt"
 	"sync/atomic"
 	"time"
 
@@ -85,10 +86,14 @@ func (w *ManagedWorker) publishManagedHeartbeat(ctx context.Context) {
 }
 
 func (w *ManagedWorker) managedHeartbeatPayload() ([]byte, error) {
+	token := w.sessionToken()
+	if w.trust != nil && w.trust.mode == capsdk.WorkerTrustModeEnforce && token == "" {
+		return nil, fmt.Errorf("worker trust: enforce heartbeat requires a live session")
+	}
 	packet := &agentv1.BusPacket{
 		TraceId: w.managedTraceID("heartbeat"), SenderId: w.workerID,
 		ProtocolVersion: capsdk.DefaultProtocolVersion, CreatedAt: timestamppb.Now(),
-		AuthToken: w.sessionToken(),
+		AuthToken: token,
 		Payload: &agentv1.BusPacket_Heartbeat{Heartbeat: &agentv1.Heartbeat{
 			WorkerId: w.workerID, Pool: w.pool, Type: w.cfg.Type,
 			ActiveJobs: atomic.LoadInt32(&w.active), MaxParallelJobs: w.cfg.MaxParallelJobs,

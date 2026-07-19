@@ -39,7 +39,7 @@ func (a *Agent) performTrustHandshake(
 	}
 	requester, ok := a.NATS.(NATSRequester)
 	if !ok {
-		return a.handleTrustFailure(mode, errors.New("NATS connection does not support request/reply"))
+		return a.handleTrustFailure(mode, newTrustOperationalError(errors.New("NATS connection does not support request/reply")))
 	}
 	if ctx == nil {
 		ctx = context.Background()
@@ -58,9 +58,11 @@ func (a *Agent) performTrustHandshake(
 			return true, nil
 		}
 		lastErr = err
-		var rejected *capsdk.WorkerHandshakeRejectionError
-		if errors.As(err, &rejected) {
-			lastErr = &HandshakeRejectedError{Reason: rejected.Reason, WorkerID: trust.WorkerID}
+		if rejection := runtimeHandshakeRejection(err); rejection != nil {
+			lastErr = rejection
+			break
+		}
+		if !isTrustOperationalError(err) {
 			break
 		}
 		if attempt+1 < a.handshakeRetries() && !sleepCtx(ctx, handshakeBackoff(attempt)) {
@@ -68,11 +70,31 @@ func (a *Agent) performTrustHandshake(
 			break
 		}
 	}
-	if purpose == agentv1.WorkerHandshakePurpose_WORKER_HANDSHAKE_PURPOSE_RENEW && mode == HandshakeModeEnforce {
-		a.clearSession()
-		a.unsubscribeAll()
-	}
+	a.clearFailedRenewal(purpose, mode, lastErr)
 	return a.handleTrustFailure(mode, lastErr)
+}
+
+func runtimeHandshakeRejection(err error) *HandshakeRejectedError {
+	var rejected *capsdk.WorkerHandshakeRejectionError
+	if !errors.As(err, &rejected) {
+		return nil
+	}
+	return &HandshakeRejectedError{
+		Reason: legacyRejectionReason(rejected.Reason), RequestID: rejected.RequestID,
+		AgentID: rejected.AgentID, WorkerID: rejected.WorkerID, RejectionReason: rejected.Reason,
+	}
+}
+
+func (a *Agent) clearFailedRenewal(
+	purpose agentv1.WorkerHandshakePurpose, mode HandshakeMode, failure error,
+) {
+	securityFailure := !isTrustOperationalError(failure)
+	if purpose != agentv1.WorkerHandshakePurpose_WORKER_HANDSHAKE_PURPOSE_RENEW ||
+		(mode != HandshakeModeEnforce && !securityFailure) {
+		return
+	}
+	a.clearSession()
+	a.unsubscribeAll()
 }
 
 func (a *Agent) exchangeWorkerTrust(
@@ -126,10 +148,13 @@ func (a *Agent) requestTrustPacket(
 	}
 	message, err := a.requestWithContext(ctx, requester, subject, data)
 	if err != nil {
-		return nil, fmt.Errorf("cap-runtime: %s request failed: %w", subject, err)
+		if isTypedTrustSecurityError(err) {
+			return nil, fmt.Errorf("cap-runtime: %s requester rejected trust packet: %w", subject, err)
+		}
+		return nil, newTrustOperationalError(fmt.Errorf("cap-runtime: %s request failed: %w", subject, err))
 	}
 	if message == nil {
-		return nil, fmt.Errorf("cap-runtime: %s returned a nil response", subject)
+		return nil, newTrustOperationalError(fmt.Errorf("cap-runtime: %s returned a nil response", subject))
 	}
 	return capsdk.UnmarshalWorkerTrustPacket(message.Data)
 }
@@ -155,9 +180,43 @@ func (a *Agent) handleTrustFailure(mode HandshakeMode, err error) (bool, error) 
 	if mode == HandshakeModeEnforce {
 		return false, fmt.Errorf("cap-runtime: authenticated worker handshake failed: %w", err)
 	}
+	if !isTrustOperationalError(err) {
+		return false, fmt.Errorf("cap-runtime: authenticated worker handshake security failure: %w", err)
+	}
 	a.Logger.Warn("cap-runtime: authenticated worker handshake failed; continuing tokenless in warn mode",
 		"worker_id", a.workerTrustConfig().WorkerID, "error", err)
 	return false, nil
+}
+
+type trustOperationalError struct{ cause error }
+
+func (e *trustOperationalError) Error() string { return e.cause.Error() }
+func (e *trustOperationalError) Unwrap() error { return e.cause }
+
+func newTrustOperationalError(cause error) error {
+	return &trustOperationalError{cause: cause}
+}
+
+func isTrustOperationalError(err error) bool {
+	var operational *trustOperationalError
+	return errors.As(err, &operational) || errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)
+}
+
+func isTypedTrustSecurityError(err error) bool {
+	sentinels := []error{
+		capsdk.ErrWorkerTrustMode, capsdk.ErrWorkerTrustConfig, capsdk.ErrWorkerHandshakePacket,
+		capsdk.ErrWorkerHandshakeBinding, capsdk.ErrWorkerHandshakeExpired, capsdk.ErrTrustHandshakePayload,
+		capsdk.ErrTrustHandshakeKeyID, capsdk.ErrTrustHandshakeKey, capsdk.ErrTrustHandshakeAlgorithm,
+		capsdk.ErrMissingSignature, capsdk.ErrInvalidSignature,
+	}
+	for _, sentinel := range sentinels {
+		if errors.Is(err, sentinel) {
+			return true
+		}
+	}
+	var validation *capsdk.ValidationError
+	var rejection *capsdk.WorkerHandshakeRejectionError
+	return errors.As(err, &validation) || errors.As(err, &rejection)
 }
 
 func newHandshakeRequestOptions(

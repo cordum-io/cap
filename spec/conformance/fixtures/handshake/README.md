@@ -35,5 +35,9 @@ Boundary vectors at exactly plus or minus 60 seconds are intentionally
 accepted. The corresponding one-nanosecond-over vectors are rejected. Replay
 vectors permit exactly one mint/install, never one per concurrent request.
 
+All 38 vectors are executable: 19 run against stable SDK validation/signature
+APIs, and 19 stateful vectors run by ID against Cordum's scheduler test
+harness. No vector in this manifest is merely declarative.
+
 The fixed timestamps are protocol fixtures. They are not evaluated against the
 wall clock; harnesses use `state.now_unix_nanos` from the manifest.

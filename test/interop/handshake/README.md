@@ -20,9 +20,10 @@ The server-required group needs validly re-signed peer input or authoritative
 time, replay, session-token, rotation, and Redis state. It is deliberately not
 simulated with counters or booleans here. Only implementation-level tests such
 as Cordum's stateful real-NATS/real-Redis handshake harness can prove those
-outcomes. This classification does not claim that the current Cordum harness
-covers all 19 IDs, and a green local manifest test is not server conformance
-evidence.
+outcomes. Cordum's `TestCAPManifestServerVectorsExecuteAgainstScheduler`
+reads this manifest from the installed CAP module, requires a registered
+handler for every one of the 19 IDs, and compares each declared outcome. A
+green local CAP manifest test alone is not server conformance evidence.
 
 The clients emit bounded status JSON only. They never print session tokens,
 private keys, signatures, or packet bytes. They are test drivers, not independent

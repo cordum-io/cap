@@ -110,6 +110,9 @@ func assertVectorContractsComplete(t *testing.T, manifest mutationManifest) {
 		if vector.ID == "" || vector.Base == "" || vector.Mutation.Kind == "" || vector.Mutation.Path == "" || missingValue {
 			t.Fatal("manifest vector has incomplete mutation metadata")
 		}
+		if vector.Expected.Reason == "" {
+			t.Fatalf("manifest vector %q has no expected reason", vector.ID)
+		}
 		manifestIDs[vector.ID] = struct{}{}
 		if _, ok := manifestVectorEvidence[vector.ID]; !ok {
 			t.Fatalf("vector %q has no evidence classification", vector.ID)
@@ -149,7 +152,7 @@ func assertVectorEvidence(t *testing.T, directory string, manifest mutationManif
 	if mutated := marshalManifestPacket(t, packet); string(original) == string(mutated) {
 		t.Fatalf("mutation %s/%s preserved wire bytes", vector.Mutation.Kind, vector.Mutation.Path)
 	}
-	assertSDKRejection(t, packet, keys, evidence)
+	assertSDKOutcome(t, packet, keys, evidence, vector.Expected)
 }
 
 func marshalManifestPacket(t *testing.T, packet proto.Message) []byte {
@@ -161,23 +164,54 @@ func marshalManifestPacket(t *testing.T, packet proto.Message) []byte {
 	return data
 }
 
-func assertSDKRejection(t *testing.T, packet *agentv1.BusPacket, keys map[string]*ecdsa.PublicKey, evidence vectorEvidence) {
+func assertSDKOutcome(t *testing.T, packet *agentv1.BusPacket, keys map[string]*ecdsa.PublicKey, evidence vectorEvidence, expected manifestExpected) {
 	t.Helper()
+	actualReason := ""
 	switch evidence {
 	case evidencePacketValidation:
 		var validationError *capsdk.ValidationError
 		if err := capsdk.ValidateWorkerTrustPacket(packet); !errors.As(err, &validationError) {
 			t.Fatalf("public packet validator error=%v, want *capsdk.ValidationError", err)
 		}
+		actualReason = packetValidationReason(packet)
 	case evidenceSignature:
 		if err := capsdk.VerifyTrustHandshake(packet, keys); !errors.Is(err, capsdk.ErrInvalidSignature) {
 			t.Fatalf("public signature validator error=%v, want ErrInvalidSignature", err)
 		}
+		actualReason = "AUTHENTICATION_FAILED"
 	case evidenceKeySelection:
 		if err := capsdk.VerifyTrustHandshake(packet, keys); !errors.Is(err, capsdk.ErrTrustHandshakeKeyID) {
 			t.Fatalf("public signature validator error=%v, want ErrTrustHandshakeKeyID", err)
 		}
+		actualReason = "AUTHENTICATION_FAILED"
 	default:
 		t.Fatalf("unsupported local evidence %q", evidence)
+	}
+	if actualReason != expected.Reason {
+		t.Fatalf("manifest expected reason=%s, executed outcome=%s", expected.Reason, actualReason)
+	}
+	assertLocalCounts(t, expected)
+}
+
+func packetValidationReason(packet *agentv1.BusPacket) string {
+	if packet.GetProtocolVersion() != 1 {
+		return "UNSUPPORTED_VERSION"
+	}
+	if len(packet.ProtoReflect().GetUnknown()) > 0 || payloadHasUnknownFields(packet) {
+		return "INVALID_REQUEST"
+	}
+	return "AUTHENTICATION_FAILED"
+}
+
+func payloadHasUnknownFields(packet *agentv1.BusPacket) bool {
+	field := packet.ProtoReflect().WhichOneof(packet.ProtoReflect().Descriptor().Oneofs().ByName("payload"))
+	return field != nil && len(packet.ProtoReflect().Get(field).Message().GetUnknown()) > 0
+}
+
+func assertLocalCounts(t *testing.T, expected manifestExpected) {
+	t.Helper()
+	if expected.Accepted == nil || *expected.Accepted || expected.InstallCount == nil || *expected.InstallCount != 0 ||
+		expected.MintCount == nil || *expected.MintCount != 0 {
+		t.Fatalf("local expected outcome must declare accepted=false, install_count=0, mint_count=0: %+v", expected)
 	}
 }

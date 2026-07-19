@@ -35,6 +35,17 @@ type negativeVector struct {
 	ID       string           `json:"id"`
 	Base     string           `json:"base"`
 	Mutation manifestMutation `json:"mutation"`
+	Expected manifestExpected `json:"expected"`
+}
+
+type manifestExpected struct {
+	Accepted       *bool  `json:"accepted"`
+	Reason         string `json:"reason"`
+	InstallCount   *int   `json:"install_count"`
+	MintCount      *int   `json:"mint_count"`
+	AcceptedCount  *int   `json:"accepted_count"`
+	RejectedCount  *int   `json:"rejected_count"`
+	ChallengeCount *int   `json:"challenge_count"`
 }
 
 type manifestMutation struct {

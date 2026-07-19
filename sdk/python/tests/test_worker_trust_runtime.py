@@ -17,6 +17,7 @@ from cap.worker_trust import (
 from cap.worker_trust_runtime import (
     RuntimeTrustSettings,
     WorkerTrustLifecycle,
+    WorkerTrustRuntimeError,
 )
 
 
@@ -144,7 +145,7 @@ class TestWorkerTrustLifecycle(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(nc.events[0][1].endswith(".challenge"))
         self.assertTrue(nc.events[1][1].endswith(".authenticate"))
 
-    async def test_failed_result_never_replaces_a_live_session(self) -> None:
+    async def test_warn_security_failure_clears_the_live_session(self) -> None:
         nc = RecordingNATS()
         life = WorkerTrustLifecycle(nc, settings("warn"), capability())
         with patch.object(
@@ -155,9 +156,10 @@ class TestWorkerTrustLifecycle(unittest.IsolatedAsyncioTestCase):
         with patch.object(
             life, "_exchange_once", side_effect=ValueError("tampered result")
         ):
-            self.assertFalse(await life.renew())
+            with self.assertRaises(WorkerTrustRuntimeError):
+                await life.renew()
 
-        self.assertEqual("live-session", life.session_token())
+        self.assertEqual("", life.session_token())
 
     async def test_renew_proves_current_token_without_issue_fallback(self) -> None:
         life = WorkerTrustLifecycle(RecordingNATS(), settings(), capability())
@@ -226,6 +228,7 @@ class TestWorkerTrustLifecycle(unittest.IsolatedAsyncioTestCase):
         await life.close()
 
         self.assertFalse(life.renewal_running)
+        self.assertEqual("", life.session_token())
 
 
 if __name__ == "__main__":

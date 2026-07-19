@@ -9,7 +9,10 @@ from unittest.mock import patch
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cap.runtime import Agent, Context, InMemoryBlobStore
 from cap.subjects import SUBJECT_HANDSHAKE, SUBJECT_RESULT
-from cap.worker_trust_runtime import WorkerTrustLifecycle
+from cap.worker_trust_runtime import (
+    WorkerTrustLifecycle,
+    WorkerTrustOperationalError,
+)
 
 from worker_trust_runtime_support import (
     TOPIC,
@@ -125,7 +128,9 @@ class TestAgentTrustStartup(unittest.IsolatedAsyncioTestCase):
         agent = make_agent(nats, mode="warn")
         register(agent)
         with patch.object(
-            WorkerTrustLifecycle, "_exchange_once", side_effect=OSError("offline")
+            WorkerTrustLifecycle,
+            "_exchange_once",
+            side_effect=WorkerTrustOperationalError(OSError("offline")),
         ):
             await agent.start()
         try:

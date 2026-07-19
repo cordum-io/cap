@@ -31,6 +31,7 @@ def verify_challenge(config, request, response, now):
         )
     except TrustSigningError as exc:
         raise WorkerHandshakePacketError("request signature is invalid") from exc
+    _validate_skew(request.created_at, now, "request.created_at")
     _verify_scheduler_packet(config, response, now)
     _correlate_challenge(config, request, response)
     _validate_challenge_freshness(response.worker_handshake_challenge, now)

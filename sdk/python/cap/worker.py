@@ -205,6 +205,16 @@ def _log_cleanup_failure(logger: logging.Logger, error: BaseException) -> None:
         pass
 
 
+def _warn_static_session_token(logger: logging.Logger) -> None:
+    try:
+        logger.warning(
+            "run_worker session_token is static compatibility only; "
+            "use Agent worker trust for authenticated renewal"
+        )
+    except Exception:
+        pass
+
+
 async def _drain_connection(
     connection: _NATSConnection,
     logger: logging.Logger,
@@ -250,9 +260,15 @@ async def run_worker(
     *,
     session_token: Optional[str] = None,
 ) -> None:
-    """Subscribe to jobs until cancelled, then drain the NATS connection."""
+    """Run the legacy worker helper until cancelled, then drain NATS.
+
+    ``session_token`` is static caller-managed compatibility, not trust lifecycle.
+    Use :class:`cap.runtime.Agent` for authenticated minting and renewal.
+    """
     if logger is None:
         logger = logging.getLogger("cap.worker")
+    if session_token:
+        _warn_static_session_token(logger)
     if metrics is None:
         metrics = NoopMetrics()
     if connect_fn is None:

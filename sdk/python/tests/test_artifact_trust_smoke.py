@@ -39,6 +39,18 @@ verifier = _load_verifier()
           "sender_id": "other-worker"}, "sender_id mismatch"),
         ({"challenge_bytes": True, "mode": "enforce", "protocol_version": 1,
           "sender_id": "artifact-worker"}, "challenge size is invalid"),
+        ({"challenge_bytes": 321, "mode": "enforce", "protocol_version": 1,
+          "sender_id": "artifact-worker", "timeout_operational": False,
+          "legacy_versions_rejected": True, "static_token_compatibility": True},
+         "timeout_operational mismatch"),
+        ({"challenge_bytes": 321, "mode": "enforce", "protocol_version": 1,
+          "sender_id": "artifact-worker", "timeout_operational": True,
+          "legacy_versions_rejected": False, "static_token_compatibility": True},
+         "legacy_versions_rejected mismatch"),
+        ({"challenge_bytes": 321, "mode": "enforce", "protocol_version": 1,
+          "sender_id": "artifact-worker", "timeout_operational": True,
+          "legacy_versions_rejected": True, "static_token_compatibility": False},
+         "static_token_compatibility mismatch"),
     ),
 )
 def test_consumer_rejects_invalid_worker_trust_smoke(

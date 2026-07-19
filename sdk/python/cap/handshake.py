@@ -28,6 +28,13 @@ def handshake_payload(
     session_token: Optional[str] = None,
 ) -> bytes:
     """Build a worker handshake payload."""
+    versions = (
+        [DEFAULT_PROTOCOL_VERSION]
+        if supported_versions is None
+        else list(supported_versions)
+    )
+    if versions != [DEFAULT_PROTOCOL_VERSION]:
+        raise ValueError("supported_versions must contain exactly protocol v1")
     ts = timestamp_pb2.Timestamp()
     ts.GetCurrentTime()
 
@@ -40,7 +47,7 @@ def handshake_payload(
         handshake_pb2.Handshake(
             component_id=component_id,
             role=handshake_pb2.COMPONENT_ROLE_WORKER,
-            supported_versions=list(supported_versions or [DEFAULT_PROTOCOL_VERSION]),
+            supported_versions=versions,
             capabilities=dict(capabilities or {}),
             ready_topics=list(ready_topics or []),
             agent_name=sanitize_agent_name(agent_name),

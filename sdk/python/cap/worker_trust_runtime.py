@@ -9,7 +9,6 @@ from cap.pb.cordum.agent.v1 import handshake_pb2
 from cap.subjects import SUBJECT_WORKER_HANDSHAKE_AUTHENTICATE, SUBJECT_WORKER_HANDSHAKE_CHALLENGE
 from cap.worker_trust import (
     WORKER_HANDSHAKE_NONCE_SIZE,
-    WorkerHandshakeRejectionError,
     WorkerHandshakeRequestOptions,
     WorkerHandshakeSession,
     WorkerTrustConfig,
@@ -22,6 +21,12 @@ from cap.worker_trust import (
 from cap.worker_trust_codec import (
     marshal_worker_trust_packet,
     unmarshal_worker_trust_packet,
+)
+from cap.worker_trust_async import (
+    WorkerTrustOperationalError,
+    await_with_timeout,
+    is_operational_failure,
+    is_transport_failure,
 )
 from cap.worker_trust_runtime_config import (
     DEFAULT_RENEW_MIN_INTERVAL,
@@ -117,7 +122,7 @@ class WorkerTrustLifecycle:
                     raise
                 except Exception as exc:
                     error = exc
-                    if isinstance(exc, WorkerHandshakeRejectionError):
+                    if not is_operational_failure(exc):
                         break
                     if attempt + 1 < self._settings.retries:
                         await asyncio.sleep(_retry_delay(attempt))
@@ -149,20 +154,34 @@ class WorkerTrustLifecycle:
 
     async def _request(self, subject: str, packet):
         data = marshal_worker_trust_packet(packet)
-        response = await asyncio.wait_for(
-            self._connection.request(subject, data, timeout=self._settings.timeout),
-            timeout=self._settings.timeout,
-        )
+        try:
+            response = await await_with_timeout(
+                self._connection.request(
+                    subject, data, timeout=self._settings.timeout
+                ),
+                self._settings.timeout,
+            )
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            if is_transport_failure(exc):
+                raise WorkerTrustOperationalError(exc) from exc
+            raise
         if response is None or not isinstance(getattr(response, "data", None), bytes):
-            raise WorkerTrustRuntimeError("worker trust request returned no data")
+            raise WorkerTrustOperationalError(
+                WorkerTrustRuntimeError("worker trust request returned no data")
+            )
         return unmarshal_worker_trust_packet(response.data)
 
     def _handle_failure(self, error: Exception, renewal: bool) -> bool:
-        if renewal and self._settings.mode == WorkerTrustMode.ENFORCE:
+        operational = is_operational_failure(error)
+        if not operational or (
+            renewal and self._settings.mode == WorkerTrustMode.ENFORCE
+        ):
             self._session = None
         else:
             self._active_session()
-        if self._settings.mode == WorkerTrustMode.ENFORCE:
+        if self._settings.mode == WorkerTrustMode.ENFORCE or not operational:
             raise WorkerTrustRuntimeError("authenticated worker trust failed") from error
         self._logger.warning(
             "authenticated worker trust failed; continuing without new session",
@@ -205,6 +224,11 @@ class WorkerTrustLifecycle:
 
     async def close(self) -> None:
         self._closed = True
+        await self.stop_renewal()
+        self._session = None
+
+    async def stop_renewal(self) -> None:
+        """Cancel renewal while retaining a live session for in-flight work."""
         task, self._renew_task = self._renew_task, None
         if task is not None and task is not asyncio.current_task():
             task.cancel()
@@ -238,4 +262,5 @@ def _retry_delay(attempt: int) -> float:
 
 
 __all__ = ["ENV_WORKER_TRUST_MODE", "RuntimeTrustSettings",
-           "WorkerTrustLifecycle", "WorkerTrustRuntimeError"]
+           "WorkerTrustLifecycle", "WorkerTrustOperationalError",
+           "WorkerTrustRuntimeError"]

@@ -38,6 +38,12 @@ def verify_worker_trust_smoke(evidence: Mapping[str, object], require: Require) 
     size = worker_trust.get("challenge_bytes")
     require(isinstance(size, int) and not isinstance(size, bool) and 0 < size <= 65536,
             "worker trust smoke challenge size is invalid")
+    compatibility = {"timeout_operational": True,
+                     "legacy_versions_rejected": True,
+                     "static_token_compatibility": True}
+    for field, value in compatibility.items():
+        require(worker_trust.get(field) == value,
+                f"worker trust smoke {field} mismatch")
 
 
 def verify_artifact_names(

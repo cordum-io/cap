@@ -53,11 +53,15 @@ class RecordingNATS:
         self.published: List[Tuple[str, bytes]] = []
         self.connect_count = 0
         self.reconnected_cb: Optional[Callable[[], Awaitable[None]]] = None
+        self.disconnected_cb: Optional[Callable[[], Awaitable[None]]] = None
 
-    async def connect(self, servers, name, reconnected_cb=None):
+    async def connect(
+        self, servers, name, reconnected_cb=None, disconnected_cb=None
+    ):
         del servers, name
         self.connect_count += 1
         self.reconnected_cb = reconnected_cb
+        self.disconnected_cb = disconnected_cb
         self.events.append(("connect",))
         return self
 

@@ -236,7 +236,15 @@ def test_consumer_installs_and_reports_exact_generated_code_floors(tmp_path: Pat
             "imports": len(verifier.EXPECTED_IMPORTS),
             "protobuf_version": "6.31.1",
             "grpcio_version": "1.76.0",
-            "worker_trust": {"challenge_bytes": 321, "mode": "enforce", "protocol_version": 1, "sender_id": "artifact-worker"},
+            "worker_trust": {
+                "challenge_bytes": 321,
+                "mode": "enforce",
+                "protocol_version": 1,
+                "sender_id": "artifact-worker",
+                "timeout_operational": True,
+                "legacy_versions_rejected": True,
+                "static_token_compatibility": True,
+            },
         }
         stdout = json.dumps(evidence) if str(verifier.SMOKE_SCRIPT) in args else ""
         return _completed(tuple(args), stdout)

@@ -389,6 +389,7 @@ class Agent:
         self._worker_trust: Optional[WorkerTrustLifecycle] = None
         self._capability: Optional[handshake_pb2.Handshake] = None
         self._trust_admitting = False
+        self._trust_startup_interrupted = False
         self._trust_reconnect_lock = asyncio.Lock()
 
     def use(self, *middlewares) -> None:
@@ -444,6 +445,7 @@ class Agent:
         self._lifecycle_state = "starting"
         try:
             await self._open_resources()
+            self._require_trust_startup_continuity()
         except BaseException as exc:
             await self._cleanup_resources(exc)
             raise
@@ -485,6 +487,7 @@ class Agent:
         }
         if self._trust_enabled():
             connect_options["reconnected_cb"] = self._on_nats_reconnected
+            connect_options["disconnected_cb"] = self._on_nats_disconnected
         self._nc = await self._with_timeout(
             connect_fn(**connect_options),
             "nats connect",
@@ -492,8 +495,11 @@ class Agent:
         if self._store is None:
             self._store = RedisBlobStore(self._redis_url)
         await self._establish_worker_trust()
+        self._require_trust_startup_continuity()
         await self._subscribe_handlers()
+        self._require_trust_startup_continuity()
         await self._publish_startup_handshake()
+        self._require_trust_startup_continuity()
         self._start_heartbeat()
         if self._worker_trust is not None:
             self._worker_trust.start_renewal(self._on_trust_failure)
@@ -526,7 +532,7 @@ class Agent:
 
     def _outbound_session_token(self) -> str:
         token = self.session_token
-        if self._enforce_trust() and not token:
+        if self._enforce_trust() and (not token or not self._trust_admitting):
             raise WorkerTrustRuntimeError(
                 "authenticated session is required for outbound packet"
             )
@@ -545,7 +551,14 @@ class Agent:
             logger=self._logger,
         )
         await self._worker_trust.authenticate()
+        self._require_trust_startup_continuity()
         self._trust_admitting = True
+
+    def _require_trust_startup_continuity(self) -> None:
+        if self._trust_enabled() and self._trust_startup_interrupted:
+            raise WorkerTrustRuntimeError(
+                "worker trust transport interrupted during startup"
+            )
 
     async def _subscribe_handlers(self) -> None:
         for topic, spec in self._handlers.items():
@@ -582,6 +595,12 @@ class Agent:
         async with self._trust_reconnect_lock:
             await self._reauthenticate_after_reconnect()
 
+    async def _on_nats_disconnected(self) -> None:
+        if self._trust_enabled():
+            self._trust_admitting = False
+            if self._lifecycle_state == "starting":
+                self._trust_startup_interrupted = True
+
     async def _reauthenticate_after_reconnect(self) -> None:
         if self._lifecycle_state != "running" or self._worker_trust is None:
             return
@@ -599,7 +618,7 @@ class Agent:
             await self._worker_trust.reauthenticate()
             if self._lifecycle_state != "running":
                 return
-            if enforce:
+            if enforce or not self._subscriptions:
                 await self._subscribe_handlers()
             self._trust_admitting = True
             await self._publish_startup_handshake()
@@ -814,8 +833,12 @@ class Agent:
         original = primary
         if self._worker_trust is not None:
             primary = await self._bounded_cleanup(
-                "worker trust",
-                self._cleanup_call("worker trust", self._close_worker_trust, primary),
+                "worker trust renewal",
+                self._cleanup_call(
+                    "worker trust renewal",
+                    self._stop_worker_trust_renewal,
+                    primary,
+                ),
                 primary,
             )
         primary = await self._drain_subscriptions(primary)
@@ -826,6 +849,15 @@ class Agent:
         primary = await self._bounded_cleanup(
             "job tasks", self._await_handlers(primary), primary
         )
+        if self._worker_trust is not None:
+            primary = await self._bounded_cleanup(
+                "worker trust",
+                self._cleanup_call(
+                    "worker trust", self._close_worker_trust, primary
+                ),
+                primary,
+            )
+        self._worker_trust = None
         if self._nc is not None:
             primary = await self._bounded_cleanup(
                 "NATS drain",
@@ -845,9 +877,15 @@ class Agent:
 
     async def _close_worker_trust(self) -> None:
         async with self._trust_reconnect_lock:
-            lifecycle, self._worker_trust = self._worker_trust, None
+            lifecycle = self._worker_trust
             if lifecycle is not None:
                 await lifecycle.close()
+
+    async def _stop_worker_trust_renewal(self) -> None:
+        async with self._trust_reconnect_lock:
+            lifecycle = self._worker_trust
+            if lifecycle is not None:
+                await lifecycle.stop_renewal()
 
     def _default_heartbeat_payload(self) -> bytes:
         return heartbeat_payload(

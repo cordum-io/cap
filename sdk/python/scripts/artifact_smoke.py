@@ -1,5 +1,6 @@
 """Isolated consumer smoke used by verify_artifacts.py."""
 
+import asyncio
 import importlib
 import json
 import sys
@@ -41,6 +42,9 @@ from cap import (
     validate_worker_trust_config,
 )
 from cap.pb.cordum.agent.v1 import handshake_pb2, job_pb2
+from cap.handshake import handshake_payload
+from cap.worker import run_worker
+from cap.worker_trust_async import WorkerTrustOperationalError, is_operational_failure
 from cordum.agent.v1 import job_pb2 as bridge_job_pb2
 
 request = job_pb2.JobRequest(job_id="artifact-smoke")
@@ -77,6 +81,11 @@ trust_decoded = unmarshal_worker_trust_packet(trust_wire)
 trust_mode = parse_worker_trust_mode("enforce")
 assert trust_mode is WorkerTrustMode.ENFORCE
 assert trust_decoded.sender_id == trust_config.worker_id
+legacy_versions_rejected = False
+try:
+    handshake_payload("artifact-worker", supported_versions=[2])
+except ValueError:
+    legacy_versions_rejected = True
 print(json.dumps({
     "grpcio_version": metadata.version("grpcio"),
     "imports": len(expected),
@@ -87,5 +96,12 @@ print(json.dumps({
         "mode": trust_mode.value,
         "protocol_version": trust_decoded.protocol_version,
         "sender_id": trust_decoded.sender_id,
+        "legacy_versions_rejected": legacy_versions_rejected,
+        "static_token_compatibility": (
+            "static caller-managed compatibility" in (run_worker.__doc__ or "")
+        ),
+        "timeout_operational": is_operational_failure(
+            WorkerTrustOperationalError(asyncio.TimeoutError())
+        ),
     },
 }, sort_keys=True))

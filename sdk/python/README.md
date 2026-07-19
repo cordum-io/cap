@@ -130,6 +130,7 @@ asyncio.run(agent.run())
 - Before handlers, the runtime uses bounded protobuf request/reply on `sys.worker.handshake.challenge` and `sys.worker.handshake.authenticate`, verifies the pinned scheduler, installs and attaches the opaque token, and renews with the current token. It never falls back to ISSUE; expired, revoked, superseded, wrong-audience, or binding-mismatched sessions are invalid.
 - Enroll/rotate through an authenticated control plane: register only the public key, retain the private key in the worker, overlap scheduler pins, then revoke old authoritative key/session records.
 - `build_challenge_request`, `build_authenticate`, trust codecs/signers/verifiers, and `handshake_payload` / `publish_handshake` support adapters and compatibility; they do not enroll keys, issue/revoke sessions, grant topics, or authenticate `sys.handshake`.
+- Low-level `run_worker(..., session_token=...)` is caller-managed static compatibility only: it does not mint, renew, reauthenticate after reconnect, or observe revocation. Use high-level `Agent` with `warn`/`enforce` for authenticated worker trust. `warn` fails open only for transport availability errors; malformed, rejected, unpinned, expired, or otherwise invalid proofs stop trust admission.
 - Never log key material, tokens, signatures, nonces, complete trust packets, or raw rejections; use bounded mode/phase/outcome/coarse-reason telemetry.
 
 ### Failure and shutdown contract
@@ -145,7 +146,8 @@ asyncio.run(agent.run())
 - Cancelling `run_worker()` drains its NATS connection before exit.
 - `Agent.run()` always enters cleanup without letting a cleanup error replace
   cancellation or another primary failure. `Agent.close()` stops intake, stops
-  the heartbeat, waits for tracked handlers, drains NATS, and closes the blob
+  the heartbeat, waits for tracked handlers (retaining the live session for their
+  terminal results), drains NATS, and closes the blob
   store. Each asynchronous cleanup stage has the `shutdown_timeout` deadline
   (30 seconds by default), and later stages are still attempted after a timeout.
   Pass `None` only to opt out of deadlines; zero and negative values are

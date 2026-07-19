@@ -49,8 +49,8 @@ Generate language stubs from `proto/` before building:
 - Ruby: `./tools/make_protos.sh` (set `CAP_RUN_RUBY=1`).
 - Rust: Uses `prost-build` in `build.rs` — proto compilation happens automatically during `cargo build`.
 
-## Bus Choice
-The helpers default to NATS. You can swap in Kafka or another pub/sub by replacing the bus adapter while keeping the same message shapes.
+## Transport
+The helpers use NATS, the supported transport. Other buses (Kafka, RabbitMQ) are experimental and unproven; see [`docs/ecosystem.md`](../docs/ecosystem.md#transport-support) for transport status.
 
 ## Signing and Verification
 - SDK helpers sign `BusPacket` envelopes when given a private key; pass a key to enforce verification, or omit it to send unsigned packets.

@@ -114,6 +114,13 @@ class RecordingNATS:
 
         await asyncio.wait_for(_wait(), timeout)
 
+    async def wait_for_drains(self, minimum: int, timeout: float) -> None:
+        async def _wait() -> None:
+            while sum(handle.drain_count for handle in self.handles) < minimum:
+                await asyncio.sleep(0)
+
+        await asyncio.wait_for(_wait(), timeout)
+
     async def wait_for_result(self, timeout: float) -> None:
         await asyncio.wait_for(self.result_published.wait(), timeout)
 

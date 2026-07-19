@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"time"
@@ -11,27 +12,57 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func exerciseNegative(connection *nats.Conn, config *clientConfig) error {
+type mutationProof struct {
+	signatureValid bool
+	tamperRejected bool
+}
+
+func exerciseNegative(connection *nats.Conn, config *clientConfig) (mutationProof, error) {
 	createdAt := time.Now().UTC()
 	if config.testCase == "skew" {
 		createdAt = createdAt.Add(61 * time.Second)
 	}
 	request, err := buildRequest(config.trust, issuePurpose(), createdAt)
 	if err != nil {
-		return err
+		return mutationProof{}, err
 	}
 	if config.testCase == "replay" {
 		if _, err := requestPacket(connection, capsdk.WorkerHandshakeChallengeSubject, request); err != nil {
-			return err
+			return mutationProof{}, err
 		}
-		return expectRejected(connection, request)
+		return mutationProof{}, expectRejected(connection, request)
 	}
 	if config.testCase != "impersonation" {
 		if err := applyNegativeMutation(config, request); err != nil {
-			return err
+			return mutationProof{}, err
 		}
 	}
-	return expectRejected(connection, request)
+	proof, err := proveMutationSignature(config.testCase, request, config.trust)
+	if err != nil {
+		return mutationProof{}, err
+	}
+	return proof, expectRejected(connection, request)
+}
+
+func proveMutationSignature(testCase string, packet *agentv1.BusPacket, trust *capsdk.WorkerTrustConfig) (mutationProof, error) {
+	if testCase != "wrong_audience" && testCase != "tamper" {
+		return mutationProof{}, nil
+	}
+	keys := map[string]*ecdsa.PublicKey{trust.ProofKeyID: &trust.ProofPrivateKey.PublicKey}
+	err := capsdk.VerifyTrustHandshake(packet, keys)
+	if testCase == "wrong_audience" {
+		if err != nil {
+			return mutationProof{}, fmt.Errorf("re-signed mutation has an invalid signature: %w", err)
+		}
+		return mutationProof{signatureValid: true}, nil
+	}
+	if err == nil {
+		return mutationProof{}, errors.New("tampered packet retained a valid signature")
+	}
+	if !errors.Is(err, capsdk.ErrInvalidSignature) {
+		return mutationProof{}, fmt.Errorf("tamper signature check failed unexpectedly: %w", err)
+	}
+	return mutationProof{tamperRejected: true}, nil
 }
 
 func applyNegativeMutation(config *clientConfig, packet *agentv1.BusPacket) error {

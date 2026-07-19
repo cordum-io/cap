@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -82,30 +83,60 @@ func TestMutateRequestRejectsUnknownCase(t *testing.T) {
 	}
 }
 
-func TestWrongAudienceIsResignedButTamperIsNot(t *testing.T) {
+func TestMutationProofMatchesInteropJSONContract(t *testing.T) {
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		t.Fatalf("generate key: %v", err)
 	}
 	trust := mutationTrust(key)
 	for _, test := range []struct {
-		name      string
-		wantValid bool
-	}{{"wrong_audience", true}, {"tamper", false}} {
+		name                  string
+		mutate                bool
+		wantValid, wantTamper bool
+	}{
+		{"wrong_audience", true, true, false},
+		{"tamper", true, false, true},
+		{"impersonation", false, false, false},
+		{"replay", false, false, false},
+		{"skew", true, false, false},
+		{"missing_identity", true, false, false},
+		{"missing_trace", true, false, false},
+		{"unsupported_version", true, false, false},
+	} {
 		t.Run(test.name, func(t *testing.T) {
 			packet, buildErr := buildRequest(trust, issuePurpose(), time.Now().UTC())
 			if buildErr != nil {
 				t.Fatalf("build request: %v", buildErr)
 			}
 			config := &clientConfig{testCase: test.name, trust: trust}
-			if mutationErr := applyNegativeMutation(config, packet); mutationErr != nil {
-				t.Fatalf("apply mutation: %v", mutationErr)
+			if test.mutate {
+				if mutationErr := applyNegativeMutation(config, packet); mutationErr != nil {
+					t.Fatalf("apply mutation: %v", mutationErr)
+				}
 			}
-			verifyErr := capsdk.VerifyTrustHandshake(packet, map[string]*ecdsa.PublicKey{"proof-key": &key.PublicKey})
-			if (verifyErr == nil) != test.wantValid {
-				t.Fatalf("signature valid=%t want=%t; error=%v", verifyErr == nil, test.wantValid, verifyErr)
+			proof, proofErr := proveMutationSignature(test.name, packet, trust)
+			if proofErr != nil {
+				t.Fatalf("prove mutation signature: %v", proofErr)
+			}
+			if proof.signatureValid != test.wantValid || proof.tamperRejected != test.wantTamper {
+				t.Fatalf("proof=(%t,%t) want=(%t,%t)", proof.signatureValid, proof.tamperRejected, test.wantValid, test.wantTamper)
 			}
 		})
+	}
+}
+
+func TestClientResultIncludesMutationProofFields(t *testing.T) {
+	result := clientResult{MutationSignatureValid: true, TamperSignatureRejected: true}
+	encoded, err := json.Marshal(result)
+	if err != nil {
+		t.Fatalf("marshal client result: %v", err)
+	}
+	var fields map[string]any
+	if err := json.Unmarshal(encoded, &fields); err != nil {
+		t.Fatalf("decode client result: %v", err)
+	}
+	if fields["mutation_signature_valid"] != true || fields["tamper_signature_rejected"] != true {
+		t.Fatalf("mutation proof JSON fields missing: %s", encoded)
 	}
 }
 

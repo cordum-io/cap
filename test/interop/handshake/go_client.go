@@ -24,12 +24,14 @@ type clientConfig struct {
 }
 
 type clientResult struct {
-	Language string `json:"language"`
-	Case     string `json:"case"`
-	Status   string `json:"status"`
-	Issue    bool   `json:"issue"`
-	Renew    bool   `json:"renew"`
-	Rotated  bool   `json:"rotated"`
+	Language                string `json:"language"`
+	Case                    string `json:"case"`
+	Status                  string `json:"status"`
+	Issue                   bool   `json:"issue"`
+	Renew                   bool   `json:"renew"`
+	Rotated                 bool   `json:"rotated"`
+	MutationSignatureValid  bool   `json:"mutation_signature_valid"`
+	TamperSignatureRejected bool   `json:"tamper_signature_rejected"`
 }
 
 func main() {
@@ -71,9 +73,12 @@ func runClient() (clientResult, error) {
 		}
 		return result, nil
 	}
-	if err := exerciseNegative(connection, config); err != nil {
+	proof, err := exerciseNegative(connection, config)
+	if err != nil {
 		return clientResult{}, err
 	}
+	result.MutationSignatureValid = proof.signatureValid
+	result.TamperSignatureRejected = proof.tamperRejected
 	return result, nil
 }
 

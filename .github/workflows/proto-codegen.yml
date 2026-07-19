@@ -10,6 +10,9 @@ permissions:
 jobs:
   generated-contract:
     runs-on: ubuntu-latest
+    env:
+      GEM_HOME: ${{ runner.temp }}/cap-ruby-gems
+      GEM_PATH: ${{ runner.temp }}/cap-ruby-gems
     steps:
       - uses: actions/checkout@v4
         with:

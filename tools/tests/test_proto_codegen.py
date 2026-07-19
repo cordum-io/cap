@@ -266,6 +266,8 @@ class ProtoCodegenTest(unittest.TestCase):
             "cargo test",
         ):
             self.assertIn(token, workflow)
+        self.assertIn("GEM_HOME: ${{ runner.temp }}/cap-ruby-gems", workflow)
+        self.assertIn("GEM_PATH: ${{ runner.temp }}/cap-ruby-gems", workflow)
 
 
 if __name__ == "__main__":

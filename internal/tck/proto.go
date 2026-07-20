@@ -56,6 +56,12 @@ const (
 	RoleControlPlane Role = "control-plane"
 )
 
+// ValidRole reports whether r is a role defined by adapter-v1. An unrecognized
+// role must be rejected at the handshake: runCase maps a non-matching role to
+// N/A, so an adapter that declares a bogus role would have every scenario ruled
+// not-applicable and could exit 0 without ever running a required case.
+func ValidRole(r Role) bool { return r == RoleWorker || r == RoleControlPlane }
+
 // Command is a runner->adapter message.
 type Command struct {
 	Type     MsgType           `json:"type"`

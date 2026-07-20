@@ -107,6 +107,10 @@ func (a *Adapter) Start(ctx context.Context) (AdapterMessage, error) {
 		_ = a.Close()
 		return AdapterMessage{}, fmt.Errorf("tck: adapter protocol version %d, want %d", hs.ProtocolVersion, ProtocolVersion)
 	}
+	if !ValidRole(hs.Role) {
+		_ = a.Close()
+		return AdapterMessage{}, fmt.Errorf("tck: adapter declared invalid role %q, want %q or %q", hs.Role, RoleWorker, RoleControlPlane)
+	}
 	a.handshake = hs
 	return hs, nil
 }

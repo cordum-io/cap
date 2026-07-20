@@ -56,7 +56,7 @@ func (s *Suite) validate() error {
 			return fmt.Errorf("tck: duplicate scenario id %q", sc.ID)
 		}
 		seen[sc.ID] = true
-		if sc.Role != RoleWorker && sc.Role != RoleControlPlane {
+		if !ValidRole(sc.Role) {
 			return fmt.Errorf("tck: scenario %q has unknown role %q", sc.ID, sc.Role)
 		}
 		if sc.Profile == "" {

@@ -50,6 +50,8 @@ func runHelperAdapter(mode string) {
 	readCmd() // consume hello
 	if mode == "bad-version" {
 		emit(AdapterMessage{Type: MsgHandshake, ProtocolVersion: 99, Role: RoleWorker, SDK: "helper"})
+	} else if mode == "bad-role" {
+		emit(AdapterMessage{Type: MsgHandshake, ProtocolVersion: ProtocolVersion, Role: "nonsense", SDK: "helper", Transport: "none"})
 	} else {
 		emit(AdapterMessage{Type: MsgHandshake, ProtocolVersion: ProtocolVersion, Role: RoleWorker, SDK: "helper", Transport: "none"})
 	}
@@ -203,6 +205,18 @@ func TestAdapterRejectsBadProtocolVersion(t *testing.T) {
 	_, err := a.Start(context.Background())
 	if err == nil || !strings.Contains(err.Error(), "protocol version") {
 		t.Fatalf("expected protocol version error, got %v", err)
+	}
+	a.Close()
+}
+
+// A handshake carrying a role outside adapter-v1's {worker, control-plane} must
+// fail closed at Start; otherwise every scenario is ruled N/A (role mismatch)
+// and the adapter passes vacuously without running a required case.
+func TestAdapterRejectsInvalidRole(t *testing.T) {
+	a := helperAdapter("bad-role")
+	_, err := a.Start(context.Background())
+	if err == nil || !strings.Contains(err.Error(), "role") {
+		t.Fatalf("expected invalid role error, got %v", err)
 	}
 	a.Close()
 }

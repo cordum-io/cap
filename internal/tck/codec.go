@@ -54,6 +54,13 @@ func (d *Decoder) Decode() (AdapterMessage, error) {
 		if err := dec.Decode(&msg); err != nil {
 			return AdapterMessage{}, fmt.Errorf("tck: malformed adapter message: %w", err)
 		}
+		// Exactly one JSON object per line. A second concatenated value (or any
+		// non-whitespace trailing token) would leave the runner accepting a line
+		// that hides a malformed or duplicate result, so reject it: after the
+		// object, the decoder must be at EOF apart from whitespace.
+		if _, err := dec.Token(); !errors.Is(err, io.EOF) {
+			return AdapterMessage{}, fmt.Errorf("tck: unexpected trailing data after adapter message")
+		}
 		return msg, nil
 	}
 }

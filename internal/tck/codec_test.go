@@ -58,6 +58,29 @@ func TestDecodeRejectsMalformedJSON(t *testing.T) {
 	}
 }
 
+// adapter-v1 is exactly one JSON object per line. Two concatenated objects on a
+// single line must be refused, not silently accepted as the first — otherwise a
+// malformed or duplicate result could ride along unread after the first object.
+func TestDecodeRejectsTrailingData(t *testing.T) {
+	line := `{"type":"result","id":"c1","status":"PASS"}{"type":"result","id":"c2","status":"FAIL"}`
+	d := NewDecoder(strings.NewReader(line + "\n"))
+	if _, err := d.Decode(); err == nil {
+		t.Fatal("expected error for trailing data after adapter message, got nil")
+	}
+}
+
+// A single object followed only by whitespace is still valid and must decode.
+func TestDecodeAllowsTrailingWhitespace(t *testing.T) {
+	d := NewDecoder(strings.NewReader(`{"type":"result","id":"c1","status":"PASS"}   ` + "\n"))
+	msg, err := d.Decode()
+	if err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if msg.ID != "c1" || msg.Status != StatusPass {
+		t.Fatalf("unexpected message: %+v", msg)
+	}
+}
+
 // An unknown field is a contract drift the harness must not silently ignore.
 func TestDecodeRejectsUnknownField(t *testing.T) {
 	d := NewDecoder(strings.NewReader(`{"type":"result","surprise":true}` + "\n"))

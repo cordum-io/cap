@@ -4,7 +4,7 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
-## Unreleased
+## v2.15.0 — 2026-07-20
 
 - Release-truth foundation (not yet released): added `release/manifest.json` as the single machine-readable source of release, wire, SDK, transport, toolchain, and security-support truth; a strict, network-free Go validator (`internal/releasetruth`); and the `cap-release` tool (`check`, `render --write|--check`, `links`). README, the spec index, `SECURITY.md`, and the SDK/transport tables now generate their factual blocks from the manifest.
 - **Go SDK:** `Client.Submit` and package `Submit` now fail fast with `ctx.Err()` before signing or publishing when the context is already canceled or past its deadline (CRD-15). Previously a canceled context still published the job packet.

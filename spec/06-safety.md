@@ -27,8 +27,8 @@ service SafetyKernel {
 
 ## Performance and Reliability
 - Safety checks SHOULD complete quickly (<250ms) to avoid head-of-line blocking.
-- Cache positive decisions when appropriate, keyed by `tenant+topic+adapter_id+priority`.
-- On SafetyKernel outage, schedulers MAY fail-closed (preferred) or fail-open by explicit operator policy; the chosen behavior MUST be documented.
+- General CAP deployments SHOULD bind caches to the complete evaluated input and active policy snapshot. CAP-PRODUCTION requirements are stricter; see [CAP-PRODUCTION](19-cap-production-profile.md#safety-and-decision-caching).
+- On SafetyKernel outage, general CAP deployments MAY select a documented compatibility policy. CAP-PRODUCTION MUST fail closed and MUST NOT enable fail-open behavior.
 
 ## Auditing
 - Log every decision with `trace_id`, `job_id`, `decision`, and `reason` for downstream observability and compliance.

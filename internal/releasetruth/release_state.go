@@ -1,6 +1,11 @@
 package releasetruth
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
+
+var evidenceVersion = regexp.MustCompile(`(?i)\bv?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(x|0|[1-9]\d*)([.-][0-9a-z]+)*\b`)
 
 type futureCoordinate struct {
 	version string
@@ -68,12 +73,23 @@ func semverGreater(candidate, published string) bool {
 	return false
 }
 
-func checkPublishedComponentVersions(m *Manifest) []Problem {
+func checkPublishedComponentClaims(m *Manifest) []Problem {
 	var ps []Problem
 	for _, c := range m.Components {
-		if c.Tier == "stable" && c.Version != m.Release.Version {
+		if c.Tier != "stable" {
+			continue
+		}
+		if c.Version != m.Release.Version {
 			ps = append(ps, Problem{"components.published.version",
 				"stable component " + c.Name + " must remain at published release " + m.Release.Version})
+		}
+		if c.Publication != "published" {
+			ps = append(ps, Problem{"components.published.publication",
+				"stable component " + c.Name + " must be marked published"})
+		}
+		if evidenceVersion.MatchString(c.Evidence) {
+			ps = append(ps, Problem{"components.published.evidence",
+				"stable component " + c.Name + " evidence must be version-neutral; version binding belongs in components[].version"})
 		}
 	}
 	return ps

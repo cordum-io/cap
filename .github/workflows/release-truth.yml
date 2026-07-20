@@ -18,6 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # promotion-check resolves the manifest's published tag locally and
+          # proves it is an ancestor of the reviewed tree. The command itself
+          # never fetches or contacts a registry.
+          fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'
@@ -29,6 +34,8 @@ jobs:
           if [ -n "$out" ]; then echo "gofmt needed:"; echo "$out"; exit 1; fi
       - name: Manifest check (schema, rules, specs on disk)
         run: go run ./cmd/cap-release check --manifest release/manifest.json --repo-root .
+      - name: Published release provenance (tag target and changelog date)
+        run: go run ./cmd/cap-release promotion-check --manifest release/manifest.json --repo-root .
       - name: Docs render drift (generated blocks must match the manifest)
         run: go run ./cmd/cap-release render --manifest release/manifest.json --repo-root . --check
       - name: Internal links and anchors (mandatory)

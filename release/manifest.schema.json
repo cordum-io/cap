@@ -29,7 +29,7 @@
         "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", "description": "Canonical stable SemVer of the released artifacts (no leading v or leading zero identifiers)." },
         "tag": { "type": "string", "pattern": "^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", "description": "Stable Git tag; must equal 'v'+version." },
         "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
-        "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$", "description": "Tag target commit SHA." },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$", "description": "Full tag target commit SHA; promotion-check resolves and compares the tag locally." },
         "channel": { "type": "string", "const": "stable" }
       }
     },
@@ -112,7 +112,7 @@
           "version": { "type": "string" },
           "toolchain": { "type": "string" },
           "publication": { "type": "string", "enum": ["published", "unpublished", "source-only"] },
-          "evidence": { "type": "string", "description": "Behavioral evidence; required non-empty for stable tier." }
+          "evidence": { "type": "string", "description": "Version-neutral behavioral and publication evidence; required non-empty for stable tier. Release binding belongs in version." }
         }
       }
     },

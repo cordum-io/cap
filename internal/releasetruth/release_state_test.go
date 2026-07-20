@@ -187,6 +187,7 @@ func TestPostPublicationPromotion_RestoresDevelopmentState(t *testing.T) {
 	m := validSnapshotManifest()
 	m.Release.Version, m.Release.Tag = "2.15.0", "v2.15.0"
 	m.Snapshot = nil
+	m.Security.SupportedLines = []string{"2.15.x"}
 	for i := range m.Components {
 		if m.Components[i].Tier == "stable" {
 			m.Components[i].Version = m.Release.Version
@@ -198,5 +199,8 @@ func TestPostPublicationPromotion_RestoresDevelopmentState(t *testing.T) {
 	}
 	if ps := CheckSourceMetadata(m, root); len(ps) != 0 {
 		t.Fatalf("CheckSourceMetadata(next development) = %v", ps)
+	}
+	if ps := PromotionCheck(m, root, m.Release.Commit); len(ps) != 0 {
+		t.Fatalf("PromotionCheck(promoted release) = %v", ps)
 	}
 }

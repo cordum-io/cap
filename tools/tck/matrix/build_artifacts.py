@@ -124,8 +124,8 @@ def npm_argv() -> list[str]:
     """On Windows Node, spawning npm.cmd without a shell fails with EINVAL."""
     if os.name != "nt":
         return ["npm"]
-    cli = Path(sys.executable).parent / "npm-cli.js"
     node = shutil.which("node") or "node"
+    cli = Path(node).parent / "npm-cli.js"
     candidate = Path(node).parent / "node_modules" / "npm" / "bin" / "npm-cli.js"
     return [node, str(candidate if candidate.is_file() else cli)]
 

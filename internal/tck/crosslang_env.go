@@ -52,7 +52,8 @@ var (
 // matrix must never report success because a language was quietly absent.
 func NewCrossLangEnv(t *testing.T) *CrossLangEnv {
 	t.Helper()
-	if os.Getenv(MatrixEnvVar) == "" {
+	switch os.Getenv(MatrixEnvVar) {
+	case "", "0", "false":
 		t.Skipf("cross-language matrix disabled: set %s=1 (requires go, python, node)", MatrixEnvVar)
 	}
 	sharedEnvOnce.Do(func() { sharedEnv, sharedEnvErr = buildCrossLangEnv() })

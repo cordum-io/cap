@@ -19,7 +19,6 @@ from cryptography.hazmat.primitives.asymmetric import ec
 
 from cap.pb.cordum.agent.v1.buspacket_pb2 import BusPacket
 from cap.production_signing import (
-    ProductionSignatureError,
     ProductionTrust,
     extract_signature,
     sign_production_packet,
@@ -155,7 +154,7 @@ def _run_job(request: Dict[str, Any], job: Dict[str, Any]) -> Dict[str, Any]:
         if errors:
             raise ValueError(f"validate: {errors}")
         result.update(digests(raw, packet), ok=True)
-    except (ProductionSignatureError, ValueError, TypeError) as exc:
+    except Exception as exc:
         result["error"] = f"{type(exc).__name__}: {exc}"
     return result
 

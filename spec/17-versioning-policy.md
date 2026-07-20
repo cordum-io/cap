@@ -16,7 +16,7 @@ The `protocol_version` field in `BusPacket` carries the wire version as a positi
 
 <!-- cap-release:begin:version-policy -->
 - **Wire protocol version:** 1. Wire evolution is append-only within the compatible range 1–1.
-- **Current published release:** 2.15.0 (tag `v2.15.0`). SDK and repository releases track implementation and are pinned by tag.
+- **Current published release:** 2.14.0 (tag `v2.14.0`). SDK and repository releases track implementation and are pinned by tag.
 - **Source versus release:** development source may carry an in-progress version distinct from the latest published artifact; the release manifest is the authority on what is published.
 <!-- cap-release:end -->
 

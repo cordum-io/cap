@@ -2,15 +2,15 @@
   "$schema": "./manifest.schema.json",
   "schemaVersion": "1.0.0",
   "release": {
-    "version": "2.15.0",
-    "tag": "v2.15.0",
-    "date": "2026-07-20",
-    "commit": "d8ba96231959a1cea86a13ced4d289e020c7e2db",
+    "version": "2.14.0",
+    "tag": "v2.14.0",
+    "date": "2026-06-02",
+    "commit": "e65a0a8392f552a8e14969a4efb4fe8d4b11a901",
     "channel": "stable"
   },
   "development": {
-    "commit": "d8ba96231959a1cea86a13ced4d289e020c7e2db",
-    "describe": "v2.14.0-14-gd8ba962",
+    "commit": "7709def",
+    "describe": "v2.14.0-18-g7709def",
     "released": false
   },
   "wire": {
@@ -38,7 +38,8 @@
     { "id": "15", "file": "spec/15-conformance-levels.md", "title": "Conformance Levels" },
     { "id": "16", "file": "spec/16-protocol-errors.md", "title": "Protocol Errors" },
     { "id": "17", "file": "spec/17-versioning-policy.md", "title": "Versioning Policy" },
-    { "id": "18", "file": "spec/18-policy-shapes.md", "title": "Policy Shapes" }
+    { "id": "18", "file": "spec/18-policy-shapes.md", "title": "Policy Shapes" },
+    { "id": "19", "file": "spec/19-cap-production-profile.md", "title": "CAP-PRODUCTION Profile" }
   ],
   "components": [
     {
@@ -49,10 +50,10 @@
       "package": "github.com/cordum-io/cap/v2",
       "registry": "proxy.golang.org",
       "import": "github.com/cordum-io/cap/v2/sdk/go",
-      "version": "2.15.0",
+      "version": "2.14.0",
       "toolchain": "go1.25.12",
       "publication": "published",
-      "evidence": "sdk/go conformance_test.go + CI NATS e2e; released at tag v2.15.0"
+      "evidence": "sdk/go conformance_test.go + CI NATS e2e; released at tag v2.14.0"
     },
     {
       "name": "cap-node",
@@ -62,10 +63,10 @@
       "package": "cap-sdk-node",
       "registry": "registry.npmjs.org",
       "import": "cap-sdk-node",
-      "version": "2.15.0",
+      "version": "2.14.0",
       "toolchain": "node20",
       "publication": "published",
-      "evidence": "CI build+test; released at tag v2.15.0"
+      "evidence": "CI build+test; released at tag v2.14.0"
     },
     {
       "name": "cap-python",
@@ -75,10 +76,10 @@
       "package": "cap-sdk-python",
       "registry": "pypi.org",
       "import": "cap-sdk-python",
-      "version": "2.15.0",
+      "version": "2.14.0",
       "toolchain": "python3.11",
       "publication": "published",
-      "evidence": "CI pytest; released at tag v2.15.0"
+      "evidence": "CI pytest; released at tag v2.14.0"
     },
     {
       "name": "cordum-guard",
@@ -88,10 +89,10 @@
       "package": "cordum-guard",
       "registry": "pypi.org",
       "import": "cordum-guard",
-      "version": "2.15.0",
+      "version": "2.14.0",
       "toolchain": "python3.11",
       "publication": "published",
-      "evidence": "unit tests; published on PyPI on the release train (latest 2.15.0). Source pyproject carries an in-development 2.15.0 prerelease that must not be treated as the published artifact."
+      "evidence": "unit tests; published on PyPI on the release train (latest 2.14.0). Source pyproject carries an in-development 2.15.0.dev0 prerelease that must not be treated as the published artifact."
     },
     { "name": "cap-cpp", "kind": "sdk", "tier": "experimental", "language": "cpp", "package": "", "registry": "", "import": "", "version": "", "toolchain": "", "publication": "source-only", "evidence": "" },
     { "name": "cap-dotnet", "kind": "sdk", "tier": "experimental", "language": "dotnet", "package": "", "registry": "", "import": "", "version": "", "toolchain": "", "publication": "source-only", "evidence": "" },

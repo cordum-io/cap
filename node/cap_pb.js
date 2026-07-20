@@ -977,7 +977,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 SignatureMetadata.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -1312,7 +1312,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 IdentityBinding.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -1598,7 +1598,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 DispatchIdentity.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -1932,7 +1932,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 ResourceRef.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**

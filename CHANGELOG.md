@@ -4,8 +4,17 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
-## v2.15.0 — 2026-07-20
+## Unreleased
 
+The changes below are merged on `main` but are **not published**. The latest released
+version is v2.14.0; no registry (Go module proxy, npm, PyPI) serves anything newer. The
+in-development source versions are `2.15.0.dev0` (Python, Guard) and `2.15.0-dev.0` (Node),
+which mark the *next* intended release — they are not published artifacts. This section
+becomes a versioned heading only when a release is actually cut and tagged.
+
+- **[WIRE] CAP-PRODUCTION profile:** added the normative profile (`spec/19-cap-production-profile.md`) and append-only production wire identities (`SignatureMetadata`, `IdentityBinding`, `DispatchIdentity`, structured `ResourceRef`). Go enforces raw-wire signing and replay contracts, and raw-packet admission is wired into the Go, Python, and Node `Agent` runtimes with exact-wire conformance vectors.
+- **Guard fails closed (security):** `cordum-guard` gains a `production_profile` option. Under CAP-PRODUCTION a missing, null, non-string, or unknown gateway verdict now fails **closed** (DENY) instead of defaulting to ALLOW; constructing a client with `on_error="open"` is rejected; and a positive ALLOW is never cached without a signed lease. A `{"decision": null}` response previously raised `AttributeError` instead of denying.
+- **CPython 3.9 support restored:** asyncio primitives (dispatch semaphore, reconnect/exchange locks, mock queue) are created inside the running loop rather than at `Agent.__init__`, which raised `RuntimeError: There is no current event loop` on 3.9.
 - Release-truth foundation (not yet released): added `release/manifest.json` as the single machine-readable source of release, wire, SDK, transport, toolchain, and security-support truth; a strict, network-free Go validator (`internal/releasetruth`); and the `cap-release` tool (`check`, `render --write|--check`, `links`). README, the spec index, `SECURITY.md`, and the SDK/transport tables now generate their factual blocks from the manifest.
 - **Go SDK:** `Client.Submit` and package `Submit` now fail fast with `ctx.Err()` before signing or publishing when the context is already canceled or past its deadline (CRD-15). Previously a canceled context still published the job packet.
 - Dependency and CI maintenance: bumped `golang.org/x/crypto` 0.51.0 to 0.52.0, `golang.org/x/net` 0.51.0 to 0.55.0, `protobufjs` 7.5.8 to 7.6.3, `js-yaml` 4.1.1 to 4.2.0, and `markdown-it` 14.1.1 to 14.2.0 (sdk/node); bumped the Go CI toolchain for GO-2026-5856.

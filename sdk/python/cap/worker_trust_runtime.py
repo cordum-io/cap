@@ -67,7 +67,13 @@ class WorkerTrustLifecycle:
         self._session: Optional[WorkerHandshakeSession] = None
         self._renew_task: Optional[asyncio.Task[None]] = None
         self._closed = False
-        self._exchange_lock = asyncio.Lock()
+        self._exchange_lock: Optional[asyncio.Lock] = None
+
+    def _lock(self) -> asyncio.Lock:
+        """Lazily create the exchange lock inside the running loop (py3.9)."""
+        if self._exchange_lock is None:
+            self._exchange_lock = asyncio.Lock()
+        return self._exchange_lock
 
     def session_token(self) -> str:
         session = self._active_session()
@@ -101,7 +107,7 @@ class WorkerTrustLifecycle:
 
     async def _exchange(self, purpose: int, current_token: str) -> bool:
         if self._closed: raise WorkerTrustRuntimeError("worker trust lifecycle is closed")
-        async with self._exchange_lock:
+        async with self._lock():
             if self._closed: raise WorkerTrustRuntimeError("worker trust lifecycle is closed")
             if purpose == handshake_pb2.WORKER_HANDSHAKE_PURPOSE_RENEW:
                 active_token = self.session_token()

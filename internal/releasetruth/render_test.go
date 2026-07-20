@@ -217,13 +217,13 @@ func TestCheckDrift_IgnoresNewlineStyleButCatchesContent(t *testing.T) {
 	}
 }
 
-func TestRenderBlock_GoldenSpecCountIsNineteen(t *testing.T) {
+func TestRenderBlock_GoldenSpecCountIsTwenty(t *testing.T) {
 	m, _ := loadGolden(t)
 	got, err := RenderBlock(m, "spec-count")
 	if err != nil {
 		t.Fatalf("RenderBlock(spec-count) error: %v", err)
 	}
-	if got != "19" {
-		t.Errorf("golden spec-count = %q, want 19", got)
+	if got != "20" {
+		t.Errorf("golden spec-count = %q, want 20", got)
 	}
 }

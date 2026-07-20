@@ -33,7 +33,6 @@ from .production_replay import ReplayOutcome
 from .production_signing import (
     ALGORITHM,
     DEFAULT_MAX_LIFETIME,
-    DOMAIN,
     PROFILE_VERSION,
     ProductionSignatureError,
     ProductionTrust,
@@ -192,7 +191,14 @@ def admit_production_event(
         validate_identity_binding(request, packet.identity)
 
     unsigned, _ = extract_signature(raw)
-    digest = hashlib.sha256(DOMAIN + unsigned).digest()
+    # The signed-BODY digest: sha256 of the unsigned wire with no domain prefix.
+    # Deliberately not the domain-separated SIGNATURE preimage -- that is a
+    # different value over the same bytes, and a store shared with cap/runtime.py,
+    # Go's ProductionSignedBodyDigest or Node's runtime.ts would then see two
+    # digests for one message and reject a valid redelivery as a conflict.
+    # Pinned cross-language by test/fixtures/production-signing-v1.json's
+    # body_digest_hex vs preimage_digest_hex.
+    digest = hashlib.sha256(unsigned).digest()
     metadata = packet.signature_metadata
     expires_at = metadata.expires_at.ToDatetime(tzinfo=timezone.utc)
 
@@ -202,7 +208,10 @@ def admit_production_event(
         packet.sender_id,
         metadata.message_id,
         digest,
-        expires_at,
+        # spec/19 keeps entries until expiry PLUS clock skew. Verification
+        # tolerates the same skew, so evicting at bare expiry would leave a
+        # window where the packet still verifies but no replay record survives.
+        expires_at + trust.clock_skew,
     )
     if outcome is not ReplayOutcome.FIRST:
         return None

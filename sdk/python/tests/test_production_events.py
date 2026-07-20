@@ -13,7 +13,11 @@ this suite exists to catch.
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import json
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -38,9 +42,15 @@ from cap.production_events import (
 from cap.production_replay import (
     InMemoryReplayStore,
     ReplayConflictError,
+    ReplayOutcome,
     ReplayStoreUnavailableError,
 )
-from cap.production_signing import ProductionTrust, verify_production_packet
+from cap.production_signing import (
+    DOMAIN,
+    ProductionTrust,
+    extract_signature,
+    verify_production_packet,
+)
 
 TENANT = "tenant-a"
 PRINCIPAL = "principal-a"
@@ -351,3 +361,95 @@ def test_admission_rejects_identity_mismatch_before_the_handler() -> None:
             raw, trust=trust, replay=InMemoryReplayStore(), handler=lambda _r: calls.append("x")
         )
     assert calls == []
+
+
+# --- cross-SDK replay-admission contract (spec/19 "Replay and at-least-once") --
+#
+# admit_production_event derived its own replay arguments instead of reusing the
+# ones every other admission path already agreed on. Both deviations below are
+# invisible to a single-path test suite and only surface as interop failures, so
+# they are pinned against the conformance fixture's recorded values.
+
+
+def _capture_store():
+    """Replay store that records exactly what it was handed."""
+
+    class Recorder:
+        def __init__(self) -> None:
+            self.calls: list[tuple] = []
+
+        def admit(self, tenant, audience, sender, message_id, digest, expires_at):
+            self.calls.append((tenant, audience, sender, message_id, digest, expires_at))
+            return ReplayOutcome.FIRST
+
+    return Recorder()
+
+
+def test_admission_uses_the_plain_signed_body_digest_not_the_signature_preimage() -> None:
+    """The replay digest is sha256(unsigned) -- NO domain prefix.
+
+    spec/19 says replay storage retains "the signed-body digest". Go's
+    ProductionSignedBodyDigest, cap/runtime.py and Node's runtime.ts all use the
+    undomained hash; using the domain-separated SIGNATURE preimage here instead
+    means two admission paths compute different digests for identical wire
+    bytes, so a shared store reports a spurious conflict and drops a valid
+    message.
+    """
+    store = _capture_store()
+    key = _key()
+    raw = _seal(_packet(job_request=_request()), key, audience="sys.job.submit")
+    trust = ProductionTrust(
+        audience="sys.job.submit",
+        public_keys={KEY_ID: key.public_key()},
+        tenant=TENANT,
+        sender=WORKER,
+    )
+
+    admit_production_event(raw, trust=trust, replay=store, handler=lambda _r: None)
+
+    unsigned, _ = extract_signature(raw)
+    (_, _, _, _, digest, _) = store.calls[0]
+    assert digest == hashlib.sha256(unsigned).digest()
+    assert digest != hashlib.sha256(DOMAIN + unsigned).digest(), (
+        "replay digest must not be the domain-separated signature preimage"
+    )
+
+
+def test_admission_retains_the_entry_until_expiry_plus_clock_skew() -> None:
+    """Replay entries MUST outlive the signature by the clock skew.
+
+    spec/19: keyed "until expiry plus clock skew". Verification accepts a packet
+    until expires_at + clock_skew, so an entry evicted at expires_at leaves a
+    window in which the same packet verifies again with no replay record -- a
+    replay the profile is supposed to prevent.
+    """
+    store = _capture_store()
+    key = _key()
+    raw = _seal(_packet(job_request=_request()), key, audience="sys.job.submit")
+    skew = timedelta(seconds=30)
+    trust = ProductionTrust(
+        audience="sys.job.submit",
+        public_keys={KEY_ID: key.public_key()},
+        tenant=TENANT,
+        sender=WORKER,
+        clock_skew=skew,
+    )
+
+    admit_production_event(raw, trust=trust, replay=store, handler=lambda _r: None)
+
+    packet = verify_production_packet(raw, trust)
+    signed_expiry = packet.signature_metadata.expires_at.ToDatetime(tzinfo=timezone.utc)
+    (_, _, _, _, _, recorded_expiry) = store.calls[0]
+    assert recorded_expiry == signed_expiry + skew
+
+
+def test_admission_digest_matches_the_cross_language_conformance_fixture() -> None:
+    """Anchor the digest rule to the shared fixture rather than to local code."""
+    fixture = json.loads(
+        (Path(__file__).parents[3] / "test/fixtures/production-signing-v1.json").read_text()
+    )
+    baseline = next(v for v in fixture["vectors"] if v["name"] == "accept/baseline")
+    unsigned = base64.b64decode(baseline["unsigned_base64"])
+    assert hashlib.sha256(unsigned).hexdigest() == baseline["body_digest_hex"]
+    assert hashlib.sha256(DOMAIN + unsigned).hexdigest() == baseline["preimage_digest_hex"]
+    assert baseline["body_digest_hex"] != baseline["preimage_digest_hex"]

@@ -33,6 +33,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
@@ -68,7 +69,10 @@ func main() {
 		if readErr != nil {
 			fatal(readErr)
 		}
-		if string(existing) != string(encoded) {
+		// Compared with line endings normalized: git checks this file out with
+		// CRLF on Windows, and a byte-exact compare would report every Windows
+		// checkout as stale.
+		if normalizeEOL(existing) != normalizeEOL(encoded) {
 			fatal(errors.New("fixture is stale: re-run `go run ./tools/conformance/prodsigning`"))
 		}
 		fmt.Printf("ok: %s is current (%d signing, %d replay, %d identity vectors)\n",
@@ -82,6 +86,10 @@ func main() {
 	fmt.Printf("wrote %s (%d signing, %d replay, %d identity vectors)\n",
 		fixtureRelPath, len(fixture.Vectors), len(fixture.ReplayVectors),
 		len(fixture.IdentityBindingVectors))
+}
+
+func normalizeEOL(data []byte) string {
+	return strings.ReplaceAll(string(data), "\r\n", "\n")
 }
 
 func encode(fixture *Fixture) ([]byte, error) {

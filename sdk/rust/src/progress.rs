@@ -57,6 +57,7 @@ pub fn cancel_payload(
             job_id: job_id.into(),
             reason: reason.into(),
             requested_by: requested_by.into(),
+            ..Default::default()
         })),
         ..Default::default()
     };

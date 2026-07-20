@@ -4,7 +4,13 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
-## v2.15.0 — 2026-07-20
+## Unreleased
+
+The changes below are merged on `main` but are **not published**. The latest released
+version is v2.14.0; no registry (Go module proxy, npm, PyPI) serves anything newer. The
+in-development source versions are `2.15.0.dev0` (Python, Guard) and `2.15.0-dev.0` (Node),
+which mark the *next* intended release — they are not published artifacts. This section
+becomes a versioned heading only when a release is actually cut and tagged.
 
 - **[WIRE] CAP-PRODUCTION profile:** added the normative profile (`spec/19-cap-production-profile.md`) and append-only production wire identities (`SignatureMetadata`, `IdentityBinding`, `DispatchIdentity`, structured `ResourceRef`). Go enforces raw-wire signing and replay contracts, and raw-packet admission is wired into the Go, Python, and Node `Agent` runtimes with exact-wire conformance vectors.
 - **Guard fails closed (security):** `cordum-guard` gains a `production_profile` option. Under CAP-PRODUCTION a missing, null, non-string, or unknown gateway verdict now fails **closed** (DENY) instead of defaulting to ALLOW; constructing a client with `on_error="open"` is rejected; and a positive ALLOW is never cached without a signed lease. A `{"decision": null}` response previously raised `AttributeError` instead of denying.

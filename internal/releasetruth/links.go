@@ -118,8 +118,14 @@ func resolvePath(repoRoot, file, target, pathPart string, root RenderRoot) (Link
 	if resolved == ".." || strings.HasPrefix(resolved, "../") || path.IsAbs(pathPart) {
 		return LinkProblem{Target: target, Reason: "unsafe: link escapes the repository root"}, true
 	}
-	if _, err := os.Stat(filepath.Join(repoRoot, filepath.FromSlash(resolved))); err != nil {
+	full := filepath.Join(repoRoot, filepath.FromSlash(resolved))
+	if _, err := os.Stat(full); err != nil {
 		return LinkProblem{Target: target, Reason: "path not found: " + resolved}, true
+	}
+	// A textually-safe path can still be a symlink escaping the repo; reuse the
+	// spec-path real-path containment so links cannot point outside repoRoot.
+	if ok, err := withinRoot(repoRoot, full); err != nil || !ok {
+		return LinkProblem{Target: target, Reason: "unsafe: link resolves outside the repository root via symlink"}, true
 	}
 	return LinkProblem{}, false
 }

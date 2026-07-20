@@ -36,8 +36,12 @@ var generatorRules = []codegen.GeneratorRule{
 	{ID: "protoc-gen-go", Globs: []string{"cordum/agent/v1/*.pb.go"}},
 	{ID: "protoc-gen-cpp", Globs: []string{"cpp/cordum/agent/v1/*.pb.cc", "cpp/cordum/agent/v1/*.pb.h"}},
 	{ID: "protoc-gen-js", Globs: []string{"node/*_pb.js", "node/*_pb.d.ts", "node/cordum/agent/v1/*_pb.js", "node/cordum/agent/v1/*_pb.d.ts"}},
-	{ID: "protoc-gen-python-root", Globs: []string{"python/cordum/agent/v1/*_pb2.py"}},
-	{ID: "protoc-gen-python-sdk", Globs: []string{"sdk/python/cap/pb/cordum/agent/v1/*_pb2.py"}},
+	// Both Python surfaces emit a message module and a gRPC stub module per
+	// proto. `*_pb2.py` does not match `*_pb2_grpc.py` under path.Match, so the
+	// stubs need their own glob — without it 14 generated files are absent from
+	// the manifest and Check cannot see them drift.
+	{ID: "protoc-gen-python-root", Globs: []string{"python/cordum/agent/v1/*_pb2.py", "python/cordum/agent/v1/*_pb2_grpc.py"}},
+	{ID: "protoc-gen-python-sdk", Globs: []string{"sdk/python/cap/pb/cordum/agent/v1/*_pb2.py", "sdk/python/cap/pb/cordum/agent/v1/*_pb2_grpc.py"}},
 	{ID: "protoc-gen-ruby", Globs: []string{"sdk/ruby/proto/cordum/agent/v1/*_pb.rb"}},
 }
 

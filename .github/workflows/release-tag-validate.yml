@@ -29,9 +29,12 @@ jobs:
         with:
           go-version-file: 'go.mod'
       - name: Validate release tag (fail-closed)
+        env:
+          TAG_INPUT: ${{ github.event.inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          TAG="${TAG_INPUT:-$REF_NAME}"
           echo "Validating release tag ${TAG}"
 
           # tag == manifest release, source metadata == release, changelog has the entry

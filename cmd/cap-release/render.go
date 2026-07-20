@@ -66,6 +66,17 @@ func renderAll(m *releasetruth.Manifest, repoRoot string, write bool) int {
 			fmt.Fprintf(os.Stderr, "skip %s: %v\n", t.path, err)
 			continue
 		}
+		if blocks, ferr := releasetruth.FindBlocks(toLF(string(data))); ferr != nil {
+			fmt.Fprintf(os.Stderr, "render %s: %v\n", t.path, ferr)
+			return 1
+		} else if len(blocks) == 0 {
+			// Fail closed: a canonical render target must carry at least one
+			// protected block. Zero blocks means the generated release truth was
+			// deleted from the doc, which CheckDrift alone would pass silently.
+			fmt.Fprintf(os.Stderr, "NO BLOCKS in target %s: expected at least one cap-release block\n", t.path)
+			drift++
+			continue
+		}
 		canonical, drifted, err := releasetruth.CheckDrift(m, string(data))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "render %s: %v\n", t.path, err)
@@ -116,12 +127,12 @@ func atomicWrite(path, content string) error {
 	}
 	tmp := f.Name()
 	if _, err := f.WriteString(content); err != nil {
-		f.Close()
-		os.Remove(tmp)
+		_ = f.Close()
+		_ = os.Remove(tmp)
 		return err
 	}
 	if err := f.Close(); err != nil {
-		os.Remove(tmp)
+		_ = os.Remove(tmp)
 		return err
 	}
 	return os.Rename(tmp, path)

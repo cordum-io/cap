@@ -111,6 +111,20 @@ func TestCheckPublicImports_FlagsRelativePythonImport(t *testing.T) {
 	}
 }
 
+func TestCheckPublicImports_PythonHandlesEmptyImportLine(t *testing.T) {
+	// A snippet line that is exactly "from " or "import " with nothing after it
+	// must not panic the checker; the malformed line is skipped.
+	s := Snippet{ID: "py-empty", Language: "python", Code: strings.Join([]string{
+		"import cap",
+		"from ",
+		"import ",
+	}, "\n")}
+	ps := CheckPublicImports(s) // must not panic
+	if len(ps) != 0 {
+		t.Errorf("CheckPublicImports = %+v, want no problems (valid cap import; empty lines skipped)", ps)
+	}
+}
+
 func TestCheckPublicImports_FlagsMissingSDKImport(t *testing.T) {
 	s := Snippet{ID: "go-nosdk", Language: "go", Code: strings.Join([]string{
 		"package main",

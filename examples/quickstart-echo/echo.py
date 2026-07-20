@@ -32,8 +32,6 @@ async def main() -> None:
     worker_task = asyncio.create_task(
         worker.run_worker(nats_url=url, subject="sys.job.submit", handler=handle, sender_id="echo-worker")
     )
-    await asyncio.sleep(0.5)  # allow the worker subscription to register
-
     nc = await nats.connect(url)
     fut = asyncio.get_running_loop().create_future()
 
@@ -45,12 +43,22 @@ async def main() -> None:
 
     await nc.subscribe(SUBJECT_RESULT, cb=on_result)
     await nc.flush()
-    await client.submit_job(nc, job_pb2.JobRequest(job_id=JOB_ID, topic="job.echo"), JOB_ID, "echo-client", None)
 
-    try:
-        result = await asyncio.wait_for(fut, timeout=10)
-    except asyncio.TimeoutError:
-        raise SystemExit("timed out waiting for JobResult (no worker?)")
+    # worker.run_worker subscribes on a background task, and core NATS drops a
+    # submit published before that subscription exists. Retry the submit until
+    # the worker answers instead of relying on a fixed startup delay.
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + 10
+    while True:
+        await client.submit_job(
+            nc, job_pb2.JobRequest(job_id=JOB_ID, topic="job.echo"), JOB_ID, "echo-client", None
+        )
+        try:
+            result = await asyncio.wait_for(asyncio.shield(fut), timeout=0.5)
+            break
+        except asyncio.TimeoutError:
+            if loop.time() >= deadline:
+                raise SystemExit("timed out waiting for JobResult (no worker?)")
     if result.status != job_pb2.JOB_STATUS_SUCCEEDED:
         raise SystemExit(f"job {result.job_id} ended {result.status}")
     print(f"job {result.job_id}: SUCCEEDED payload={result.result_ptr}")

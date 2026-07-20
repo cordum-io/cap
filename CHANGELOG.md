@@ -20,6 +20,9 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 - **Node SDK (non-wire bugfix):** the published npm artifact now bundles all runtime protobuf schemas; corrected NATS callback dispatch and shutdown/reconnect handling; configured inbound signature verification fails closed before handlers run.
 - **Python SDK:** corrected the P0 low-level worker and high-level Agent failure paths (one generic `JOB_STATUS_FAILED` result without leaking exception text, bounded failure context, worker stays available); declared and verified CPython 3.9–3.14 support and added pinned codegen-drift, typing, real-NATS, clean wheel/sdist, metadata, and tag-to-version release gates.
 - **Onboarding (no wire change):** reworked the local playground and simple-echo docs to distinguish direct dev-only `job.echo` publishing from governed `sys.job.submit` routing, with deterministic readiness/deadlines/exit-codes/cleanup and opaque `demo://` pointers.
+
+## v2.15.1 — 2026-07-20
+
 - **Behavioral TCK, hermetic codegen, and honest SDK tiers (no wire change):** the TCK now
   ships 45 scenarios / 46 graded cases over 13 behaviors, adding exact-redelivery duplicate
   suppression and retry attempt-fencing (monotonic attempt; stale, future and wrong-worker

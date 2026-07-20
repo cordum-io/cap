@@ -23,6 +23,7 @@ jobs:
           # proves it is an ancestor of the reviewed tree. The command itself
           # never fetches or contacts a registry.
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-go@v5
         with:
           go-version-file: 'go.mod'

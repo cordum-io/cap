@@ -84,8 +84,12 @@ func TestCheckSourceMetadata_RejectsStableVersionWithoutCandidate(t *testing.T) 
 func TestReleaseCheck_CandidateCannotBeTagged(t *testing.T) {
 	m := validCandidateManifest()
 	root := writeReleaseTree(t, m.Candidate.Version, m.Candidate.Tag)
-	if ps := ReleaseCheck(m, root, m.Candidate.Tag); !hasField(ps, "snapshot.required") {
+	ps := ReleaseCheck(m, root, m.Candidate.Tag)
+	if !hasField(ps, "snapshot.required") {
 		t.Fatalf("ReleaseCheck(candidate) = %v, want snapshot.required", ps)
+	}
+	if len(ps) != 1 {
+		t.Fatalf("ReleaseCheck(candidate) = %v, want only snapshot.required", ps)
 	}
 	if m.Release.Version != "2.14.0" {
 		t.Fatalf("published release mutated to %q", m.Release.Version)

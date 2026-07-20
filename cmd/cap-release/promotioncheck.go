@@ -1,14 +1,18 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/cordum-io/cap/v2/internal/releasetruth"
 )
+
+const promotionGitTimeout = 10 * time.Second
 
 func runPromotionCheck(args []string) int {
 	fs := flag.NewFlagSet("promotion-check", flag.ContinueOnError)
@@ -40,14 +44,20 @@ func runPromotionCheck(args []string) int {
 }
 
 func resolveLocalTagCommit(repoRoot, tag string) (string, error) {
+	return resolveLocalTagCommitWithin(repoRoot, tag, promotionGitTimeout)
+}
+
+func resolveLocalTagCommitWithin(repoRoot, tag string, timeout time.Duration) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 	ref := "refs/tags/" + tag + "^{commit}"
-	cmd := exec.Command("git", "-C", repoRoot, "rev-parse", "--verify", ref)
+	cmd := exec.CommandContext(ctx, "git", "-C", repoRoot, "rev-parse", "--verify", ref)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("resolve tag %s: %w: %s", tag, err, strings.TrimSpace(string(out)))
 	}
 	commit := strings.TrimSpace(string(out))
-	cmd = exec.Command("git", "-C", repoRoot, "merge-base", "--is-ancestor", commit, "HEAD")
+	cmd = exec.CommandContext(ctx, "git", "-C", repoRoot, "merge-base", "--is-ancestor", commit, "HEAD")
 	if out, err = cmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("tag %s target %s is not an ancestor of HEAD: %w: %s", tag, commit, err, strings.TrimSpace(string(out)))
 	}

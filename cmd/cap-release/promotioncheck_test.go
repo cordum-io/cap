@@ -34,6 +34,14 @@ func TestResolveLocalTagCommit_RequiresAncestorOfHead(t *testing.T) {
 	}
 }
 
+func TestResolveLocalTagCommit_TimesOut(t *testing.T) {
+	repo := t.TempDir()
+	gitForTest(t, repo, "init", "-b", "main")
+	if _, err := resolveLocalTagCommitWithin(repo, "v2.15.0", 0); err == nil {
+		t.Fatal("resolveLocalTagCommitWithin() error = nil, want timeout")
+	}
+}
+
 func TestReleaseTruthWorkflowRunsPromotionCheckWithTags(t *testing.T) {
 	path := filepath.Join("..", "..", ".github", "workflows", "release-truth.yml")
 	data, err := os.ReadFile(path)
@@ -41,7 +49,7 @@ func TestReleaseTruthWorkflowRunsPromotionCheckWithTags(t *testing.T) {
 		t.Fatal(err)
 	}
 	workflow := string(data)
-	for _, want := range []string{"fetch-depth: 0", "cap-release promotion-check"} {
+	for _, want := range []string{"fetch-depth: 0", "persist-credentials: false", "cap-release promotion-check"} {
 		if !strings.Contains(workflow, want) {
 			t.Fatalf("release-truth workflow lacks %q", want)
 		}

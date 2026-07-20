@@ -143,6 +143,7 @@ func ReleaseCheck(m *Manifest, repoRoot, tag string) []Problem {
 		version, expectedTag, field = m.Snapshot.Version, m.Snapshot.Tag, "snapshot"
 	} else if m.Candidate != nil {
 		ps = append(ps, Problem{"snapshot.required", "candidate must be frozen as a snapshot before tag validation"})
+		return ps
 	}
 	if tag != expectedTag {
 		ps = append(ps, Problem{field + ".tag", fmt.Sprintf("tag %q does not equal manifest %s tag %q", tag, field, expectedTag)})

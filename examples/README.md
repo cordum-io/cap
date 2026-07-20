@@ -6,7 +6,7 @@ Runnable examples and wire-format samples for the Cordum Agent Protocol.
 
 | Example | Description | Language | Prerequisites |
 | --- | --- | --- | --- |
-| [simple-echo/](simple-echo/) | End-to-end job submission and result with sequence diagram | Go, Python, Node | NATS server |
+| [simple-echo/](simple-echo/) | Direct local-development job/result round-trip; no governed control plane | Go, Python, Node | NATS server |
 | [workflow-repo-review/](workflow-repo-review/) | Multi-step parent/child workflow with aggregation | Go, Python, Node | NATS server |
 | [framework-langchain/](framework-langchain/) | LangChain tools wrapped with CAP safety governance via `CordumToolGuard` | Python | Python 3.9+ |
 | [framework-crewai/](framework-crewai/) | CrewAI agents with CAP `@guard` decorator for safety decisions | Python | Python 3.9+ |
@@ -30,6 +30,7 @@ All timestamps are illustrative; replace IDs and pointers as needed.
 
 ## Getting Started
 
-- [Getting Started guide](../docs/getting-started.md) — set up NATS and run your first CAP worker
+- [One-command playground](../playground/) — run the direct local-development round-trip with Docker Compose
+- [Getting Started guide](../docs/getting-started.md) — build the same client and worker in Go, Python, or Node
 - [python-guard SDK](../sdk/python-guard/) — safety governance for Python AI agents
 - [CAP Spec](../spec/00-index.md) — full protocol specification

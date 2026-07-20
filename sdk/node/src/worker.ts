@@ -1,11 +1,20 @@
-import { NatsConnection, Subscription } from "nats";
+import type {
+  Msg,
+  NatsConnection,
+  Subscription,
+  SubscriptionOptions,
+} from "nats";
+import type { Type } from "protobufjs";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
-import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import type { Logger } from "./logger";
 import type { MetricsHook } from "./metrics";
 import { noopMetrics } from "./metrics";
-import * as crypto from "crypto";
-import { MalformedPacketError, SignatureInvalidError, SignatureMissingError } from "./errors";
+import { verifyInboundPacket } from "./security";
+import {
+  encodeOutboundPacket,
+  type MutableBusPacket,
+  prepareOutboundPacket,
+} from "./packet-boundary";
 
 /** Callback that processes a decoded JobRequest and returns a JobResult. */
 type Handler = (jobRequest: any) => Promise<any>;
@@ -21,11 +30,31 @@ export interface WorkerConfig {
   handler: Handler;
   publicKeyMap?: { [senderId: string]: string }; // senderId -> public key in PEM format
   privateKey?: string; // private key in PEM format for signing outgoing messages
+  /**
+   * Compatibility-only, caller-managed token attached before signing results.
+   * This low-level API does not issue, renew, or reauthenticate the token.
+   */
+  sessionToken?: string;
   senderId: string;
   /** Optional middleware applied in FIFO order before the handler. */
   middlewares?: WorkerMiddleware[];
   logger?: Logger;
   metrics?: MetricsHook;
+}
+
+interface JobRequestView {
+  jobId?: string;
+  topic?: string;
+}
+
+interface PacketView {
+  traceId?: string;
+  jobRequest?: JobRequestView;
+}
+
+interface WorkerTypes {
+  busPacket: Type;
+  jobResult: Type;
 }
 
 /**
@@ -38,103 +67,120 @@ export interface WorkerConfig {
  */
 export async function startWorker(cfg: WorkerConfig): Promise<Subscription> {
   const root = await loadRoot();
-  const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
-  const JobResult = root.lookupType("cordum.agent.v1.JobResult");
+  const types: WorkerTypes = {
+    busPacket: root.lookupType("cordum.agent.v1.BusPacket"),
+    jobResult: root.lookupType("cordum.agent.v1.JobResult"),
+  };
   const logger: Logger = cfg.logger ?? console;
   const metrics: MetricsHook = cfg.metrics ?? noopMetrics;
-
-  const onMessage = async (msg: any) => {
-    try {
-      const packet = BusPacket.decode(msg.data) as any;
-
-      // Signature verification
-      if (cfg.publicKeyMap && packet.senderId && packet.signature && packet.signature.length > 0) {
-        const publicKey = cfg.publicKeyMap[packet.senderId];
-        if (!publicKey) {
-          logger.warn("no public key found", { senderId: packet.senderId });
-          return;
-        }
-
-        const receivedSignature = packet.signature;
-        const unsignedData = encodeUnsignedForSignature(BusPacket, packet);
-
-        const verify = crypto.createVerify("sha256");
-        verify.update(unsignedData);
-        if (!verify.verify(publicKey, receivedSignature)) {
-          logger.warn("invalid signature", { senderId: packet.senderId, error: new SignatureInvalidError(`sender ${packet.senderId}`).message });
-          return;
-        }
-      } else if (cfg.publicKeyMap && (!packet.signature || packet.signature.length === 0)) {
-        logger.warn("missing signature", { senderId: packet.senderId, error: new SignatureMissingError(`sender ${packet.senderId}`).message });
-        return;
-      }
-
-      const jr = packet.jobRequest;
-      if (!jr) return;
-      metrics.onJobReceived(jr.jobId, jr.topic);
-      const startTime = Date.now();
-      // Apply middleware chain
-      let wrappedHandler = cfg.handler;
-      if (cfg.middlewares) {
-        for (let i = cfg.middlewares.length - 1; i >= 0; i--) {
-          wrappedHandler = cfg.middlewares[i](wrappedHandler);
-        }
-      }
-      let resObj: any;
-      try {
-        resObj = await wrappedHandler(jr);
-      } catch (err) {
-        resObj = {
-          jobId: jr.jobId,
-          status: "JOB_STATUS_FAILED",
-          errorMessage: err instanceof Error ? err.message : String(err),
-        };
-      }
-      if (!resObj) {
-        resObj = {
-          jobId: jr.jobId,
-          status: "JOB_STATUS_FAILED",
-          errorMessage: "handler returned null",
-        };
-      }
-      if (!resObj.jobId) {
-        resObj.jobId = jr.jobId;
-      }
-      if (!resObj.workerId) {
-        resObj.workerId = cfg.senderId;
-      }
-
-      const elapsedMs = Date.now() - startTime;
-      if (resObj.status === "JOB_STATUS_FAILED") {
-        metrics.onJobFailed(resObj.jobId, resObj.errorMessage ?? "");
-      } else {
-        metrics.onJobCompleted(resObj.jobId, elapsedMs, resObj.status ?? "JOB_STATUS_SUCCEEDED");
-      }
-
-      const jrMsg = JobResult.fromObject(resObj);
-      const out = BusPacket.fromObject({
-        traceId: packet.traceId,
-        senderId: cfg.senderId,
-        protocolVersion: DEFAULT_PROTOCOL_VERSION,
-        createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
-        jobResult: jrMsg,
-      }) as any;
-
-      // Signing outgoing packet
-      if (cfg.privateKey) {
-        const unsignedOutData = encodeUnsignedForSignature(BusPacket, out);
-        const sign = crypto.createSign("sha256");
-        sign.update(unsignedOutData);
-        out.signature = sign.sign(cfg.privateKey);
-      }
-
-      const data = encodeDeterministic(BusPacket, out);
-      await cfg.nc.publish(SUBJECT_RESULT, data);
-    } catch (err) {
-      logger.error("worker error", { error: String(err) });
+  const callback: NonNullable<SubscriptionOptions["callback"]> = (error, msg) => {
+    if (error) {
+      logger.error("worker subscription error", { error: String(error) });
+      return;
     }
+    void processWorkerMessage(cfg, types, logger, metrics, msg).catch((processingError) => {
+      logger.error("worker message processing failed", {
+        error: String(processingError),
+      });
+    });
   };
+  return cfg.nc.subscribe(cfg.subject, {
+    queue: cfg.queue ?? cfg.subject,
+    callback,
+  });
+}
 
-  const sub: any = (cfg.nc as any).subscribe(cfg.subject, { queue: cfg.queue ?? cfg.subject }, onMessage);
-  return sub;
+async function processWorkerMessage(
+  cfg: WorkerConfig,
+  types: WorkerTypes,
+  logger: Logger,
+  metrics: MetricsHook,
+  msg: Msg
+): Promise<void> {
+  const packet = types.busPacket.decode(msg.data) as unknown as PacketView;
+  try {
+    verifyInboundPacket(types.busPacket, packet, cfg.publicKeyMap);
+  } catch (error) {
+    logger.warn("worker rejected inbound packet", { error: String(error) });
+    return;
+  }
+  const request = packet.jobRequest;
+  if (!request) return;
+  metrics.onJobReceived(request.jobId ?? "", request.topic ?? "");
+  const startedAt = Date.now();
+  const result = await executeHandler(cfg, request);
+  const elapsedMs = Date.now() - startedAt;
+  recordResultMetrics(metrics, result, elapsedMs);
+  await publishWorkerResult(cfg, types, packet, result);
+}
+
+async function executeHandler(
+  cfg: WorkerConfig,
+  request: JobRequestView
+): Promise<Record<string, unknown>> {
+  let wrappedHandler = cfg.handler;
+  const middlewares = cfg.middlewares ?? [];
+  for (let index = middlewares.length - 1; index >= 0; index -= 1) {
+    wrappedHandler = middlewares[index](wrappedHandler);
+  }
+  let value: unknown;
+  try {
+    value = await wrappedHandler(request);
+  } catch (error) {
+    value = failureResult(request.jobId, error instanceof Error ? error.message : String(error));
+  }
+  const result = isRecord(value)
+    ? value
+    : failureResult(request.jobId, "handler returned null");
+  if (typeof result.jobId !== "string" || result.jobId.length === 0) {
+    result.jobId = request.jobId ?? "";
+  }
+  if (typeof result.workerId !== "string" || result.workerId.length === 0) {
+    result.workerId = cfg.senderId;
+  }
+  return result;
+}
+
+function failureResult(jobId: string | undefined, errorMessage: string): Record<string, unknown> {
+  return { jobId: jobId ?? "", status: "JOB_STATUS_FAILED", errorMessage };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function recordResultMetrics(
+  metrics: MetricsHook,
+  result: Record<string, unknown>,
+  elapsedMs: number
+): void {
+  const jobId = String(result.jobId ?? "");
+  if (result.status === "JOB_STATUS_FAILED") {
+    metrics.onJobFailed(jobId, String(result.errorMessage ?? ""));
+    return;
+  }
+  metrics.onJobCompleted(
+    jobId,
+    elapsedMs,
+    String(result.status ?? "JOB_STATUS_SUCCEEDED")
+  );
+}
+
+async function publishWorkerResult(
+  cfg: WorkerConfig,
+  types: WorkerTypes,
+  packet: PacketView,
+  result: Record<string, unknown>
+): Promise<void> {
+  const resultMessage = types.jobResult.fromObject(result);
+  const outgoing = types.busPacket.fromObject({
+    traceId: packet.traceId,
+    senderId: cfg.senderId,
+    protocolVersion: DEFAULT_PROTOCOL_VERSION,
+    createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
+    jobResult: resultMessage,
+  }) as unknown as MutableBusPacket;
+  prepareOutboundPacket(outgoing, cfg.sessionToken);
+  const data = encodeOutboundPacket(types.busPacket, outgoing, cfg.privateKey);
+  await cfg.nc.publish(SUBJECT_RESULT, data);
 }

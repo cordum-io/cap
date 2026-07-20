@@ -43,9 +43,12 @@ PROTOBUF_CONSTEXPR PolicyCheckRequest::PolicyCheckRequest(
   , /*decltype(_impl_.principal_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.memory_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.effective_config_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.input_content_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.input_content_type_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.budget_)*/nullptr
   , /*decltype(_impl_.meta_)*/nullptr
   , /*decltype(_impl_.estimated_cost_)*/0
+  , /*decltype(_impl_.input_size_bytes_)*/int64_t{0}
   , /*decltype(_impl_.priority_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct PolicyCheckRequestDefaultTypeInternal {
@@ -245,6 +248,9 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets[] PROTO
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.memory_id_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.effective_config_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.meta_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.input_content_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.input_content_type_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.input_size_bytes_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::BudgetConstraints, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -348,16 +354,16 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets[] PROTO
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, 8, -1, sizeof(::cordum::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse)},
   { 10, -1, -1, sizeof(::cordum::agent::v1::PolicyCheckRequest)},
-  { 27, -1, -1, sizeof(::cordum::agent::v1::BudgetConstraints)},
-  { 37, -1, -1, sizeof(::cordum::agent::v1::SandboxProfile)},
-  { 47, -1, -1, sizeof(::cordum::agent::v1::ToolchainConstraints)},
-  { 55, -1, -1, sizeof(::cordum::agent::v1::DiffConstraints)},
-  { 64, -1, -1, sizeof(::cordum::agent::v1::PolicyConstraints)},
-  { 75, 83, -1, sizeof(::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse)},
-  { 85, -1, -1, sizeof(::cordum::agent::v1::PolicyRemediation)},
-  { 98, -1, -1, sizeof(::cordum::agent::v1::PolicyCheckResponse)},
-  { 113, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsRequest)},
-  { 119, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsResponse)},
+  { 30, -1, -1, sizeof(::cordum::agent::v1::BudgetConstraints)},
+  { 40, -1, -1, sizeof(::cordum::agent::v1::SandboxProfile)},
+  { 50, -1, -1, sizeof(::cordum::agent::v1::ToolchainConstraints)},
+  { 58, -1, -1, sizeof(::cordum::agent::v1::DiffConstraints)},
+  { 67, -1, -1, sizeof(::cordum::agent::v1::PolicyConstraints)},
+  { 78, 86, -1, sizeof(::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse)},
+  { 88, -1, -1, sizeof(::cordum::agent::v1::PolicyRemediation)},
+  { 101, -1, -1, sizeof(::cordum::agent::v1::PolicyCheckResponse)},
+  { 116, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsRequest)},
+  { 122, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -377,77 +383,96 @@ static const ::_pb::Message* const file_default_instances[] = {
 
 const char descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\034cordum/agent/v1/safety.proto\022\017cordum.a"
-  "gent.v1\032\031cordum/agent/v1/job.proto\"\223\003\n\022P"
-  "olicyCheckRequest\022\016\n\006job_id\030\001 \001(\t\022\r\n\005top"
-  "ic\030\002 \001(\t\022\016\n\006tenant\030\003 \001(\t\022.\n\010priority\030\004 \001"
-  "(\0162\034.cordum.agent.v1.JobPriority\022\026\n\016esti"
-  "mated_cost\030\005 \001(\001\022\'\n\006budget\030\006 \001(\0132\027.cordu"
-  "m.agent.v1.Budget\022\024\n\014principal_id\030\007 \001(\t\022"
-  "\?\n\006labels\030\010 \003(\0132/.cordum.agent.v1.Policy"
-  "CheckRequest.LabelsEntry\022\021\n\tmemory_id\030\t "
-  "\001(\t\022\030\n\020effective_config\030\n \001(\014\022*\n\004meta\030\013 "
-  "\001(\0132\034.cordum.agent.v1.JobMetadata\032-\n\013Lab"
-  "elsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001"
-  "\"y\n\021BudgetConstraints\022\026\n\016max_runtime_ms\030"
-  "\001 \001(\003\022\023\n\013max_retries\030\002 \001(\005\022\032\n\022max_artifa"
-  "ct_bytes\030\003 \001(\003\022\033\n\023max_concurrent_jobs\030\004 "
-  "\001(\005\"j\n\016SandboxProfile\022\020\n\010isolated\030\001 \001(\010\022"
-  "\031\n\021network_allowlist\030\002 \003(\t\022\024\n\014fs_read_on"
-  "ly\030\003 \003(\t\022\025\n\rfs_read_write\030\004 \003(\t\"G\n\024Toolc"
-  "hainConstraints\022\025\n\rallowed_tools\030\001 \003(\t\022\030"
-  "\n\020allowed_commands\030\002 \003(\t\"P\n\017DiffConstrai"
-  "nts\022\021\n\tmax_files\030\001 \001(\005\022\021\n\tmax_lines\030\002 \001("
-  "\005\022\027\n\017deny_path_globs\030\003 \003(\t\"\375\001\n\021PolicyCon"
-  "straints\0223\n\007budgets\030\001 \001(\0132\".cordum.agent"
-  ".v1.BudgetConstraints\0220\n\007sandbox\030\002 \001(\0132\037"
-  ".cordum.agent.v1.SandboxProfile\0228\n\ttoolc"
-  "hain\030\003 \001(\0132%.cordum.agent.v1.ToolchainCo"
-  "nstraints\022.\n\004diff\030\004 \001(\0132 .cordum.agent.v"
-  "1.DiffConstraints\022\027\n\017redaction_level\030\005 \001"
-  "(\t\"\212\002\n\021PolicyRemediation\022\n\n\002id\030\001 \001(\t\022\r\n\005"
-  "title\030\002 \001(\t\022\017\n\007summary\030\003 \001(\t\022\031\n\021replacem"
-  "ent_topic\030\004 \001(\t\022\036\n\026replacement_capabilit"
-  "y\030\005 \001(\t\022E\n\nadd_labels\030\006 \003(\01321.cordum.age"
-  "nt.v1.PolicyRemediation.AddLabelsEntry\022\025"
-  "\n\rremove_labels\030\007 \003(\t\0320\n\016AddLabelsEntry\022"
-  "\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\"\302\002\n\023Poli"
-  "cyCheckResponse\022/\n\010decision\030\001 \001(\0162\035.cord"
-  "um.agent.v1.DecisionType\022\016\n\006reason\030\002 \001(\t"
-  "\022\034\n\024redacted_context_ptr\030\003 \001(\t\022\027\n\017policy"
-  "_snapshot\030\004 \001(\t\022\017\n\007rule_id\030\005 \001(\t\0227\n\013cons"
-  "traints\030\006 \001(\0132\".cordum.agent.v1.PolicyCo"
-  "nstraints\022\031\n\021approval_required\030\007 \001(\010\022\024\n\014"
-  "approval_ref\030\010 \001(\t\0228\n\014remediations\030\t \003(\013"
-  "2\".cordum.agent.v1.PolicyRemediation\"\026\n\024"
-  "ListSnapshotsRequest\"*\n\025ListSnapshotsRes"
-  "ponse\022\021\n\tsnapshots\030\001 \003(\t*\305\001\n\014DecisionTyp"
-  "e\022\035\n\031DECISION_TYPE_UNSPECIFIED\020\000\022\027\n\023DECI"
-  "SION_TYPE_ALLOW\020\001\022\026\n\022DECISION_TYPE_DENY\020"
-  "\002\022\037\n\033DECISION_TYPE_REQUIRE_HUMAN\020\003\022\032\n\026DE"
-  "CISION_TYPE_THROTTLE\020\004\022(\n$DECISION_TYPE_"
-  "ALLOW_WITH_CONSTRAINTS\020\0052\306\003\n\014SafetyKerne"
-  "l\022R\n\005Check\022#.cordum.agent.v1.PolicyCheck"
-  "Request\032$.cordum.agent.v1.PolicyCheckRes"
-  "ponse\022U\n\010Evaluate\022#.cordum.agent.v1.Poli"
-  "cyCheckRequest\032$.cordum.agent.v1.PolicyC"
-  "heckResponse\022T\n\007Explain\022#.cordum.agent.v"
+  "gent.v1\032\031cordum/agent/v1/job.proto\"\211\005\n\022P"
+  "olicyCheckRequest\022\025\n\006job_id\030\001 \001(\tR\005jobId"
+  "\022\024\n\005topic\030\002 \001(\tR\005topic\022\026\n\006tenant\030\003 \001(\tR\006"
+  "tenant\0228\n\010priority\030\004 \001(\0162\034.cordum.agent."
+  "v1.JobPriorityR\010priority\022%\n\016estimated_co"
+  "st\030\005 \001(\001R\restimatedCost\022/\n\006budget\030\006 \001(\0132"
+  "\027.cordum.agent.v1.BudgetR\006budget\022!\n\014prin"
+  "cipal_id\030\007 \001(\tR\013principalId\022G\n\006labels\030\010 "
+  "\003(\0132/.cordum.agent.v1.PolicyCheckRequest"
+  ".LabelsEntryR\006labels\022\033\n\tmemory_id\030\t \001(\tR"
+  "\010memoryId\022)\n\020effective_config\030\n \001(\014R\017eff"
+  "ectiveConfig\0220\n\004meta\030\013 \001(\0132\034.cordum.agen"
+  "t.v1.JobMetadataR\004meta\022#\n\rinput_content\030"
+  "\024 \001(\014R\014inputContent\022,\n\022input_content_typ"
+  "e\030\025 \001(\tR\020inputContentType\022(\n\020input_size_"
+  "bytes\030\026 \001(\003R\016inputSizeBytes\0329\n\013LabelsEnt"
+  "ry\022\020\n\003key\030\001 \001(\tR\003key\022\024\n\005value\030\002 \001(\tR\005val"
+  "ue:\0028\001\"\270\001\n\021BudgetConstraints\022$\n\016max_runt"
+  "ime_ms\030\001 \001(\003R\014maxRuntimeMs\022\037\n\013max_retrie"
+  "s\030\002 \001(\005R\nmaxRetries\022,\n\022max_artifact_byte"
+  "s\030\003 \001(\003R\020maxArtifactBytes\022.\n\023max_concurr"
+  "ent_jobs\030\004 \001(\005R\021maxConcurrentJobs\"\237\001\n\016Sa"
+  "ndboxProfile\022\032\n\010isolated\030\001 \001(\010R\010isolated"
+  "\022+\n\021network_allowlist\030\002 \003(\tR\020networkAllo"
+  "wlist\022 \n\014fs_read_only\030\003 \003(\tR\nfsReadOnly\022"
+  "\"\n\rfs_read_write\030\004 \003(\tR\013fsReadWrite\"f\n\024T"
+  "oolchainConstraints\022#\n\rallowed_tools\030\001 \003"
+  "(\tR\014allowedTools\022)\n\020allowed_commands\030\002 \003"
+  "(\tR\017allowedCommands\"s\n\017DiffConstraints\022\033"
+  "\n\tmax_files\030\001 \001(\005R\010maxFiles\022\033\n\tmax_lines"
+  "\030\002 \001(\005R\010maxLines\022&\n\017deny_path_globs\030\003 \003("
+  "\tR\rdenyPathGlobs\"\260\002\n\021PolicyConstraints\022<"
+  "\n\007budgets\030\001 \001(\0132\".cordum.agent.v1.Budget"
+  "ConstraintsR\007budgets\0229\n\007sandbox\030\002 \001(\0132\037."
+  "cordum.agent.v1.SandboxProfileR\007sandbox\022"
+  "C\n\ttoolchain\030\003 \001(\0132%.cordum.agent.v1.Too"
+  "lchainConstraintsR\ttoolchain\0224\n\004diff\030\004 \001"
+  "(\0132 .cordum.agent.v1.DiffConstraintsR\004di"
+  "ff\022\'\n\017redaction_level\030\005 \001(\tR\016redactionLe"
+  "vel\"\354\002\n\021PolicyRemediation\022\016\n\002id\030\001 \001(\tR\002i"
+  "d\022\024\n\005title\030\002 \001(\tR\005title\022\030\n\007summary\030\003 \001(\t"
+  "R\007summary\022+\n\021replacement_topic\030\004 \001(\tR\020re"
+  "placementTopic\0225\n\026replacement_capability"
+  "\030\005 \001(\tR\025replacementCapability\022P\n\nadd_lab"
+  "els\030\006 \003(\01321.cordum.agent.v1.PolicyRemedi"
+  "ation.AddLabelsEntryR\taddLabels\022#\n\rremov"
+  "e_labels\030\007 \003(\tR\014removeLabels\032<\n\016AddLabel"
+  "sEntry\022\020\n\003key\030\001 \001(\tR\003key\022\024\n\005value\030\002 \001(\tR"
+  "\005value:\0028\001\"\272\003\n\023PolicyCheckResponse\0229\n\010de"
+  "cision\030\001 \001(\0162\035.cordum.agent.v1.DecisionT"
+  "ypeR\010decision\022\026\n\006reason\030\002 \001(\tR\006reason\0220\n"
+  "\024redacted_context_ptr\030\003 \001(\tR\022redactedCon"
+  "textPtr\022\'\n\017policy_snapshot\030\004 \001(\tR\016policy"
+  "Snapshot\022\027\n\007rule_id\030\005 \001(\tR\006ruleId\022D\n\013con"
+  "straints\030\006 \001(\0132\".cordum.agent.v1.PolicyC"
+  "onstraintsR\013constraints\022+\n\021approval_requ"
+  "ired\030\007 \001(\010R\020approvalRequired\022!\n\014approval"
+  "_ref\030\010 \001(\tR\013approvalRef\022F\n\014remediations\030"
+  "\t \003(\0132\".cordum.agent.v1.PolicyRemediatio"
+  "nR\014remediations\"\026\n\024ListSnapshotsRequest\""
+  "5\n\025ListSnapshotsResponse\022\034\n\tsnapshots\030\001 "
+  "\003(\tR\tsnapshots*\375\001\n\014DecisionType\022\035\n\031DECIS"
+  "ION_TYPE_UNSPECIFIED\020\000\022\027\n\023DECISION_TYPE_"
+  "ALLOW\020\001\022\026\n\022DECISION_TYPE_DENY\020\002\022\037\n\033DECIS"
+  "ION_TYPE_REQUIRE_HUMAN\020\003\022\032\n\026DECISION_TYP"
+  "E_THROTTLE\020\004\022(\n$DECISION_TYPE_ALLOW_WITH"
+  "_CONSTRAINTS\020\005\022\034\n\030DECISION_TYPE_QUARANTI"
+  "NE\020\006\022\030\n\024DECISION_TYPE_REDACT\020\0072\306\003\n\014Safet"
+  "yKernel\022R\n\005Check\022#.cordum.agent.v1.Polic"
+  "yCheckRequest\032$.cordum.agent.v1.PolicyCh"
+  "eckResponse\022U\n\010Evaluate\022#.cordum.agent.v"
   "1.PolicyCheckRequest\032$.cordum.agent.v1.P"
-  "olicyCheckResponse\022U\n\010Simulate\022#.cordum."
-  "agent.v1.PolicyCheckRequest\032$.cordum.age"
-  "nt.v1.PolicyCheckResponse\022^\n\rListSnapsho"
-  "ts\022%.cordum.agent.v1.ListSnapshotsReques"
-  "t\032&.cordum.agent.v1.ListSnapshotsRespons"
-  "eB\177\n\026io.cordum.cap.agent.v1P\001Z+github.co"
-  "m/cordum-io/cap/v2/cordum/agent/v1\252\002\017Cor"
-  "dum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum:"
-  ":Agent::V1b\006proto3"
+  "olicyCheckResponse\022T\n\007Explain\022#.cordum.a"
+  "gent.v1.PolicyCheckRequest\032$.cordum.agen"
+  "t.v1.PolicyCheckResponse\022U\n\010Simulate\022#.c"
+  "ordum.agent.v1.PolicyCheckRequest\032$.cord"
+  "um.agent.v1.PolicyCheckResponse\022^\n\rListS"
+  "napshots\022%.cordum.agent.v1.ListSnapshots"
+  "Request\032&.cordum.agent.v1.ListSnapshotsR"
+  "esponseB\177\n\026io.cordum.cap.agent.v1P\001Z+git"
+  "hub.com/cordum-io/cap/v2/cordum/agent/v1"
+  "\252\002\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021C"
+  "ordum::Agent::V1b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_deps[1] = {
   &::descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto = {
-    false, false, 2578, descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto,
+    false, false, 3344, descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto,
     "cordum/agent/v1/safety.proto",
     &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once, descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_deps, 1, 12,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets,
@@ -475,6 +500,8 @@ bool DecisionType_IsValid(int value) {
     case 3:
     case 4:
     case 5:
+    case 6:
+    case 7:
       return true;
     default:
       return false;
@@ -544,9 +571,12 @@ PolicyCheckRequest::PolicyCheckRequest(const PolicyCheckRequest& from)
     , decltype(_impl_.principal_id_){}
     , decltype(_impl_.memory_id_){}
     , decltype(_impl_.effective_config_){}
+    , decltype(_impl_.input_content_){}
+    , decltype(_impl_.input_content_type_){}
     , decltype(_impl_.budget_){nullptr}
     , decltype(_impl_.meta_){nullptr}
     , decltype(_impl_.estimated_cost_){}
+    , decltype(_impl_.input_size_bytes_){}
     , decltype(_impl_.priority_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
@@ -600,6 +630,22 @@ PolicyCheckRequest::PolicyCheckRequest(const PolicyCheckRequest& from)
     _this->_impl_.effective_config_.Set(from._internal_effective_config(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.input_content_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.input_content_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_input_content().empty()) {
+    _this->_impl_.input_content_.Set(from._internal_input_content(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.input_content_type_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.input_content_type_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_input_content_type().empty()) {
+    _this->_impl_.input_content_type_.Set(from._internal_input_content_type(), 
+      _this->GetArenaForAllocation());
+  }
   if (from._internal_has_budget()) {
     _this->_impl_.budget_ = new ::cordum::agent::v1::Budget(*from._impl_.budget_);
   }
@@ -624,9 +670,12 @@ inline void PolicyCheckRequest::SharedCtor(
     , decltype(_impl_.principal_id_){}
     , decltype(_impl_.memory_id_){}
     , decltype(_impl_.effective_config_){}
+    , decltype(_impl_.input_content_){}
+    , decltype(_impl_.input_content_type_){}
     , decltype(_impl_.budget_){nullptr}
     , decltype(_impl_.meta_){nullptr}
     , decltype(_impl_.estimated_cost_){0}
+    , decltype(_impl_.input_size_bytes_){int64_t{0}}
     , decltype(_impl_.priority_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
@@ -654,6 +703,14 @@ inline void PolicyCheckRequest::SharedCtor(
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.effective_config_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.input_content_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.input_content_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.input_content_type_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.input_content_type_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 PolicyCheckRequest::~PolicyCheckRequest() {
@@ -676,6 +733,8 @@ inline void PolicyCheckRequest::SharedDtor() {
   _impl_.principal_id_.Destroy();
   _impl_.memory_id_.Destroy();
   _impl_.effective_config_.Destroy();
+  _impl_.input_content_.Destroy();
+  _impl_.input_content_type_.Destroy();
   if (this != internal_default_instance()) delete _impl_.budget_;
   if (this != internal_default_instance()) delete _impl_.meta_;
 }
@@ -701,6 +760,8 @@ void PolicyCheckRequest::Clear() {
   _impl_.principal_id_.ClearToEmpty();
   _impl_.memory_id_.ClearToEmpty();
   _impl_.effective_config_.ClearToEmpty();
+  _impl_.input_content_.ClearToEmpty();
+  _impl_.input_content_type_.ClearToEmpty();
   if (GetArenaForAllocation() == nullptr && _impl_.budget_ != nullptr) {
     delete _impl_.budget_;
   }
@@ -721,7 +782,7 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // string job_id = 1;
+      // string job_id = 1 [json_name = "jobId"];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
           auto str = _internal_mutable_job_id();
@@ -731,7 +792,7 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // string topic = 2;
+      // string topic = 2 [json_name = "topic"];
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_topic();
@@ -741,7 +802,7 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // string tenant = 3;
+      // string tenant = 3 [json_name = "tenant"];
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           auto str = _internal_mutable_tenant();
@@ -751,7 +812,7 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // .cordum.agent.v1.JobPriority priority = 4;
+      // .cordum.agent.v1.JobPriority priority = 4 [json_name = "priority"];
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
           uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
@@ -760,7 +821,7 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // double estimated_cost = 5;
+      // double estimated_cost = 5 [json_name = "estimatedCost"];
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 41)) {
           _impl_.estimated_cost_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
@@ -768,7 +829,7 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // .cordum.agent.v1.Budget budget = 6;
+      // .cordum.agent.v1.Budget budget = 6 [json_name = "budget"];
       case 6:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
           ptr = ctx->ParseMessage(_internal_mutable_budget(), ptr);
@@ -776,7 +837,7 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // string principal_id = 7;
+      // string principal_id = 7 [json_name = "principalId"];
       case 7:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
           auto str = _internal_mutable_principal_id();
@@ -786,7 +847,7 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // map<string, string> labels = 8;
+      // map<string, string> labels = 8 [json_name = "labels"];
       case 8:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
           ptr -= 1;
@@ -799,7 +860,7 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // string memory_id = 9;
+      // string memory_id = 9 [json_name = "memoryId"];
       case 9:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
           auto str = _internal_mutable_memory_id();
@@ -809,7 +870,7 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // bytes effective_config = 10;
+      // bytes effective_config = 10 [json_name = "effectiveConfig"];
       case 10:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 82)) {
           auto str = _internal_mutable_effective_config();
@@ -818,10 +879,37 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
         } else
           goto handle_unusual;
         continue;
-      // .cordum.agent.v1.JobMetadata meta = 11;
+      // .cordum.agent.v1.JobMetadata meta = 11 [json_name = "meta"];
       case 11:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
           ptr = ctx->ParseMessage(_internal_mutable_meta(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bytes input_content = 20 [json_name = "inputContent"];
+      case 20:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 162)) {
+          auto str = _internal_mutable_input_content();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string input_content_type = 21 [json_name = "inputContentType"];
+      case 21:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 170)) {
+          auto str = _internal_mutable_input_content_type();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.PolicyCheckRequest.input_content_type"));
+        } else
+          goto handle_unusual;
+        continue;
+      // int64 input_size_bytes = 22 [json_name = "inputSizeBytes"];
+      case 22:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 176)) {
+          _impl_.input_size_bytes_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -855,7 +943,7 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string job_id = 1;
+  // string job_id = 1 [json_name = "jobId"];
   if (!this->_internal_job_id().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_job_id().data(), static_cast<int>(this->_internal_job_id().length()),
@@ -865,7 +953,7 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
         1, this->_internal_job_id(), target);
   }
 
-  // string topic = 2;
+  // string topic = 2 [json_name = "topic"];
   if (!this->_internal_topic().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_topic().data(), static_cast<int>(this->_internal_topic().length()),
@@ -875,7 +963,7 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
         2, this->_internal_topic(), target);
   }
 
-  // string tenant = 3;
+  // string tenant = 3 [json_name = "tenant"];
   if (!this->_internal_tenant().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_tenant().data(), static_cast<int>(this->_internal_tenant().length()),
@@ -885,14 +973,14 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
         3, this->_internal_tenant(), target);
   }
 
-  // .cordum.agent.v1.JobPriority priority = 4;
+  // .cordum.agent.v1.JobPriority priority = 4 [json_name = "priority"];
   if (this->_internal_priority() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteEnumToArray(
       4, this->_internal_priority(), target);
   }
 
-  // double estimated_cost = 5;
+  // double estimated_cost = 5 [json_name = "estimatedCost"];
   static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
   double tmp_estimated_cost = this->_internal_estimated_cost();
   uint64_t raw_estimated_cost;
@@ -902,14 +990,14 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteDoubleToArray(5, this->_internal_estimated_cost(), target);
   }
 
-  // .cordum.agent.v1.Budget budget = 6;
+  // .cordum.agent.v1.Budget budget = 6 [json_name = "budget"];
   if (this->_internal_has_budget()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessage(6, _Internal::budget(this),
         _Internal::budget(this).GetCachedSize(), target, stream);
   }
 
-  // string principal_id = 7;
+  // string principal_id = 7 [json_name = "principalId"];
   if (!this->_internal_principal_id().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_principal_id().data(), static_cast<int>(this->_internal_principal_id().length()),
@@ -919,7 +1007,7 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
         7, this->_internal_principal_id(), target);
   }
 
-  // map<string, string> labels = 8;
+  // map<string, string> labels = 8 [json_name = "labels"];
   if (!this->_internal_labels().empty()) {
     using MapType = ::_pb::Map<std::string, std::string>;
     using WireHelper = PolicyCheckRequest_LabelsEntry_DoNotUse::Funcs;
@@ -949,7 +1037,7 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
     }
   }
 
-  // string memory_id = 9;
+  // string memory_id = 9 [json_name = "memoryId"];
   if (!this->_internal_memory_id().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_memory_id().data(), static_cast<int>(this->_internal_memory_id().length()),
@@ -959,17 +1047,39 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
         9, this->_internal_memory_id(), target);
   }
 
-  // bytes effective_config = 10;
+  // bytes effective_config = 10 [json_name = "effectiveConfig"];
   if (!this->_internal_effective_config().empty()) {
     target = stream->WriteBytesMaybeAliased(
         10, this->_internal_effective_config(), target);
   }
 
-  // .cordum.agent.v1.JobMetadata meta = 11;
+  // .cordum.agent.v1.JobMetadata meta = 11 [json_name = "meta"];
   if (this->_internal_has_meta()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessage(11, _Internal::meta(this),
         _Internal::meta(this).GetCachedSize(), target, stream);
+  }
+
+  // bytes input_content = 20 [json_name = "inputContent"];
+  if (!this->_internal_input_content().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        20, this->_internal_input_content(), target);
+  }
+
+  // string input_content_type = 21 [json_name = "inputContentType"];
+  if (!this->_internal_input_content_type().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_input_content_type().data(), static_cast<int>(this->_internal_input_content_type().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.PolicyCheckRequest.input_content_type");
+    target = stream->WriteStringMaybeAliased(
+        21, this->_internal_input_content_type(), target);
+  }
+
+  // int64 input_size_bytes = 22 [json_name = "inputSizeBytes"];
+  if (this->_internal_input_size_bytes() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteInt64ToArray(22, this->_internal_input_size_bytes(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -988,7 +1098,7 @@ size_t PolicyCheckRequest::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // map<string, string> labels = 8;
+  // map<string, string> labels = 8 [json_name = "labels"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_labels_size());
   for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
@@ -997,63 +1107,77 @@ size_t PolicyCheckRequest::ByteSizeLong() const {
     total_size += PolicyCheckRequest_LabelsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
   }
 
-  // string job_id = 1;
+  // string job_id = 1 [json_name = "jobId"];
   if (!this->_internal_job_id().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_job_id());
   }
 
-  // string topic = 2;
+  // string topic = 2 [json_name = "topic"];
   if (!this->_internal_topic().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_topic());
   }
 
-  // string tenant = 3;
+  // string tenant = 3 [json_name = "tenant"];
   if (!this->_internal_tenant().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_tenant());
   }
 
-  // string principal_id = 7;
+  // string principal_id = 7 [json_name = "principalId"];
   if (!this->_internal_principal_id().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_principal_id());
   }
 
-  // string memory_id = 9;
+  // string memory_id = 9 [json_name = "memoryId"];
   if (!this->_internal_memory_id().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_memory_id());
   }
 
-  // bytes effective_config = 10;
+  // bytes effective_config = 10 [json_name = "effectiveConfig"];
   if (!this->_internal_effective_config().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
         this->_internal_effective_config());
   }
 
-  // .cordum.agent.v1.Budget budget = 6;
+  // bytes input_content = 20 [json_name = "inputContent"];
+  if (!this->_internal_input_content().empty()) {
+    total_size += 2 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_input_content());
+  }
+
+  // string input_content_type = 21 [json_name = "inputContentType"];
+  if (!this->_internal_input_content_type().empty()) {
+    total_size += 2 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_input_content_type());
+  }
+
+  // .cordum.agent.v1.Budget budget = 6 [json_name = "budget"];
   if (this->_internal_has_budget()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
         *_impl_.budget_);
   }
 
-  // .cordum.agent.v1.JobMetadata meta = 11;
+  // .cordum.agent.v1.JobMetadata meta = 11 [json_name = "meta"];
   if (this->_internal_has_meta()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
         *_impl_.meta_);
   }
 
-  // double estimated_cost = 5;
+  // double estimated_cost = 5 [json_name = "estimatedCost"];
   static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
   double tmp_estimated_cost = this->_internal_estimated_cost();
   uint64_t raw_estimated_cost;
@@ -1062,7 +1186,14 @@ size_t PolicyCheckRequest::ByteSizeLong() const {
     total_size += 1 + 8;
   }
 
-  // .cordum.agent.v1.JobPriority priority = 4;
+  // int64 input_size_bytes = 22 [json_name = "inputSizeBytes"];
+  if (this->_internal_input_size_bytes() != 0) {
+    total_size += 2 +
+      ::_pbi::WireFormatLite::Int64Size(
+        this->_internal_input_size_bytes());
+  }
+
+  // .cordum.agent.v1.JobPriority priority = 4 [json_name = "priority"];
   if (this->_internal_priority() != 0) {
     total_size += 1 +
       ::_pbi::WireFormatLite::EnumSize(this->_internal_priority());
@@ -1105,6 +1236,12 @@ void PolicyCheckRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   if (!from._internal_effective_config().empty()) {
     _this->_internal_set_effective_config(from._internal_effective_config());
   }
+  if (!from._internal_input_content().empty()) {
+    _this->_internal_set_input_content(from._internal_input_content());
+  }
+  if (!from._internal_input_content_type().empty()) {
+    _this->_internal_set_input_content_type(from._internal_input_content_type());
+  }
   if (from._internal_has_budget()) {
     _this->_internal_mutable_budget()->::cordum::agent::v1::Budget::MergeFrom(
         from._internal_budget());
@@ -1119,6 +1256,9 @@ void PolicyCheckRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   memcpy(&raw_estimated_cost, &tmp_estimated_cost, sizeof(tmp_estimated_cost));
   if (raw_estimated_cost != 0) {
     _this->_internal_set_estimated_cost(from._internal_estimated_cost());
+  }
+  if (from._internal_input_size_bytes() != 0) {
+    _this->_internal_set_input_size_bytes(from._internal_input_size_bytes());
   }
   if (from._internal_priority() != 0) {
     _this->_internal_set_priority(from._internal_priority());
@@ -1166,6 +1306,14 @@ void PolicyCheckRequest::InternalSwap(PolicyCheckRequest* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.effective_config_, lhs_arena,
       &other->_impl_.effective_config_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.input_content_, lhs_arena,
+      &other->_impl_.input_content_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.input_content_type_, lhs_arena,
+      &other->_impl_.input_content_type_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(PolicyCheckRequest, _impl_.priority_)
@@ -1258,7 +1406,7 @@ const char* BudgetConstraints::_InternalParse(const char* ptr, ::_pbi::ParseCont
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // int64 max_runtime_ms = 1;
+      // int64 max_runtime_ms = 1 [json_name = "maxRuntimeMs"];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
           _impl_.max_runtime_ms_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
@@ -1266,7 +1414,7 @@ const char* BudgetConstraints::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // int32 max_retries = 2;
+      // int32 max_retries = 2 [json_name = "maxRetries"];
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
           _impl_.max_retries_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
@@ -1274,7 +1422,7 @@ const char* BudgetConstraints::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // int64 max_artifact_bytes = 3;
+      // int64 max_artifact_bytes = 3 [json_name = "maxArtifactBytes"];
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
           _impl_.max_artifact_bytes_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
@@ -1282,7 +1430,7 @@ const char* BudgetConstraints::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // int32 max_concurrent_jobs = 4;
+      // int32 max_concurrent_jobs = 4 [json_name = "maxConcurrentJobs"];
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
           _impl_.max_concurrent_jobs_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
@@ -1319,25 +1467,25 @@ uint8_t* BudgetConstraints::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // int64 max_runtime_ms = 1;
+  // int64 max_runtime_ms = 1 [json_name = "maxRuntimeMs"];
   if (this->_internal_max_runtime_ms() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteInt64ToArray(1, this->_internal_max_runtime_ms(), target);
   }
 
-  // int32 max_retries = 2;
+  // int32 max_retries = 2 [json_name = "maxRetries"];
   if (this->_internal_max_retries() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_max_retries(), target);
   }
 
-  // int64 max_artifact_bytes = 3;
+  // int64 max_artifact_bytes = 3 [json_name = "maxArtifactBytes"];
   if (this->_internal_max_artifact_bytes() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteInt64ToArray(3, this->_internal_max_artifact_bytes(), target);
   }
 
-  // int32 max_concurrent_jobs = 4;
+  // int32 max_concurrent_jobs = 4 [json_name = "maxConcurrentJobs"];
   if (this->_internal_max_concurrent_jobs() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_max_concurrent_jobs(), target);
@@ -1359,22 +1507,22 @@ size_t BudgetConstraints::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // int64 max_runtime_ms = 1;
+  // int64 max_runtime_ms = 1 [json_name = "maxRuntimeMs"];
   if (this->_internal_max_runtime_ms() != 0) {
     total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_max_runtime_ms());
   }
 
-  // int64 max_artifact_bytes = 3;
+  // int64 max_artifact_bytes = 3 [json_name = "maxArtifactBytes"];
   if (this->_internal_max_artifact_bytes() != 0) {
     total_size += ::_pbi::WireFormatLite::Int64SizePlusOne(this->_internal_max_artifact_bytes());
   }
 
-  // int32 max_retries = 2;
+  // int32 max_retries = 2 [json_name = "maxRetries"];
   if (this->_internal_max_retries() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_max_retries());
   }
 
-  // int32 max_concurrent_jobs = 4;
+  // int32 max_concurrent_jobs = 4 [json_name = "maxConcurrentJobs"];
   if (this->_internal_max_concurrent_jobs() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_max_concurrent_jobs());
   }
@@ -1519,7 +1667,7 @@ const char* SandboxProfile::_InternalParse(const char* ptr, ::_pbi::ParseContext
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // bool isolated = 1;
+      // bool isolated = 1 [json_name = "isolated"];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
           _impl_.isolated_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
@@ -1527,7 +1675,7 @@ const char* SandboxProfile::_InternalParse(const char* ptr, ::_pbi::ParseContext
         } else
           goto handle_unusual;
         continue;
-      // repeated string network_allowlist = 2;
+      // repeated string network_allowlist = 2 [json_name = "networkAllowlist"];
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           ptr -= 1;
@@ -1542,7 +1690,7 @@ const char* SandboxProfile::_InternalParse(const char* ptr, ::_pbi::ParseContext
         } else
           goto handle_unusual;
         continue;
-      // repeated string fs_read_only = 3;
+      // repeated string fs_read_only = 3 [json_name = "fsReadOnly"];
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           ptr -= 1;
@@ -1557,7 +1705,7 @@ const char* SandboxProfile::_InternalParse(const char* ptr, ::_pbi::ParseContext
         } else
           goto handle_unusual;
         continue;
-      // repeated string fs_read_write = 4;
+      // repeated string fs_read_write = 4 [json_name = "fsReadWrite"];
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
           ptr -= 1;
@@ -1601,13 +1749,13 @@ uint8_t* SandboxProfile::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // bool isolated = 1;
+  // bool isolated = 1 [json_name = "isolated"];
   if (this->_internal_isolated() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteBoolToArray(1, this->_internal_isolated(), target);
   }
 
-  // repeated string network_allowlist = 2;
+  // repeated string network_allowlist = 2 [json_name = "networkAllowlist"];
   for (int i = 0, n = this->_internal_network_allowlist_size(); i < n; i++) {
     const auto& s = this->_internal_network_allowlist(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
@@ -1617,7 +1765,7 @@ uint8_t* SandboxProfile::_InternalSerialize(
     target = stream->WriteString(2, s, target);
   }
 
-  // repeated string fs_read_only = 3;
+  // repeated string fs_read_only = 3 [json_name = "fsReadOnly"];
   for (int i = 0, n = this->_internal_fs_read_only_size(); i < n; i++) {
     const auto& s = this->_internal_fs_read_only(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
@@ -1627,7 +1775,7 @@ uint8_t* SandboxProfile::_InternalSerialize(
     target = stream->WriteString(3, s, target);
   }
 
-  // repeated string fs_read_write = 4;
+  // repeated string fs_read_write = 4 [json_name = "fsReadWrite"];
   for (int i = 0, n = this->_internal_fs_read_write_size(); i < n; i++) {
     const auto& s = this->_internal_fs_read_write(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
@@ -1653,7 +1801,7 @@ size_t SandboxProfile::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated string network_allowlist = 2;
+  // repeated string network_allowlist = 2 [json_name = "networkAllowlist"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.network_allowlist_.size());
   for (int i = 0, n = _impl_.network_allowlist_.size(); i < n; i++) {
@@ -1661,7 +1809,7 @@ size_t SandboxProfile::ByteSizeLong() const {
       _impl_.network_allowlist_.Get(i));
   }
 
-  // repeated string fs_read_only = 3;
+  // repeated string fs_read_only = 3 [json_name = "fsReadOnly"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.fs_read_only_.size());
   for (int i = 0, n = _impl_.fs_read_only_.size(); i < n; i++) {
@@ -1669,7 +1817,7 @@ size_t SandboxProfile::ByteSizeLong() const {
       _impl_.fs_read_only_.Get(i));
   }
 
-  // repeated string fs_read_write = 4;
+  // repeated string fs_read_write = 4 [json_name = "fsReadWrite"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.fs_read_write_.size());
   for (int i = 0, n = _impl_.fs_read_write_.size(); i < n; i++) {
@@ -1677,7 +1825,7 @@ size_t SandboxProfile::ByteSizeLong() const {
       _impl_.fs_read_write_.Get(i));
   }
 
-  // bool isolated = 1;
+  // bool isolated = 1 [json_name = "isolated"];
   if (this->_internal_isolated() != 0) {
     total_size += 1 + 1;
   }
@@ -1806,7 +1954,7 @@ const char* ToolchainConstraints::_InternalParse(const char* ptr, ::_pbi::ParseC
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // repeated string allowed_tools = 1;
+      // repeated string allowed_tools = 1 [json_name = "allowedTools"];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
           ptr -= 1;
@@ -1821,7 +1969,7 @@ const char* ToolchainConstraints::_InternalParse(const char* ptr, ::_pbi::ParseC
         } else
           goto handle_unusual;
         continue;
-      // repeated string allowed_commands = 2;
+      // repeated string allowed_commands = 2 [json_name = "allowedCommands"];
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           ptr -= 1;
@@ -1865,7 +2013,7 @@ uint8_t* ToolchainConstraints::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated string allowed_tools = 1;
+  // repeated string allowed_tools = 1 [json_name = "allowedTools"];
   for (int i = 0, n = this->_internal_allowed_tools_size(); i < n; i++) {
     const auto& s = this->_internal_allowed_tools(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
@@ -1875,7 +2023,7 @@ uint8_t* ToolchainConstraints::_InternalSerialize(
     target = stream->WriteString(1, s, target);
   }
 
-  // repeated string allowed_commands = 2;
+  // repeated string allowed_commands = 2 [json_name = "allowedCommands"];
   for (int i = 0, n = this->_internal_allowed_commands_size(); i < n; i++) {
     const auto& s = this->_internal_allowed_commands(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
@@ -1901,7 +2049,7 @@ size_t ToolchainConstraints::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated string allowed_tools = 1;
+  // repeated string allowed_tools = 1 [json_name = "allowedTools"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.allowed_tools_.size());
   for (int i = 0, n = _impl_.allowed_tools_.size(); i < n; i++) {
@@ -1909,7 +2057,7 @@ size_t ToolchainConstraints::ByteSizeLong() const {
       _impl_.allowed_tools_.Get(i));
   }
 
-  // repeated string allowed_commands = 2;
+  // repeated string allowed_commands = 2 [json_name = "allowedCommands"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.allowed_commands_.size());
   for (int i = 0, n = _impl_.allowed_commands_.size(); i < n; i++) {
@@ -2041,7 +2189,7 @@ const char* DiffConstraints::_InternalParse(const char* ptr, ::_pbi::ParseContex
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // int32 max_files = 1;
+      // int32 max_files = 1 [json_name = "maxFiles"];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
           _impl_.max_files_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
@@ -2049,7 +2197,7 @@ const char* DiffConstraints::_InternalParse(const char* ptr, ::_pbi::ParseContex
         } else
           goto handle_unusual;
         continue;
-      // int32 max_lines = 2;
+      // int32 max_lines = 2 [json_name = "maxLines"];
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 16)) {
           _impl_.max_lines_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
@@ -2057,7 +2205,7 @@ const char* DiffConstraints::_InternalParse(const char* ptr, ::_pbi::ParseContex
         } else
           goto handle_unusual;
         continue;
-      // repeated string deny_path_globs = 3;
+      // repeated string deny_path_globs = 3 [json_name = "denyPathGlobs"];
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           ptr -= 1;
@@ -2101,19 +2249,19 @@ uint8_t* DiffConstraints::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // int32 max_files = 1;
+  // int32 max_files = 1 [json_name = "maxFiles"];
   if (this->_internal_max_files() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_max_files(), target);
   }
 
-  // int32 max_lines = 2;
+  // int32 max_lines = 2 [json_name = "maxLines"];
   if (this->_internal_max_lines() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(2, this->_internal_max_lines(), target);
   }
 
-  // repeated string deny_path_globs = 3;
+  // repeated string deny_path_globs = 3 [json_name = "denyPathGlobs"];
   for (int i = 0, n = this->_internal_deny_path_globs_size(); i < n; i++) {
     const auto& s = this->_internal_deny_path_globs(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
@@ -2139,7 +2287,7 @@ size_t DiffConstraints::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated string deny_path_globs = 3;
+  // repeated string deny_path_globs = 3 [json_name = "denyPathGlobs"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.deny_path_globs_.size());
   for (int i = 0, n = _impl_.deny_path_globs_.size(); i < n; i++) {
@@ -2147,12 +2295,12 @@ size_t DiffConstraints::ByteSizeLong() const {
       _impl_.deny_path_globs_.Get(i));
   }
 
-  // int32 max_files = 1;
+  // int32 max_files = 1 [json_name = "maxFiles"];
   if (this->_internal_max_files() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_max_files());
   }
 
-  // int32 max_lines = 2;
+  // int32 max_lines = 2 [json_name = "maxLines"];
   if (this->_internal_max_lines() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_max_lines());
   }
@@ -2353,7 +2501,7 @@ const char* PolicyConstraints::_InternalParse(const char* ptr, ::_pbi::ParseCont
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // .cordum.agent.v1.BudgetConstraints budgets = 1;
+      // .cordum.agent.v1.BudgetConstraints budgets = 1 [json_name = "budgets"];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
           ptr = ctx->ParseMessage(_internal_mutable_budgets(), ptr);
@@ -2361,7 +2509,7 @@ const char* PolicyConstraints::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // .cordum.agent.v1.SandboxProfile sandbox = 2;
+      // .cordum.agent.v1.SandboxProfile sandbox = 2 [json_name = "sandbox"];
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           ptr = ctx->ParseMessage(_internal_mutable_sandbox(), ptr);
@@ -2369,7 +2517,7 @@ const char* PolicyConstraints::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // .cordum.agent.v1.ToolchainConstraints toolchain = 3;
+      // .cordum.agent.v1.ToolchainConstraints toolchain = 3 [json_name = "toolchain"];
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           ptr = ctx->ParseMessage(_internal_mutable_toolchain(), ptr);
@@ -2377,7 +2525,7 @@ const char* PolicyConstraints::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // .cordum.agent.v1.DiffConstraints diff = 4;
+      // .cordum.agent.v1.DiffConstraints diff = 4 [json_name = "diff"];
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
           ptr = ctx->ParseMessage(_internal_mutable_diff(), ptr);
@@ -2385,7 +2533,7 @@ const char* PolicyConstraints::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // string redaction_level = 5;
+      // string redaction_level = 5 [json_name = "redactionLevel"];
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
           auto str = _internal_mutable_redaction_level();
@@ -2424,35 +2572,35 @@ uint8_t* PolicyConstraints::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .cordum.agent.v1.BudgetConstraints budgets = 1;
+  // .cordum.agent.v1.BudgetConstraints budgets = 1 [json_name = "budgets"];
   if (this->_internal_has_budgets()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessage(1, _Internal::budgets(this),
         _Internal::budgets(this).GetCachedSize(), target, stream);
   }
 
-  // .cordum.agent.v1.SandboxProfile sandbox = 2;
+  // .cordum.agent.v1.SandboxProfile sandbox = 2 [json_name = "sandbox"];
   if (this->_internal_has_sandbox()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessage(2, _Internal::sandbox(this),
         _Internal::sandbox(this).GetCachedSize(), target, stream);
   }
 
-  // .cordum.agent.v1.ToolchainConstraints toolchain = 3;
+  // .cordum.agent.v1.ToolchainConstraints toolchain = 3 [json_name = "toolchain"];
   if (this->_internal_has_toolchain()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessage(3, _Internal::toolchain(this),
         _Internal::toolchain(this).GetCachedSize(), target, stream);
   }
 
-  // .cordum.agent.v1.DiffConstraints diff = 4;
+  // .cordum.agent.v1.DiffConstraints diff = 4 [json_name = "diff"];
   if (this->_internal_has_diff()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessage(4, _Internal::diff(this),
         _Internal::diff(this).GetCachedSize(), target, stream);
   }
 
-  // string redaction_level = 5;
+  // string redaction_level = 5 [json_name = "redactionLevel"];
   if (!this->_internal_redaction_level().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_redaction_level().data(), static_cast<int>(this->_internal_redaction_level().length()),
@@ -2478,35 +2626,35 @@ size_t PolicyConstraints::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string redaction_level = 5;
+  // string redaction_level = 5 [json_name = "redactionLevel"];
   if (!this->_internal_redaction_level().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_redaction_level());
   }
 
-  // .cordum.agent.v1.BudgetConstraints budgets = 1;
+  // .cordum.agent.v1.BudgetConstraints budgets = 1 [json_name = "budgets"];
   if (this->_internal_has_budgets()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
         *_impl_.budgets_);
   }
 
-  // .cordum.agent.v1.SandboxProfile sandbox = 2;
+  // .cordum.agent.v1.SandboxProfile sandbox = 2 [json_name = "sandbox"];
   if (this->_internal_has_sandbox()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
         *_impl_.sandbox_);
   }
 
-  // .cordum.agent.v1.ToolchainConstraints toolchain = 3;
+  // .cordum.agent.v1.ToolchainConstraints toolchain = 3 [json_name = "toolchain"];
   if (this->_internal_has_toolchain()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
         *_impl_.toolchain_);
   }
 
-  // .cordum.agent.v1.DiffConstraints diff = 4;
+  // .cordum.agent.v1.DiffConstraints diff = 4 [json_name = "diff"];
   if (this->_internal_has_diff()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
@@ -2762,7 +2910,7 @@ const char* PolicyRemediation::_InternalParse(const char* ptr, ::_pbi::ParseCont
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // string id = 1;
+      // string id = 1 [json_name = "id"];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
           auto str = _internal_mutable_id();
@@ -2772,7 +2920,7 @@ const char* PolicyRemediation::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // string title = 2;
+      // string title = 2 [json_name = "title"];
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_title();
@@ -2782,7 +2930,7 @@ const char* PolicyRemediation::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // string summary = 3;
+      // string summary = 3 [json_name = "summary"];
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           auto str = _internal_mutable_summary();
@@ -2792,7 +2940,7 @@ const char* PolicyRemediation::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // string replacement_topic = 4;
+      // string replacement_topic = 4 [json_name = "replacementTopic"];
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
           auto str = _internal_mutable_replacement_topic();
@@ -2802,7 +2950,7 @@ const char* PolicyRemediation::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // string replacement_capability = 5;
+      // string replacement_capability = 5 [json_name = "replacementCapability"];
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
           auto str = _internal_mutable_replacement_capability();
@@ -2812,7 +2960,7 @@ const char* PolicyRemediation::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // map<string, string> add_labels = 6;
+      // map<string, string> add_labels = 6 [json_name = "addLabels"];
       case 6:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
           ptr -= 1;
@@ -2825,7 +2973,7 @@ const char* PolicyRemediation::_InternalParse(const char* ptr, ::_pbi::ParseCont
         } else
           goto handle_unusual;
         continue;
-      // repeated string remove_labels = 7;
+      // repeated string remove_labels = 7 [json_name = "removeLabels"];
       case 7:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
           ptr -= 1;
@@ -2869,7 +3017,7 @@ uint8_t* PolicyRemediation::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string id = 1;
+  // string id = 1 [json_name = "id"];
   if (!this->_internal_id().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_id().data(), static_cast<int>(this->_internal_id().length()),
@@ -2879,7 +3027,7 @@ uint8_t* PolicyRemediation::_InternalSerialize(
         1, this->_internal_id(), target);
   }
 
-  // string title = 2;
+  // string title = 2 [json_name = "title"];
   if (!this->_internal_title().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_title().data(), static_cast<int>(this->_internal_title().length()),
@@ -2889,7 +3037,7 @@ uint8_t* PolicyRemediation::_InternalSerialize(
         2, this->_internal_title(), target);
   }
 
-  // string summary = 3;
+  // string summary = 3 [json_name = "summary"];
   if (!this->_internal_summary().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_summary().data(), static_cast<int>(this->_internal_summary().length()),
@@ -2899,7 +3047,7 @@ uint8_t* PolicyRemediation::_InternalSerialize(
         3, this->_internal_summary(), target);
   }
 
-  // string replacement_topic = 4;
+  // string replacement_topic = 4 [json_name = "replacementTopic"];
   if (!this->_internal_replacement_topic().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_replacement_topic().data(), static_cast<int>(this->_internal_replacement_topic().length()),
@@ -2909,7 +3057,7 @@ uint8_t* PolicyRemediation::_InternalSerialize(
         4, this->_internal_replacement_topic(), target);
   }
 
-  // string replacement_capability = 5;
+  // string replacement_capability = 5 [json_name = "replacementCapability"];
   if (!this->_internal_replacement_capability().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_replacement_capability().data(), static_cast<int>(this->_internal_replacement_capability().length()),
@@ -2919,7 +3067,7 @@ uint8_t* PolicyRemediation::_InternalSerialize(
         5, this->_internal_replacement_capability(), target);
   }
 
-  // map<string, string> add_labels = 6;
+  // map<string, string> add_labels = 6 [json_name = "addLabels"];
   if (!this->_internal_add_labels().empty()) {
     using MapType = ::_pb::Map<std::string, std::string>;
     using WireHelper = PolicyRemediation_AddLabelsEntry_DoNotUse::Funcs;
@@ -2949,7 +3097,7 @@ uint8_t* PolicyRemediation::_InternalSerialize(
     }
   }
 
-  // repeated string remove_labels = 7;
+  // repeated string remove_labels = 7 [json_name = "removeLabels"];
   for (int i = 0, n = this->_internal_remove_labels_size(); i < n; i++) {
     const auto& s = this->_internal_remove_labels(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
@@ -2975,7 +3123,7 @@ size_t PolicyRemediation::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // map<string, string> add_labels = 6;
+  // map<string, string> add_labels = 6 [json_name = "addLabels"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_add_labels_size());
   for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
@@ -2984,7 +3132,7 @@ size_t PolicyRemediation::ByteSizeLong() const {
     total_size += PolicyRemediation_AddLabelsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
   }
 
-  // repeated string remove_labels = 7;
+  // repeated string remove_labels = 7 [json_name = "removeLabels"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.remove_labels_.size());
   for (int i = 0, n = _impl_.remove_labels_.size(); i < n; i++) {
@@ -2992,35 +3140,35 @@ size_t PolicyRemediation::ByteSizeLong() const {
       _impl_.remove_labels_.Get(i));
   }
 
-  // string id = 1;
+  // string id = 1 [json_name = "id"];
   if (!this->_internal_id().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_id());
   }
 
-  // string title = 2;
+  // string title = 2 [json_name = "title"];
   if (!this->_internal_title().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_title());
   }
 
-  // string summary = 3;
+  // string summary = 3 [json_name = "summary"];
   if (!this->_internal_summary().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_summary());
   }
 
-  // string replacement_topic = 4;
+  // string replacement_topic = 4 [json_name = "replacementTopic"];
   if (!this->_internal_replacement_topic().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_replacement_topic());
   }
 
-  // string replacement_capability = 5;
+  // string replacement_capability = 5 [json_name = "replacementCapability"];
   if (!this->_internal_replacement_capability().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
@@ -3283,7 +3431,7 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // .cordum.agent.v1.DecisionType decision = 1;
+      // .cordum.agent.v1.DecisionType decision = 1 [json_name = "decision"];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
           uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
@@ -3292,7 +3440,7 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
         } else
           goto handle_unusual;
         continue;
-      // string reason = 2;
+      // string reason = 2 [json_name = "reason"];
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_reason();
@@ -3302,7 +3450,7 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
         } else
           goto handle_unusual;
         continue;
-      // string redacted_context_ptr = 3;
+      // string redacted_context_ptr = 3 [json_name = "redactedContextPtr"];
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           auto str = _internal_mutable_redacted_context_ptr();
@@ -3312,7 +3460,7 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
         } else
           goto handle_unusual;
         continue;
-      // string policy_snapshot = 4;
+      // string policy_snapshot = 4 [json_name = "policySnapshot"];
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
           auto str = _internal_mutable_policy_snapshot();
@@ -3322,7 +3470,7 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
         } else
           goto handle_unusual;
         continue;
-      // string rule_id = 5;
+      // string rule_id = 5 [json_name = "ruleId"];
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
           auto str = _internal_mutable_rule_id();
@@ -3332,7 +3480,7 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
         } else
           goto handle_unusual;
         continue;
-      // .cordum.agent.v1.PolicyConstraints constraints = 6;
+      // .cordum.agent.v1.PolicyConstraints constraints = 6 [json_name = "constraints"];
       case 6:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
           ptr = ctx->ParseMessage(_internal_mutable_constraints(), ptr);
@@ -3340,7 +3488,7 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
         } else
           goto handle_unusual;
         continue;
-      // bool approval_required = 7;
+      // bool approval_required = 7 [json_name = "approvalRequired"];
       case 7:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 56)) {
           _impl_.approval_required_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
@@ -3348,7 +3496,7 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
         } else
           goto handle_unusual;
         continue;
-      // string approval_ref = 8;
+      // string approval_ref = 8 [json_name = "approvalRef"];
       case 8:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
           auto str = _internal_mutable_approval_ref();
@@ -3358,7 +3506,7 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
         } else
           goto handle_unusual;
         continue;
-      // repeated .cordum.agent.v1.PolicyRemediation remediations = 9;
+      // repeated .cordum.agent.v1.PolicyRemediation remediations = 9 [json_name = "remediations"];
       case 9:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
           ptr -= 1;
@@ -3400,14 +3548,14 @@ uint8_t* PolicyCheckResponse::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .cordum.agent.v1.DecisionType decision = 1;
+  // .cordum.agent.v1.DecisionType decision = 1 [json_name = "decision"];
   if (this->_internal_decision() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteEnumToArray(
       1, this->_internal_decision(), target);
   }
 
-  // string reason = 2;
+  // string reason = 2 [json_name = "reason"];
   if (!this->_internal_reason().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_reason().data(), static_cast<int>(this->_internal_reason().length()),
@@ -3417,7 +3565,7 @@ uint8_t* PolicyCheckResponse::_InternalSerialize(
         2, this->_internal_reason(), target);
   }
 
-  // string redacted_context_ptr = 3;
+  // string redacted_context_ptr = 3 [json_name = "redactedContextPtr"];
   if (!this->_internal_redacted_context_ptr().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_redacted_context_ptr().data(), static_cast<int>(this->_internal_redacted_context_ptr().length()),
@@ -3427,7 +3575,7 @@ uint8_t* PolicyCheckResponse::_InternalSerialize(
         3, this->_internal_redacted_context_ptr(), target);
   }
 
-  // string policy_snapshot = 4;
+  // string policy_snapshot = 4 [json_name = "policySnapshot"];
   if (!this->_internal_policy_snapshot().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_policy_snapshot().data(), static_cast<int>(this->_internal_policy_snapshot().length()),
@@ -3437,7 +3585,7 @@ uint8_t* PolicyCheckResponse::_InternalSerialize(
         4, this->_internal_policy_snapshot(), target);
   }
 
-  // string rule_id = 5;
+  // string rule_id = 5 [json_name = "ruleId"];
   if (!this->_internal_rule_id().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_rule_id().data(), static_cast<int>(this->_internal_rule_id().length()),
@@ -3447,20 +3595,20 @@ uint8_t* PolicyCheckResponse::_InternalSerialize(
         5, this->_internal_rule_id(), target);
   }
 
-  // .cordum.agent.v1.PolicyConstraints constraints = 6;
+  // .cordum.agent.v1.PolicyConstraints constraints = 6 [json_name = "constraints"];
   if (this->_internal_has_constraints()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
       InternalWriteMessage(6, _Internal::constraints(this),
         _Internal::constraints(this).GetCachedSize(), target, stream);
   }
 
-  // bool approval_required = 7;
+  // bool approval_required = 7 [json_name = "approvalRequired"];
   if (this->_internal_approval_required() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteBoolToArray(7, this->_internal_approval_required(), target);
   }
 
-  // string approval_ref = 8;
+  // string approval_ref = 8 [json_name = "approvalRef"];
   if (!this->_internal_approval_ref().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_approval_ref().data(), static_cast<int>(this->_internal_approval_ref().length()),
@@ -3470,7 +3618,7 @@ uint8_t* PolicyCheckResponse::_InternalSerialize(
         8, this->_internal_approval_ref(), target);
   }
 
-  // repeated .cordum.agent.v1.PolicyRemediation remediations = 9;
+  // repeated .cordum.agent.v1.PolicyRemediation remediations = 9 [json_name = "remediations"];
   for (unsigned i = 0,
       n = static_cast<unsigned>(this->_internal_remediations_size()); i < n; i++) {
     const auto& repfield = this->_internal_remediations(i);
@@ -3494,62 +3642,62 @@ size_t PolicyCheckResponse::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .cordum.agent.v1.PolicyRemediation remediations = 9;
+  // repeated .cordum.agent.v1.PolicyRemediation remediations = 9 [json_name = "remediations"];
   total_size += 1UL * this->_internal_remediations_size();
   for (const auto& msg : this->_impl_.remediations_) {
     total_size +=
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(msg);
   }
 
-  // string reason = 2;
+  // string reason = 2 [json_name = "reason"];
   if (!this->_internal_reason().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_reason());
   }
 
-  // string redacted_context_ptr = 3;
+  // string redacted_context_ptr = 3 [json_name = "redactedContextPtr"];
   if (!this->_internal_redacted_context_ptr().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_redacted_context_ptr());
   }
 
-  // string policy_snapshot = 4;
+  // string policy_snapshot = 4 [json_name = "policySnapshot"];
   if (!this->_internal_policy_snapshot().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_policy_snapshot());
   }
 
-  // string rule_id = 5;
+  // string rule_id = 5 [json_name = "ruleId"];
   if (!this->_internal_rule_id().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_rule_id());
   }
 
-  // string approval_ref = 8;
+  // string approval_ref = 8 [json_name = "approvalRef"];
   if (!this->_internal_approval_ref().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_approval_ref());
   }
 
-  // .cordum.agent.v1.PolicyConstraints constraints = 6;
+  // .cordum.agent.v1.PolicyConstraints constraints = 6 [json_name = "constraints"];
   if (this->_internal_has_constraints()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
         *_impl_.constraints_);
   }
 
-  // .cordum.agent.v1.DecisionType decision = 1;
+  // .cordum.agent.v1.DecisionType decision = 1 [json_name = "decision"];
   if (this->_internal_decision() != 0) {
     total_size += 1 +
       ::_pbi::WireFormatLite::EnumSize(this->_internal_decision());
   }
 
-  // bool approval_required = 7;
+  // bool approval_required = 7 [json_name = "approvalRequired"];
   if (this->_internal_approval_required() != 0) {
     total_size += 1 + 1;
   }
@@ -3759,7 +3907,7 @@ const char* ListSnapshotsResponse::_InternalParse(const char* ptr, ::_pbi::Parse
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // repeated string snapshots = 1;
+      // repeated string snapshots = 1 [json_name = "snapshots"];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
           ptr -= 1;
@@ -3803,7 +3951,7 @@ uint8_t* ListSnapshotsResponse::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated string snapshots = 1;
+  // repeated string snapshots = 1 [json_name = "snapshots"];
   for (int i = 0, n = this->_internal_snapshots_size(); i < n; i++) {
     const auto& s = this->_internal_snapshots(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
@@ -3829,7 +3977,7 @@ size_t ListSnapshotsResponse::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated string snapshots = 1;
+  // repeated string snapshots = 1 [json_name = "snapshots"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.snapshots_.size());
   for (int i = 0, n = _impl_.snapshots_.size(); i < n; i++) {

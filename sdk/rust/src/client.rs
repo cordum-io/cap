@@ -1,8 +1,6 @@
-use std::collections::HashMap;
 use std::time::SystemTime;
 
 use p256::ecdsa::SigningKey;
-use prost::Message;
 
 use crate::codec::marshal_deterministic;
 use crate::errors::CapError;
@@ -67,7 +65,7 @@ impl Client {
 
         let data = marshal_deterministic(&packet);
         self.nc
-            .publish(subjects::SUBJECT_SUBMIT.into(), data.into())
+            .publish(subjects::SUBJECT_SUBMIT, data.into())
             .await
             .map_err(|e| CapError::publish_failed(&e.to_string()))?;
 

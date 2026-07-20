@@ -228,6 +228,8 @@ class Heartbeat final :
     kTypeFieldNumber = 3,
     kPoolFieldNumber = 11,
     kLastMemoFieldNumber = 16,
+    kAuthTokenFieldNumber = 18,
+    kAgentNameFieldNumber = 19,
     kCpuLoadFieldNumber = 4,
     kGpuUtilizationFieldNumber = 5,
     kActiveJobsFieldNumber = 6,
@@ -235,7 +237,7 @@ class Heartbeat final :
     kMemoryLoadFieldNumber = 14,
     kProgressPctFieldNumber = 15,
   };
-  // repeated string capabilities = 7;
+  // repeated string capabilities = 7 [json_name = "capabilities"];
   int capabilities_size() const;
   private:
   int _internal_capabilities_size() const;
@@ -259,7 +261,7 @@ class Heartbeat final :
   std::string* _internal_add_capabilities();
   public:
 
-  // map<string, string> labels = 13;
+  // map<string, string> labels = 13 [json_name = "labels"];
   int labels_size() const;
   private:
   int _internal_labels_size() const;
@@ -276,7 +278,7 @@ class Heartbeat final :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_labels();
 
-  // string worker_id = 1;
+  // string worker_id = 1 [json_name = "workerId"];
   void clear_worker_id();
   const std::string& worker_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -290,7 +292,7 @@ class Heartbeat final :
   std::string* _internal_mutable_worker_id();
   public:
 
-  // string region = 2;
+  // string region = 2 [json_name = "region"];
   void clear_region();
   const std::string& region() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -304,7 +306,7 @@ class Heartbeat final :
   std::string* _internal_mutable_region();
   public:
 
-  // string type = 3;
+  // string type = 3 [json_name = "type"];
   void clear_type();
   const std::string& type() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -318,7 +320,7 @@ class Heartbeat final :
   std::string* _internal_mutable_type();
   public:
 
-  // string pool = 11;
+  // string pool = 11 [json_name = "pool"];
   void clear_pool();
   const std::string& pool() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -332,7 +334,7 @@ class Heartbeat final :
   std::string* _internal_mutable_pool();
   public:
 
-  // string last_memo = 16;
+  // string last_memo = 16 [json_name = "lastMemo"];
   void clear_last_memo();
   const std::string& last_memo() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -346,7 +348,35 @@ class Heartbeat final :
   std::string* _internal_mutable_last_memo();
   public:
 
-  // float cpu_load = 4;
+  // string auth_token = 18 [json_name = "authToken"];
+  void clear_auth_token();
+  const std::string& auth_token() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_auth_token(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_auth_token();
+  PROTOBUF_NODISCARD std::string* release_auth_token();
+  void set_allocated_auth_token(std::string* auth_token);
+  private:
+  const std::string& _internal_auth_token() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_auth_token(const std::string& value);
+  std::string* _internal_mutable_auth_token();
+  public:
+
+  // string agent_name = 19 [json_name = "agentName"];
+  void clear_agent_name();
+  const std::string& agent_name() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_agent_name(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_agent_name();
+  PROTOBUF_NODISCARD std::string* release_agent_name();
+  void set_allocated_agent_name(std::string* agent_name);
+  private:
+  const std::string& _internal_agent_name() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_agent_name(const std::string& value);
+  std::string* _internal_mutable_agent_name();
+  public:
+
+  // float cpu_load = 4 [json_name = "cpuLoad"];
   void clear_cpu_load();
   float cpu_load() const;
   void set_cpu_load(float value);
@@ -355,7 +385,7 @@ class Heartbeat final :
   void _internal_set_cpu_load(float value);
   public:
 
-  // float gpu_utilization = 5;
+  // float gpu_utilization = 5 [json_name = "gpuUtilization"];
   void clear_gpu_utilization();
   float gpu_utilization() const;
   void set_gpu_utilization(float value);
@@ -364,7 +394,7 @@ class Heartbeat final :
   void _internal_set_gpu_utilization(float value);
   public:
 
-  // int32 active_jobs = 6;
+  // int32 active_jobs = 6 [json_name = "activeJobs"];
   void clear_active_jobs();
   int32_t active_jobs() const;
   void set_active_jobs(int32_t value);
@@ -373,7 +403,7 @@ class Heartbeat final :
   void _internal_set_active_jobs(int32_t value);
   public:
 
-  // int32 max_parallel_jobs = 12;
+  // int32 max_parallel_jobs = 12 [json_name = "maxParallelJobs"];
   void clear_max_parallel_jobs();
   int32_t max_parallel_jobs() const;
   void set_max_parallel_jobs(int32_t value);
@@ -382,7 +412,7 @@ class Heartbeat final :
   void _internal_set_max_parallel_jobs(int32_t value);
   public:
 
-  // float memory_load = 14;
+  // float memory_load = 14 [json_name = "memoryLoad"];
   void clear_memory_load();
   float memory_load() const;
   void set_memory_load(float value);
@@ -391,7 +421,7 @@ class Heartbeat final :
   void _internal_set_memory_load(float value);
   public:
 
-  // int32 progress_pct = 15;
+  // int32 progress_pct = 15 [json_name = "progressPct"];
   void clear_progress_pct();
   int32_t progress_pct() const;
   void set_progress_pct(int32_t value);
@@ -419,6 +449,8 @@ class Heartbeat final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr type_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr pool_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr last_memo_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr auth_token_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr agent_name_;
     float cpu_load_;
     float gpu_utilization_;
     int32_t active_jobs_;
@@ -443,7 +475,7 @@ class Heartbeat final :
 
 // Heartbeat
 
-// string worker_id = 1;
+// string worker_id = 1 [json_name = "workerId"];
 inline void Heartbeat::clear_worker_id() {
   _impl_.worker_id_.ClearToEmpty();
 }
@@ -493,7 +525,7 @@ inline void Heartbeat::set_allocated_worker_id(std::string* worker_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Heartbeat.worker_id)
 }
 
-// string region = 2;
+// string region = 2 [json_name = "region"];
 inline void Heartbeat::clear_region() {
   _impl_.region_.ClearToEmpty();
 }
@@ -543,7 +575,7 @@ inline void Heartbeat::set_allocated_region(std::string* region) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Heartbeat.region)
 }
 
-// string type = 3;
+// string type = 3 [json_name = "type"];
 inline void Heartbeat::clear_type() {
   _impl_.type_.ClearToEmpty();
 }
@@ -593,7 +625,7 @@ inline void Heartbeat::set_allocated_type(std::string* type) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Heartbeat.type)
 }
 
-// float cpu_load = 4;
+// float cpu_load = 4 [json_name = "cpuLoad"];
 inline void Heartbeat::clear_cpu_load() {
   _impl_.cpu_load_ = 0;
 }
@@ -613,7 +645,7 @@ inline void Heartbeat::set_cpu_load(float value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.cpu_load)
 }
 
-// float gpu_utilization = 5;
+// float gpu_utilization = 5 [json_name = "gpuUtilization"];
 inline void Heartbeat::clear_gpu_utilization() {
   _impl_.gpu_utilization_ = 0;
 }
@@ -633,7 +665,7 @@ inline void Heartbeat::set_gpu_utilization(float value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.gpu_utilization)
 }
 
-// int32 active_jobs = 6;
+// int32 active_jobs = 6 [json_name = "activeJobs"];
 inline void Heartbeat::clear_active_jobs() {
   _impl_.active_jobs_ = 0;
 }
@@ -653,7 +685,7 @@ inline void Heartbeat::set_active_jobs(int32_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.active_jobs)
 }
 
-// repeated string capabilities = 7;
+// repeated string capabilities = 7 [json_name = "capabilities"];
 inline int Heartbeat::_internal_capabilities_size() const {
   return _impl_.capabilities_.size();
 }
@@ -728,7 +760,7 @@ Heartbeat::mutable_capabilities() {
   return &_impl_.capabilities_;
 }
 
-// string pool = 11;
+// string pool = 11 [json_name = "pool"];
 inline void Heartbeat::clear_pool() {
   _impl_.pool_.ClearToEmpty();
 }
@@ -778,7 +810,7 @@ inline void Heartbeat::set_allocated_pool(std::string* pool) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Heartbeat.pool)
 }
 
-// int32 max_parallel_jobs = 12;
+// int32 max_parallel_jobs = 12 [json_name = "maxParallelJobs"];
 inline void Heartbeat::clear_max_parallel_jobs() {
   _impl_.max_parallel_jobs_ = 0;
 }
@@ -798,7 +830,7 @@ inline void Heartbeat::set_max_parallel_jobs(int32_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.max_parallel_jobs)
 }
 
-// map<string, string> labels = 13;
+// map<string, string> labels = 13 [json_name = "labels"];
 inline int Heartbeat::_internal_labels_size() const {
   return _impl_.labels_.size();
 }
@@ -827,7 +859,7 @@ Heartbeat::mutable_labels() {
   return _internal_mutable_labels();
 }
 
-// float memory_load = 14;
+// float memory_load = 14 [json_name = "memoryLoad"];
 inline void Heartbeat::clear_memory_load() {
   _impl_.memory_load_ = 0;
 }
@@ -847,7 +879,7 @@ inline void Heartbeat::set_memory_load(float value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.memory_load)
 }
 
-// int32 progress_pct = 15;
+// int32 progress_pct = 15 [json_name = "progressPct"];
 inline void Heartbeat::clear_progress_pct() {
   _impl_.progress_pct_ = 0;
 }
@@ -867,7 +899,7 @@ inline void Heartbeat::set_progress_pct(int32_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.progress_pct)
 }
 
-// string last_memo = 16;
+// string last_memo = 16 [json_name = "lastMemo"];
 inline void Heartbeat::clear_last_memo() {
   _impl_.last_memo_.ClearToEmpty();
 }
@@ -915,6 +947,106 @@ inline void Heartbeat::set_allocated_last_memo(std::string* last_memo) {
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Heartbeat.last_memo)
+}
+
+// string auth_token = 18 [json_name = "authToken"];
+inline void Heartbeat::clear_auth_token() {
+  _impl_.auth_token_.ClearToEmpty();
+}
+inline const std::string& Heartbeat::auth_token() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Heartbeat.auth_token)
+  return _internal_auth_token();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Heartbeat::set_auth_token(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.auth_token_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.auth_token)
+}
+inline std::string* Heartbeat::mutable_auth_token() {
+  std::string* _s = _internal_mutable_auth_token();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Heartbeat.auth_token)
+  return _s;
+}
+inline const std::string& Heartbeat::_internal_auth_token() const {
+  return _impl_.auth_token_.Get();
+}
+inline void Heartbeat::_internal_set_auth_token(const std::string& value) {
+  
+  _impl_.auth_token_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Heartbeat::_internal_mutable_auth_token() {
+  
+  return _impl_.auth_token_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Heartbeat::release_auth_token() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Heartbeat.auth_token)
+  return _impl_.auth_token_.Release();
+}
+inline void Heartbeat::set_allocated_auth_token(std::string* auth_token) {
+  if (auth_token != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.auth_token_.SetAllocated(auth_token, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.auth_token_.IsDefault()) {
+    _impl_.auth_token_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Heartbeat.auth_token)
+}
+
+// string agent_name = 19 [json_name = "agentName"];
+inline void Heartbeat::clear_agent_name() {
+  _impl_.agent_name_.ClearToEmpty();
+}
+inline const std::string& Heartbeat::agent_name() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Heartbeat.agent_name)
+  return _internal_agent_name();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void Heartbeat::set_agent_name(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.agent_name_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.Heartbeat.agent_name)
+}
+inline std::string* Heartbeat::mutable_agent_name() {
+  std::string* _s = _internal_mutable_agent_name();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Heartbeat.agent_name)
+  return _s;
+}
+inline const std::string& Heartbeat::_internal_agent_name() const {
+  return _impl_.agent_name_.Get();
+}
+inline void Heartbeat::_internal_set_agent_name(const std::string& value) {
+  
+  _impl_.agent_name_.Set(value, GetArenaForAllocation());
+}
+inline std::string* Heartbeat::_internal_mutable_agent_name() {
+  
+  return _impl_.agent_name_.Mutable(GetArenaForAllocation());
+}
+inline std::string* Heartbeat::release_agent_name() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Heartbeat.agent_name)
+  return _impl_.agent_name_.Release();
+}
+inline void Heartbeat::set_allocated_agent_name(std::string* agent_name) {
+  if (agent_name != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.agent_name_.SetAllocated(agent_name, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.agent_name_.IsDefault()) {
+    _impl_.agent_name_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Heartbeat.agent_name)
 }
 
 #ifdef __GNUC__

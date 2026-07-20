@@ -13,13 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = (function() {
-  if (this) { return this; }
-  if (typeof window !== 'undefined') { return window; }
-  if (typeof global !== 'undefined') { return global; }
-  if (typeof self !== 'undefined') { return self; }
-  return Function('return this')();
-}.call(null));
+var global =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof global !== 'undefined' && global) ||
+    (typeof self !== 'undefined' && self) ||
+    (function () { return this; }).call(null) ||
+    Function('return this')();
 
 goog.exportSymbol('proto.cordum.agent.v1.ActorType', null, global);
 goog.exportSymbol('proto.cordum.agent.v1.Budget', null, global);
@@ -240,10 +240,10 @@ proto.cordum.agent.v1.ContextHints.prototype.toObject = function(opt_includeInst
  */
 proto.cordum.agent.v1.ContextHints.toObject = function(includeInstance, msg) {
   var f, obj = {
-    maxInputTokens: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    allowSummarization: jspb.Message.getBooleanFieldWithDefault(msg, 2, false),
-    allowRetrieval: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
-    tagsList: (f = jspb.Message.getRepeatedField(msg, 4)) == null ? undefined : f
+maxInputTokens: jspb.Message.getFieldWithDefault(msg, 1, 0),
+allowSummarization: jspb.Message.getBooleanFieldWithDefault(msg, 2, false),
+allowRetrieval: jspb.Message.getBooleanFieldWithDefault(msg, 3, false),
+tagsList: (f = jspb.Message.getRepeatedField(msg, 4)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -479,10 +479,10 @@ proto.cordum.agent.v1.Budget.prototype.toObject = function(opt_includeInstance) 
  */
 proto.cordum.agent.v1.Budget.toObject = function(includeInstance, msg) {
   var f, obj = {
-    maxInputTokens: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    maxOutputTokens: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    maxTotalTokens: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    deadlineMs: jspb.Message.getFieldWithDefault(msg, 4, 0)
+maxInputTokens: jspb.Message.getFieldWithDefault(msg, 1, 0),
+maxOutputTokens: jspb.Message.getFieldWithDefault(msg, 2, 0),
+maxTotalTokens: jspb.Message.getFieldWithDefault(msg, 3, 0),
+deadlineMs: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -706,15 +706,15 @@ proto.cordum.agent.v1.JobMetadata.prototype.toObject = function(opt_includeInsta
  */
 proto.cordum.agent.v1.JobMetadata.toObject = function(includeInstance, msg) {
   var f, obj = {
-    tenantId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    actorId: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    actorType: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    idempotencyKey: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    capability: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    riskTagsList: (f = jspb.Message.getRepeatedField(msg, 6)) == null ? undefined : f,
-    requiresList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f,
-    packId: jspb.Message.getFieldWithDefault(msg, 8, ""),
-    labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : []
+tenantId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+actorId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+actorType: jspb.Message.getFieldWithDefault(msg, 3, 0),
+idempotencyKey: jspb.Message.getFieldWithDefault(msg, 4, ""),
+capability: jspb.Message.getFieldWithDefault(msg, 5, ""),
+riskTagsList: (f = jspb.Message.getRepeatedField(msg, 6)) == null ? undefined : f,
+requiresList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f,
+packId: jspb.Message.getFieldWithDefault(msg, 8, ""),
+labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -1082,7 +1082,8 @@ proto.cordum.agent.v1.JobMetadata.prototype.getLabelsMap = function(opt_noLazyCr
  */
 proto.cordum.agent.v1.JobMetadata.prototype.clearLabelsMap = function() {
   this.getLabelsMap().clear();
-  return this;};
+  return this;
+};
 
 
 
@@ -1117,18 +1118,18 @@ proto.cordum.agent.v1.Compensation.prototype.toObject = function(opt_includeInst
  */
 proto.cordum.agent.v1.Compensation.toObject = function(includeInstance, msg) {
   var f, obj = {
-    topic: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    contextPtr: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    priority: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    adapterId: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    envMap: (f = msg.getEnvMap()) ? f.toObject(includeInstance, undefined) : [],
-    memoryId: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    contextHints: (f = msg.getContextHints()) && proto.cordum.agent.v1.ContextHints.toObject(includeInstance, f),
-    budget: (f = msg.getBudget()) && proto.cordum.agent.v1.Budget.toObject(includeInstance, f),
-    tenantId: jspb.Message.getFieldWithDefault(msg, 9, ""),
-    principalId: jspb.Message.getFieldWithDefault(msg, 10, ""),
-    labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
-    meta: (f = msg.getMeta()) && proto.cordum.agent.v1.JobMetadata.toObject(includeInstance, f)
+topic: jspb.Message.getFieldWithDefault(msg, 1, ""),
+contextPtr: jspb.Message.getFieldWithDefault(msg, 2, ""),
+priority: jspb.Message.getFieldWithDefault(msg, 3, 0),
+adapterId: jspb.Message.getFieldWithDefault(msg, 4, ""),
+envMap: (f = msg.getEnvMap()) ? f.toObject(includeInstance, undefined) : [],
+memoryId: jspb.Message.getFieldWithDefault(msg, 6, ""),
+contextHints: (f = msg.getContextHints()) && proto.cordum.agent.v1.ContextHints.toObject(includeInstance, f),
+budget: (f = msg.getBudget()) && proto.cordum.agent.v1.Budget.toObject(includeInstance, f),
+tenantId: jspb.Message.getFieldWithDefault(msg, 9, ""),
+principalId: jspb.Message.getFieldWithDefault(msg, 10, ""),
+labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
+meta: (f = msg.getMeta()) && proto.cordum.agent.v1.JobMetadata.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -1424,7 +1425,8 @@ proto.cordum.agent.v1.Compensation.prototype.getEnvMap = function(opt_noLazyCrea
  */
 proto.cordum.agent.v1.Compensation.prototype.clearEnvMap = function() {
   this.getEnvMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -1574,7 +1576,8 @@ proto.cordum.agent.v1.Compensation.prototype.getLabelsMap = function(opt_noLazyC
  */
 proto.cordum.agent.v1.Compensation.prototype.clearLabelsMap = function() {
   this.getLabelsMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -1646,23 +1649,23 @@ proto.cordum.agent.v1.JobRequest.prototype.toObject = function(opt_includeInstan
  */
 proto.cordum.agent.v1.JobRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    topic: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    priority: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    contextPtr: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    adapterId: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    envMap: (f = msg.getEnvMap()) ? f.toObject(includeInstance, undefined) : [],
-    parentJobId: jspb.Message.getFieldWithDefault(msg, 7, ""),
-    workflowId: jspb.Message.getFieldWithDefault(msg, 8, ""),
-    stepIndex: jspb.Message.getFieldWithDefault(msg, 9, 0),
-    memoryId: jspb.Message.getFieldWithDefault(msg, 10, ""),
-    contextHints: (f = msg.getContextHints()) && proto.cordum.agent.v1.ContextHints.toObject(includeInstance, f),
-    budget: (f = msg.getBudget()) && proto.cordum.agent.v1.Budget.toObject(includeInstance, f),
-    tenantId: jspb.Message.getFieldWithDefault(msg, 13, ""),
-    principalId: jspb.Message.getFieldWithDefault(msg, 14, ""),
-    labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
-    meta: (f = msg.getMeta()) && proto.cordum.agent.v1.JobMetadata.toObject(includeInstance, f),
-    compensation: (f = msg.getCompensation()) && proto.cordum.agent.v1.Compensation.toObject(includeInstance, f)
+jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+topic: jspb.Message.getFieldWithDefault(msg, 2, ""),
+priority: jspb.Message.getFieldWithDefault(msg, 3, 0),
+contextPtr: jspb.Message.getFieldWithDefault(msg, 4, ""),
+adapterId: jspb.Message.getFieldWithDefault(msg, 5, ""),
+envMap: (f = msg.getEnvMap()) ? f.toObject(includeInstance, undefined) : [],
+parentJobId: jspb.Message.getFieldWithDefault(msg, 7, ""),
+workflowId: jspb.Message.getFieldWithDefault(msg, 8, ""),
+stepIndex: jspb.Message.getFieldWithDefault(msg, 9, 0),
+memoryId: jspb.Message.getFieldWithDefault(msg, 10, ""),
+contextHints: (f = msg.getContextHints()) && proto.cordum.agent.v1.ContextHints.toObject(includeInstance, f),
+budget: (f = msg.getBudget()) && proto.cordum.agent.v1.Budget.toObject(includeInstance, f),
+tenantId: jspb.Message.getFieldWithDefault(msg, 13, ""),
+principalId: jspb.Message.getFieldWithDefault(msg, 14, ""),
+labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
+meta: (f = msg.getMeta()) && proto.cordum.agent.v1.JobMetadata.toObject(includeInstance, f),
+compensation: (f = msg.getCompensation()) && proto.cordum.agent.v1.Compensation.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2033,7 +2036,8 @@ proto.cordum.agent.v1.JobRequest.prototype.getEnvMap = function(opt_noLazyCreate
  */
 proto.cordum.agent.v1.JobRequest.prototype.clearEnvMap = function() {
   this.getEnvMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -2237,7 +2241,8 @@ proto.cordum.agent.v1.JobRequest.prototype.getLabelsMap = function(opt_noLazyCre
  */
 proto.cordum.agent.v1.JobRequest.prototype.clearLabelsMap = function() {
   this.getLabelsMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -2353,15 +2358,15 @@ proto.cordum.agent.v1.JobResult.prototype.toObject = function(opt_includeInstanc
  */
 proto.cordum.agent.v1.JobResult.toObject = function(includeInstance, msg) {
   var f, obj = {
-    jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    status: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    resultPtr: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    workerId: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    executionMs: jspb.Message.getFieldWithDefault(msg, 5, 0),
-    errorCode: jspb.Message.getFieldWithDefault(msg, 6, ""),
-    errorMessage: jspb.Message.getFieldWithDefault(msg, 7, ""),
-    artifactPtrsList: (f = jspb.Message.getRepeatedField(msg, 8)) == null ? undefined : f,
-    errorCodeEnum: jspb.Message.getFieldWithDefault(msg, 9, 0)
+jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+status: jspb.Message.getFieldWithDefault(msg, 2, 0),
+resultPtr: jspb.Message.getFieldWithDefault(msg, 3, ""),
+workerId: jspb.Message.getFieldWithDefault(msg, 4, ""),
+executionMs: jspb.Message.getFieldWithDefault(msg, 5, 0),
+errorCode: jspb.Message.getFieldWithDefault(msg, 6, ""),
+errorMessage: jspb.Message.getFieldWithDefault(msg, 7, ""),
+artifactPtrsList: (f = jspb.Message.getRepeatedField(msg, 8)) == null ? undefined : f,
+errorCodeEnum: jspb.Message.getFieldWithDefault(msg, 9, 0)
   };
 
   if (includeInstance) {
@@ -2749,13 +2754,13 @@ proto.cordum.agent.v1.JobProgress.prototype.toObject = function(opt_includeInsta
  */
 proto.cordum.agent.v1.JobProgress.toObject = function(includeInstance, msg) {
   var f, obj = {
-    jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    stepId: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    percent: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    message: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    resultPtr: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    artifactPtrsList: (f = jspb.Message.getRepeatedField(msg, 6)) == null ? undefined : f,
-    status: jspb.Message.getFieldWithDefault(msg, 7, 0)
+jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+stepId: jspb.Message.getFieldWithDefault(msg, 2, ""),
+percent: jspb.Message.getFieldWithDefault(msg, 3, 0),
+message: jspb.Message.getFieldWithDefault(msg, 4, ""),
+resultPtr: jspb.Message.getFieldWithDefault(msg, 5, ""),
+artifactPtrsList: (f = jspb.Message.getRepeatedField(msg, 6)) == null ? undefined : f,
+status: jspb.Message.getFieldWithDefault(msg, 7, 0)
   };
 
   if (includeInstance) {
@@ -3078,9 +3083,9 @@ proto.cordum.agent.v1.JobCancel.prototype.toObject = function(opt_includeInstanc
  */
 proto.cordum.agent.v1.JobCancel.toObject = function(includeInstance, msg) {
   var f, obj = {
-    jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    reason: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    requestedBy: jspb.Message.getFieldWithDefault(msg, 3, "")
+jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+reason: jspb.Message.getFieldWithDefault(msg, 2, ""),
+requestedBy: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {

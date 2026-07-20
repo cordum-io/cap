@@ -10,9 +10,17 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: publish-node-${{ github.event.inputs.version || github.ref_name }}
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NATS_IMAGE: >-
+        nats:2.12.6-alpine@sha256:1cfc36e2e5e638243d8c722f72c954cd0ec4b15ee82fadbc718ce12e2b3c1652
     defaults:
       run:
         shell: bash
@@ -22,17 +30,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+          cache-dependency-path: sdk/node/package-lock.json
 
       - name: Set version from tag
         env:
           VERSION: ${{ github.event.inputs.version || github.ref_name }}
         run: |
+          set -euo pipefail
           if [[ -z "${VERSION}" ]]; then
             echo "VERSION not set from tag"; exit 1
           fi
@@ -42,18 +55,78 @@ jobs:
           fi
           CURRENT_VERSION="$(node -p "require('./package.json').version")"
           if [[ "${CURRENT_VERSION}" != "${VERSION}" ]]; then
-            npm version "$VERSION" --no-git-tag-version
+            npm version "${VERSION}" --no-git-tag-version
           else
             echo "package.json already at version ${VERSION}"
           fi
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install locked dependencies
+        run: npm ci
 
-      - name: Build
+      - name: Run source tests
+        run: npm test
+
+      - name: Build package
         run: npm run build
 
-      - name: Publish to npm
-        run: npm publish --access public
+      - name: Lint package metadata
+        run: npm run lint:package
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Install pinned NATS server binary
+        run: |
+          set -euo pipefail
+          binary="$RUNNER_TEMP/nats-server"
+          docker pull "$NATS_IMAGE"
+          cid="$(docker create "$NATS_IMAGE")"
+          trap 'docker rm -f "$cid" >/dev/null 2>&1' EXIT
+          docker cp "$cid:/usr/local/bin/nats-server" "$binary"
+          docker rm "$cid" >/dev/null
+          trap - EXIT
+          chmod 0755 "$binary"
+          test "$("$binary" -v)" = "nats-server: v2.12.6"
+          echo "CAP_NATS_SERVER_BIN=$binary" >> "$GITHUB_ENV"
+
+      - name: Run mandatory real-NATS restart test
+        run: npm run test:nats
+
+      - name: Pack release artifact exactly once
+        id: pack
+        env:
+          CAP_NODE_PACK_DIR: ${{ runner.temp }}/cap-node-package
+        run: |
+          set -euo pipefail
+          rm -rf -- "${CAP_NODE_PACK_DIR}"
+          mkdir -p "${CAP_NODE_PACK_DIR}"
+          PACK_JSON="${CAP_NODE_PACK_DIR}/pack.json"
+          npm pack --json --pack-destination "${CAP_NODE_PACK_DIR}" > "${PACK_JSON}"
+          TARBALL="$(node -e '
+            const fs = require("node:fs");
+            const path = require("node:path");
+            const [jsonPath, packDir] = process.argv.slice(1);
+            const entries = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+            if (!Array.isArray(entries) || entries.length !== 1 || !entries[0].filename) process.exit(2);
+            process.stdout.write(path.join(packDir, entries[0].filename));
+          ' "${PACK_JSON}" "${CAP_NODE_PACK_DIR}")"
+          test -f "${TARBALL}"
+          echo "tarball=${TARBALL}" >> "${GITHUB_OUTPUT}"
+          echo "pack_json=${PACK_JSON}" >> "${GITHUB_OUTPUT}"
+
+      - name: Verify exact release artifact
+        run: >-
+          node scripts/verify-package.cjs
+          --tarball "${{ steps.pack.outputs.tarball }}"
+          --pack-json "${{ steps.pack.outputs.pack_json }}"
+
+      - name: Publish verified artifact to npm
+        run: npm publish "${{ steps.pack.outputs.tarball }}" --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Clean release artifact
+        if: always()
+        env:
+          CAP_NODE_PACK_DIR: ${{ runner.temp }}/cap-node-package
+        run: rm -rf -- "${CAP_NODE_PACK_DIR}"

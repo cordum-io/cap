@@ -1,0 +1,620 @@
+{
+  "audience": "cordum-scheduler",
+  "keys": {
+    "scheduler": {
+      "algorithm": "ECDSA_P256_SHA256",
+      "id": "scheduler-key-v1",
+      "public_key": "scheduler_public.pem"
+    },
+    "worker": {
+      "algorithm": "ECDSA_P256_SHA256",
+      "id": "worker-key-v1",
+      "public_key": "worker_public.pem"
+    }
+  },
+  "negative_vectors": [
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "impersonation_worker_id",
+      "mutation": {
+        "kind": "set",
+        "path": "worker_handshake_challenge_request.worker_id",
+        "value": "victim-worker"
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted_count": 1,
+        "install_count": 1,
+        "mint_count": 1,
+        "reason": "REPLAY_DETECTED",
+        "rejected_count": 1
+      },
+      "id": "replay_exact",
+      "mutation": {
+        "kind": "repeat",
+        "path": "packet_count",
+        "value": 2
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted_count": 1,
+        "install_count": 1,
+        "mint_count": 1,
+        "reason": "REPLAY_DETECTED",
+        "rejected_count": 15
+      },
+      "id": "replay_concurrent",
+      "mutation": {
+        "kind": "concurrent_repeat",
+        "path": "packet_count",
+        "value": 16
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": true,
+        "challenge_count": 1,
+        "reason": "UNSPECIFIED"
+      },
+      "id": "skew_positive_boundary",
+      "mutation": {
+        "kind": "clock_offset_ns",
+        "path": "created_at",
+        "value": 60000000000
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": true,
+        "challenge_count": 1,
+        "reason": "UNSPECIFIED"
+      },
+      "id": "skew_negative_boundary",
+      "mutation": {
+        "kind": "clock_offset_ns",
+        "path": "created_at",
+        "value": -60000000000
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "CLOCK_SKEW"
+      },
+      "id": "skew_positive_over_1ns",
+      "mutation": {
+        "kind": "clock_offset_ns",
+        "path": "created_at",
+        "value": 60000000001
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "CLOCK_SKEW"
+      },
+      "id": "skew_negative_over_1ns",
+      "mutation": {
+        "kind": "clock_offset_ns",
+        "path": "created_at",
+        "value": -60000000001
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "audience_wrong",
+      "mutation": {
+        "kind": "set",
+        "path": "worker_handshake_challenge_request.audience",
+        "value": "other-scheduler"
+      }
+    },
+    {
+      "base": "challenge",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "audience_tampered",
+      "mutation": {
+        "kind": "xor_byte",
+        "path": "worker_handshake_challenge.audience",
+        "value": 1
+      }
+    },
+    {
+      "base": "challenge",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "tenant_tampered",
+      "mutation": {
+        "kind": "set",
+        "path": "worker_handshake_challenge.tenant_id",
+        "value": "tenant-attacker"
+      }
+    },
+    {
+      "base": "challenge",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "agent_tampered",
+      "mutation": {
+        "kind": "set",
+        "path": "worker_handshake_challenge.agent_id",
+        "value": "agent-attacker"
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "client_nonce_tampered",
+      "mutation": {
+        "kind": "xor_byte",
+        "path": "worker_handshake_authenticate.challenge.client_nonce",
+        "value": 1
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "server_nonce_tampered",
+      "mutation": {
+        "kind": "xor_byte",
+        "path": "worker_handshake_authenticate.challenge.server_nonce",
+        "value": 1
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "trace_tampered",
+      "mutation": {
+        "kind": "set",
+        "path": "trace_id",
+        "value": "trace-attacker"
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "capabilities_tampered",
+      "mutation": {
+        "kind": "set",
+        "path": "worker_handshake_authenticate.capability_handshake.capabilities.progress",
+        "value": false
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "UNSUPPORTED_VERSION"
+      },
+      "id": "protocol_version_tampered",
+      "mutation": {
+        "kind": "set",
+        "path": "protocol_version",
+        "value": 2
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "missing_trace_id",
+      "mutation": {
+        "kind": "clear",
+        "path": "trace_id"
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "missing_sender_id",
+      "mutation": {
+        "kind": "clear",
+        "path": "sender_id"
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "missing_component_id",
+      "mutation": {
+        "kind": "clear",
+        "path": "worker_handshake_authenticate.capability_handshake.component_id"
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "missing_key_id",
+      "mutation": {
+        "kind": "clear",
+        "path": "worker_handshake_challenge_request.proof_key_id"
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "missing_signature",
+      "mutation": {
+        "kind": "clear",
+        "path": "signature"
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "missing_worker_id",
+      "mutation": {
+        "kind": "clear",
+        "path": "worker_handshake_challenge_request.worker_id"
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "UNSUPPORTED_VERSION"
+      },
+      "id": "unsupported_version",
+      "mutation": {
+        "kind": "set",
+        "path": "protocol_version",
+        "value": 999
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "CHALLENGE_EXPIRED"
+      },
+      "id": "challenge_expired",
+      "mutation": {
+        "kind": "set_time",
+        "path": "worker_handshake_authenticate.challenge.expires_at",
+        "value": "now"
+      }
+    },
+    {
+      "base": "result",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "response_request_id_mismatch",
+      "mutation": {
+        "kind": "set",
+        "path": "worker_handshake_result.challenge.request_id",
+        "value": "request-other"
+      }
+    },
+    {
+      "base": "result",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "response_trace_mismatch",
+      "mutation": {
+        "kind": "set",
+        "path": "worker_handshake_result.challenge.trace_id",
+        "value": "trace-other"
+      }
+    },
+    {
+      "base": "result",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "response_challenge_id_mismatch",
+      "mutation": {
+        "kind": "set",
+        "path": "worker_handshake_result.challenge.challenge_id",
+        "value": "challenge-other"
+      }
+    },
+    {
+      "base": "result",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "AUTHENTICATION_FAILED"
+      },
+      "id": "unknown_scheduler_key",
+      "mutation": {
+        "kind": "set",
+        "path": "worker_handshake_result.challenge.server_key_id",
+        "value": "scheduler-unknown"
+      }
+    },
+    {
+      "base": "result",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "SESSION_INVALID"
+      },
+      "id": "token_worker_mismatch",
+      "mutation": {
+        "kind": "token_claim",
+        "path": "sub",
+        "value": "worker-other"
+      }
+    },
+    {
+      "base": "result",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "SESSION_INVALID"
+      },
+      "id": "token_agent_mismatch",
+      "mutation": {
+        "kind": "token_claim",
+        "path": "agent_id",
+        "value": "agent-other"
+      }
+    },
+    {
+      "base": "result",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "SESSION_INVALID"
+      },
+      "id": "token_tenant_mismatch",
+      "mutation": {
+        "kind": "token_claim",
+        "path": "tenant_id",
+        "value": "tenant-other"
+      }
+    },
+    {
+      "base": "result",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "SESSION_INVALID"
+      },
+      "id": "token_audience_mismatch",
+      "mutation": {
+        "kind": "token_claim",
+        "path": "aud",
+        "value": "other-scheduler"
+      }
+    },
+    {
+      "base": "result",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "SESSION_INVALID"
+      },
+      "id": "token_proof_key_mismatch",
+      "mutation": {
+        "kind": "token_claim",
+        "path": "proof_key_id",
+        "value": "worker-key-other"
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "SESSION_INVALID"
+      },
+      "id": "renew_a_to_b",
+      "mutation": {
+        "kind": "renew_token_subject",
+        "path": "sub",
+        "value": "worker-b"
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "SESSION_INVALID"
+      },
+      "id": "renew_superseded_token",
+      "mutation": {
+        "kind": "renew_token_state",
+        "path": "active",
+        "value": false
+      }
+    },
+    {
+      "base": "authenticate",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "INTERNAL_ERROR"
+      },
+      "id": "state_store_unavailable",
+      "mutation": {
+        "kind": "state_store",
+        "path": "available",
+        "value": false
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "INVALID_REQUEST"
+      },
+      "id": "unknown_envelope_field",
+      "mutation": {
+        "kind": "append_unknown_field",
+        "path": "field_number",
+        "value": 1000
+      }
+    },
+    {
+      "base": "challenge_request",
+      "expected": {
+        "accepted": false,
+        "install_count": 0,
+        "mint_count": 0,
+        "reason": "INVALID_REQUEST"
+      },
+      "id": "unknown_payload_field",
+      "mutation": {
+        "kind": "append_unknown_nested_field",
+        "path": "field_number",
+        "value": 1000
+      }
+    }
+  ],
+  "positive": {
+    "authenticate": {
+      "digest_sha256": "2c164a590b2869d7e64a0cf18b3b8a50c69a86226ff94e603b73d816cf6b15e1",
+      "domain": "CAP-WORKER-HANDSHAKE-AUTHENTICATE-V1",
+      "packet": "authenticate.bin",
+      "signer": "worker"
+    },
+    "challenge": {
+      "digest_sha256": "d3eecbcc90bcefdad3ae5bbbcaf579a1ac8efb3b26c674245ea10e54d668fa2e",
+      "domain": "CAP-WORKER-HANDSHAKE-CHALLENGE-V1",
+      "packet": "challenge.bin",
+      "signer": "scheduler"
+    },
+    "challenge_request": {
+      "digest_sha256": "cb64523f1cfe05f90f4fc76b520ad0a62020c22d555c557b19a73b53b0894583",
+      "domain": "CAP-WORKER-HANDSHAKE-CHALLENGE-REQUEST-V1",
+      "packet": "challenge_request.bin",
+      "signer": "worker"
+    },
+    "result": {
+      "digest_sha256": "4efe70996c19f38b672045d00c200090242b3f563ff635b800f367b37f465916",
+      "domain": "CAP-WORKER-HANDSHAKE-RESULT-V1",
+      "packet": "result.bin",
+      "signer": "scheduler"
+    }
+  },
+  "protocol_version": 1,
+  "schema_version": 1,
+  "state": {
+    "active_session": {
+      "agent_id": "agent-fixture",
+      "audience": "cordum-scheduler",
+      "proof_key_id": "worker-key-v1",
+      "tenant_id": "tenant-fixture",
+      "worker_id": "worker-fixture"
+    },
+    "challenge_consumed": false,
+    "now_unix_nanos": 1893456002000000000
+  }
+}

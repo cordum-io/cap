@@ -13,13 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = (function() {
-  if (this) { return this; }
-  if (typeof window !== 'undefined') { return window; }
-  if (typeof global !== 'undefined') { return global; }
-  if (typeof self !== 'undefined') { return self; }
-  return Function('return this')();
-}.call(null));
+var global =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof global !== 'undefined' && global) ||
+    (typeof self !== 'undefined' && self) ||
+    (function () { return this; }).call(null) ||
+    Function('return this')();
 
 var cordum_agent_v1_job_pb = require('../../../cordum/agent/v1/job_pb.js');
 goog.object.extend(proto, cordum_agent_v1_job_pb);
@@ -276,20 +276,20 @@ proto.cordum.agent.v1.PolicyCheckRequest.prototype.toObject = function(opt_inclu
  */
 proto.cordum.agent.v1.PolicyCheckRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    topic: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    tenant: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    priority: jspb.Message.getFieldWithDefault(msg, 4, 0),
-    estimatedCost: jspb.Message.getFloatingPointFieldWithDefault(msg, 5, 0.0),
-    budget: (f = msg.getBudget()) && cordum_agent_v1_job_pb.Budget.toObject(includeInstance, f),
-    principalId: jspb.Message.getFieldWithDefault(msg, 7, ""),
-    labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
-    memoryId: jspb.Message.getFieldWithDefault(msg, 9, ""),
-    effectiveConfig: msg.getEffectiveConfig_asB64(),
-    meta: (f = msg.getMeta()) && cordum_agent_v1_job_pb.JobMetadata.toObject(includeInstance, f),
-    inputContent: msg.getInputContent_asB64(),
-    inputContentType: jspb.Message.getFieldWithDefault(msg, 21, ""),
-    inputSizeBytes: jspb.Message.getFieldWithDefault(msg, 22, 0)
+jobId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+topic: jspb.Message.getFieldWithDefault(msg, 2, ""),
+tenant: jspb.Message.getFieldWithDefault(msg, 3, ""),
+priority: jspb.Message.getFieldWithDefault(msg, 4, 0),
+estimatedCost: jspb.Message.getFloatingPointFieldWithDefault(msg, 5, 0.0),
+budget: (f = msg.getBudget()) && cordum_agent_v1_job_pb.Budget.toObject(includeInstance, f),
+principalId: jspb.Message.getFieldWithDefault(msg, 7, ""),
+labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
+memoryId: jspb.Message.getFieldWithDefault(msg, 9, ""),
+effectiveConfig: msg.getEffectiveConfig_asB64(),
+meta: (f = msg.getMeta()) && cordum_agent_v1_job_pb.JobMetadata.toObject(includeInstance, f),
+inputContent: msg.getInputContent_asB64(),
+inputContentType: jspb.Message.getFieldWithDefault(msg, 21, ""),
+inputSizeBytes: jspb.Message.getFieldWithDefault(msg, 22, 0)
   };
 
   if (includeInstance) {
@@ -679,7 +679,8 @@ proto.cordum.agent.v1.PolicyCheckRequest.prototype.getLabelsMap = function(opt_n
  */
 proto.cordum.agent.v1.PolicyCheckRequest.prototype.clearLabelsMap = function() {
   this.getLabelsMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -889,10 +890,10 @@ proto.cordum.agent.v1.BudgetConstraints.prototype.toObject = function(opt_includ
  */
 proto.cordum.agent.v1.BudgetConstraints.toObject = function(includeInstance, msg) {
   var f, obj = {
-    maxRuntimeMs: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    maxRetries: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    maxArtifactBytes: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    maxConcurrentJobs: jspb.Message.getFieldWithDefault(msg, 4, 0)
+maxRuntimeMs: jspb.Message.getFieldWithDefault(msg, 1, 0),
+maxRetries: jspb.Message.getFieldWithDefault(msg, 2, 0),
+maxArtifactBytes: jspb.Message.getFieldWithDefault(msg, 3, 0),
+maxConcurrentJobs: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -1116,10 +1117,10 @@ proto.cordum.agent.v1.SandboxProfile.prototype.toObject = function(opt_includeIn
  */
 proto.cordum.agent.v1.SandboxProfile.toObject = function(includeInstance, msg) {
   var f, obj = {
-    isolated: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
-    networkAllowlistList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
-    fsReadOnlyList: (f = jspb.Message.getRepeatedField(msg, 3)) == null ? undefined : f,
-    fsReadWriteList: (f = jspb.Message.getRepeatedField(msg, 4)) == null ? undefined : f
+isolated: jspb.Message.getBooleanFieldWithDefault(msg, 1, false),
+networkAllowlistList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f,
+fsReadOnlyList: (f = jspb.Message.getRepeatedField(msg, 3)) == null ? undefined : f,
+fsReadWriteList: (f = jspb.Message.getRepeatedField(msg, 4)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -1400,8 +1401,8 @@ proto.cordum.agent.v1.ToolchainConstraints.prototype.toObject = function(opt_inc
  */
 proto.cordum.agent.v1.ToolchainConstraints.toObject = function(includeInstance, msg) {
   var f, obj = {
-    allowedToolsList: (f = jspb.Message.getRepeatedField(msg, 1)) == null ? undefined : f,
-    allowedCommandsList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f
+allowedToolsList: (f = jspb.Message.getRepeatedField(msg, 1)) == null ? undefined : f,
+allowedCommandsList: (f = jspb.Message.getRepeatedField(msg, 2)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -1605,9 +1606,9 @@ proto.cordum.agent.v1.DiffConstraints.prototype.toObject = function(opt_includeI
  */
 proto.cordum.agent.v1.DiffConstraints.toObject = function(includeInstance, msg) {
   var f, obj = {
-    maxFiles: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    maxLines: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    denyPathGlobsList: (f = jspb.Message.getRepeatedField(msg, 3)) == null ? undefined : f
+maxFiles: jspb.Message.getFieldWithDefault(msg, 1, 0),
+maxLines: jspb.Message.getFieldWithDefault(msg, 2, 0),
+denyPathGlobsList: (f = jspb.Message.getRepeatedField(msg, 3)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -1814,11 +1815,11 @@ proto.cordum.agent.v1.PolicyConstraints.prototype.toObject = function(opt_includ
  */
 proto.cordum.agent.v1.PolicyConstraints.toObject = function(includeInstance, msg) {
   var f, obj = {
-    budgets: (f = msg.getBudgets()) && proto.cordum.agent.v1.BudgetConstraints.toObject(includeInstance, f),
-    sandbox: (f = msg.getSandbox()) && proto.cordum.agent.v1.SandboxProfile.toObject(includeInstance, f),
-    toolchain: (f = msg.getToolchain()) && proto.cordum.agent.v1.ToolchainConstraints.toObject(includeInstance, f),
-    diff: (f = msg.getDiff()) && proto.cordum.agent.v1.DiffConstraints.toObject(includeInstance, f),
-    redactionLevel: jspb.Message.getFieldWithDefault(msg, 5, "")
+budgets: (f = msg.getBudgets()) && proto.cordum.agent.v1.BudgetConstraints.toObject(includeInstance, f),
+sandbox: (f = msg.getSandbox()) && proto.cordum.agent.v1.SandboxProfile.toObject(includeInstance, f),
+toolchain: (f = msg.getToolchain()) && proto.cordum.agent.v1.ToolchainConstraints.toObject(includeInstance, f),
+diff: (f = msg.getDiff()) && proto.cordum.agent.v1.DiffConstraints.toObject(includeInstance, f),
+redactionLevel: jspb.Message.getFieldWithDefault(msg, 5, "")
   };
 
   if (includeInstance) {
@@ -2155,13 +2156,13 @@ proto.cordum.agent.v1.PolicyRemediation.prototype.toObject = function(opt_includ
  */
 proto.cordum.agent.v1.PolicyRemediation.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    title: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    summary: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    replacementTopic: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    replacementCapability: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    addLabelsMap: (f = msg.getAddLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
-    removeLabelsList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f
+id: jspb.Message.getFieldWithDefault(msg, 1, ""),
+title: jspb.Message.getFieldWithDefault(msg, 2, ""),
+summary: jspb.Message.getFieldWithDefault(msg, 3, ""),
+replacementTopic: jspb.Message.getFieldWithDefault(msg, 4, ""),
+replacementCapability: jspb.Message.getFieldWithDefault(msg, 5, ""),
+addLabelsMap: (f = msg.getAddLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
+removeLabelsList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -2415,7 +2416,8 @@ proto.cordum.agent.v1.PolicyRemediation.prototype.getAddLabelsMap = function(opt
  */
 proto.cordum.agent.v1.PolicyRemediation.prototype.clearAddLabelsMap = function() {
   this.getAddLabelsMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -2494,15 +2496,15 @@ proto.cordum.agent.v1.PolicyCheckResponse.prototype.toObject = function(opt_incl
  */
 proto.cordum.agent.v1.PolicyCheckResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    decision: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    reason: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    redactedContextPtr: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    policySnapshot: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    ruleId: jspb.Message.getFieldWithDefault(msg, 5, ""),
-    constraints: (f = msg.getConstraints()) && proto.cordum.agent.v1.PolicyConstraints.toObject(includeInstance, f),
-    approvalRequired: jspb.Message.getBooleanFieldWithDefault(msg, 7, false),
-    approvalRef: jspb.Message.getFieldWithDefault(msg, 8, ""),
-    remediationsList: jspb.Message.toObjectList(msg.getRemediationsList(),
+decision: jspb.Message.getFieldWithDefault(msg, 1, 0),
+reason: jspb.Message.getFieldWithDefault(msg, 2, ""),
+redactedContextPtr: jspb.Message.getFieldWithDefault(msg, 3, ""),
+policySnapshot: jspb.Message.getFieldWithDefault(msg, 4, ""),
+ruleId: jspb.Message.getFieldWithDefault(msg, 5, ""),
+constraints: (f = msg.getConstraints()) && proto.cordum.agent.v1.PolicyConstraints.toObject(includeInstance, f),
+approvalRequired: jspb.Message.getBooleanFieldWithDefault(msg, 7, false),
+approvalRef: jspb.Message.getFieldWithDefault(msg, 8, ""),
+remediationsList: jspb.Message.toObjectList(msg.getRemediationsList(),
     proto.cordum.agent.v1.PolicyRemediation.toObject, includeInstance)
   };
 
@@ -3016,7 +3018,7 @@ proto.cordum.agent.v1.ListSnapshotsResponse.prototype.toObject = function(opt_in
  */
 proto.cordum.agent.v1.ListSnapshotsResponse.toObject = function(includeInstance, msg) {
   var f, obj = {
-    snapshotsList: (f = jspb.Message.getRepeatedField(msg, 1)) == null ? undefined : f
+snapshotsList: (f = jspb.Message.getRepeatedField(msg, 1)) == null ? undefined : f
   };
 
   if (includeInstance) {
@@ -3142,7 +3144,9 @@ proto.cordum.agent.v1.DecisionType = {
   DECISION_TYPE_DENY: 2,
   DECISION_TYPE_REQUIRE_HUMAN: 3,
   DECISION_TYPE_THROTTLE: 4,
-  DECISION_TYPE_ALLOW_WITH_CONSTRAINTS: 5
+  DECISION_TYPE_ALLOW_WITH_CONSTRAINTS: 5,
+  DECISION_TYPE_QUARANTINE: 6,
+  DECISION_TYPE_REDACT: 7
 };
 
 goog.object.extend(exports, proto.cordum.agent.v1);

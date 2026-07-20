@@ -13,13 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = (function() {
-  if (this) { return this; }
-  if (typeof window !== 'undefined') { return window; }
-  if (typeof global !== 'undefined') { return global; }
-  if (typeof self !== 'undefined') { return self; }
-  return Function('return this')();
-}.call(null));
+var global =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof global !== 'undefined' && global) ||
+    (typeof self !== 'undefined' && self) ||
+    (function () { return this; }).call(null) ||
+    Function('return this')();
 
 var cordum_agent_v1_job_pb = require('../../../cordum/agent/v1/job_pb.js');
 goog.object.extend(proto, cordum_agent_v1_job_pb);
@@ -78,15 +78,15 @@ proto.cordum.agent.v1.SystemAlert.prototype.toObject = function(opt_includeInsta
  */
 proto.cordum.agent.v1.SystemAlert.toObject = function(includeInstance, msg) {
   var f, obj = {
-    level: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    message: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    component: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    code: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    severity: jspb.Message.getFieldWithDefault(msg, 5, 0),
-    errorCodeEnum: jspb.Message.getFieldWithDefault(msg, 6, 0),
-    sourceComponent: jspb.Message.getFieldWithDefault(msg, 7, ""),
-    detailsMap: (f = msg.getDetailsMap()) ? f.toObject(includeInstance, undefined) : [],
-    traceId: jspb.Message.getFieldWithDefault(msg, 9, "")
+level: jspb.Message.getFieldWithDefault(msg, 1, ""),
+message: jspb.Message.getFieldWithDefault(msg, 2, ""),
+component: jspb.Message.getFieldWithDefault(msg, 3, ""),
+code: jspb.Message.getFieldWithDefault(msg, 4, ""),
+severity: jspb.Message.getFieldWithDefault(msg, 5, 0),
+errorCodeEnum: jspb.Message.getFieldWithDefault(msg, 6, 0),
+sourceComponent: jspb.Message.getFieldWithDefault(msg, 7, ""),
+detailsMap: (f = msg.getDetailsMap()) ? f.toObject(includeInstance, undefined) : [],
+traceId: jspb.Message.getFieldWithDefault(msg, 9, "")
   };
 
   if (includeInstance) {
@@ -398,7 +398,8 @@ proto.cordum.agent.v1.SystemAlert.prototype.getDetailsMap = function(opt_noLazyC
  */
 proto.cordum.agent.v1.SystemAlert.prototype.clearDetailsMap = function() {
   this.getDetailsMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**

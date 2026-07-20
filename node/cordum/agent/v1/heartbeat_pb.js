@@ -13,13 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = (function() {
-  if (this) { return this; }
-  if (typeof window !== 'undefined') { return window; }
-  if (typeof global !== 'undefined') { return global; }
-  if (typeof self !== 'undefined') { return self; }
-  return Function('return this')();
-}.call(null));
+var global =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof global !== 'undefined' && global) ||
+    (typeof self !== 'undefined' && self) ||
+    (function () { return this; }).call(null) ||
+    Function('return this')();
 
 goog.exportSymbol('proto.cordum.agent.v1.Heartbeat', null, global);
 /**
@@ -82,20 +82,21 @@ proto.cordum.agent.v1.Heartbeat.prototype.toObject = function(opt_includeInstanc
  */
 proto.cordum.agent.v1.Heartbeat.toObject = function(includeInstance, msg) {
   var f, obj = {
-    workerId: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    region: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    type: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    cpuLoad: jspb.Message.getFloatingPointFieldWithDefault(msg, 4, 0.0),
-    gpuUtilization: jspb.Message.getFloatingPointFieldWithDefault(msg, 5, 0.0),
-    activeJobs: jspb.Message.getFieldWithDefault(msg, 6, 0),
-    capabilitiesList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f,
-    pool: jspb.Message.getFieldWithDefault(msg, 11, ""),
-    maxParallelJobs: jspb.Message.getFieldWithDefault(msg, 12, 0),
-    labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
-    memoryLoad: jspb.Message.getFloatingPointFieldWithDefault(msg, 14, 0.0),
-    progressPct: jspb.Message.getFieldWithDefault(msg, 15, 0),
-    lastMemo: jspb.Message.getFieldWithDefault(msg, 16, ""),
-    authToken: jspb.Message.getFieldWithDefault(msg, 18, "")
+workerId: jspb.Message.getFieldWithDefault(msg, 1, ""),
+region: jspb.Message.getFieldWithDefault(msg, 2, ""),
+type: jspb.Message.getFieldWithDefault(msg, 3, ""),
+cpuLoad: jspb.Message.getFloatingPointFieldWithDefault(msg, 4, 0.0),
+gpuUtilization: jspb.Message.getFloatingPointFieldWithDefault(msg, 5, 0.0),
+activeJobs: jspb.Message.getFieldWithDefault(msg, 6, 0),
+capabilitiesList: (f = jspb.Message.getRepeatedField(msg, 7)) == null ? undefined : f,
+pool: jspb.Message.getFieldWithDefault(msg, 11, ""),
+maxParallelJobs: jspb.Message.getFieldWithDefault(msg, 12, 0),
+labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [],
+memoryLoad: jspb.Message.getFloatingPointFieldWithDefault(msg, 14, 0.0),
+progressPct: jspb.Message.getFieldWithDefault(msg, 15, 0),
+lastMemo: jspb.Message.getFieldWithDefault(msg, 16, ""),
+authToken: jspb.Message.getFieldWithDefault(msg, 18, ""),
+agentName: jspb.Message.getFieldWithDefault(msg, 19, "")
   };
 
   if (includeInstance) {
@@ -189,6 +190,10 @@ proto.cordum.agent.v1.Heartbeat.deserializeBinaryFromReader = function(msg, read
     case 18:
       var value = /** @type {string} */ (reader.readString());
       msg.setAuthToken(value);
+      break;
+    case 19:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAgentName(value);
       break;
     default:
       reader.skipField();
@@ -311,6 +316,13 @@ proto.cordum.agent.v1.Heartbeat.serializeBinaryToWriter = function(message, writ
   if (f.length > 0) {
     writer.writeString(
       18,
+      f
+    );
+  }
+  f = message.getAgentName();
+  if (f.length > 0) {
+    writer.writeString(
+      19,
       f
     );
   }
@@ -517,7 +529,8 @@ proto.cordum.agent.v1.Heartbeat.prototype.getLabelsMap = function(opt_noLazyCrea
  */
 proto.cordum.agent.v1.Heartbeat.prototype.clearLabelsMap = function() {
   this.getLabelsMap().clear();
-  return this;};
+  return this;
+};
 
 
 /**
@@ -589,6 +602,24 @@ proto.cordum.agent.v1.Heartbeat.prototype.getAuthToken = function() {
  */
 proto.cordum.agent.v1.Heartbeat.prototype.setAuthToken = function(value) {
   return jspb.Message.setProto3StringField(this, 18, value);
+};
+
+
+/**
+ * optional string agent_name = 19;
+ * @return {string}
+ */
+proto.cordum.agent.v1.Heartbeat.prototype.getAgentName = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 19, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.cordum.agent.v1.Heartbeat} returns this
+ */
+proto.cordum.agent.v1.Heartbeat.prototype.setAgentName = function(value) {
+  return jspb.Message.setProto3StringField(this, 19, value);
 };
 
 

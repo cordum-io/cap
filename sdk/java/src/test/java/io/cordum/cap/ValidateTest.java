@@ -23,6 +23,27 @@ class ValidateTest {
     }
 
     @Test
+    void criticalJobPriorityIsAccepted() {
+        JobRequest req = JobRequest.newBuilder()
+                .setJobId("job-critical")
+                .setTopic("test.topic")
+                .setPriority(JobPriority.JOB_PRIORITY_CRITICAL)
+                .build();
+        assertDoesNotThrow(() -> Validate.validateJobRequest(req));
+    }
+
+    @Test
+    void unknownJobPriorityIsRejected() {
+        JobRequest req = JobRequest.newBuilder()
+                .setJobId("job-unknown")
+                .setTopic("test.topic")
+                .setPriorityValue(JobPriority.JOB_PRIORITY_CRITICAL_VALUE + 1)
+                .build();
+        assertThrows(Errors.ValidationException.class,
+                () -> Validate.validateJobRequest(req));
+    }
+
+    @Test
     void jobRequestNullRejects() {
         assertThrows(Errors.ValidationException.class,
                 () -> Validate.validateJobRequest(null));

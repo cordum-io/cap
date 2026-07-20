@@ -66,9 +66,9 @@ func TestHandshakeRequest_RoundTripPreservesEveryField(t *testing.T) {
 func TestHandshakeRequest_MissingFieldsRejected(t *testing.T) {
 	t.Parallel()
 	cases := []struct {
-		name    string
-		mutate  func(*HandshakeRequest)
-		needle  string
+		name   string
+		mutate func(*HandshakeRequest)
+		needle string
 	}{
 		{"nil", nil, "nil request"},
 		{"missing agent_id", func(r *HandshakeRequest) { r.AgentID = "" }, "agent_id"},
@@ -219,5 +219,29 @@ func TestHandshakeSubjects(t *testing.T) {
 	}
 	if WorkerHandshakeRenewSubject != "sys.worker.handshake.renew" {
 		t.Errorf("WorkerHandshakeRenewSubject = %q", WorkerHandshakeRenewSubject)
+	}
+}
+
+func TestLegacyHandshakeCodecRejectsAmbiguousOrUnboundedJSON(t *testing.T) {
+	t.Parallel()
+	unknown := []byte(`{"agent_id":"a","tenant":"t","sdk_version":"v","nonce":"aaaaaaaaaaaaaaaa","request_id":"r","timestamp":"2026-01-01T00:00:00Z","extra":true}`)
+	if _, err := UnmarshalHandshakeRequest(unknown); err == nil {
+		t.Fatal("legacy request codec accepted an unknown field")
+	}
+	valid, err := MarshalHandshakeRequest(validRequest())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := UnmarshalHandshakeRequest(append(valid, []byte(` {}`)...)); err == nil {
+		t.Fatal("legacy request codec accepted a trailing JSON value")
+	}
+	if _, err := UnmarshalHandshakeRequest([]byte(strings.Repeat("x", WorkerHandshakeMaxPacketSize+1))); err == nil {
+		t.Fatal("legacy request codec accepted an oversized payload")
+	}
+	ambiguous := &HandshakeResponse{
+		RequestID: "request-rejected", Rejected: true, Reason: HandshakeRejectReplay, SessionToken: "must-not-survive",
+	}
+	if _, err := MarshalHandshakeResponse(ambiguous); err == nil {
+		t.Fatal("legacy response codec accepted a rejected response carrying a token")
 	}
 }

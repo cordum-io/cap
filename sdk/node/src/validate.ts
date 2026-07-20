@@ -18,6 +18,97 @@ const JOB_PRIORITY_MAX = 3; // JOB_PRIORITY_CRITICAL
 
 // JobStatus UNSPECIFIED value.
 const JOB_STATUS_UNSPECIFIED = 0;
+const SUPPORTED_PROTOCOL_VERSION = 1;
+type MessageView = Record<string, unknown>;
+
+function asMessage(value: unknown): MessageView | undefined {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as MessageView
+    : undefined;
+}
+
+function field(message: MessageView, camel: string, snake?: string): unknown {
+  return message[camel] ?? (snake ? message[snake] : undefined);
+}
+
+function textField(message: MessageView, camel: string, snake?: string): string {
+  const value = field(message, camel, snake);
+  return typeof value === "string" ? value : "";
+}
+
+function snakeName(value: string): string {
+  return value.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+}
+
+function identityError(
+  packet: MessageView,
+  payloadName: string,
+  identityName: string,
+  path: string
+): ValidationError[] {
+  const payload = asMessage(field(packet, payloadName, snakeName(payloadName)));
+  if (!payload) return [];
+  const sender = textField(packet, "senderId", "sender_id");
+  const nested = textField(payload, identityName, snakeName(identityName));
+  return nested === sender ? [] : [{ field: path, message: "must equal sender_id" }];
+}
+
+function payloadPresent(message: MessageView): boolean {
+  const names = [
+    "jobRequest", "job_request", "jobResult", "job_result", "heartbeat",
+    "alert", "jobProgress", "job_progress", "jobCancel", "job_cancel",
+    "handshake", "workerHandshakeChallengeRequest", "worker_handshake_challenge_request",
+    "workerHandshakeChallenge", "worker_handshake_challenge",
+    "workerHandshakeAuthenticate", "worker_handshake_authenticate",
+    "workerHandshakeResult", "worker_handshake_result",
+  ];
+  return names.some((name) => message[name] != null);
+}
+
+function alertIdentityError(message: MessageView): ValidationError[] {
+  const alert = asMessage(field(message, "alert"));
+  if (!alert) return [];
+  const details = asMessage(field(alert, "details"));
+  const structuredSignal = Boolean(
+    field(alert, "severity") ||
+    field(alert, "errorCodeEnum", "error_code_enum") ||
+    field(alert, "sourceComponent", "source_component") ||
+    (details && Object.keys(details).length > 0) ||
+    textField(alert, "traceId", "trace_id")
+  );
+  const legacySignal = Boolean(
+    field(alert, "level") || field(alert, "component") || field(alert, "code")
+  );
+  return structuredSignal || !legacySignal
+    ? identityError(message, "alert", "sourceComponent", "alert.source_component")
+    : [];
+}
+
+function validateNestedIdentity(message: MessageView): ValidationError[] {
+  return [
+    ...identityError(message, "jobResult", "workerId", "job_result.worker_id"),
+    ...identityError(message, "heartbeat", "workerId", "heartbeat.worker_id"),
+    ...identityError(message, "handshake", "componentId", "handshake.component_id"),
+    ...alertIdentityError(message),
+  ];
+}
+
+function validateBudget(value: unknown): ValidationError[] {
+  const budget = asMessage(value);
+  if (!budget) return [];
+  const fields = [
+    ["maxInputTokens", "max_input_tokens"],
+    ["maxOutputTokens", "max_output_tokens"],
+    ["maxTotalTokens", "max_total_tokens"],
+    ["deadlineMs", "deadline_ms"],
+  ] as const;
+  return fields.flatMap(([camel, snake]) => {
+    const amount = field(budget, camel, snake);
+    return typeof amount === "number" && amount < 0
+      ? [{ field: `budget.${snake}`, message: "must not be negative" }]
+      : [];
+  });
+}
 
 /**
  * Validates a decoded JobRequest message.
@@ -45,33 +136,7 @@ export function validateJobRequest(msg: any): ValidationError[] {
   if (stepIndex < 0) {
     errors.push({ field: "step_index", message: "must not be negative" });
   }
-  const budget = msg.budget;
-  if (budget != null) {
-    if ((budget.maxInputTokens ?? budget.max_input_tokens ?? 0) < 0) {
-      errors.push({
-        field: "budget.max_input_tokens",
-        message: "must not be negative",
-      });
-    }
-    if ((budget.maxOutputTokens ?? budget.max_output_tokens ?? 0) < 0) {
-      errors.push({
-        field: "budget.max_output_tokens",
-        message: "must not be negative",
-      });
-    }
-    if ((budget.maxTotalTokens ?? budget.max_total_tokens ?? 0) < 0) {
-      errors.push({
-        field: "budget.max_total_tokens",
-        message: "must not be negative",
-      });
-    }
-    if ((budget.deadlineMs ?? budget.deadline_ms ?? 0) < 0) {
-      errors.push({
-        field: "budget.deadline_ms",
-        message: "must not be negative",
-      });
-    }
-  }
+  errors.push(...validateBudget(msg.budget));
   return errors;
 }
 
@@ -108,49 +173,37 @@ export function validateJobResult(msg: any): ValidationError[] {
  * Validates a decoded BusPacket message.
  * If the packet carries a JobRequest or JobResult payload, it is also validated.
  */
-export function validateBusPacket(msg: any): ValidationError[] {
+export function validateBusPacket(value: unknown): ValidationError[] {
   const errors: ValidationError[] = [];
-  if (msg == null) {
+  const msg = asMessage(value);
+  if (!msg) {
     errors.push({ field: "BusPacket", message: "must not be nil" });
     return errors;
   }
-  if (!msg.traceId && !msg.trace_id) {
+  if (!textField(msg, "traceId", "trace_id")) {
     errors.push({ field: "trace_id", message: "must not be empty" });
   }
-  if (!msg.senderId && !msg.sender_id) {
+  if (!textField(msg, "senderId", "sender_id")) {
     errors.push({ field: "sender_id", message: "must not be empty" });
   }
-  const protocolVersion =
-    msg.protocolVersion ?? msg.protocol_version ?? 0;
-  if (protocolVersion <= 0) {
-    errors.push({ field: "protocol_version", message: "must be > 0" });
+  const protocolVersion = field(msg, "protocolVersion", "protocol_version");
+  if (protocolVersion !== SUPPORTED_PROTOCOL_VERSION) {
+    errors.push({ field: "protocol_version", message: "must equal 1" });
   }
-  if (msg.createdAt == null && msg.created_at == null) {
+  if (field(msg, "createdAt", "created_at") == null) {
     errors.push({ field: "created_at", message: "must not be nil" });
   }
-  const hasPayload =
-    msg.jobRequest != null ||
-    msg.job_request != null ||
-    msg.jobResult != null ||
-    msg.job_result != null ||
-    msg.heartbeat != null ||
-    msg.alert != null ||
-    msg.jobProgress != null ||
-    msg.job_progress != null ||
-    msg.jobCancel != null ||
-    msg.job_cancel != null ||
-    msg.handshake != null;
-  if (!hasPayload) {
+  if (!payloadPresent(msg)) {
     errors.push({ field: "payload", message: "must not be nil" });
   }
-  // Delegate to payload-specific validation.
-  const jobReq = msg.jobRequest ?? msg.job_request;
+  const jobReq = field(msg, "jobRequest", "job_request");
   if (jobReq != null) {
     errors.push(...validateJobRequest(jobReq));
   }
-  const jobRes = msg.jobResult ?? msg.job_result;
+  const jobRes = field(msg, "jobResult", "job_result");
   if (jobRes != null) {
     errors.push(...validateJobResult(jobRes));
   }
+  errors.push(...validateNestedIdentity(msg));
   return errors;
 }

@@ -65,13 +65,13 @@ pub fn cancel_payload(
 }
 
 pub async fn emit_progress(nc: &async_nats::Client, payload: &[u8]) -> Result<(), CapError> {
-    nc.publish(subjects::SUBJECT_PROGRESS.into(), payload.to_vec().into())
+    nc.publish(subjects::SUBJECT_PROGRESS, payload.to_vec().into())
         .await
         .map_err(|e| CapError::publish_failed(&e.to_string()))
 }
 
 pub async fn emit_cancel(nc: &async_nats::Client, payload: &[u8]) -> Result<(), CapError> {
-    nc.publish(subjects::SUBJECT_CANCEL.into(), payload.to_vec().into())
+    nc.publish(subjects::SUBJECT_CANCEL, payload.to_vec().into())
         .await
         .map_err(|e| CapError::publish_failed(&e.to_string()))
 }

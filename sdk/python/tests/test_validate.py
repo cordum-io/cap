@@ -187,7 +187,7 @@ class TestValidateBusPacket(unittest.TestCase):
     def test_valid_with_job_result(self):
         pkt = buspacket_pb2.BusPacket(
             trace_id="trace-1",
-            sender_id="sender-1",
+            sender_id="worker-1",
             protocol_version=1,
         )
         pkt.created_at.CopyFrom(timestamp_pb2.Timestamp(seconds=1000))
@@ -199,7 +199,7 @@ class TestValidateBusPacket(unittest.TestCase):
 
         pkt = buspacket_pb2.BusPacket(
             trace_id="trace-1",
-            sender_id="sender-1",
+            sender_id="w-1",
             protocol_version=1,
         )
         pkt.created_at.CopyFrom(timestamp_pb2.Timestamp(seconds=1000))
@@ -207,6 +207,21 @@ class TestValidateBusPacket(unittest.TestCase):
             heartbeat_pb2.Heartbeat(worker_id="w-1", pool="p-1")
         )
         self.assertEqual(validate_bus_packet(pkt), [])
+
+    def test_worker_payload_identity_must_equal_sender(self):
+        from cap.pb.cordum.agent.v1 import heartbeat_pb2
+
+        packets = []
+        result = _valid_bus_packet()
+        result.ClearField("job_request")
+        result.job_result.CopyFrom(_valid_job_result())
+        packets.append((result, "job_result.worker_id"))
+        heartbeat = _valid_bus_packet()
+        heartbeat.ClearField("job_request")
+        heartbeat.heartbeat.CopyFrom(heartbeat_pb2.Heartbeat(worker_id="worker-1"))
+        packets.append((heartbeat, "heartbeat.worker_id"))
+        for packet, field in packets:
+            self.assertIn(field, [error.field for error in validate_bus_packet(packet)])
 
     def test_none(self):
         errs = validate_bus_packet(None)

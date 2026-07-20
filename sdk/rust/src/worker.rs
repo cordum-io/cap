@@ -9,7 +9,7 @@ use crate::codec::marshal_deterministic;
 use crate::errors::CapError;
 use crate::metrics::{MetricsHook, NoopMetrics};
 use crate::middleware::{apply_middleware, Context, HandlerFn, MiddlewareFn};
-use crate::pb::{bus_packet::Payload, BusPacket, JobRequest, JobResult, JobStatus};
+use crate::pb::{bus_packet::Payload, BusPacket, JobResult, JobStatus};
 use crate::signing::{sign_packet, verify_packet_signature};
 use crate::subjects;
 
@@ -67,7 +67,7 @@ impl Worker {
 
         let mut sub = self
             .nc
-            .queue_subscribe(self.subject.clone().into(), self.subject.clone().into())
+            .queue_subscribe(self.subject.clone(), self.subject.clone())
             .await
             .map_err(|e| CapError::subscribe_failed(&e.to_string()))?;
 
@@ -167,9 +167,7 @@ impl Worker {
                 }
 
                 let data = marshal_deterministic(&out);
-                let _ = nc
-                    .publish(subjects::SUBJECT_RESULT.into(), data.into())
-                    .await;
+                let _ = nc.publish(subjects::SUBJECT_RESULT, data.into()).await;
             }
         });
 

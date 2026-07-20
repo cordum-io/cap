@@ -1,0 +1,14 @@
+**
+!sdk/
+!sdk/python/
+!sdk/python/**
+!playground/
+!playground/worker/
+!playground/worker/**
+**/__pycache__/
+**/*.pyc
+**/*.egg-info/
+**/.pytest_cache/
+**/.mypy_cache/
+**/build/
+**/dist/

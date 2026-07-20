@@ -32,7 +32,8 @@ class TestTestingUtilities(unittest.IsolatedAsyncioTestCase):
         )
 
         self.assertEqual(result.status, job_pb2.JOB_STATUS_FAILED)
-        self.assertIn("boom", result.error_message)
+        self.assertEqual(result.error_message, "handler failed")
+        self.assertNotIn("boom", result.error_message)
 
     async def test_create_test_agent(self):
         agent, mock, store = create_test_agent()

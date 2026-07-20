@@ -200,6 +200,48 @@ inline bool ActorType_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ActorType>(
     ActorType_descriptor(), name, value);
 }
+enum ErrorCode : int {
+  ERROR_CODE_UNSPECIFIED = 0,
+  ERROR_CODE_PROTOCOL_VERSION_MISMATCH = 100,
+  ERROR_CODE_PROTOCOL_MALFORMED_PACKET = 101,
+  ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD = 102,
+  ERROR_CODE_PROTOCOL_SIGNATURE_INVALID = 103,
+  ERROR_CODE_PROTOCOL_SIGNATURE_MISSING = 104,
+  ERROR_CODE_JOB_TIMEOUT = 200,
+  ERROR_CODE_JOB_RESOURCE_EXHAUSTED = 201,
+  ERROR_CODE_JOB_PERMISSION_DENIED = 202,
+  ERROR_CODE_JOB_INVALID_INPUT = 203,
+  ERROR_CODE_JOB_NOT_FOUND = 204,
+  ERROR_CODE_JOB_DUPLICATE = 205,
+  ERROR_CODE_JOB_WORKER_UNAVAILABLE = 206,
+  ERROR_CODE_SAFETY_DENIED = 300,
+  ERROR_CODE_SAFETY_POLICY_VIOLATION = 301,
+  ERROR_CODE_SAFETY_RISK_TAG_BLOCKED = 302,
+  ERROR_CODE_TRANSPORT_PUBLISH_FAILED = 400,
+  ERROR_CODE_TRANSPORT_SUBSCRIBE_FAILED = 401,
+  ERROR_CODE_TRANSPORT_CONNECTION_LOST = 402,
+  ErrorCode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  ErrorCode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool ErrorCode_IsValid(int value);
+constexpr ErrorCode ErrorCode_MIN = ERROR_CODE_UNSPECIFIED;
+constexpr ErrorCode ErrorCode_MAX = ERROR_CODE_TRANSPORT_CONNECTION_LOST;
+constexpr int ErrorCode_ARRAYSIZE = ErrorCode_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ErrorCode_descriptor();
+template<typename T>
+inline const std::string& ErrorCode_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, ErrorCode>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function ErrorCode_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    ErrorCode_descriptor(), enum_t_value);
+}
+inline bool ErrorCode_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ErrorCode* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ErrorCode>(
+    ErrorCode_descriptor(), name, value);
+}
 // ===================================================================
 
 class ContextHints final :
@@ -328,7 +370,7 @@ class ContextHints final :
     kAllowSummarizationFieldNumber = 2,
     kAllowRetrievalFieldNumber = 3,
   };
-  // repeated string tags = 4;
+  // repeated string tags = 4 [json_name = "tags"];
   int tags_size() const;
   private:
   int _internal_tags_size() const;
@@ -352,7 +394,7 @@ class ContextHints final :
   std::string* _internal_add_tags();
   public:
 
-  // int32 max_input_tokens = 1;
+  // int32 max_input_tokens = 1 [json_name = "maxInputTokens"];
   void clear_max_input_tokens();
   int32_t max_input_tokens() const;
   void set_max_input_tokens(int32_t value);
@@ -361,7 +403,7 @@ class ContextHints final :
   void _internal_set_max_input_tokens(int32_t value);
   public:
 
-  // bool allow_summarization = 2;
+  // bool allow_summarization = 2 [json_name = "allowSummarization"];
   void clear_allow_summarization();
   bool allow_summarization() const;
   void set_allow_summarization(bool value);
@@ -370,7 +412,7 @@ class ContextHints final :
   void _internal_set_allow_summarization(bool value);
   public:
 
-  // bool allow_retrieval = 3;
+  // bool allow_retrieval = 3 [json_name = "allowRetrieval"];
   void clear_allow_retrieval();
   bool allow_retrieval() const;
   void set_allow_retrieval(bool value);
@@ -524,7 +566,7 @@ class Budget final :
     kMaxTotalTokensFieldNumber = 3,
     kDeadlineMsFieldNumber = 4,
   };
-  // int64 max_input_tokens = 1;
+  // int64 max_input_tokens = 1 [json_name = "maxInputTokens"];
   void clear_max_input_tokens();
   int64_t max_input_tokens() const;
   void set_max_input_tokens(int64_t value);
@@ -533,7 +575,7 @@ class Budget final :
   void _internal_set_max_input_tokens(int64_t value);
   public:
 
-  // int64 max_output_tokens = 2;
+  // int64 max_output_tokens = 2 [json_name = "maxOutputTokens"];
   void clear_max_output_tokens();
   int64_t max_output_tokens() const;
   void set_max_output_tokens(int64_t value);
@@ -542,7 +584,7 @@ class Budget final :
   void _internal_set_max_output_tokens(int64_t value);
   public:
 
-  // int64 max_total_tokens = 3;
+  // int64 max_total_tokens = 3 [json_name = "maxTotalTokens"];
   void clear_max_total_tokens();
   int64_t max_total_tokens() const;
   void set_max_total_tokens(int64_t value);
@@ -551,7 +593,7 @@ class Budget final :
   void _internal_set_max_total_tokens(int64_t value);
   public:
 
-  // int64 deadline_ms = 4;
+  // int64 deadline_ms = 4 [json_name = "deadlineMs"];
   void clear_deadline_ms();
   int64_t deadline_ms() const;
   void set_deadline_ms(int64_t value);
@@ -741,7 +783,7 @@ class JobMetadata final :
     kPackIdFieldNumber = 8,
     kActorTypeFieldNumber = 3,
   };
-  // repeated string risk_tags = 6;
+  // repeated string risk_tags = 6 [json_name = "riskTags"];
   int risk_tags_size() const;
   private:
   int _internal_risk_tags_size() const;
@@ -765,7 +807,7 @@ class JobMetadata final :
   std::string* _internal_add_risk_tags();
   public:
 
-  // repeated string requires = 7;
+  // repeated string requires = 7 [json_name = "requires"];
   int requires_size() const;
   private:
   int _internal_requires_size() const;
@@ -789,7 +831,7 @@ class JobMetadata final :
   std::string* _internal_add_requires();
   public:
 
-  // map<string, string> labels = 9;
+  // map<string, string> labels = 9 [json_name = "labels"];
   int labels_size() const;
   private:
   int _internal_labels_size() const;
@@ -806,7 +848,7 @@ class JobMetadata final :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_labels();
 
-  // string tenant_id = 1;
+  // string tenant_id = 1 [json_name = "tenantId"];
   void clear_tenant_id();
   const std::string& tenant_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -820,7 +862,7 @@ class JobMetadata final :
   std::string* _internal_mutable_tenant_id();
   public:
 
-  // string actor_id = 2;
+  // string actor_id = 2 [json_name = "actorId"];
   void clear_actor_id();
   const std::string& actor_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -834,7 +876,7 @@ class JobMetadata final :
   std::string* _internal_mutable_actor_id();
   public:
 
-  // string idempotency_key = 4;
+  // string idempotency_key = 4 [json_name = "idempotencyKey"];
   void clear_idempotency_key();
   const std::string& idempotency_key() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -848,7 +890,7 @@ class JobMetadata final :
   std::string* _internal_mutable_idempotency_key();
   public:
 
-  // string capability = 5;
+  // string capability = 5 [json_name = "capability"];
   void clear_capability();
   const std::string& capability() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -862,7 +904,7 @@ class JobMetadata final :
   std::string* _internal_mutable_capability();
   public:
 
-  // string pack_id = 8;
+  // string pack_id = 8 [json_name = "packId"];
   void clear_pack_id();
   const std::string& pack_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -876,7 +918,7 @@ class JobMetadata final :
   std::string* _internal_mutable_pack_id();
   public:
 
-  // .cordum.agent.v1.ActorType actor_type = 3;
+  // .cordum.agent.v1.ActorType actor_type = 3 [json_name = "actorType"];
   void clear_actor_type();
   ::cordum::agent::v1::ActorType actor_type() const;
   void set_actor_type(::cordum::agent::v1::ActorType value);
@@ -1106,7 +1148,7 @@ class Compensation final :
     kMetaFieldNumber = 12,
     kPriorityFieldNumber = 3,
   };
-  // map<string, string> env = 5;
+  // map<string, string> env = 5 [json_name = "env"];
   int env_size() const;
   private:
   int _internal_env_size() const;
@@ -1123,7 +1165,7 @@ class Compensation final :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_env();
 
-  // map<string, string> labels = 11;
+  // map<string, string> labels = 11 [json_name = "labels"];
   int labels_size() const;
   private:
   int _internal_labels_size() const;
@@ -1140,7 +1182,7 @@ class Compensation final :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_labels();
 
-  // string topic = 1;
+  // string topic = 1 [json_name = "topic"];
   void clear_topic();
   const std::string& topic() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1154,7 +1196,7 @@ class Compensation final :
   std::string* _internal_mutable_topic();
   public:
 
-  // string context_ptr = 2;
+  // string context_ptr = 2 [json_name = "contextPtr"];
   void clear_context_ptr();
   const std::string& context_ptr() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1168,7 +1210,7 @@ class Compensation final :
   std::string* _internal_mutable_context_ptr();
   public:
 
-  // string adapter_id = 4;
+  // string adapter_id = 4 [json_name = "adapterId"];
   void clear_adapter_id();
   const std::string& adapter_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1182,7 +1224,7 @@ class Compensation final :
   std::string* _internal_mutable_adapter_id();
   public:
 
-  // string memory_id = 6;
+  // string memory_id = 6 [json_name = "memoryId"];
   void clear_memory_id();
   const std::string& memory_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1196,7 +1238,7 @@ class Compensation final :
   std::string* _internal_mutable_memory_id();
   public:
 
-  // string tenant_id = 9;
+  // string tenant_id = 9 [json_name = "tenantId"];
   void clear_tenant_id();
   const std::string& tenant_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1210,7 +1252,7 @@ class Compensation final :
   std::string* _internal_mutable_tenant_id();
   public:
 
-  // string principal_id = 10;
+  // string principal_id = 10 [json_name = "principalId"];
   void clear_principal_id();
   const std::string& principal_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1224,7 +1266,7 @@ class Compensation final :
   std::string* _internal_mutable_principal_id();
   public:
 
-  // .cordum.agent.v1.ContextHints context_hints = 7;
+  // .cordum.agent.v1.ContextHints context_hints = 7 [json_name = "contextHints"];
   bool has_context_hints() const;
   private:
   bool _internal_has_context_hints() const;
@@ -1242,7 +1284,7 @@ class Compensation final :
       ::cordum::agent::v1::ContextHints* context_hints);
   ::cordum::agent::v1::ContextHints* unsafe_arena_release_context_hints();
 
-  // .cordum.agent.v1.Budget budget = 8;
+  // .cordum.agent.v1.Budget budget = 8 [json_name = "budget"];
   bool has_budget() const;
   private:
   bool _internal_has_budget() const;
@@ -1260,7 +1302,7 @@ class Compensation final :
       ::cordum::agent::v1::Budget* budget);
   ::cordum::agent::v1::Budget* unsafe_arena_release_budget();
 
-  // .cordum.agent.v1.JobMetadata meta = 12;
+  // .cordum.agent.v1.JobMetadata meta = 12 [json_name = "meta"];
   bool has_meta() const;
   private:
   bool _internal_has_meta() const;
@@ -1278,7 +1320,7 @@ class Compensation final :
       ::cordum::agent::v1::JobMetadata* meta);
   ::cordum::agent::v1::JobMetadata* unsafe_arena_release_meta();
 
-  // .cordum.agent.v1.JobPriority priority = 3;
+  // .cordum.agent.v1.JobPriority priority = 3 [json_name = "priority"];
   void clear_priority();
   ::cordum::agent::v1::JobPriority priority() const;
   void set_priority(::cordum::agent::v1::JobPriority value);
@@ -1520,7 +1562,7 @@ class JobRequest final :
     kPriorityFieldNumber = 3,
     kStepIndexFieldNumber = 9,
   };
-  // map<string, string> env = 6;
+  // map<string, string> env = 6 [json_name = "env"];
   int env_size() const;
   private:
   int _internal_env_size() const;
@@ -1537,7 +1579,7 @@ class JobRequest final :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_env();
 
-  // map<string, string> labels = 15;
+  // map<string, string> labels = 15 [json_name = "labels"];
   int labels_size() const;
   private:
   int _internal_labels_size() const;
@@ -1554,7 +1596,7 @@ class JobRequest final :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_labels();
 
-  // string job_id = 1;
+  // string job_id = 1 [json_name = "jobId"];
   void clear_job_id();
   const std::string& job_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1568,7 +1610,7 @@ class JobRequest final :
   std::string* _internal_mutable_job_id();
   public:
 
-  // string topic = 2;
+  // string topic = 2 [json_name = "topic"];
   void clear_topic();
   const std::string& topic() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1582,7 +1624,7 @@ class JobRequest final :
   std::string* _internal_mutable_topic();
   public:
 
-  // string context_ptr = 4;
+  // string context_ptr = 4 [json_name = "contextPtr"];
   void clear_context_ptr();
   const std::string& context_ptr() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1596,7 +1638,7 @@ class JobRequest final :
   std::string* _internal_mutable_context_ptr();
   public:
 
-  // string adapter_id = 5;
+  // string adapter_id = 5 [json_name = "adapterId"];
   void clear_adapter_id();
   const std::string& adapter_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1610,7 +1652,7 @@ class JobRequest final :
   std::string* _internal_mutable_adapter_id();
   public:
 
-  // string parent_job_id = 7;
+  // string parent_job_id = 7 [json_name = "parentJobId"];
   void clear_parent_job_id();
   const std::string& parent_job_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1624,7 +1666,7 @@ class JobRequest final :
   std::string* _internal_mutable_parent_job_id();
   public:
 
-  // string workflow_id = 8;
+  // string workflow_id = 8 [json_name = "workflowId"];
   void clear_workflow_id();
   const std::string& workflow_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1638,7 +1680,7 @@ class JobRequest final :
   std::string* _internal_mutable_workflow_id();
   public:
 
-  // string memory_id = 10;
+  // string memory_id = 10 [json_name = "memoryId"];
   void clear_memory_id();
   const std::string& memory_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1652,7 +1694,7 @@ class JobRequest final :
   std::string* _internal_mutable_memory_id();
   public:
 
-  // string tenant_id = 13;
+  // string tenant_id = 13 [json_name = "tenantId"];
   void clear_tenant_id();
   const std::string& tenant_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1666,7 +1708,7 @@ class JobRequest final :
   std::string* _internal_mutable_tenant_id();
   public:
 
-  // string principal_id = 14;
+  // string principal_id = 14 [json_name = "principalId"];
   void clear_principal_id();
   const std::string& principal_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1680,7 +1722,7 @@ class JobRequest final :
   std::string* _internal_mutable_principal_id();
   public:
 
-  // .cordum.agent.v1.ContextHints context_hints = 11;
+  // .cordum.agent.v1.ContextHints context_hints = 11 [json_name = "contextHints"];
   bool has_context_hints() const;
   private:
   bool _internal_has_context_hints() const;
@@ -1698,7 +1740,7 @@ class JobRequest final :
       ::cordum::agent::v1::ContextHints* context_hints);
   ::cordum::agent::v1::ContextHints* unsafe_arena_release_context_hints();
 
-  // .cordum.agent.v1.Budget budget = 12;
+  // .cordum.agent.v1.Budget budget = 12 [json_name = "budget"];
   bool has_budget() const;
   private:
   bool _internal_has_budget() const;
@@ -1716,7 +1758,7 @@ class JobRequest final :
       ::cordum::agent::v1::Budget* budget);
   ::cordum::agent::v1::Budget* unsafe_arena_release_budget();
 
-  // .cordum.agent.v1.JobMetadata meta = 16;
+  // .cordum.agent.v1.JobMetadata meta = 16 [json_name = "meta"];
   bool has_meta() const;
   private:
   bool _internal_has_meta() const;
@@ -1734,7 +1776,7 @@ class JobRequest final :
       ::cordum::agent::v1::JobMetadata* meta);
   ::cordum::agent::v1::JobMetadata* unsafe_arena_release_meta();
 
-  // .cordum.agent.v1.Compensation compensation = 17;
+  // .cordum.agent.v1.Compensation compensation = 17 [json_name = "compensation"];
   bool has_compensation() const;
   private:
   bool _internal_has_compensation() const;
@@ -1752,7 +1794,7 @@ class JobRequest final :
       ::cordum::agent::v1::Compensation* compensation);
   ::cordum::agent::v1::Compensation* unsafe_arena_release_compensation();
 
-  // .cordum.agent.v1.JobPriority priority = 3;
+  // .cordum.agent.v1.JobPriority priority = 3 [json_name = "priority"];
   void clear_priority();
   ::cordum::agent::v1::JobPriority priority() const;
   void set_priority(::cordum::agent::v1::JobPriority value);
@@ -1761,7 +1803,7 @@ class JobRequest final :
   void _internal_set_priority(::cordum::agent::v1::JobPriority value);
   public:
 
-  // int32 step_index = 9;
+  // int32 step_index = 9 [json_name = "stepIndex"];
   void clear_step_index();
   int32_t step_index() const;
   void set_step_index(int32_t value);
@@ -1939,8 +1981,9 @@ class JobResult final :
     kErrorMessageFieldNumber = 7,
     kExecutionMsFieldNumber = 5,
     kStatusFieldNumber = 2,
+    kErrorCodeEnumFieldNumber = 9,
   };
-  // repeated string artifact_ptrs = 8;
+  // repeated string artifact_ptrs = 8 [json_name = "artifactPtrs"];
   int artifact_ptrs_size() const;
   private:
   int _internal_artifact_ptrs_size() const;
@@ -1964,7 +2007,7 @@ class JobResult final :
   std::string* _internal_add_artifact_ptrs();
   public:
 
-  // string job_id = 1;
+  // string job_id = 1 [json_name = "jobId"];
   void clear_job_id();
   const std::string& job_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1978,7 +2021,7 @@ class JobResult final :
   std::string* _internal_mutable_job_id();
   public:
 
-  // string result_ptr = 3;
+  // string result_ptr = 3 [json_name = "resultPtr"];
   void clear_result_ptr();
   const std::string& result_ptr() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1992,7 +2035,7 @@ class JobResult final :
   std::string* _internal_mutable_result_ptr();
   public:
 
-  // string worker_id = 4;
+  // string worker_id = 4 [json_name = "workerId"];
   void clear_worker_id();
   const std::string& worker_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2006,7 +2049,7 @@ class JobResult final :
   std::string* _internal_mutable_worker_id();
   public:
 
-  // string error_code = 6;
+  // string error_code = 6 [json_name = "errorCode"];
   void clear_error_code();
   const std::string& error_code() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2020,7 +2063,7 @@ class JobResult final :
   std::string* _internal_mutable_error_code();
   public:
 
-  // string error_message = 7;
+  // string error_message = 7 [json_name = "errorMessage"];
   void clear_error_message();
   const std::string& error_message() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2034,7 +2077,7 @@ class JobResult final :
   std::string* _internal_mutable_error_message();
   public:
 
-  // int64 execution_ms = 5;
+  // int64 execution_ms = 5 [json_name = "executionMs"];
   void clear_execution_ms();
   int64_t execution_ms() const;
   void set_execution_ms(int64_t value);
@@ -2043,13 +2086,22 @@ class JobResult final :
   void _internal_set_execution_ms(int64_t value);
   public:
 
-  // .cordum.agent.v1.JobStatus status = 2;
+  // .cordum.agent.v1.JobStatus status = 2 [json_name = "status"];
   void clear_status();
   ::cordum::agent::v1::JobStatus status() const;
   void set_status(::cordum::agent::v1::JobStatus value);
   private:
   ::cordum::agent::v1::JobStatus _internal_status() const;
   void _internal_set_status(::cordum::agent::v1::JobStatus value);
+  public:
+
+  // .cordum.agent.v1.ErrorCode error_code_enum = 9 [json_name = "errorCodeEnum"];
+  void clear_error_code_enum();
+  ::cordum::agent::v1::ErrorCode error_code_enum() const;
+  void set_error_code_enum(::cordum::agent::v1::ErrorCode value);
+  private:
+  ::cordum::agent::v1::ErrorCode _internal_error_code_enum() const;
+  void _internal_set_error_code_enum(::cordum::agent::v1::ErrorCode value);
   public:
 
   // @@protoc_insertion_point(class_scope:cordum.agent.v1.JobResult)
@@ -2068,6 +2120,7 @@ class JobResult final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr error_message_;
     int64_t execution_ms_;
     int status_;
+    int error_code_enum_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -2204,7 +2257,7 @@ class JobProgress final :
     kPercentFieldNumber = 3,
     kStatusFieldNumber = 7,
   };
-  // repeated string artifact_ptrs = 6;
+  // repeated string artifact_ptrs = 6 [json_name = "artifactPtrs"];
   int artifact_ptrs_size() const;
   private:
   int _internal_artifact_ptrs_size() const;
@@ -2228,7 +2281,7 @@ class JobProgress final :
   std::string* _internal_add_artifact_ptrs();
   public:
 
-  // string job_id = 1;
+  // string job_id = 1 [json_name = "jobId"];
   void clear_job_id();
   const std::string& job_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2242,7 +2295,7 @@ class JobProgress final :
   std::string* _internal_mutable_job_id();
   public:
 
-  // string step_id = 2;
+  // string step_id = 2 [json_name = "stepId"];
   void clear_step_id();
   const std::string& step_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2256,7 +2309,7 @@ class JobProgress final :
   std::string* _internal_mutable_step_id();
   public:
 
-  // string message = 4;
+  // string message = 4 [json_name = "message"];
   void clear_message();
   const std::string& message() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2270,7 +2323,7 @@ class JobProgress final :
   std::string* _internal_mutable_message();
   public:
 
-  // string result_ptr = 5;
+  // string result_ptr = 5 [json_name = "resultPtr"];
   void clear_result_ptr();
   const std::string& result_ptr() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2284,7 +2337,7 @@ class JobProgress final :
   std::string* _internal_mutable_result_ptr();
   public:
 
-  // int32 percent = 3;
+  // int32 percent = 3 [json_name = "percent"];
   void clear_percent();
   int32_t percent() const;
   void set_percent(int32_t value);
@@ -2293,7 +2346,7 @@ class JobProgress final :
   void _internal_set_percent(int32_t value);
   public:
 
-  // .cordum.agent.v1.JobStatus status = 7;
+  // .cordum.agent.v1.JobStatus status = 7 [json_name = "status"];
   void clear_status();
   ::cordum::agent::v1::JobStatus status() const;
   void set_status(::cordum::agent::v1::JobStatus value);
@@ -2449,7 +2502,7 @@ class JobCancel final :
     kReasonFieldNumber = 2,
     kRequestedByFieldNumber = 3,
   };
-  // string job_id = 1;
+  // string job_id = 1 [json_name = "jobId"];
   void clear_job_id();
   const std::string& job_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2463,7 +2516,7 @@ class JobCancel final :
   std::string* _internal_mutable_job_id();
   public:
 
-  // string reason = 2;
+  // string reason = 2 [json_name = "reason"];
   void clear_reason();
   const std::string& reason() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2477,7 +2530,7 @@ class JobCancel final :
   std::string* _internal_mutable_reason();
   public:
 
-  // string requested_by = 3;
+  // string requested_by = 3 [json_name = "requestedBy"];
   void clear_requested_by();
   const std::string& requested_by() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2518,7 +2571,7 @@ class JobCancel final :
 #endif  // __GNUC__
 // ContextHints
 
-// int32 max_input_tokens = 1;
+// int32 max_input_tokens = 1 [json_name = "maxInputTokens"];
 inline void ContextHints::clear_max_input_tokens() {
   _impl_.max_input_tokens_ = 0;
 }
@@ -2538,7 +2591,7 @@ inline void ContextHints::set_max_input_tokens(int32_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.ContextHints.max_input_tokens)
 }
 
-// bool allow_summarization = 2;
+// bool allow_summarization = 2 [json_name = "allowSummarization"];
 inline void ContextHints::clear_allow_summarization() {
   _impl_.allow_summarization_ = false;
 }
@@ -2558,7 +2611,7 @@ inline void ContextHints::set_allow_summarization(bool value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.ContextHints.allow_summarization)
 }
 
-// bool allow_retrieval = 3;
+// bool allow_retrieval = 3 [json_name = "allowRetrieval"];
 inline void ContextHints::clear_allow_retrieval() {
   _impl_.allow_retrieval_ = false;
 }
@@ -2578,7 +2631,7 @@ inline void ContextHints::set_allow_retrieval(bool value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.ContextHints.allow_retrieval)
 }
 
-// repeated string tags = 4;
+// repeated string tags = 4 [json_name = "tags"];
 inline int ContextHints::_internal_tags_size() const {
   return _impl_.tags_.size();
 }
@@ -2657,7 +2710,7 @@ ContextHints::mutable_tags() {
 
 // Budget
 
-// int64 max_input_tokens = 1;
+// int64 max_input_tokens = 1 [json_name = "maxInputTokens"];
 inline void Budget::clear_max_input_tokens() {
   _impl_.max_input_tokens_ = int64_t{0};
 }
@@ -2677,7 +2730,7 @@ inline void Budget::set_max_input_tokens(int64_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Budget.max_input_tokens)
 }
 
-// int64 max_output_tokens = 2;
+// int64 max_output_tokens = 2 [json_name = "maxOutputTokens"];
 inline void Budget::clear_max_output_tokens() {
   _impl_.max_output_tokens_ = int64_t{0};
 }
@@ -2697,7 +2750,7 @@ inline void Budget::set_max_output_tokens(int64_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Budget.max_output_tokens)
 }
 
-// int64 max_total_tokens = 3;
+// int64 max_total_tokens = 3 [json_name = "maxTotalTokens"];
 inline void Budget::clear_max_total_tokens() {
   _impl_.max_total_tokens_ = int64_t{0};
 }
@@ -2717,7 +2770,7 @@ inline void Budget::set_max_total_tokens(int64_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Budget.max_total_tokens)
 }
 
-// int64 deadline_ms = 4;
+// int64 deadline_ms = 4 [json_name = "deadlineMs"];
 inline void Budget::clear_deadline_ms() {
   _impl_.deadline_ms_ = int64_t{0};
 }
@@ -2743,7 +2796,7 @@ inline void Budget::set_deadline_ms(int64_t value) {
 
 // JobMetadata
 
-// string tenant_id = 1;
+// string tenant_id = 1 [json_name = "tenantId"];
 inline void JobMetadata::clear_tenant_id() {
   _impl_.tenant_id_.ClearToEmpty();
 }
@@ -2793,7 +2846,7 @@ inline void JobMetadata::set_allocated_tenant_id(std::string* tenant_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobMetadata.tenant_id)
 }
 
-// string actor_id = 2;
+// string actor_id = 2 [json_name = "actorId"];
 inline void JobMetadata::clear_actor_id() {
   _impl_.actor_id_.ClearToEmpty();
 }
@@ -2843,7 +2896,7 @@ inline void JobMetadata::set_allocated_actor_id(std::string* actor_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobMetadata.actor_id)
 }
 
-// .cordum.agent.v1.ActorType actor_type = 3;
+// .cordum.agent.v1.ActorType actor_type = 3 [json_name = "actorType"];
 inline void JobMetadata::clear_actor_type() {
   _impl_.actor_type_ = 0;
 }
@@ -2863,7 +2916,7 @@ inline void JobMetadata::set_actor_type(::cordum::agent::v1::ActorType value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.JobMetadata.actor_type)
 }
 
-// string idempotency_key = 4;
+// string idempotency_key = 4 [json_name = "idempotencyKey"];
 inline void JobMetadata::clear_idempotency_key() {
   _impl_.idempotency_key_.ClearToEmpty();
 }
@@ -2913,7 +2966,7 @@ inline void JobMetadata::set_allocated_idempotency_key(std::string* idempotency_
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobMetadata.idempotency_key)
 }
 
-// string capability = 5;
+// string capability = 5 [json_name = "capability"];
 inline void JobMetadata::clear_capability() {
   _impl_.capability_.ClearToEmpty();
 }
@@ -2963,7 +3016,7 @@ inline void JobMetadata::set_allocated_capability(std::string* capability) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobMetadata.capability)
 }
 
-// repeated string risk_tags = 6;
+// repeated string risk_tags = 6 [json_name = "riskTags"];
 inline int JobMetadata::_internal_risk_tags_size() const {
   return _impl_.risk_tags_.size();
 }
@@ -3038,7 +3091,7 @@ JobMetadata::mutable_risk_tags() {
   return &_impl_.risk_tags_;
 }
 
-// repeated string requires = 7;
+// repeated string requires = 7 [json_name = "requires"];
 inline int JobMetadata::_internal_requires_size() const {
   return _impl_.requires_.size();
 }
@@ -3113,7 +3166,7 @@ JobMetadata::mutable_requires() {
   return &_impl_.requires_;
 }
 
-// string pack_id = 8;
+// string pack_id = 8 [json_name = "packId"];
 inline void JobMetadata::clear_pack_id() {
   _impl_.pack_id_.ClearToEmpty();
 }
@@ -3163,7 +3216,7 @@ inline void JobMetadata::set_allocated_pack_id(std::string* pack_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobMetadata.pack_id)
 }
 
-// map<string, string> labels = 9;
+// map<string, string> labels = 9 [json_name = "labels"];
 inline int JobMetadata::_internal_labels_size() const {
   return _impl_.labels_.size();
 }
@@ -3200,7 +3253,7 @@ JobMetadata::mutable_labels() {
 
 // Compensation
 
-// string topic = 1;
+// string topic = 1 [json_name = "topic"];
 inline void Compensation::clear_topic() {
   _impl_.topic_.ClearToEmpty();
 }
@@ -3250,7 +3303,7 @@ inline void Compensation::set_allocated_topic(std::string* topic) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.topic)
 }
 
-// string context_ptr = 2;
+// string context_ptr = 2 [json_name = "contextPtr"];
 inline void Compensation::clear_context_ptr() {
   _impl_.context_ptr_.ClearToEmpty();
 }
@@ -3300,7 +3353,7 @@ inline void Compensation::set_allocated_context_ptr(std::string* context_ptr) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.context_ptr)
 }
 
-// .cordum.agent.v1.JobPriority priority = 3;
+// .cordum.agent.v1.JobPriority priority = 3 [json_name = "priority"];
 inline void Compensation::clear_priority() {
   _impl_.priority_ = 0;
 }
@@ -3320,7 +3373,7 @@ inline void Compensation::set_priority(::cordum::agent::v1::JobPriority value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.Compensation.priority)
 }
 
-// string adapter_id = 4;
+// string adapter_id = 4 [json_name = "adapterId"];
 inline void Compensation::clear_adapter_id() {
   _impl_.adapter_id_.ClearToEmpty();
 }
@@ -3370,7 +3423,7 @@ inline void Compensation::set_allocated_adapter_id(std::string* adapter_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.adapter_id)
 }
 
-// map<string, string> env = 5;
+// map<string, string> env = 5 [json_name = "env"];
 inline int Compensation::_internal_env_size() const {
   return _impl_.env_.size();
 }
@@ -3399,7 +3452,7 @@ Compensation::mutable_env() {
   return _internal_mutable_env();
 }
 
-// string memory_id = 6;
+// string memory_id = 6 [json_name = "memoryId"];
 inline void Compensation::clear_memory_id() {
   _impl_.memory_id_.ClearToEmpty();
 }
@@ -3449,7 +3502,7 @@ inline void Compensation::set_allocated_memory_id(std::string* memory_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.memory_id)
 }
 
-// .cordum.agent.v1.ContextHints context_hints = 7;
+// .cordum.agent.v1.ContextHints context_hints = 7 [json_name = "contextHints"];
 inline bool Compensation::_internal_has_context_hints() const {
   return this != internal_default_instance() && _impl_.context_hints_ != nullptr;
 }
@@ -3539,7 +3592,7 @@ inline void Compensation::set_allocated_context_hints(::cordum::agent::v1::Conte
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.context_hints)
 }
 
-// .cordum.agent.v1.Budget budget = 8;
+// .cordum.agent.v1.Budget budget = 8 [json_name = "budget"];
 inline bool Compensation::_internal_has_budget() const {
   return this != internal_default_instance() && _impl_.budget_ != nullptr;
 }
@@ -3629,7 +3682,7 @@ inline void Compensation::set_allocated_budget(::cordum::agent::v1::Budget* budg
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.budget)
 }
 
-// string tenant_id = 9;
+// string tenant_id = 9 [json_name = "tenantId"];
 inline void Compensation::clear_tenant_id() {
   _impl_.tenant_id_.ClearToEmpty();
 }
@@ -3679,7 +3732,7 @@ inline void Compensation::set_allocated_tenant_id(std::string* tenant_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.tenant_id)
 }
 
-// string principal_id = 10;
+// string principal_id = 10 [json_name = "principalId"];
 inline void Compensation::clear_principal_id() {
   _impl_.principal_id_.ClearToEmpty();
 }
@@ -3729,7 +3782,7 @@ inline void Compensation::set_allocated_principal_id(std::string* principal_id) 
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.principal_id)
 }
 
-// map<string, string> labels = 11;
+// map<string, string> labels = 11 [json_name = "labels"];
 inline int Compensation::_internal_labels_size() const {
   return _impl_.labels_.size();
 }
@@ -3758,7 +3811,7 @@ Compensation::mutable_labels() {
   return _internal_mutable_labels();
 }
 
-// .cordum.agent.v1.JobMetadata meta = 12;
+// .cordum.agent.v1.JobMetadata meta = 12 [json_name = "meta"];
 inline bool Compensation::_internal_has_meta() const {
   return this != internal_default_instance() && _impl_.meta_ != nullptr;
 }
@@ -3856,7 +3909,7 @@ inline void Compensation::set_allocated_meta(::cordum::agent::v1::JobMetadata* m
 
 // JobRequest
 
-// string job_id = 1;
+// string job_id = 1 [json_name = "jobId"];
 inline void JobRequest::clear_job_id() {
   _impl_.job_id_.ClearToEmpty();
 }
@@ -3906,7 +3959,7 @@ inline void JobRequest::set_allocated_job_id(std::string* job_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.job_id)
 }
 
-// string topic = 2;
+// string topic = 2 [json_name = "topic"];
 inline void JobRequest::clear_topic() {
   _impl_.topic_.ClearToEmpty();
 }
@@ -3956,7 +4009,7 @@ inline void JobRequest::set_allocated_topic(std::string* topic) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.topic)
 }
 
-// .cordum.agent.v1.JobPriority priority = 3;
+// .cordum.agent.v1.JobPriority priority = 3 [json_name = "priority"];
 inline void JobRequest::clear_priority() {
   _impl_.priority_ = 0;
 }
@@ -3976,7 +4029,7 @@ inline void JobRequest::set_priority(::cordum::agent::v1::JobPriority value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.JobRequest.priority)
 }
 
-// string context_ptr = 4;
+// string context_ptr = 4 [json_name = "contextPtr"];
 inline void JobRequest::clear_context_ptr() {
   _impl_.context_ptr_.ClearToEmpty();
 }
@@ -4026,7 +4079,7 @@ inline void JobRequest::set_allocated_context_ptr(std::string* context_ptr) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.context_ptr)
 }
 
-// string adapter_id = 5;
+// string adapter_id = 5 [json_name = "adapterId"];
 inline void JobRequest::clear_adapter_id() {
   _impl_.adapter_id_.ClearToEmpty();
 }
@@ -4076,7 +4129,7 @@ inline void JobRequest::set_allocated_adapter_id(std::string* adapter_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.adapter_id)
 }
 
-// map<string, string> env = 6;
+// map<string, string> env = 6 [json_name = "env"];
 inline int JobRequest::_internal_env_size() const {
   return _impl_.env_.size();
 }
@@ -4105,7 +4158,7 @@ JobRequest::mutable_env() {
   return _internal_mutable_env();
 }
 
-// string parent_job_id = 7;
+// string parent_job_id = 7 [json_name = "parentJobId"];
 inline void JobRequest::clear_parent_job_id() {
   _impl_.parent_job_id_.ClearToEmpty();
 }
@@ -4155,7 +4208,7 @@ inline void JobRequest::set_allocated_parent_job_id(std::string* parent_job_id) 
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.parent_job_id)
 }
 
-// string workflow_id = 8;
+// string workflow_id = 8 [json_name = "workflowId"];
 inline void JobRequest::clear_workflow_id() {
   _impl_.workflow_id_.ClearToEmpty();
 }
@@ -4205,7 +4258,7 @@ inline void JobRequest::set_allocated_workflow_id(std::string* workflow_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.workflow_id)
 }
 
-// int32 step_index = 9;
+// int32 step_index = 9 [json_name = "stepIndex"];
 inline void JobRequest::clear_step_index() {
   _impl_.step_index_ = 0;
 }
@@ -4225,7 +4278,7 @@ inline void JobRequest::set_step_index(int32_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.JobRequest.step_index)
 }
 
-// string memory_id = 10;
+// string memory_id = 10 [json_name = "memoryId"];
 inline void JobRequest::clear_memory_id() {
   _impl_.memory_id_.ClearToEmpty();
 }
@@ -4275,7 +4328,7 @@ inline void JobRequest::set_allocated_memory_id(std::string* memory_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.memory_id)
 }
 
-// .cordum.agent.v1.ContextHints context_hints = 11;
+// .cordum.agent.v1.ContextHints context_hints = 11 [json_name = "contextHints"];
 inline bool JobRequest::_internal_has_context_hints() const {
   return this != internal_default_instance() && _impl_.context_hints_ != nullptr;
 }
@@ -4365,7 +4418,7 @@ inline void JobRequest::set_allocated_context_hints(::cordum::agent::v1::Context
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.context_hints)
 }
 
-// .cordum.agent.v1.Budget budget = 12;
+// .cordum.agent.v1.Budget budget = 12 [json_name = "budget"];
 inline bool JobRequest::_internal_has_budget() const {
   return this != internal_default_instance() && _impl_.budget_ != nullptr;
 }
@@ -4455,7 +4508,7 @@ inline void JobRequest::set_allocated_budget(::cordum::agent::v1::Budget* budget
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.budget)
 }
 
-// string tenant_id = 13;
+// string tenant_id = 13 [json_name = "tenantId"];
 inline void JobRequest::clear_tenant_id() {
   _impl_.tenant_id_.ClearToEmpty();
 }
@@ -4505,7 +4558,7 @@ inline void JobRequest::set_allocated_tenant_id(std::string* tenant_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.tenant_id)
 }
 
-// string principal_id = 14;
+// string principal_id = 14 [json_name = "principalId"];
 inline void JobRequest::clear_principal_id() {
   _impl_.principal_id_.ClearToEmpty();
 }
@@ -4555,7 +4608,7 @@ inline void JobRequest::set_allocated_principal_id(std::string* principal_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.principal_id)
 }
 
-// map<string, string> labels = 15;
+// map<string, string> labels = 15 [json_name = "labels"];
 inline int JobRequest::_internal_labels_size() const {
   return _impl_.labels_.size();
 }
@@ -4584,7 +4637,7 @@ JobRequest::mutable_labels() {
   return _internal_mutable_labels();
 }
 
-// .cordum.agent.v1.JobMetadata meta = 16;
+// .cordum.agent.v1.JobMetadata meta = 16 [json_name = "meta"];
 inline bool JobRequest::_internal_has_meta() const {
   return this != internal_default_instance() && _impl_.meta_ != nullptr;
 }
@@ -4674,7 +4727,7 @@ inline void JobRequest::set_allocated_meta(::cordum::agent::v1::JobMetadata* met
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.meta)
 }
 
-// .cordum.agent.v1.Compensation compensation = 17;
+// .cordum.agent.v1.Compensation compensation = 17 [json_name = "compensation"];
 inline bool JobRequest::_internal_has_compensation() const {
   return this != internal_default_instance() && _impl_.compensation_ != nullptr;
 }
@@ -4768,7 +4821,7 @@ inline void JobRequest::set_allocated_compensation(::cordum::agent::v1::Compensa
 
 // JobResult
 
-// string job_id = 1;
+// string job_id = 1 [json_name = "jobId"];
 inline void JobResult::clear_job_id() {
   _impl_.job_id_.ClearToEmpty();
 }
@@ -4818,7 +4871,7 @@ inline void JobResult::set_allocated_job_id(std::string* job_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobResult.job_id)
 }
 
-// .cordum.agent.v1.JobStatus status = 2;
+// .cordum.agent.v1.JobStatus status = 2 [json_name = "status"];
 inline void JobResult::clear_status() {
   _impl_.status_ = 0;
 }
@@ -4838,7 +4891,7 @@ inline void JobResult::set_status(::cordum::agent::v1::JobStatus value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.JobResult.status)
 }
 
-// string result_ptr = 3;
+// string result_ptr = 3 [json_name = "resultPtr"];
 inline void JobResult::clear_result_ptr() {
   _impl_.result_ptr_.ClearToEmpty();
 }
@@ -4888,7 +4941,7 @@ inline void JobResult::set_allocated_result_ptr(std::string* result_ptr) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobResult.result_ptr)
 }
 
-// string worker_id = 4;
+// string worker_id = 4 [json_name = "workerId"];
 inline void JobResult::clear_worker_id() {
   _impl_.worker_id_.ClearToEmpty();
 }
@@ -4938,7 +4991,7 @@ inline void JobResult::set_allocated_worker_id(std::string* worker_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobResult.worker_id)
 }
 
-// int64 execution_ms = 5;
+// int64 execution_ms = 5 [json_name = "executionMs"];
 inline void JobResult::clear_execution_ms() {
   _impl_.execution_ms_ = int64_t{0};
 }
@@ -4958,7 +5011,7 @@ inline void JobResult::set_execution_ms(int64_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.JobResult.execution_ms)
 }
 
-// string error_code = 6;
+// string error_code = 6 [json_name = "errorCode"];
 inline void JobResult::clear_error_code() {
   _impl_.error_code_.ClearToEmpty();
 }
@@ -5008,7 +5061,7 @@ inline void JobResult::set_allocated_error_code(std::string* error_code) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobResult.error_code)
 }
 
-// string error_message = 7;
+// string error_message = 7 [json_name = "errorMessage"];
 inline void JobResult::clear_error_message() {
   _impl_.error_message_.ClearToEmpty();
 }
@@ -5058,7 +5111,7 @@ inline void JobResult::set_allocated_error_message(std::string* error_message) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobResult.error_message)
 }
 
-// repeated string artifact_ptrs = 8;
+// repeated string artifact_ptrs = 8 [json_name = "artifactPtrs"];
 inline int JobResult::_internal_artifact_ptrs_size() const {
   return _impl_.artifact_ptrs_.size();
 }
@@ -5133,11 +5186,31 @@ JobResult::mutable_artifact_ptrs() {
   return &_impl_.artifact_ptrs_;
 }
 
+// .cordum.agent.v1.ErrorCode error_code_enum = 9 [json_name = "errorCodeEnum"];
+inline void JobResult::clear_error_code_enum() {
+  _impl_.error_code_enum_ = 0;
+}
+inline ::cordum::agent::v1::ErrorCode JobResult::_internal_error_code_enum() const {
+  return static_cast< ::cordum::agent::v1::ErrorCode >(_impl_.error_code_enum_);
+}
+inline ::cordum::agent::v1::ErrorCode JobResult::error_code_enum() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobResult.error_code_enum)
+  return _internal_error_code_enum();
+}
+inline void JobResult::_internal_set_error_code_enum(::cordum::agent::v1::ErrorCode value) {
+  
+  _impl_.error_code_enum_ = value;
+}
+inline void JobResult::set_error_code_enum(::cordum::agent::v1::ErrorCode value) {
+  _internal_set_error_code_enum(value);
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.JobResult.error_code_enum)
+}
+
 // -------------------------------------------------------------------
 
 // JobProgress
 
-// string job_id = 1;
+// string job_id = 1 [json_name = "jobId"];
 inline void JobProgress::clear_job_id() {
   _impl_.job_id_.ClearToEmpty();
 }
@@ -5187,7 +5260,7 @@ inline void JobProgress::set_allocated_job_id(std::string* job_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobProgress.job_id)
 }
 
-// string step_id = 2;
+// string step_id = 2 [json_name = "stepId"];
 inline void JobProgress::clear_step_id() {
   _impl_.step_id_.ClearToEmpty();
 }
@@ -5237,7 +5310,7 @@ inline void JobProgress::set_allocated_step_id(std::string* step_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobProgress.step_id)
 }
 
-// int32 percent = 3;
+// int32 percent = 3 [json_name = "percent"];
 inline void JobProgress::clear_percent() {
   _impl_.percent_ = 0;
 }
@@ -5257,7 +5330,7 @@ inline void JobProgress::set_percent(int32_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.JobProgress.percent)
 }
 
-// string message = 4;
+// string message = 4 [json_name = "message"];
 inline void JobProgress::clear_message() {
   _impl_.message_.ClearToEmpty();
 }
@@ -5307,7 +5380,7 @@ inline void JobProgress::set_allocated_message(std::string* message) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobProgress.message)
 }
 
-// string result_ptr = 5;
+// string result_ptr = 5 [json_name = "resultPtr"];
 inline void JobProgress::clear_result_ptr() {
   _impl_.result_ptr_.ClearToEmpty();
 }
@@ -5357,7 +5430,7 @@ inline void JobProgress::set_allocated_result_ptr(std::string* result_ptr) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobProgress.result_ptr)
 }
 
-// repeated string artifact_ptrs = 6;
+// repeated string artifact_ptrs = 6 [json_name = "artifactPtrs"];
 inline int JobProgress::_internal_artifact_ptrs_size() const {
   return _impl_.artifact_ptrs_.size();
 }
@@ -5432,7 +5505,7 @@ JobProgress::mutable_artifact_ptrs() {
   return &_impl_.artifact_ptrs_;
 }
 
-// .cordum.agent.v1.JobStatus status = 7;
+// .cordum.agent.v1.JobStatus status = 7 [json_name = "status"];
 inline void JobProgress::clear_status() {
   _impl_.status_ = 0;
 }
@@ -5456,7 +5529,7 @@ inline void JobProgress::set_status(::cordum::agent::v1::JobStatus value) {
 
 // JobCancel
 
-// string job_id = 1;
+// string job_id = 1 [json_name = "jobId"];
 inline void JobCancel::clear_job_id() {
   _impl_.job_id_.ClearToEmpty();
 }
@@ -5506,7 +5579,7 @@ inline void JobCancel::set_allocated_job_id(std::string* job_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobCancel.job_id)
 }
 
-// string reason = 2;
+// string reason = 2 [json_name = "reason"];
 inline void JobCancel::clear_reason() {
   _impl_.reason_.ClearToEmpty();
 }
@@ -5556,7 +5629,7 @@ inline void JobCancel::set_allocated_reason(std::string* reason) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobCancel.reason)
 }
 
-// string requested_by = 3;
+// string requested_by = 3 [json_name = "requestedBy"];
 inline void JobCancel::clear_requested_by() {
   _impl_.requested_by_.ClearToEmpty();
 }
@@ -5656,6 +5729,11 @@ template <> struct is_proto_enum< ::cordum::agent::v1::ActorType> : ::std::true_
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::cordum::agent::v1::ActorType>() {
   return ::cordum::agent::v1::ActorType_descriptor();
+}
+template <> struct is_proto_enum< ::cordum::agent::v1::ErrorCode> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::cordum::agent::v1::ErrorCode>() {
+  return ::cordum::agent::v1::ErrorCode_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

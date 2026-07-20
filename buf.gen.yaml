@@ -1,0 +1,27 @@
+version: v2
+clean: true
+plugins:
+  - remote: buf.build/protocolbuffers/go:v1.36.11
+    revision: 1
+    out: go
+    opt: paths=source_relative
+  - remote: buf.build/grpc/go:v1.6.0
+    revision: 1
+    out: go
+    opt: paths=source_relative
+  - remote: buf.build/protocolbuffers/cpp:v21.12
+    revision: 1
+    out: cpp
+  - remote: buf.build/protocolbuffers/js:v3.21.4
+    revision: 1
+    out: node
+    opt: import_style=commonjs,binary
+  - local:
+      - node
+      - tools/codegen/node_modules/ts-protoc-gen/bin/protoc-gen-ts
+    out: node
+  - remote: buf.build/protocolbuffers/ruby:v33.2
+    revision: 1
+    out: ruby
+inputs:
+  - directory: proto

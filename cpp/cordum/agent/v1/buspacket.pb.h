@@ -34,6 +34,7 @@
 #include "cordum/agent/v1/job.pb.h"
 #include "cordum/agent/v1/heartbeat.pb.h"
 #include "cordum/agent/v1/alert.pb.h"
+#include "cordum/agent/v1/handshake.pb.h"
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
 #define PROTOBUF_INTERNAL_EXPORT_cordum_2fagent_2fv1_2fbuspacket_2eproto
@@ -116,6 +117,11 @@ class BusPacket final :
     kAlert = 13,
     kJobProgress = 15,
     kJobCancel = 16,
+    kHandshake = 17,
+    kWorkerHandshakeChallengeRequest = 19,
+    kWorkerHandshakeChallenge = 20,
+    kWorkerHandshakeAuthenticate = 21,
+    kWorkerHandshakeResult = 22,
     PAYLOAD_NOT_SET = 0,
   };
 
@@ -200,6 +206,7 @@ class BusPacket final :
     kTraceIdFieldNumber = 1,
     kSenderIdFieldNumber = 2,
     kSignatureFieldNumber = 14,
+    kAuthTokenFieldNumber = 18,
     kCreatedAtFieldNumber = 3,
     kProtocolVersionFieldNumber = 4,
     kJobRequestFieldNumber = 10,
@@ -208,8 +215,13 @@ class BusPacket final :
     kAlertFieldNumber = 13,
     kJobProgressFieldNumber = 15,
     kJobCancelFieldNumber = 16,
+    kHandshakeFieldNumber = 17,
+    kWorkerHandshakeChallengeRequestFieldNumber = 19,
+    kWorkerHandshakeChallengeFieldNumber = 20,
+    kWorkerHandshakeAuthenticateFieldNumber = 21,
+    kWorkerHandshakeResultFieldNumber = 22,
   };
-  // string trace_id = 1;
+  // string trace_id = 1 [json_name = "traceId"];
   void clear_trace_id();
   const std::string& trace_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -223,7 +235,7 @@ class BusPacket final :
   std::string* _internal_mutable_trace_id();
   public:
 
-  // string sender_id = 2;
+  // string sender_id = 2 [json_name = "senderId"];
   void clear_sender_id();
   const std::string& sender_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -237,7 +249,7 @@ class BusPacket final :
   std::string* _internal_mutable_sender_id();
   public:
 
-  // bytes signature = 14;
+  // bytes signature = 14 [json_name = "signature"];
   void clear_signature();
   const std::string& signature() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -251,7 +263,21 @@ class BusPacket final :
   std::string* _internal_mutable_signature();
   public:
 
-  // .google.protobuf.Timestamp created_at = 3;
+  // string auth_token = 18 [json_name = "authToken"];
+  void clear_auth_token();
+  const std::string& auth_token() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_auth_token(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_auth_token();
+  PROTOBUF_NODISCARD std::string* release_auth_token();
+  void set_allocated_auth_token(std::string* auth_token);
+  private:
+  const std::string& _internal_auth_token() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_auth_token(const std::string& value);
+  std::string* _internal_mutable_auth_token();
+  public:
+
+  // .google.protobuf.Timestamp created_at = 3 [json_name = "createdAt"];
   bool has_created_at() const;
   private:
   bool _internal_has_created_at() const;
@@ -269,7 +295,7 @@ class BusPacket final :
       ::PROTOBUF_NAMESPACE_ID::Timestamp* created_at);
   ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_created_at();
 
-  // int32 protocol_version = 4;
+  // int32 protocol_version = 4 [json_name = "protocolVersion"];
   void clear_protocol_version();
   int32_t protocol_version() const;
   void set_protocol_version(int32_t value);
@@ -278,7 +304,7 @@ class BusPacket final :
   void _internal_set_protocol_version(int32_t value);
   public:
 
-  // .cordum.agent.v1.JobRequest job_request = 10;
+  // .cordum.agent.v1.JobRequest job_request = 10 [json_name = "jobRequest"];
   bool has_job_request() const;
   private:
   bool _internal_has_job_request() const;
@@ -296,7 +322,7 @@ class BusPacket final :
       ::cordum::agent::v1::JobRequest* job_request);
   ::cordum::agent::v1::JobRequest* unsafe_arena_release_job_request();
 
-  // .cordum.agent.v1.JobResult job_result = 11;
+  // .cordum.agent.v1.JobResult job_result = 11 [json_name = "jobResult"];
   bool has_job_result() const;
   private:
   bool _internal_has_job_result() const;
@@ -314,7 +340,7 @@ class BusPacket final :
       ::cordum::agent::v1::JobResult* job_result);
   ::cordum::agent::v1::JobResult* unsafe_arena_release_job_result();
 
-  // .cordum.agent.v1.Heartbeat heartbeat = 12;
+  // .cordum.agent.v1.Heartbeat heartbeat = 12 [json_name = "heartbeat"];
   bool has_heartbeat() const;
   private:
   bool _internal_has_heartbeat() const;
@@ -332,7 +358,7 @@ class BusPacket final :
       ::cordum::agent::v1::Heartbeat* heartbeat);
   ::cordum::agent::v1::Heartbeat* unsafe_arena_release_heartbeat();
 
-  // .cordum.agent.v1.SystemAlert alert = 13;
+  // .cordum.agent.v1.SystemAlert alert = 13 [json_name = "alert"];
   bool has_alert() const;
   private:
   bool _internal_has_alert() const;
@@ -350,7 +376,7 @@ class BusPacket final :
       ::cordum::agent::v1::SystemAlert* alert);
   ::cordum::agent::v1::SystemAlert* unsafe_arena_release_alert();
 
-  // .cordum.agent.v1.JobProgress job_progress = 15;
+  // .cordum.agent.v1.JobProgress job_progress = 15 [json_name = "jobProgress"];
   bool has_job_progress() const;
   private:
   bool _internal_has_job_progress() const;
@@ -368,7 +394,7 @@ class BusPacket final :
       ::cordum::agent::v1::JobProgress* job_progress);
   ::cordum::agent::v1::JobProgress* unsafe_arena_release_job_progress();
 
-  // .cordum.agent.v1.JobCancel job_cancel = 16;
+  // .cordum.agent.v1.JobCancel job_cancel = 16 [json_name = "jobCancel"];
   bool has_job_cancel() const;
   private:
   bool _internal_has_job_cancel() const;
@@ -386,6 +412,96 @@ class BusPacket final :
       ::cordum::agent::v1::JobCancel* job_cancel);
   ::cordum::agent::v1::JobCancel* unsafe_arena_release_job_cancel();
 
+  // .cordum.agent.v1.Handshake handshake = 17 [json_name = "handshake"];
+  bool has_handshake() const;
+  private:
+  bool _internal_has_handshake() const;
+  public:
+  void clear_handshake();
+  const ::cordum::agent::v1::Handshake& handshake() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::Handshake* release_handshake();
+  ::cordum::agent::v1::Handshake* mutable_handshake();
+  void set_allocated_handshake(::cordum::agent::v1::Handshake* handshake);
+  private:
+  const ::cordum::agent::v1::Handshake& _internal_handshake() const;
+  ::cordum::agent::v1::Handshake* _internal_mutable_handshake();
+  public:
+  void unsafe_arena_set_allocated_handshake(
+      ::cordum::agent::v1::Handshake* handshake);
+  ::cordum::agent::v1::Handshake* unsafe_arena_release_handshake();
+
+  // .cordum.agent.v1.WorkerHandshakeChallengeRequest worker_handshake_challenge_request = 19 [json_name = "workerHandshakeChallengeRequest"];
+  bool has_worker_handshake_challenge_request() const;
+  private:
+  bool _internal_has_worker_handshake_challenge_request() const;
+  public:
+  void clear_worker_handshake_challenge_request();
+  const ::cordum::agent::v1::WorkerHandshakeChallengeRequest& worker_handshake_challenge_request() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::WorkerHandshakeChallengeRequest* release_worker_handshake_challenge_request();
+  ::cordum::agent::v1::WorkerHandshakeChallengeRequest* mutable_worker_handshake_challenge_request();
+  void set_allocated_worker_handshake_challenge_request(::cordum::agent::v1::WorkerHandshakeChallengeRequest* worker_handshake_challenge_request);
+  private:
+  const ::cordum::agent::v1::WorkerHandshakeChallengeRequest& _internal_worker_handshake_challenge_request() const;
+  ::cordum::agent::v1::WorkerHandshakeChallengeRequest* _internal_mutable_worker_handshake_challenge_request();
+  public:
+  void unsafe_arena_set_allocated_worker_handshake_challenge_request(
+      ::cordum::agent::v1::WorkerHandshakeChallengeRequest* worker_handshake_challenge_request);
+  ::cordum::agent::v1::WorkerHandshakeChallengeRequest* unsafe_arena_release_worker_handshake_challenge_request();
+
+  // .cordum.agent.v1.WorkerHandshakeChallenge worker_handshake_challenge = 20 [json_name = "workerHandshakeChallenge"];
+  bool has_worker_handshake_challenge() const;
+  private:
+  bool _internal_has_worker_handshake_challenge() const;
+  public:
+  void clear_worker_handshake_challenge();
+  const ::cordum::agent::v1::WorkerHandshakeChallenge& worker_handshake_challenge() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::WorkerHandshakeChallenge* release_worker_handshake_challenge();
+  ::cordum::agent::v1::WorkerHandshakeChallenge* mutable_worker_handshake_challenge();
+  void set_allocated_worker_handshake_challenge(::cordum::agent::v1::WorkerHandshakeChallenge* worker_handshake_challenge);
+  private:
+  const ::cordum::agent::v1::WorkerHandshakeChallenge& _internal_worker_handshake_challenge() const;
+  ::cordum::agent::v1::WorkerHandshakeChallenge* _internal_mutable_worker_handshake_challenge();
+  public:
+  void unsafe_arena_set_allocated_worker_handshake_challenge(
+      ::cordum::agent::v1::WorkerHandshakeChallenge* worker_handshake_challenge);
+  ::cordum::agent::v1::WorkerHandshakeChallenge* unsafe_arena_release_worker_handshake_challenge();
+
+  // .cordum.agent.v1.WorkerHandshakeAuthenticate worker_handshake_authenticate = 21 [json_name = "workerHandshakeAuthenticate"];
+  bool has_worker_handshake_authenticate() const;
+  private:
+  bool _internal_has_worker_handshake_authenticate() const;
+  public:
+  void clear_worker_handshake_authenticate();
+  const ::cordum::agent::v1::WorkerHandshakeAuthenticate& worker_handshake_authenticate() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::WorkerHandshakeAuthenticate* release_worker_handshake_authenticate();
+  ::cordum::agent::v1::WorkerHandshakeAuthenticate* mutable_worker_handshake_authenticate();
+  void set_allocated_worker_handshake_authenticate(::cordum::agent::v1::WorkerHandshakeAuthenticate* worker_handshake_authenticate);
+  private:
+  const ::cordum::agent::v1::WorkerHandshakeAuthenticate& _internal_worker_handshake_authenticate() const;
+  ::cordum::agent::v1::WorkerHandshakeAuthenticate* _internal_mutable_worker_handshake_authenticate();
+  public:
+  void unsafe_arena_set_allocated_worker_handshake_authenticate(
+      ::cordum::agent::v1::WorkerHandshakeAuthenticate* worker_handshake_authenticate);
+  ::cordum::agent::v1::WorkerHandshakeAuthenticate* unsafe_arena_release_worker_handshake_authenticate();
+
+  // .cordum.agent.v1.WorkerHandshakeResult worker_handshake_result = 22 [json_name = "workerHandshakeResult"];
+  bool has_worker_handshake_result() const;
+  private:
+  bool _internal_has_worker_handshake_result() const;
+  public:
+  void clear_worker_handshake_result();
+  const ::cordum::agent::v1::WorkerHandshakeResult& worker_handshake_result() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::WorkerHandshakeResult* release_worker_handshake_result();
+  ::cordum::agent::v1::WorkerHandshakeResult* mutable_worker_handshake_result();
+  void set_allocated_worker_handshake_result(::cordum::agent::v1::WorkerHandshakeResult* worker_handshake_result);
+  private:
+  const ::cordum::agent::v1::WorkerHandshakeResult& _internal_worker_handshake_result() const;
+  ::cordum::agent::v1::WorkerHandshakeResult* _internal_mutable_worker_handshake_result();
+  public:
+  void unsafe_arena_set_allocated_worker_handshake_result(
+      ::cordum::agent::v1::WorkerHandshakeResult* worker_handshake_result);
+  ::cordum::agent::v1::WorkerHandshakeResult* unsafe_arena_release_worker_handshake_result();
+
   void clear_payload();
   PayloadCase payload_case() const;
   // @@protoc_insertion_point(class_scope:cordum.agent.v1.BusPacket)
@@ -397,6 +513,11 @@ class BusPacket final :
   void set_has_alert();
   void set_has_job_progress();
   void set_has_job_cancel();
+  void set_has_handshake();
+  void set_has_worker_handshake_challenge_request();
+  void set_has_worker_handshake_challenge();
+  void set_has_worker_handshake_authenticate();
+  void set_has_worker_handshake_result();
 
   inline bool has_payload() const;
   inline void clear_has_payload();
@@ -408,6 +529,7 @@ class BusPacket final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr trace_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr sender_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr signature_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr auth_token_;
     ::PROTOBUF_NAMESPACE_ID::Timestamp* created_at_;
     int32_t protocol_version_;
     union PayloadUnion {
@@ -419,6 +541,11 @@ class BusPacket final :
       ::cordum::agent::v1::SystemAlert* alert_;
       ::cordum::agent::v1::JobProgress* job_progress_;
       ::cordum::agent::v1::JobCancel* job_cancel_;
+      ::cordum::agent::v1::Handshake* handshake_;
+      ::cordum::agent::v1::WorkerHandshakeChallengeRequest* worker_handshake_challenge_request_;
+      ::cordum::agent::v1::WorkerHandshakeChallenge* worker_handshake_challenge_;
+      ::cordum::agent::v1::WorkerHandshakeAuthenticate* worker_handshake_authenticate_;
+      ::cordum::agent::v1::WorkerHandshakeResult* worker_handshake_result_;
     } payload_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     uint32_t _oneof_case_[1];
@@ -438,7 +565,7 @@ class BusPacket final :
 #endif  // __GNUC__
 // BusPacket
 
-// string trace_id = 1;
+// string trace_id = 1 [json_name = "traceId"];
 inline void BusPacket::clear_trace_id() {
   _impl_.trace_id_.ClearToEmpty();
 }
@@ -488,7 +615,7 @@ inline void BusPacket::set_allocated_trace_id(std::string* trace_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.BusPacket.trace_id)
 }
 
-// string sender_id = 2;
+// string sender_id = 2 [json_name = "senderId"];
 inline void BusPacket::clear_sender_id() {
   _impl_.sender_id_.ClearToEmpty();
 }
@@ -538,7 +665,7 @@ inline void BusPacket::set_allocated_sender_id(std::string* sender_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.BusPacket.sender_id)
 }
 
-// .google.protobuf.Timestamp created_at = 3;
+// .google.protobuf.Timestamp created_at = 3 [json_name = "createdAt"];
 inline bool BusPacket::_internal_has_created_at() const {
   return this != internal_default_instance() && _impl_.created_at_ != nullptr;
 }
@@ -623,7 +750,7 @@ inline void BusPacket::set_allocated_created_at(::PROTOBUF_NAMESPACE_ID::Timesta
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.BusPacket.created_at)
 }
 
-// int32 protocol_version = 4;
+// int32 protocol_version = 4 [json_name = "protocolVersion"];
 inline void BusPacket::clear_protocol_version() {
   _impl_.protocol_version_ = 0;
 }
@@ -643,7 +770,7 @@ inline void BusPacket::set_protocol_version(int32_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.BusPacket.protocol_version)
 }
 
-// .cordum.agent.v1.JobRequest job_request = 10;
+// .cordum.agent.v1.JobRequest job_request = 10 [json_name = "jobRequest"];
 inline bool BusPacket::_internal_has_job_request() const {
   return payload_case() == kJobRequest;
 }
@@ -709,7 +836,7 @@ inline ::cordum::agent::v1::JobRequest* BusPacket::mutable_job_request() {
   return _msg;
 }
 
-// .cordum.agent.v1.JobResult job_result = 11;
+// .cordum.agent.v1.JobResult job_result = 11 [json_name = "jobResult"];
 inline bool BusPacket::_internal_has_job_result() const {
   return payload_case() == kJobResult;
 }
@@ -775,7 +902,7 @@ inline ::cordum::agent::v1::JobResult* BusPacket::mutable_job_result() {
   return _msg;
 }
 
-// .cordum.agent.v1.Heartbeat heartbeat = 12;
+// .cordum.agent.v1.Heartbeat heartbeat = 12 [json_name = "heartbeat"];
 inline bool BusPacket::_internal_has_heartbeat() const {
   return payload_case() == kHeartbeat;
 }
@@ -841,7 +968,7 @@ inline ::cordum::agent::v1::Heartbeat* BusPacket::mutable_heartbeat() {
   return _msg;
 }
 
-// .cordum.agent.v1.SystemAlert alert = 13;
+// .cordum.agent.v1.SystemAlert alert = 13 [json_name = "alert"];
 inline bool BusPacket::_internal_has_alert() const {
   return payload_case() == kAlert;
 }
@@ -907,7 +1034,7 @@ inline ::cordum::agent::v1::SystemAlert* BusPacket::mutable_alert() {
   return _msg;
 }
 
-// .cordum.agent.v1.JobProgress job_progress = 15;
+// .cordum.agent.v1.JobProgress job_progress = 15 [json_name = "jobProgress"];
 inline bool BusPacket::_internal_has_job_progress() const {
   return payload_case() == kJobProgress;
 }
@@ -973,7 +1100,7 @@ inline ::cordum::agent::v1::JobProgress* BusPacket::mutable_job_progress() {
   return _msg;
 }
 
-// .cordum.agent.v1.JobCancel job_cancel = 16;
+// .cordum.agent.v1.JobCancel job_cancel = 16 [json_name = "jobCancel"];
 inline bool BusPacket::_internal_has_job_cancel() const {
   return payload_case() == kJobCancel;
 }
@@ -1039,7 +1166,337 @@ inline ::cordum::agent::v1::JobCancel* BusPacket::mutable_job_cancel() {
   return _msg;
 }
 
-// bytes signature = 14;
+// .cordum.agent.v1.Handshake handshake = 17 [json_name = "handshake"];
+inline bool BusPacket::_internal_has_handshake() const {
+  return payload_case() == kHandshake;
+}
+inline bool BusPacket::has_handshake() const {
+  return _internal_has_handshake();
+}
+inline void BusPacket::set_has_handshake() {
+  _impl_._oneof_case_[0] = kHandshake;
+}
+inline ::cordum::agent::v1::Handshake* BusPacket::release_handshake() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.BusPacket.handshake)
+  if (_internal_has_handshake()) {
+    clear_has_payload();
+    ::cordum::agent::v1::Handshake* temp = _impl_.payload_.handshake_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.handshake_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::cordum::agent::v1::Handshake& BusPacket::_internal_handshake() const {
+  return _internal_has_handshake()
+      ? *_impl_.payload_.handshake_
+      : reinterpret_cast< ::cordum::agent::v1::Handshake&>(::cordum::agent::v1::_Handshake_default_instance_);
+}
+inline const ::cordum::agent::v1::Handshake& BusPacket::handshake() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.BusPacket.handshake)
+  return _internal_handshake();
+}
+inline ::cordum::agent::v1::Handshake* BusPacket::unsafe_arena_release_handshake() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:cordum.agent.v1.BusPacket.handshake)
+  if (_internal_has_handshake()) {
+    clear_has_payload();
+    ::cordum::agent::v1::Handshake* temp = _impl_.payload_.handshake_;
+    _impl_.payload_.handshake_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void BusPacket::unsafe_arena_set_allocated_handshake(::cordum::agent::v1::Handshake* handshake) {
+  clear_payload();
+  if (handshake) {
+    set_has_handshake();
+    _impl_.payload_.handshake_ = handshake;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.BusPacket.handshake)
+}
+inline ::cordum::agent::v1::Handshake* BusPacket::_internal_mutable_handshake() {
+  if (!_internal_has_handshake()) {
+    clear_payload();
+    set_has_handshake();
+    _impl_.payload_.handshake_ = CreateMaybeMessage< ::cordum::agent::v1::Handshake >(GetArenaForAllocation());
+  }
+  return _impl_.payload_.handshake_;
+}
+inline ::cordum::agent::v1::Handshake* BusPacket::mutable_handshake() {
+  ::cordum::agent::v1::Handshake* _msg = _internal_mutable_handshake();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.BusPacket.handshake)
+  return _msg;
+}
+
+// .cordum.agent.v1.WorkerHandshakeChallengeRequest worker_handshake_challenge_request = 19 [json_name = "workerHandshakeChallengeRequest"];
+inline bool BusPacket::_internal_has_worker_handshake_challenge_request() const {
+  return payload_case() == kWorkerHandshakeChallengeRequest;
+}
+inline bool BusPacket::has_worker_handshake_challenge_request() const {
+  return _internal_has_worker_handshake_challenge_request();
+}
+inline void BusPacket::set_has_worker_handshake_challenge_request() {
+  _impl_._oneof_case_[0] = kWorkerHandshakeChallengeRequest;
+}
+inline ::cordum::agent::v1::WorkerHandshakeChallengeRequest* BusPacket::release_worker_handshake_challenge_request() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.BusPacket.worker_handshake_challenge_request)
+  if (_internal_has_worker_handshake_challenge_request()) {
+    clear_has_payload();
+    ::cordum::agent::v1::WorkerHandshakeChallengeRequest* temp = _impl_.payload_.worker_handshake_challenge_request_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.worker_handshake_challenge_request_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::cordum::agent::v1::WorkerHandshakeChallengeRequest& BusPacket::_internal_worker_handshake_challenge_request() const {
+  return _internal_has_worker_handshake_challenge_request()
+      ? *_impl_.payload_.worker_handshake_challenge_request_
+      : reinterpret_cast< ::cordum::agent::v1::WorkerHandshakeChallengeRequest&>(::cordum::agent::v1::_WorkerHandshakeChallengeRequest_default_instance_);
+}
+inline const ::cordum::agent::v1::WorkerHandshakeChallengeRequest& BusPacket::worker_handshake_challenge_request() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.BusPacket.worker_handshake_challenge_request)
+  return _internal_worker_handshake_challenge_request();
+}
+inline ::cordum::agent::v1::WorkerHandshakeChallengeRequest* BusPacket::unsafe_arena_release_worker_handshake_challenge_request() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:cordum.agent.v1.BusPacket.worker_handshake_challenge_request)
+  if (_internal_has_worker_handshake_challenge_request()) {
+    clear_has_payload();
+    ::cordum::agent::v1::WorkerHandshakeChallengeRequest* temp = _impl_.payload_.worker_handshake_challenge_request_;
+    _impl_.payload_.worker_handshake_challenge_request_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void BusPacket::unsafe_arena_set_allocated_worker_handshake_challenge_request(::cordum::agent::v1::WorkerHandshakeChallengeRequest* worker_handshake_challenge_request) {
+  clear_payload();
+  if (worker_handshake_challenge_request) {
+    set_has_worker_handshake_challenge_request();
+    _impl_.payload_.worker_handshake_challenge_request_ = worker_handshake_challenge_request;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.BusPacket.worker_handshake_challenge_request)
+}
+inline ::cordum::agent::v1::WorkerHandshakeChallengeRequest* BusPacket::_internal_mutable_worker_handshake_challenge_request() {
+  if (!_internal_has_worker_handshake_challenge_request()) {
+    clear_payload();
+    set_has_worker_handshake_challenge_request();
+    _impl_.payload_.worker_handshake_challenge_request_ = CreateMaybeMessage< ::cordum::agent::v1::WorkerHandshakeChallengeRequest >(GetArenaForAllocation());
+  }
+  return _impl_.payload_.worker_handshake_challenge_request_;
+}
+inline ::cordum::agent::v1::WorkerHandshakeChallengeRequest* BusPacket::mutable_worker_handshake_challenge_request() {
+  ::cordum::agent::v1::WorkerHandshakeChallengeRequest* _msg = _internal_mutable_worker_handshake_challenge_request();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.BusPacket.worker_handshake_challenge_request)
+  return _msg;
+}
+
+// .cordum.agent.v1.WorkerHandshakeChallenge worker_handshake_challenge = 20 [json_name = "workerHandshakeChallenge"];
+inline bool BusPacket::_internal_has_worker_handshake_challenge() const {
+  return payload_case() == kWorkerHandshakeChallenge;
+}
+inline bool BusPacket::has_worker_handshake_challenge() const {
+  return _internal_has_worker_handshake_challenge();
+}
+inline void BusPacket::set_has_worker_handshake_challenge() {
+  _impl_._oneof_case_[0] = kWorkerHandshakeChallenge;
+}
+inline ::cordum::agent::v1::WorkerHandshakeChallenge* BusPacket::release_worker_handshake_challenge() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.BusPacket.worker_handshake_challenge)
+  if (_internal_has_worker_handshake_challenge()) {
+    clear_has_payload();
+    ::cordum::agent::v1::WorkerHandshakeChallenge* temp = _impl_.payload_.worker_handshake_challenge_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.worker_handshake_challenge_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::cordum::agent::v1::WorkerHandshakeChallenge& BusPacket::_internal_worker_handshake_challenge() const {
+  return _internal_has_worker_handshake_challenge()
+      ? *_impl_.payload_.worker_handshake_challenge_
+      : reinterpret_cast< ::cordum::agent::v1::WorkerHandshakeChallenge&>(::cordum::agent::v1::_WorkerHandshakeChallenge_default_instance_);
+}
+inline const ::cordum::agent::v1::WorkerHandshakeChallenge& BusPacket::worker_handshake_challenge() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.BusPacket.worker_handshake_challenge)
+  return _internal_worker_handshake_challenge();
+}
+inline ::cordum::agent::v1::WorkerHandshakeChallenge* BusPacket::unsafe_arena_release_worker_handshake_challenge() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:cordum.agent.v1.BusPacket.worker_handshake_challenge)
+  if (_internal_has_worker_handshake_challenge()) {
+    clear_has_payload();
+    ::cordum::agent::v1::WorkerHandshakeChallenge* temp = _impl_.payload_.worker_handshake_challenge_;
+    _impl_.payload_.worker_handshake_challenge_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void BusPacket::unsafe_arena_set_allocated_worker_handshake_challenge(::cordum::agent::v1::WorkerHandshakeChallenge* worker_handshake_challenge) {
+  clear_payload();
+  if (worker_handshake_challenge) {
+    set_has_worker_handshake_challenge();
+    _impl_.payload_.worker_handshake_challenge_ = worker_handshake_challenge;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.BusPacket.worker_handshake_challenge)
+}
+inline ::cordum::agent::v1::WorkerHandshakeChallenge* BusPacket::_internal_mutable_worker_handshake_challenge() {
+  if (!_internal_has_worker_handshake_challenge()) {
+    clear_payload();
+    set_has_worker_handshake_challenge();
+    _impl_.payload_.worker_handshake_challenge_ = CreateMaybeMessage< ::cordum::agent::v1::WorkerHandshakeChallenge >(GetArenaForAllocation());
+  }
+  return _impl_.payload_.worker_handshake_challenge_;
+}
+inline ::cordum::agent::v1::WorkerHandshakeChallenge* BusPacket::mutable_worker_handshake_challenge() {
+  ::cordum::agent::v1::WorkerHandshakeChallenge* _msg = _internal_mutable_worker_handshake_challenge();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.BusPacket.worker_handshake_challenge)
+  return _msg;
+}
+
+// .cordum.agent.v1.WorkerHandshakeAuthenticate worker_handshake_authenticate = 21 [json_name = "workerHandshakeAuthenticate"];
+inline bool BusPacket::_internal_has_worker_handshake_authenticate() const {
+  return payload_case() == kWorkerHandshakeAuthenticate;
+}
+inline bool BusPacket::has_worker_handshake_authenticate() const {
+  return _internal_has_worker_handshake_authenticate();
+}
+inline void BusPacket::set_has_worker_handshake_authenticate() {
+  _impl_._oneof_case_[0] = kWorkerHandshakeAuthenticate;
+}
+inline ::cordum::agent::v1::WorkerHandshakeAuthenticate* BusPacket::release_worker_handshake_authenticate() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.BusPacket.worker_handshake_authenticate)
+  if (_internal_has_worker_handshake_authenticate()) {
+    clear_has_payload();
+    ::cordum::agent::v1::WorkerHandshakeAuthenticate* temp = _impl_.payload_.worker_handshake_authenticate_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.worker_handshake_authenticate_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::cordum::agent::v1::WorkerHandshakeAuthenticate& BusPacket::_internal_worker_handshake_authenticate() const {
+  return _internal_has_worker_handshake_authenticate()
+      ? *_impl_.payload_.worker_handshake_authenticate_
+      : reinterpret_cast< ::cordum::agent::v1::WorkerHandshakeAuthenticate&>(::cordum::agent::v1::_WorkerHandshakeAuthenticate_default_instance_);
+}
+inline const ::cordum::agent::v1::WorkerHandshakeAuthenticate& BusPacket::worker_handshake_authenticate() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.BusPacket.worker_handshake_authenticate)
+  return _internal_worker_handshake_authenticate();
+}
+inline ::cordum::agent::v1::WorkerHandshakeAuthenticate* BusPacket::unsafe_arena_release_worker_handshake_authenticate() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:cordum.agent.v1.BusPacket.worker_handshake_authenticate)
+  if (_internal_has_worker_handshake_authenticate()) {
+    clear_has_payload();
+    ::cordum::agent::v1::WorkerHandshakeAuthenticate* temp = _impl_.payload_.worker_handshake_authenticate_;
+    _impl_.payload_.worker_handshake_authenticate_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void BusPacket::unsafe_arena_set_allocated_worker_handshake_authenticate(::cordum::agent::v1::WorkerHandshakeAuthenticate* worker_handshake_authenticate) {
+  clear_payload();
+  if (worker_handshake_authenticate) {
+    set_has_worker_handshake_authenticate();
+    _impl_.payload_.worker_handshake_authenticate_ = worker_handshake_authenticate;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.BusPacket.worker_handshake_authenticate)
+}
+inline ::cordum::agent::v1::WorkerHandshakeAuthenticate* BusPacket::_internal_mutable_worker_handshake_authenticate() {
+  if (!_internal_has_worker_handshake_authenticate()) {
+    clear_payload();
+    set_has_worker_handshake_authenticate();
+    _impl_.payload_.worker_handshake_authenticate_ = CreateMaybeMessage< ::cordum::agent::v1::WorkerHandshakeAuthenticate >(GetArenaForAllocation());
+  }
+  return _impl_.payload_.worker_handshake_authenticate_;
+}
+inline ::cordum::agent::v1::WorkerHandshakeAuthenticate* BusPacket::mutable_worker_handshake_authenticate() {
+  ::cordum::agent::v1::WorkerHandshakeAuthenticate* _msg = _internal_mutable_worker_handshake_authenticate();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.BusPacket.worker_handshake_authenticate)
+  return _msg;
+}
+
+// .cordum.agent.v1.WorkerHandshakeResult worker_handshake_result = 22 [json_name = "workerHandshakeResult"];
+inline bool BusPacket::_internal_has_worker_handshake_result() const {
+  return payload_case() == kWorkerHandshakeResult;
+}
+inline bool BusPacket::has_worker_handshake_result() const {
+  return _internal_has_worker_handshake_result();
+}
+inline void BusPacket::set_has_worker_handshake_result() {
+  _impl_._oneof_case_[0] = kWorkerHandshakeResult;
+}
+inline ::cordum::agent::v1::WorkerHandshakeResult* BusPacket::release_worker_handshake_result() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.BusPacket.worker_handshake_result)
+  if (_internal_has_worker_handshake_result()) {
+    clear_has_payload();
+    ::cordum::agent::v1::WorkerHandshakeResult* temp = _impl_.payload_.worker_handshake_result_;
+    if (GetArenaForAllocation() != nullptr) {
+      temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+    }
+    _impl_.payload_.worker_handshake_result_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline const ::cordum::agent::v1::WorkerHandshakeResult& BusPacket::_internal_worker_handshake_result() const {
+  return _internal_has_worker_handshake_result()
+      ? *_impl_.payload_.worker_handshake_result_
+      : reinterpret_cast< ::cordum::agent::v1::WorkerHandshakeResult&>(::cordum::agent::v1::_WorkerHandshakeResult_default_instance_);
+}
+inline const ::cordum::agent::v1::WorkerHandshakeResult& BusPacket::worker_handshake_result() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.BusPacket.worker_handshake_result)
+  return _internal_worker_handshake_result();
+}
+inline ::cordum::agent::v1::WorkerHandshakeResult* BusPacket::unsafe_arena_release_worker_handshake_result() {
+  // @@protoc_insertion_point(field_unsafe_arena_release:cordum.agent.v1.BusPacket.worker_handshake_result)
+  if (_internal_has_worker_handshake_result()) {
+    clear_has_payload();
+    ::cordum::agent::v1::WorkerHandshakeResult* temp = _impl_.payload_.worker_handshake_result_;
+    _impl_.payload_.worker_handshake_result_ = nullptr;
+    return temp;
+  } else {
+    return nullptr;
+  }
+}
+inline void BusPacket::unsafe_arena_set_allocated_worker_handshake_result(::cordum::agent::v1::WorkerHandshakeResult* worker_handshake_result) {
+  clear_payload();
+  if (worker_handshake_result) {
+    set_has_worker_handshake_result();
+    _impl_.payload_.worker_handshake_result_ = worker_handshake_result;
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.BusPacket.worker_handshake_result)
+}
+inline ::cordum::agent::v1::WorkerHandshakeResult* BusPacket::_internal_mutable_worker_handshake_result() {
+  if (!_internal_has_worker_handshake_result()) {
+    clear_payload();
+    set_has_worker_handshake_result();
+    _impl_.payload_.worker_handshake_result_ = CreateMaybeMessage< ::cordum::agent::v1::WorkerHandshakeResult >(GetArenaForAllocation());
+  }
+  return _impl_.payload_.worker_handshake_result_;
+}
+inline ::cordum::agent::v1::WorkerHandshakeResult* BusPacket::mutable_worker_handshake_result() {
+  ::cordum::agent::v1::WorkerHandshakeResult* _msg = _internal_mutable_worker_handshake_result();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.BusPacket.worker_handshake_result)
+  return _msg;
+}
+
+// bytes signature = 14 [json_name = "signature"];
 inline void BusPacket::clear_signature() {
   _impl_.signature_.ClearToEmpty();
 }
@@ -1087,6 +1544,56 @@ inline void BusPacket::set_allocated_signature(std::string* signature) {
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.BusPacket.signature)
+}
+
+// string auth_token = 18 [json_name = "authToken"];
+inline void BusPacket::clear_auth_token() {
+  _impl_.auth_token_.ClearToEmpty();
+}
+inline const std::string& BusPacket::auth_token() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.BusPacket.auth_token)
+  return _internal_auth_token();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void BusPacket::set_auth_token(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.auth_token_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.BusPacket.auth_token)
+}
+inline std::string* BusPacket::mutable_auth_token() {
+  std::string* _s = _internal_mutable_auth_token();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.BusPacket.auth_token)
+  return _s;
+}
+inline const std::string& BusPacket::_internal_auth_token() const {
+  return _impl_.auth_token_.Get();
+}
+inline void BusPacket::_internal_set_auth_token(const std::string& value) {
+  
+  _impl_.auth_token_.Set(value, GetArenaForAllocation());
+}
+inline std::string* BusPacket::_internal_mutable_auth_token() {
+  
+  return _impl_.auth_token_.Mutable(GetArenaForAllocation());
+}
+inline std::string* BusPacket::release_auth_token() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.BusPacket.auth_token)
+  return _impl_.auth_token_.Release();
+}
+inline void BusPacket::set_allocated_auth_token(std::string* auth_token) {
+  if (auth_token != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.auth_token_.SetAllocated(auth_token, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.auth_token_.IsDefault()) {
+    _impl_.auth_token_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.BusPacket.auth_token)
 }
 
 inline bool BusPacket::has_payload() const {

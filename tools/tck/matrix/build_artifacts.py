@@ -65,7 +65,15 @@ def build_go(root: Path, out: Path) -> dict[str, str]:
     }
     run(["go", "mod", "edit", f"-require=github.com/cordum-io/cap/v2@{MODULE_VERSION}"],
         cwd=consumer, env=env)
-    run(["go", "mod", "tidy"], cwd=consumer, env=env)
+    # `go mod tidy` resolves the whole module graph, including the test
+    # dependencies of our dependencies' packages (grpc's balancer tests pull
+    # go.opentelemetry.io/otel and gonum). The driver never builds those, the
+    # file proxy carries only the build closure, and GOPROXY has no fallback, so
+    # a strict tidy fails on a cold module cache -- it passed locally only
+    # because a warm GOMODCACHE happened to satisfy them. `-e` proceeds despite
+    # those unresolvable test-only packages; `go build` immediately after is the
+    # real gate, so a genuinely missing BUILD dependency still fails loudly.
+    run(["go", "mod", "tidy", "-e"], cwd=consumer, env=env)
     binary = consumer / ("matrixdriver.exe" if os.name == "nt" else "matrixdriver")
     run(["go", "build", "-o", binary.name, "."], cwd=consumer, env=env)
     return {"argv": [str(binary)], "artifact": f"local module proxy {MODULE_VERSION}"}

@@ -33,7 +33,7 @@ def test_pins_match_tracked_generator_headers() -> None:
     assert generator.load_pins() == {
         "grpcio": "1.76.0",
         "grpcio-tools": "1.76.0",
-        "protobuf": "6.31.1",
+        "protobuf": "6.33.5",
     }
 
 
@@ -48,7 +48,7 @@ def test_tool_versions_fail_closed_on_pin_mismatch() -> None:
     installed: Mapping[str, str] = {
         "grpcio": "1.76.0",
         "grpcio-tools": "1.77.0",
-        "protobuf": "6.31.1",
+        "protobuf": "6.33.5",
     }
     with patch.object(generator.metadata, "version", side_effect=installed.__getitem__):
         with pytest.raises(
@@ -127,7 +127,7 @@ def test_main_check_uses_temp_output_and_never_mutates_tracked(capsys: pytest.Ca
     def copy_tracked(destination: Path, _protos: tuple[Path, ...]) -> None:
         shutil.copytree(generator.TRACKED_ROOT, destination, dirs_exist_ok=True)
 
-    pins = {"grpcio": "1.76.0", "grpcio-tools": "1.76.0", "protobuf": "6.31.1"}
+    pins = {"grpcio": "1.76.0", "grpcio-tools": "1.76.0", "protobuf": "6.33.5"}
     with patch.object(generator, "verify_tool_versions", return_value=pins), patch.object(
         generator, "run_protoc", side_effect=copy_tracked
     ):

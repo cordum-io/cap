@@ -301,7 +301,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 BusPacket.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -953,7 +953,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 ContextHints.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -1265,7 +1265,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 Budget.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -1751,7 +1751,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 JobMetadata.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -2296,7 +2296,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 Compensation.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -2963,7 +2963,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 JobRequest.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -3605,7 +3605,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 JobResult.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -4201,7 +4201,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 JobProgress.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -4607,7 +4607,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 JobCancel.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -5017,7 +5017,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 Heartbeat.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -5580,7 +5580,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 SystemAlert.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -6181,7 +6181,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 Handshake.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -6756,7 +6756,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 WorkerHandshakeChallengeRequest.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -7320,7 +7320,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 WorkerHandshakeChallenge.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -7822,7 +7822,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 WorkerHandshakeAuthenticate.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -8116,7 +8116,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 WorkerHandshakeResult.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -8571,7 +8571,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 RuleScope.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -8883,7 +8883,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 AuditMetadata.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -9256,7 +9256,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 Rule.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -9730,7 +9730,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 TraceStep.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -10178,7 +10178,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 Decision.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -10612,7 +10612,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 BundleMetadata.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -10903,7 +10903,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 BundleVersion.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -11251,7 +11251,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 Bundle.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -11709,7 +11709,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 JobEvaluationContext.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -12265,7 +12265,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 EdgeEvaluationContext.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -12719,7 +12719,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 PolicyEvaluateRequest.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -13015,7 +13015,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 PolicyEvaluateResponse.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -13224,7 +13224,7 @@ $root.cordum = (function() {
                  * @variation 1
                  */
                 Object.defineProperty(PolicyEvaluator.prototype.evaluateUnified = function evaluateUnified(request, callback) {
-                    return this.rpcCall(evaluateUnified, $root.cordum.agent.v1.PolicyEvaluateRequest, $root.cordum.agent.v1.PolicyEvaluateResponse, request, callback);
+                    return $protobuf.rpc.Service.prototype.rpcCall.call(this, evaluateUnified, $root.cordum.agent.v1.PolicyEvaluateRequest, $root.cordum.agent.v1.PolicyEvaluateResponse, request, callback);
                 }, "name", { value: "EvaluateUnified" });
 
                 /**
@@ -13486,7 +13486,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 PolicyCheckRequest.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -14018,7 +14018,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 BudgetConstraints.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -14353,7 +14353,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 SandboxProfile.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -14675,7 +14675,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 ToolchainConstraints.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -14967,7 +14967,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 DiffConstraints.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -15278,7 +15278,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 PolicyConstraints.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -15644,7 +15644,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 PolicyRemediation.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -16091,7 +16091,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 PolicyCheckResponse.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -16478,7 +16478,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 ListSnapshotsRequest.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -16680,7 +16680,7 @@ $root.cordum = (function() {
                  * @returns {$protobuf.Writer} Writer
                  */
                 ListSnapshotsResponse.encodeDelimited = function encodeDelimited(message, writer) {
-                    return this.encode(message, writer).ldelim();
+                    return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
                 };
 
                 /**
@@ -16898,7 +16898,7 @@ $root.cordum = (function() {
                  * @variation 1
                  */
                 Object.defineProperty(SafetyKernel.prototype.check = function check(request, callback) {
-                    return this.rpcCall(check, $root.cordum.agent.v1.PolicyCheckRequest, $root.cordum.agent.v1.PolicyCheckResponse, request, callback);
+                    return $protobuf.rpc.Service.prototype.rpcCall.call(this, check, $root.cordum.agent.v1.PolicyCheckRequest, $root.cordum.agent.v1.PolicyCheckResponse, request, callback);
                 }, "name", { value: "Check" });
 
                 /**
@@ -16931,7 +16931,7 @@ $root.cordum = (function() {
                  * @variation 1
                  */
                 Object.defineProperty(SafetyKernel.prototype.evaluate = function evaluate(request, callback) {
-                    return this.rpcCall(evaluate, $root.cordum.agent.v1.PolicyCheckRequest, $root.cordum.agent.v1.PolicyCheckResponse, request, callback);
+                    return $protobuf.rpc.Service.prototype.rpcCall.call(this, evaluate, $root.cordum.agent.v1.PolicyCheckRequest, $root.cordum.agent.v1.PolicyCheckResponse, request, callback);
                 }, "name", { value: "Evaluate" });
 
                 /**
@@ -16964,7 +16964,7 @@ $root.cordum = (function() {
                  * @variation 1
                  */
                 Object.defineProperty(SafetyKernel.prototype.explain = function explain(request, callback) {
-                    return this.rpcCall(explain, $root.cordum.agent.v1.PolicyCheckRequest, $root.cordum.agent.v1.PolicyCheckResponse, request, callback);
+                    return $protobuf.rpc.Service.prototype.rpcCall.call(this, explain, $root.cordum.agent.v1.PolicyCheckRequest, $root.cordum.agent.v1.PolicyCheckResponse, request, callback);
                 }, "name", { value: "Explain" });
 
                 /**
@@ -16997,7 +16997,7 @@ $root.cordum = (function() {
                  * @variation 1
                  */
                 Object.defineProperty(SafetyKernel.prototype.simulate = function simulate(request, callback) {
-                    return this.rpcCall(simulate, $root.cordum.agent.v1.PolicyCheckRequest, $root.cordum.agent.v1.PolicyCheckResponse, request, callback);
+                    return $protobuf.rpc.Service.prototype.rpcCall.call(this, simulate, $root.cordum.agent.v1.PolicyCheckRequest, $root.cordum.agent.v1.PolicyCheckResponse, request, callback);
                 }, "name", { value: "Simulate" });
 
                 /**
@@ -17030,7 +17030,7 @@ $root.cordum = (function() {
                  * @variation 1
                  */
                 Object.defineProperty(SafetyKernel.prototype.listSnapshots = function listSnapshots(request, callback) {
-                    return this.rpcCall(listSnapshots, $root.cordum.agent.v1.ListSnapshotsRequest, $root.cordum.agent.v1.ListSnapshotsResponse, request, callback);
+                    return $protobuf.rpc.Service.prototype.rpcCall.call(this, listSnapshots, $root.cordum.agent.v1.ListSnapshotsRequest, $root.cordum.agent.v1.ListSnapshotsResponse, request, callback);
                 }, "name", { value: "ListSnapshots" });
 
                 /**
@@ -17159,7 +17159,7 @@ $root.google = (function() {
              * @returns {$protobuf.Writer} Writer
              */
             Timestamp.encodeDelimited = function encodeDelimited(message, writer) {
-                return this.encode(message, writer).ldelim();
+                return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
             };
 
             /**
@@ -17419,7 +17419,7 @@ $root.google = (function() {
              * @returns {$protobuf.Writer} Writer
              */
             Struct.encodeDelimited = function encodeDelimited(message, writer) {
-                return this.encode(message, writer).ldelim();
+                return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
             };
 
             /**
@@ -17760,7 +17760,7 @@ $root.google = (function() {
              * @returns {$protobuf.Writer} Writer
              */
             Value.encodeDelimited = function encodeDelimited(message, writer) {
-                return this.encode(message, writer).ldelim();
+                return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
             };
 
             /**
@@ -18121,7 +18121,7 @@ $root.google = (function() {
              * @returns {$protobuf.Writer} Writer
              */
             ListValue.encodeDelimited = function encodeDelimited(message, writer) {
-                return this.encode(message, writer).ldelim();
+                return this.encode(message, writer && writer.len ? writer.fork() : writer).ldelim();
             };
 
             /**

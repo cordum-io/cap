@@ -86,12 +86,14 @@ func TestValidateResourceRefAtRejectsUnsafeURI(t *testing.T) {
 }
 
 func TestCanonicalLegacyRedisKeyReturnsExactBytes(t *testing.T) {
-	got, err := CanonicalLegacyRedisKey("redis://res:job-1[2]")
-	if err != nil {
-		t.Fatalf("CanonicalLegacyRedisKey() error = %v", err)
-	}
-	if !bytes.Equal(got, []byte("res:job-1[2]")) {
-		t.Fatalf("CanonicalLegacyRedisKey() = %q", got)
+	for _, key := range []string{"res:job-1[2]", "res:run:loop[0]@2"} {
+		got, err := CanonicalLegacyRedisKey("redis://" + key)
+		if err != nil {
+			t.Fatalf("CanonicalLegacyRedisKey(%q) error = %v", key, err)
+		}
+		if !bytes.Equal(got, []byte(key)) {
+			t.Fatalf("CanonicalLegacyRedisKey() = %q, want %q", got, key)
+		}
 	}
 }
 

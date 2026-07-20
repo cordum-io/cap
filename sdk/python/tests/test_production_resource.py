@@ -137,6 +137,7 @@ def test_validate_resource_ref_rejects_naive_validation_time() -> None:
 
 def test_canonical_legacy_redis_key_returns_exact_utf8_bytes() -> None:
     assert canonical_legacy_redis_key("redis://res:job-1[2]") == b"res:job-1[2]"
+    assert canonical_legacy_redis_key("redis://res:run:loop[0]@2") == b"res:run:loop[0]@2"
 
 
 @pytest.mark.parametrize(

@@ -21,7 +21,7 @@ _ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 _PURPOSE_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._:-]*$")
 _MEDIA_PATTERN = re.compile(r"^[a-z0-9][a-z0-9!#$&^_.+-]*/[a-z0-9][a-z0-9!#$&^_.+-]*$")
 _URI_PATTERN = re.compile(r"^([a-z][a-z0-9+.-]{0,31})://(.+)$")
-_LEGACY_KEY_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9:._\-\[\]]*$")
+_LEGACY_KEY_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9:._@\-\[\]]*$")
 
 
 class ResourceRefValidationError(ValueError):
@@ -124,7 +124,9 @@ def canonical_legacy_redis_key(pointer: str) -> bytes:
     if not pointer.startswith("redis://"):
         raise ResourceRefValidationError("legacy Redis pointer has the wrong scheme")
     key = pointer[len("redis://") :]
-    if _LEGACY_KEY_PATTERN.fullmatch(key) is None or ".." in key:
+    at, colon = key.find("@"), key.find(":")
+    has_userinfo = at >= 0 and (colon < 0 or at < colon)
+    if _LEGACY_KEY_PATTERN.fullmatch(key) is None or ".." in key or has_userinfo:
         raise ResourceRefValidationError("legacy Redis key is empty or ambiguous")
     return key.encode("ascii")
 

@@ -27,7 +27,7 @@ var (
 	resourcePurposePattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._:-]*$`)
 	resourceMediaPattern   = regexp.MustCompile(`^[a-z0-9][a-z0-9!#$&^_.+-]*/[a-z0-9][a-z0-9!#$&^_.+-]*$`)
 	resourceURIPattern     = regexp.MustCompile(`^([a-z][a-z0-9+.-]{0,31})://(.+)$`)
-	legacyRedisKeyPattern  = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9:._\-\[\]]*$`)
+	legacyRedisKeyPattern  = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9:._@\-\[\]]*$`)
 )
 
 // ValidateResourceRef validates a production reference at the current time.
@@ -158,10 +158,15 @@ func CanonicalLegacyRedisKey(pointer string) ([]byte, error) {
 		return nil, resourceError("legacy Redis pointer has the wrong scheme")
 	}
 	key := strings.TrimPrefix(pointer, "redis://")
-	if !legacyRedisKeyPattern.MatchString(key) || strings.Contains(key, "..") {
+	if !legacyRedisKeyPattern.MatchString(key) || strings.Contains(key, "..") || hasLegacyUserinfo(key) {
 		return nil, resourceError("legacy Redis key is empty or ambiguous")
 	}
 	return []byte(key), nil
+}
+
+func hasLegacyUserinfo(key string) bool {
+	at, colon := strings.IndexByte(key, '@'), strings.IndexByte(key, ':')
+	return at >= 0 && (colon < 0 || at < colon)
 }
 
 // ValidateResourceRefCompatibility rejects ambiguity when migration code

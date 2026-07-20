@@ -153,6 +153,9 @@ describe("legacy Redis resource compatibility", () => {
     expect(canonicalLegacyRedisKey("redis://res:job-1[2]")).to.deep.equal(
       Buffer.from("res:job-1[2]"),
     );
+    expect(canonicalLegacyRedisKey("redis://res:run:loop[0]@2")).to.deep.equal(
+      Buffer.from("res:run:loop[0]@2"),
+    );
   });
 
   const invalidPointers = [

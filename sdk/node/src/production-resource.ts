@@ -36,7 +36,7 @@ const ID_PATTERN = /^[a-z0-9][a-z0-9._-]*$/;
 const PURPOSE_PATTERN = /^[a-z0-9][a-z0-9._:-]*$/;
 const MEDIA_PATTERN = /^[a-z0-9][a-z0-9!#$&^_.+-]*\/[a-z0-9][a-z0-9!#$&^_.+-]*$/;
 const URI_PATTERN = /^([a-z][a-z0-9+.-]{0,31}):\/\/(.+)$/;
-const LEGACY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9:._\-\[\]]*$/;
+const LEGACY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9:._@\-\[\]]*$/;
 
 export function validateResourceRef(
   ref: ResourceRefInput,
@@ -182,7 +182,10 @@ export function canonicalLegacyRedisKey(pointer: string): Uint8Array {
     throw new ResourceRefValidationError("legacy Redis pointer has the wrong scheme");
   }
   const key = pointer.slice("redis://".length);
-  if (!LEGACY_KEY_PATTERN.test(key) || key.includes("..")) {
+  const at = key.indexOf("@");
+  const colon = key.indexOf(":");
+  const hasUserinfo = at >= 0 && (colon < 0 || at < colon);
+  if (!LEGACY_KEY_PATTERN.test(key) || key.includes("..") || hasUserinfo) {
     throw new ResourceRefValidationError("legacy Redis key is empty or ambiguous");
   }
   return Buffer.from(key, "ascii");

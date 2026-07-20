@@ -32,8 +32,11 @@ func (w *ManagedWorker) dispatch(ctx context.Context, message *nats.Msg, handler
 }
 
 func (w *ManagedWorker) handleManagedMessage(ctx context.Context, message *nats.Msg, handler Handler) {
-	packet, request, err := w.decodeManagedRequest(message.Data)
+	packet, request, err := w.decodeManagedRequest(message.Data, message.Subject)
 	if err != nil {
+		if errors.Is(err, errManagedProductionDuplicate) {
+			return
+		}
 		w.logger.Printf("worker: packet rejected: %v", err)
 		return
 	}
@@ -41,22 +44,20 @@ func (w *ManagedWorker) handleManagedMessage(ctx context.Context, message *nats.
 		w.metrics.OnJobReceived(request.GetJobId(), request.GetTopic())
 	}
 	started := time.Now()
-	result, handlerErr, panicked := w.callManagedHandler(ctx, handler, request)
+	handlerCtx := withManagedEventPublisher(ctx, w, packet.GetTraceId(), request)
+	result, handlerErr, panicked := w.callManagedHandler(handlerCtx, handler, request)
 	execution := time.Since(started).Milliseconds()
 	result = managedHandlerResult(request, result, handlerErr, panicked)
 	normalizeResult(result, request.GetJobId(), w.workerID, execution)
 	w.recordManagedMetric(result, execution)
-	if err := w.publishManagedResult(packet.GetTraceId(), result); err != nil {
+	if err := w.publishManagedResultForContext(handlerCtx, result); err != nil {
 		w.logger.Printf("worker: publish result failed: %v", err)
 	}
 }
 
-func (w *ManagedWorker) decodeManagedRequest(data []byte) (*agentv1.BusPacket, *agentv1.JobRequest, error) {
-	packet := &agentv1.BusPacket{}
-	if err := proto.Unmarshal(data, packet); err != nil {
-		return nil, nil, fmt.Errorf("decode packet: %w", err)
-	}
-	if err := w.validateInboundPacket(packet); err != nil {
+func (w *ManagedWorker) decodeManagedRequest(data []byte, audience string) (*agentv1.BusPacket, *agentv1.JobRequest, error) {
+	packet, err := w.decodeManagedPacket(data, audience)
+	if err != nil {
 		return nil, nil, err
 	}
 	request := packet.GetJobRequest()
@@ -64,6 +65,20 @@ func (w *ManagedWorker) decodeManagedRequest(data []byte) (*agentv1.BusPacket, *
 		return nil, nil, errors.New("packet is not a job request")
 	}
 	return packet, request, nil
+}
+
+func (w *ManagedWorker) decodeManagedPacket(data []byte, audience string) (*agentv1.BusPacket, error) {
+	if w.cfg.Production.Enabled {
+		return w.admitManagedProductionPacket(data, audience)
+	}
+	packet := &agentv1.BusPacket{}
+	if err := proto.Unmarshal(data, packet); err != nil {
+		return nil, fmt.Errorf("decode packet: %w", err)
+	}
+	if err := w.validateInboundPacket(packet); err != nil {
+		return nil, err
+	}
+	return packet, nil
 }
 
 func (w *ManagedWorker) callManagedHandler(ctx context.Context, handler Handler, request *agentv1.JobRequest) (result *agentv1.JobResult, err error, panicked bool) {
@@ -98,20 +113,43 @@ func managedHandlerResult(request *agentv1.JobRequest, result *agentv1.JobResult
 }
 
 func (w *ManagedWorker) publishManagedResult(traceID string, result *agentv1.JobResult) error {
-	token, err := w.privilegedSessionToken()
+	return w.publishManagedResultForRequest(traceID, nil, result)
+}
+
+func (w *ManagedWorker) publishManagedResultForRequest(
+	traceID string, request *agentv1.JobRequest, result *agentv1.JobResult,
+) error {
+	if request == nil {
+		if w.cfg.Production.Enabled {
+			return errors.New("managed production: admitted request required")
+		}
+		return w.publishManagedResultWithAuthority(traceID, managedEventAuthority{jobID: result.GetJobId()}, result)
+	}
+	ctx := withManagedEventPublisher(context.Background(), w, traceID, request)
+	return w.publishManagedResultForContext(ctx, result)
+}
+
+func (w *ManagedWorker) publishManagedResultForContext(ctx context.Context, result *agentv1.JobResult) error {
+	publisher, err := managedPublisherFromContext(ctx)
+	if err != nil {
+		return err
+	}
+	return w.publishManagedResultWithAuthority(publisher.traceID, publisher.authority, result)
+}
+
+func (w *ManagedWorker) publishManagedResultWithAuthority(
+	traceID string, authority managedEventAuthority, result *agentv1.JobResult,
+) error {
+	identity, err := bindManagedResult(result, authority)
 	if err != nil {
 		return err
 	}
 	packet := &agentv1.BusPacket{
-		TraceId: traceID, SenderId: w.workerID, AuthToken: token,
-		ProtocolVersion: capsdk.DefaultProtocolVersion, CreatedAt: timestamppb.Now(),
+		TraceId: traceID, SenderId: w.workerID,
+		ProtocolVersion: capsdk.DefaultProtocolVersion, CreatedAt: timestamppb.Now(), Identity: identity,
 		Payload: &agentv1.BusPacket_JobResult{JobResult: result},
 	}
-	data, err := marshalValidatedEnvelope(packet, w.cfg.PrivateKey)
-	if err != nil {
-		return err
-	}
-	return w.conn.Publish(capsdk.SubjectResult, data)
+	return w.publishManagedPacket(capsdk.SubjectResult, packet)
 }
 
 func (w *ManagedWorker) recordManagedMetric(result *agentv1.JobResult, execution int64) {

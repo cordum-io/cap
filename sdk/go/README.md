@@ -244,6 +244,35 @@ operational request unavailability; malformed, unpinned, tampered, mismatched,
 or rejected trust responses stop admission. Privileged results require a live
 session in both trust modes, while tokenless warn telemetry remains observable.
 
+CAP-PRODUCTION is a separate explicit opt-in and requires enforce-mode worker
+trust, authenticated NATS TLS, a P-256 outbound signing key, a local
+scheduler-key trust store, and a durable replay store:
+
+```go
+mgr, err := worker.NewManagedWorker(worker.ManagedConfig{
+    // WorkerID, Subjects, NatsURL, and complete WorkerTrust are also required.
+    WorkerTrustMode: capsdk.WorkerTrustModeEnforce,
+    WorkerTrust:     workerTrust,
+    PrivateKey:      workerSigningKey,
+    Production: worker.ManagedProductionConfig{
+        Enabled: true,
+        KeyID:   "worker-key-2026-07",
+        Replay:  durableReplayStore,
+        Trust: capsdk.ProductionTrustStore{
+            PublicKeys: pinnedSchedulerKeys,
+        },
+    },
+})
+```
+
+Inbound signatures bind to the actual delivered NATS subject; callers must
+leave `Production.Trust.Audience` empty. The managed result path automatically
+echoes the admitted `IdentityBinding` and `DispatchIdentity`. During a handler,
+`worker.PublishManagedProgress(ctx, progress)` and
+`worker.PublishManagedCancel(ctx, cancel)` use the same immutable admitted
+authority. Conflicting handler-supplied identity, dispatch, or job IDs fail
+closed rather than being rewritten.
+
 ### TLS Helpers
 CAP Go SDK provides helpers to build `*tls.Config` from standard environment variables. These are used by `ManagedWorker` and the `runtime.Agent` by default.
 

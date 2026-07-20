@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strings"
 
@@ -33,6 +34,9 @@ func resolveManagedConfig(config ManagedConfig) (resolvedManagedConfig, error) {
 	}
 	workerID := resolveWorkerID(config.WorkerID, config.Type)
 	if err := validateManagedTrustConfig(config, workerID); err != nil {
+		return resolvedManagedConfig{}, err
+	}
+	if err := validateManagedProductionConfig(config); err != nil {
 		return resolvedManagedConfig{}, err
 	}
 	resolved := resolvedManagedConfig{
@@ -72,8 +76,28 @@ func connectManagedNATS(config ManagedConfig, resolved resolvedManagedConfig) (*
 			return nil, fmt.Errorf("nats tls config: %w", err)
 		}
 	}
+	if config.Production.Enabled && tlsConfig == nil && !managedNATSTransportSecure(resolved.natsURL) {
+		return nil, errors.New("managed production: authenticated NATS TLS required")
+	}
+	if config.Production.Enabled && tlsConfig != nil && tlsConfig.InsecureSkipVerify {
+		return nil, errors.New("managed production: NATS TLS verification required")
+	}
 	if tlsConfig != nil {
 		options = append(options, nats.Secure(tlsConfig))
 	}
 	return nats.Connect(resolved.natsURL, options...)
+}
+
+func managedNATSTransportSecure(raw string) bool {
+	servers := strings.Split(raw, ",")
+	if len(servers) == 0 {
+		return false
+	}
+	for _, server := range servers {
+		parsed, err := url.Parse(strings.TrimSpace(server))
+		if err != nil || parsed.Host == "" || (parsed.Scheme != "tls" && parsed.Scheme != "wss") {
+			return false
+		}
+	}
+	return true
 }

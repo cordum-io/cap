@@ -2,6 +2,115 @@
 // file: cordum/agent/v1/job.proto
 
 import * as jspb from "google-protobuf";
+import * as google_protobuf_timestamp_pb from "google-protobuf/google/protobuf/timestamp_pb";
+
+export class IdentityBinding extends jspb.Message {
+  getTenantId(): string;
+  setTenantId(value: string): void;
+
+  getPrincipalId(): string;
+  setPrincipalId(value: string): void;
+
+  getActorId(): string;
+  setActorId(value: string): void;
+
+  getDelegationId(): string;
+  setDelegationId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): IdentityBinding.AsObject;
+  static toObject(includeInstance: boolean, msg: IdentityBinding): IdentityBinding.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: IdentityBinding, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): IdentityBinding;
+  static deserializeBinaryFromReader(message: IdentityBinding, reader: jspb.BinaryReader): IdentityBinding;
+}
+
+export namespace IdentityBinding {
+  export type AsObject = {
+    tenantId: string,
+    principalId: string,
+    actorId: string,
+    delegationId: string,
+  }
+}
+
+export class DispatchIdentity extends jspb.Message {
+  getDispatchId(): string;
+  setDispatchId(value: string): void;
+
+  getAttempt(): number;
+  setAttempt(value: number): void;
+
+  getAssignedWorkerId(): string;
+  setAssignedWorkerId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): DispatchIdentity.AsObject;
+  static toObject(includeInstance: boolean, msg: DispatchIdentity): DispatchIdentity.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: DispatchIdentity, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): DispatchIdentity;
+  static deserializeBinaryFromReader(message: DispatchIdentity, reader: jspb.BinaryReader): DispatchIdentity;
+}
+
+export namespace DispatchIdentity {
+  export type AsObject = {
+    dispatchId: string,
+    attempt: number,
+    assignedWorkerId: string,
+  }
+}
+
+export class ResourceRef extends jspb.Message {
+  getResolverId(): string;
+  setResolverId(value: string): void;
+
+  getUri(): string;
+  setUri(value: string): void;
+
+  getSha256(): Uint8Array | string;
+  getSha256_asU8(): Uint8Array;
+  getSha256_asB64(): string;
+  setSha256(value: Uint8Array | string): void;
+
+  getMediaType(): string;
+  setMediaType(value: string): void;
+
+  getSizeBytes(): number;
+  setSizeBytes(value: number): void;
+
+  hasExpiresAt(): boolean;
+  clearExpiresAt(): void;
+  getExpiresAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setExpiresAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getPurpose(): string;
+  setPurpose(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ResourceRef.AsObject;
+  static toObject(includeInstance: boolean, msg: ResourceRef): ResourceRef.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ResourceRef, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ResourceRef;
+  static deserializeBinaryFromReader(message: ResourceRef, reader: jspb.BinaryReader): ResourceRef;
+}
+
+export namespace ResourceRef {
+  export type AsObject = {
+    resolverId: string,
+    uri: string,
+    sha256: Uint8Array | string,
+    mediaType: string,
+    sizeBytes: number,
+    expiresAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    purpose: string,
+  }
+}
 
 export class ContextHints extends jspb.Message {
   getMaxInputTokens(): number;
@@ -165,6 +274,21 @@ export class Compensation extends jspb.Message {
   getMeta(): JobMetadata | undefined;
   setMeta(value?: JobMetadata): void;
 
+  hasIdentity(): boolean;
+  clearIdentity(): void;
+  getIdentity(): IdentityBinding | undefined;
+  setIdentity(value?: IdentityBinding): void;
+
+  hasDispatch(): boolean;
+  clearDispatch(): void;
+  getDispatch(): DispatchIdentity | undefined;
+  setDispatch(value?: DispatchIdentity): void;
+
+  hasContextRef(): boolean;
+  clearContextRef(): void;
+  getContextRef(): ResourceRef | undefined;
+  setContextRef(value?: ResourceRef): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Compensation.AsObject;
   static toObject(includeInstance: boolean, msg: Compensation): Compensation.AsObject;
@@ -189,6 +313,9 @@ export namespace Compensation {
     principalId: string,
     labelsMap: Array<[string, string]>,
     meta?: JobMetadata.AsObject,
+    identity?: IdentityBinding.AsObject,
+    dispatch?: DispatchIdentity.AsObject,
+    contextRef?: ResourceRef.AsObject,
   }
 }
 
@@ -250,6 +377,21 @@ export class JobRequest extends jspb.Message {
   getCompensation(): Compensation | undefined;
   setCompensation(value?: Compensation): void;
 
+  hasIdentity(): boolean;
+  clearIdentity(): void;
+  getIdentity(): IdentityBinding | undefined;
+  setIdentity(value?: IdentityBinding): void;
+
+  hasDispatch(): boolean;
+  clearDispatch(): void;
+  getDispatch(): DispatchIdentity | undefined;
+  setDispatch(value?: DispatchIdentity): void;
+
+  hasContextRef(): boolean;
+  clearContextRef(): void;
+  getContextRef(): ResourceRef | undefined;
+  setContextRef(value?: ResourceRef): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): JobRequest.AsObject;
   static toObject(includeInstance: boolean, msg: JobRequest): JobRequest.AsObject;
@@ -279,6 +421,9 @@ export namespace JobRequest {
     labelsMap: Array<[string, string]>,
     meta?: JobMetadata.AsObject,
     compensation?: Compensation.AsObject,
+    identity?: IdentityBinding.AsObject,
+    dispatch?: DispatchIdentity.AsObject,
+    contextRef?: ResourceRef.AsObject,
   }
 }
 
@@ -312,6 +457,26 @@ export class JobResult extends jspb.Message {
   getErrorCodeEnum(): ErrorCodeMap[keyof ErrorCodeMap];
   setErrorCodeEnum(value: ErrorCodeMap[keyof ErrorCodeMap]): void;
 
+  hasDispatch(): boolean;
+  clearDispatch(): void;
+  getDispatch(): DispatchIdentity | undefined;
+  setDispatch(value?: DispatchIdentity): void;
+
+  hasIdentity(): boolean;
+  clearIdentity(): void;
+  getIdentity(): IdentityBinding | undefined;
+  setIdentity(value?: IdentityBinding): void;
+
+  hasResultRef(): boolean;
+  clearResultRef(): void;
+  getResultRef(): ResourceRef | undefined;
+  setResultRef(value?: ResourceRef): void;
+
+  clearArtifactRefsList(): void;
+  getArtifactRefsList(): Array<ResourceRef>;
+  setArtifactRefsList(value: Array<ResourceRef>): void;
+  addArtifactRefs(value?: ResourceRef, index?: number): ResourceRef;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): JobResult.AsObject;
   static toObject(includeInstance: boolean, msg: JobResult): JobResult.AsObject;
@@ -333,6 +498,10 @@ export namespace JobResult {
     errorMessage: string,
     artifactPtrsList: Array<string>,
     errorCodeEnum: ErrorCodeMap[keyof ErrorCodeMap],
+    dispatch?: DispatchIdentity.AsObject,
+    identity?: IdentityBinding.AsObject,
+    resultRef?: ResourceRef.AsObject,
+    artifactRefsList: Array<ResourceRef.AsObject>,
   }
 }
 
@@ -360,6 +529,26 @@ export class JobProgress extends jspb.Message {
   getStatus(): JobStatusMap[keyof JobStatusMap];
   setStatus(value: JobStatusMap[keyof JobStatusMap]): void;
 
+  hasDispatch(): boolean;
+  clearDispatch(): void;
+  getDispatch(): DispatchIdentity | undefined;
+  setDispatch(value?: DispatchIdentity): void;
+
+  hasIdentity(): boolean;
+  clearIdentity(): void;
+  getIdentity(): IdentityBinding | undefined;
+  setIdentity(value?: IdentityBinding): void;
+
+  hasResultRef(): boolean;
+  clearResultRef(): void;
+  getResultRef(): ResourceRef | undefined;
+  setResultRef(value?: ResourceRef): void;
+
+  clearArtifactRefsList(): void;
+  getArtifactRefsList(): Array<ResourceRef>;
+  setArtifactRefsList(value: Array<ResourceRef>): void;
+  addArtifactRefs(value?: ResourceRef, index?: number): ResourceRef;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): JobProgress.AsObject;
   static toObject(includeInstance: boolean, msg: JobProgress): JobProgress.AsObject;
@@ -379,6 +568,10 @@ export namespace JobProgress {
     resultPtr: string,
     artifactPtrsList: Array<string>,
     status: JobStatusMap[keyof JobStatusMap],
+    dispatch?: DispatchIdentity.AsObject,
+    identity?: IdentityBinding.AsObject,
+    resultRef?: ResourceRef.AsObject,
+    artifactRefsList: Array<ResourceRef.AsObject>,
   }
 }
 
@@ -391,6 +584,16 @@ export class JobCancel extends jspb.Message {
 
   getRequestedBy(): string;
   setRequestedBy(value: string): void;
+
+  hasDispatch(): boolean;
+  clearDispatch(): void;
+  getDispatch(): DispatchIdentity | undefined;
+  setDispatch(value?: DispatchIdentity): void;
+
+  hasIdentity(): boolean;
+  clearIdentity(): void;
+  getIdentity(): IdentityBinding | undefined;
+  setIdentity(value?: IdentityBinding): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): JobCancel.AsObject;
@@ -407,6 +610,8 @@ export namespace JobCancel {
     jobId: string,
     reason: string,
     requestedBy: string,
+    dispatch?: DispatchIdentity.AsObject,
+    identity?: IdentityBinding.AsObject,
   }
 }
 

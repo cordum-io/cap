@@ -40,6 +40,8 @@ message PolicyCheckRequest {
     string memory_id = 9;
     bytes effective_config = 10; // marshaled EffectiveConfig for policy context
     JobMetadata meta = 11;       // structured identity/capability metadata
+    IdentityBinding identity = 12;
+    ResourceRef input_ref = 13;
 
     // Input content for pre-execution content-level policy inspection.
     // Populated by the scheduler after dereferencing context_ptr from Redis.
@@ -112,6 +114,8 @@ message PolicyCheckResponse {
     bool approval_required = 7;
     string approval_ref = 8;
     repeated PolicyRemediation remediations = 9;
+    ResourceRef redacted_context_ref = 10;
+    IdentityBinding identity = 11;
 }
 
 // ListSnapshotsRequest asks for loaded policy snapshots.

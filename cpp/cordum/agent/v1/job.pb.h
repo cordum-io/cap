@@ -34,6 +34,7 @@
 #include <google/protobuf/map_field_inl.h>
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
+#include <google/protobuf/timestamp.pb.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
 #define PROTOBUF_INTERNAL_EXPORT_cordum_2fagent_2fv1_2fjob_2eproto
@@ -66,6 +67,12 @@ extern Compensation_LabelsEntry_DoNotUseDefaultTypeInternal _Compensation_Labels
 class ContextHints;
 struct ContextHintsDefaultTypeInternal;
 extern ContextHintsDefaultTypeInternal _ContextHints_default_instance_;
+class DispatchIdentity;
+struct DispatchIdentityDefaultTypeInternal;
+extern DispatchIdentityDefaultTypeInternal _DispatchIdentity_default_instance_;
+class IdentityBinding;
+struct IdentityBindingDefaultTypeInternal;
+extern IdentityBindingDefaultTypeInternal _IdentityBinding_default_instance_;
 class JobCancel;
 struct JobCancelDefaultTypeInternal;
 extern JobCancelDefaultTypeInternal _JobCancel_default_instance_;
@@ -90,6 +97,9 @@ extern JobRequest_LabelsEntry_DoNotUseDefaultTypeInternal _JobRequest_LabelsEntr
 class JobResult;
 struct JobResultDefaultTypeInternal;
 extern JobResultDefaultTypeInternal _JobResult_default_instance_;
+class ResourceRef;
+struct ResourceRefDefaultTypeInternal;
+extern ResourceRefDefaultTypeInternal _ResourceRef_default_instance_;
 }  // namespace v1
 }  // namespace agent
 }  // namespace cordum
@@ -99,6 +109,8 @@ template<> ::cordum::agent::v1::Compensation* Arena::CreateMaybeMessage<::cordum
 template<> ::cordum::agent::v1::Compensation_EnvEntry_DoNotUse* Arena::CreateMaybeMessage<::cordum::agent::v1::Compensation_EnvEntry_DoNotUse>(Arena*);
 template<> ::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::cordum::agent::v1::Compensation_LabelsEntry_DoNotUse>(Arena*);
 template<> ::cordum::agent::v1::ContextHints* Arena::CreateMaybeMessage<::cordum::agent::v1::ContextHints>(Arena*);
+template<> ::cordum::agent::v1::DispatchIdentity* Arena::CreateMaybeMessage<::cordum::agent::v1::DispatchIdentity>(Arena*);
+template<> ::cordum::agent::v1::IdentityBinding* Arena::CreateMaybeMessage<::cordum::agent::v1::IdentityBinding>(Arena*);
 template<> ::cordum::agent::v1::JobCancel* Arena::CreateMaybeMessage<::cordum::agent::v1::JobCancel>(Arena*);
 template<> ::cordum::agent::v1::JobMetadata* Arena::CreateMaybeMessage<::cordum::agent::v1::JobMetadata>(Arena*);
 template<> ::cordum::agent::v1::JobMetadata_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::cordum::agent::v1::JobMetadata_LabelsEntry_DoNotUse>(Arena*);
@@ -107,6 +119,7 @@ template<> ::cordum::agent::v1::JobRequest* Arena::CreateMaybeMessage<::cordum::
 template<> ::cordum::agent::v1::JobRequest_EnvEntry_DoNotUse* Arena::CreateMaybeMessage<::cordum::agent::v1::JobRequest_EnvEntry_DoNotUse>(Arena*);
 template<> ::cordum::agent::v1::JobRequest_LabelsEntry_DoNotUse* Arena::CreateMaybeMessage<::cordum::agent::v1::JobRequest_LabelsEntry_DoNotUse>(Arena*);
 template<> ::cordum::agent::v1::JobResult* Arena::CreateMaybeMessage<::cordum::agent::v1::JobResult>(Arena*);
+template<> ::cordum::agent::v1::ResourceRef* Arena::CreateMaybeMessage<::cordum::agent::v1::ResourceRef>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace cordum {
 namespace agent {
@@ -244,6 +257,635 @@ inline bool ErrorCode_Parse(
 }
 // ===================================================================
 
+class IdentityBinding final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cordum.agent.v1.IdentityBinding) */ {
+ public:
+  inline IdentityBinding() : IdentityBinding(nullptr) {}
+  ~IdentityBinding() override;
+  explicit PROTOBUF_CONSTEXPR IdentityBinding(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  IdentityBinding(const IdentityBinding& from);
+  IdentityBinding(IdentityBinding&& from) noexcept
+    : IdentityBinding() {
+    *this = ::std::move(from);
+  }
+
+  inline IdentityBinding& operator=(const IdentityBinding& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline IdentityBinding& operator=(IdentityBinding&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const IdentityBinding& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const IdentityBinding* internal_default_instance() {
+    return reinterpret_cast<const IdentityBinding*>(
+               &_IdentityBinding_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    0;
+
+  friend void swap(IdentityBinding& a, IdentityBinding& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(IdentityBinding* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(IdentityBinding* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  IdentityBinding* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<IdentityBinding>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const IdentityBinding& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const IdentityBinding& from) {
+    IdentityBinding::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(IdentityBinding* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "cordum.agent.v1.IdentityBinding";
+  }
+  protected:
+  explicit IdentityBinding(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kTenantIdFieldNumber = 1,
+    kPrincipalIdFieldNumber = 2,
+    kActorIdFieldNumber = 3,
+    kDelegationIdFieldNumber = 4,
+  };
+  // string tenant_id = 1 [json_name = "tenantId"];
+  void clear_tenant_id();
+  const std::string& tenant_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_tenant_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_tenant_id();
+  PROTOBUF_NODISCARD std::string* release_tenant_id();
+  void set_allocated_tenant_id(std::string* tenant_id);
+  private:
+  const std::string& _internal_tenant_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_tenant_id(const std::string& value);
+  std::string* _internal_mutable_tenant_id();
+  public:
+
+  // string principal_id = 2 [json_name = "principalId"];
+  void clear_principal_id();
+  const std::string& principal_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_principal_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_principal_id();
+  PROTOBUF_NODISCARD std::string* release_principal_id();
+  void set_allocated_principal_id(std::string* principal_id);
+  private:
+  const std::string& _internal_principal_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_principal_id(const std::string& value);
+  std::string* _internal_mutable_principal_id();
+  public:
+
+  // string actor_id = 3 [json_name = "actorId"];
+  void clear_actor_id();
+  const std::string& actor_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_actor_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_actor_id();
+  PROTOBUF_NODISCARD std::string* release_actor_id();
+  void set_allocated_actor_id(std::string* actor_id);
+  private:
+  const std::string& _internal_actor_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_actor_id(const std::string& value);
+  std::string* _internal_mutable_actor_id();
+  public:
+
+  // string delegation_id = 4 [json_name = "delegationId"];
+  void clear_delegation_id();
+  const std::string& delegation_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_delegation_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_delegation_id();
+  PROTOBUF_NODISCARD std::string* release_delegation_id();
+  void set_allocated_delegation_id(std::string* delegation_id);
+  private:
+  const std::string& _internal_delegation_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_delegation_id(const std::string& value);
+  std::string* _internal_mutable_delegation_id();
+  public:
+
+  // @@protoc_insertion_point(class_scope:cordum.agent.v1.IdentityBinding)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr tenant_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr principal_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr actor_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr delegation_id_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_cordum_2fagent_2fv1_2fjob_2eproto;
+};
+// -------------------------------------------------------------------
+
+class DispatchIdentity final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cordum.agent.v1.DispatchIdentity) */ {
+ public:
+  inline DispatchIdentity() : DispatchIdentity(nullptr) {}
+  ~DispatchIdentity() override;
+  explicit PROTOBUF_CONSTEXPR DispatchIdentity(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  DispatchIdentity(const DispatchIdentity& from);
+  DispatchIdentity(DispatchIdentity&& from) noexcept
+    : DispatchIdentity() {
+    *this = ::std::move(from);
+  }
+
+  inline DispatchIdentity& operator=(const DispatchIdentity& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline DispatchIdentity& operator=(DispatchIdentity&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const DispatchIdentity& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const DispatchIdentity* internal_default_instance() {
+    return reinterpret_cast<const DispatchIdentity*>(
+               &_DispatchIdentity_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(DispatchIdentity& a, DispatchIdentity& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(DispatchIdentity* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(DispatchIdentity* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  DispatchIdentity* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<DispatchIdentity>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const DispatchIdentity& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const DispatchIdentity& from) {
+    DispatchIdentity::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(DispatchIdentity* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "cordum.agent.v1.DispatchIdentity";
+  }
+  protected:
+  explicit DispatchIdentity(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kDispatchIdFieldNumber = 1,
+    kAssignedWorkerIdFieldNumber = 3,
+    kAttemptFieldNumber = 2,
+  };
+  // string dispatch_id = 1 [json_name = "dispatchId"];
+  void clear_dispatch_id();
+  const std::string& dispatch_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_dispatch_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_dispatch_id();
+  PROTOBUF_NODISCARD std::string* release_dispatch_id();
+  void set_allocated_dispatch_id(std::string* dispatch_id);
+  private:
+  const std::string& _internal_dispatch_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_dispatch_id(const std::string& value);
+  std::string* _internal_mutable_dispatch_id();
+  public:
+
+  // string assigned_worker_id = 3 [json_name = "assignedWorkerId"];
+  void clear_assigned_worker_id();
+  const std::string& assigned_worker_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_assigned_worker_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_assigned_worker_id();
+  PROTOBUF_NODISCARD std::string* release_assigned_worker_id();
+  void set_allocated_assigned_worker_id(std::string* assigned_worker_id);
+  private:
+  const std::string& _internal_assigned_worker_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_assigned_worker_id(const std::string& value);
+  std::string* _internal_mutable_assigned_worker_id();
+  public:
+
+  // uint64 attempt = 2 [json_name = "attempt"];
+  void clear_attempt();
+  uint64_t attempt() const;
+  void set_attempt(uint64_t value);
+  private:
+  uint64_t _internal_attempt() const;
+  void _internal_set_attempt(uint64_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:cordum.agent.v1.DispatchIdentity)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr dispatch_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr assigned_worker_id_;
+    uint64_t attempt_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_cordum_2fagent_2fv1_2fjob_2eproto;
+};
+// -------------------------------------------------------------------
+
+class ResourceRef final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cordum.agent.v1.ResourceRef) */ {
+ public:
+  inline ResourceRef() : ResourceRef(nullptr) {}
+  ~ResourceRef() override;
+  explicit PROTOBUF_CONSTEXPR ResourceRef(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  ResourceRef(const ResourceRef& from);
+  ResourceRef(ResourceRef&& from) noexcept
+    : ResourceRef() {
+    *this = ::std::move(from);
+  }
+
+  inline ResourceRef& operator=(const ResourceRef& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline ResourceRef& operator=(ResourceRef&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const ResourceRef& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const ResourceRef* internal_default_instance() {
+    return reinterpret_cast<const ResourceRef*>(
+               &_ResourceRef_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(ResourceRef& a, ResourceRef& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(ResourceRef* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(ResourceRef* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  ResourceRef* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<ResourceRef>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const ResourceRef& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const ResourceRef& from) {
+    ResourceRef::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(ResourceRef* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "cordum.agent.v1.ResourceRef";
+  }
+  protected:
+  explicit ResourceRef(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kResolverIdFieldNumber = 1,
+    kUriFieldNumber = 2,
+    kSha256FieldNumber = 3,
+    kMediaTypeFieldNumber = 4,
+    kPurposeFieldNumber = 7,
+    kExpiresAtFieldNumber = 6,
+    kSizeBytesFieldNumber = 5,
+  };
+  // string resolver_id = 1 [json_name = "resolverId"];
+  void clear_resolver_id();
+  const std::string& resolver_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_resolver_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_resolver_id();
+  PROTOBUF_NODISCARD std::string* release_resolver_id();
+  void set_allocated_resolver_id(std::string* resolver_id);
+  private:
+  const std::string& _internal_resolver_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_resolver_id(const std::string& value);
+  std::string* _internal_mutable_resolver_id();
+  public:
+
+  // string uri = 2 [json_name = "uri"];
+  void clear_uri();
+  const std::string& uri() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_uri(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_uri();
+  PROTOBUF_NODISCARD std::string* release_uri();
+  void set_allocated_uri(std::string* uri);
+  private:
+  const std::string& _internal_uri() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_uri(const std::string& value);
+  std::string* _internal_mutable_uri();
+  public:
+
+  // bytes sha256 = 3 [json_name = "sha256"];
+  void clear_sha256();
+  const std::string& sha256() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_sha256(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_sha256();
+  PROTOBUF_NODISCARD std::string* release_sha256();
+  void set_allocated_sha256(std::string* sha256);
+  private:
+  const std::string& _internal_sha256() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_sha256(const std::string& value);
+  std::string* _internal_mutable_sha256();
+  public:
+
+  // string media_type = 4 [json_name = "mediaType"];
+  void clear_media_type();
+  const std::string& media_type() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_media_type(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_media_type();
+  PROTOBUF_NODISCARD std::string* release_media_type();
+  void set_allocated_media_type(std::string* media_type);
+  private:
+  const std::string& _internal_media_type() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_media_type(const std::string& value);
+  std::string* _internal_mutable_media_type();
+  public:
+
+  // string purpose = 7 [json_name = "purpose"];
+  void clear_purpose();
+  const std::string& purpose() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_purpose(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_purpose();
+  PROTOBUF_NODISCARD std::string* release_purpose();
+  void set_allocated_purpose(std::string* purpose);
+  private:
+  const std::string& _internal_purpose() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_purpose(const std::string& value);
+  std::string* _internal_mutable_purpose();
+  public:
+
+  // .google.protobuf.Timestamp expires_at = 6 [json_name = "expiresAt"];
+  bool has_expires_at() const;
+  private:
+  bool _internal_has_expires_at() const;
+  public:
+  void clear_expires_at();
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& expires_at() const;
+  PROTOBUF_NODISCARD ::PROTOBUF_NAMESPACE_ID::Timestamp* release_expires_at();
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* mutable_expires_at();
+  void set_allocated_expires_at(::PROTOBUF_NAMESPACE_ID::Timestamp* expires_at);
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& _internal_expires_at() const;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _internal_mutable_expires_at();
+  public:
+  void unsafe_arena_set_allocated_expires_at(
+      ::PROTOBUF_NAMESPACE_ID::Timestamp* expires_at);
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_expires_at();
+
+  // uint64 size_bytes = 5 [json_name = "sizeBytes"];
+  void clear_size_bytes();
+  uint64_t size_bytes() const;
+  void set_size_bytes(uint64_t value);
+  private:
+  uint64_t _internal_size_bytes() const;
+  void _internal_set_size_bytes(uint64_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:cordum.agent.v1.ResourceRef)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr resolver_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr uri_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr sha256_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr media_type_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr purpose_;
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* expires_at_;
+    uint64_t size_bytes_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_cordum_2fagent_2fv1_2fjob_2eproto;
+};
+// -------------------------------------------------------------------
+
 class ContextHints final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cordum.agent.v1.ContextHints) */ {
  public:
@@ -292,7 +934,7 @@ class ContextHints final :
                &_ContextHints_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    3;
 
   friend void swap(ContextHints& a, ContextHints& b) {
     a.Swap(&b);
@@ -488,7 +1130,7 @@ class Budget final :
                &_Budget_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    4;
 
   friend void swap(Budget& a, Budget& b) {
     a.Swap(&b);
@@ -697,7 +1339,7 @@ class JobMetadata final :
                &_JobMetadata_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    6;
 
   friend void swap(JobMetadata& a, JobMetadata& b) {
     a.Swap(&b);
@@ -1059,7 +1701,7 @@ class Compensation final :
                &_Compensation_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    9;
 
   friend void swap(Compensation& a, Compensation& b) {
     a.Swap(&b);
@@ -1146,6 +1788,9 @@ class Compensation final :
     kContextHintsFieldNumber = 7,
     kBudgetFieldNumber = 8,
     kMetaFieldNumber = 12,
+    kIdentityFieldNumber = 13,
+    kDispatchFieldNumber = 14,
+    kContextRefFieldNumber = 15,
     kPriorityFieldNumber = 3,
   };
   // map<string, string> env = 5 [json_name = "env"];
@@ -1320,6 +1965,60 @@ class Compensation final :
       ::cordum::agent::v1::JobMetadata* meta);
   ::cordum::agent::v1::JobMetadata* unsafe_arena_release_meta();
 
+  // .cordum.agent.v1.IdentityBinding identity = 13 [json_name = "identity"];
+  bool has_identity() const;
+  private:
+  bool _internal_has_identity() const;
+  public:
+  void clear_identity();
+  const ::cordum::agent::v1::IdentityBinding& identity() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::IdentityBinding* release_identity();
+  ::cordum::agent::v1::IdentityBinding* mutable_identity();
+  void set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity);
+  private:
+  const ::cordum::agent::v1::IdentityBinding& _internal_identity() const;
+  ::cordum::agent::v1::IdentityBinding* _internal_mutable_identity();
+  public:
+  void unsafe_arena_set_allocated_identity(
+      ::cordum::agent::v1::IdentityBinding* identity);
+  ::cordum::agent::v1::IdentityBinding* unsafe_arena_release_identity();
+
+  // .cordum.agent.v1.DispatchIdentity dispatch = 14 [json_name = "dispatch"];
+  bool has_dispatch() const;
+  private:
+  bool _internal_has_dispatch() const;
+  public:
+  void clear_dispatch();
+  const ::cordum::agent::v1::DispatchIdentity& dispatch() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::DispatchIdentity* release_dispatch();
+  ::cordum::agent::v1::DispatchIdentity* mutable_dispatch();
+  void set_allocated_dispatch(::cordum::agent::v1::DispatchIdentity* dispatch);
+  private:
+  const ::cordum::agent::v1::DispatchIdentity& _internal_dispatch() const;
+  ::cordum::agent::v1::DispatchIdentity* _internal_mutable_dispatch();
+  public:
+  void unsafe_arena_set_allocated_dispatch(
+      ::cordum::agent::v1::DispatchIdentity* dispatch);
+  ::cordum::agent::v1::DispatchIdentity* unsafe_arena_release_dispatch();
+
+  // .cordum.agent.v1.ResourceRef context_ref = 15 [json_name = "contextRef"];
+  bool has_context_ref() const;
+  private:
+  bool _internal_has_context_ref() const;
+  public:
+  void clear_context_ref();
+  const ::cordum::agent::v1::ResourceRef& context_ref() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::ResourceRef* release_context_ref();
+  ::cordum::agent::v1::ResourceRef* mutable_context_ref();
+  void set_allocated_context_ref(::cordum::agent::v1::ResourceRef* context_ref);
+  private:
+  const ::cordum::agent::v1::ResourceRef& _internal_context_ref() const;
+  ::cordum::agent::v1::ResourceRef* _internal_mutable_context_ref();
+  public:
+  void unsafe_arena_set_allocated_context_ref(
+      ::cordum::agent::v1::ResourceRef* context_ref);
+  ::cordum::agent::v1::ResourceRef* unsafe_arena_release_context_ref();
+
   // .cordum.agent.v1.JobPriority priority = 3 [json_name = "priority"];
   void clear_priority();
   ::cordum::agent::v1::JobPriority priority() const;
@@ -1356,6 +2055,9 @@ class Compensation final :
     ::cordum::agent::v1::ContextHints* context_hints_;
     ::cordum::agent::v1::Budget* budget_;
     ::cordum::agent::v1::JobMetadata* meta_;
+    ::cordum::agent::v1::IdentityBinding* identity_;
+    ::cordum::agent::v1::DispatchIdentity* dispatch_;
+    ::cordum::agent::v1::ResourceRef* context_ref_;
     int priority_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -1468,7 +2170,7 @@ class JobRequest final :
                &_JobRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    12;
 
   friend void swap(JobRequest& a, JobRequest& b) {
     a.Swap(&b);
@@ -1559,6 +2261,9 @@ class JobRequest final :
     kBudgetFieldNumber = 12,
     kMetaFieldNumber = 16,
     kCompensationFieldNumber = 17,
+    kIdentityFieldNumber = 18,
+    kDispatchFieldNumber = 19,
+    kContextRefFieldNumber = 20,
     kPriorityFieldNumber = 3,
     kStepIndexFieldNumber = 9,
   };
@@ -1794,6 +2499,60 @@ class JobRequest final :
       ::cordum::agent::v1::Compensation* compensation);
   ::cordum::agent::v1::Compensation* unsafe_arena_release_compensation();
 
+  // .cordum.agent.v1.IdentityBinding identity = 18 [json_name = "identity"];
+  bool has_identity() const;
+  private:
+  bool _internal_has_identity() const;
+  public:
+  void clear_identity();
+  const ::cordum::agent::v1::IdentityBinding& identity() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::IdentityBinding* release_identity();
+  ::cordum::agent::v1::IdentityBinding* mutable_identity();
+  void set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity);
+  private:
+  const ::cordum::agent::v1::IdentityBinding& _internal_identity() const;
+  ::cordum::agent::v1::IdentityBinding* _internal_mutable_identity();
+  public:
+  void unsafe_arena_set_allocated_identity(
+      ::cordum::agent::v1::IdentityBinding* identity);
+  ::cordum::agent::v1::IdentityBinding* unsafe_arena_release_identity();
+
+  // .cordum.agent.v1.DispatchIdentity dispatch = 19 [json_name = "dispatch"];
+  bool has_dispatch() const;
+  private:
+  bool _internal_has_dispatch() const;
+  public:
+  void clear_dispatch();
+  const ::cordum::agent::v1::DispatchIdentity& dispatch() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::DispatchIdentity* release_dispatch();
+  ::cordum::agent::v1::DispatchIdentity* mutable_dispatch();
+  void set_allocated_dispatch(::cordum::agent::v1::DispatchIdentity* dispatch);
+  private:
+  const ::cordum::agent::v1::DispatchIdentity& _internal_dispatch() const;
+  ::cordum::agent::v1::DispatchIdentity* _internal_mutable_dispatch();
+  public:
+  void unsafe_arena_set_allocated_dispatch(
+      ::cordum::agent::v1::DispatchIdentity* dispatch);
+  ::cordum::agent::v1::DispatchIdentity* unsafe_arena_release_dispatch();
+
+  // .cordum.agent.v1.ResourceRef context_ref = 20 [json_name = "contextRef"];
+  bool has_context_ref() const;
+  private:
+  bool _internal_has_context_ref() const;
+  public:
+  void clear_context_ref();
+  const ::cordum::agent::v1::ResourceRef& context_ref() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::ResourceRef* release_context_ref();
+  ::cordum::agent::v1::ResourceRef* mutable_context_ref();
+  void set_allocated_context_ref(::cordum::agent::v1::ResourceRef* context_ref);
+  private:
+  const ::cordum::agent::v1::ResourceRef& _internal_context_ref() const;
+  ::cordum::agent::v1::ResourceRef* _internal_mutable_context_ref();
+  public:
+  void unsafe_arena_set_allocated_context_ref(
+      ::cordum::agent::v1::ResourceRef* context_ref);
+  ::cordum::agent::v1::ResourceRef* unsafe_arena_release_context_ref();
+
   // .cordum.agent.v1.JobPriority priority = 3 [json_name = "priority"];
   void clear_priority();
   ::cordum::agent::v1::JobPriority priority() const;
@@ -1843,6 +2602,9 @@ class JobRequest final :
     ::cordum::agent::v1::Budget* budget_;
     ::cordum::agent::v1::JobMetadata* meta_;
     ::cordum::agent::v1::Compensation* compensation_;
+    ::cordum::agent::v1::IdentityBinding* identity_;
+    ::cordum::agent::v1::DispatchIdentity* dispatch_;
+    ::cordum::agent::v1::ResourceRef* context_ref_;
     int priority_;
     int32_t step_index_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -1900,7 +2662,7 @@ class JobResult final :
                &_JobResult_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    13;
 
   friend void swap(JobResult& a, JobResult& b) {
     a.Swap(&b);
@@ -1974,11 +2736,15 @@ class JobResult final :
 
   enum : int {
     kArtifactPtrsFieldNumber = 8,
+    kArtifactRefsFieldNumber = 13,
     kJobIdFieldNumber = 1,
     kResultPtrFieldNumber = 3,
     kWorkerIdFieldNumber = 4,
     kErrorCodeFieldNumber = 6,
     kErrorMessageFieldNumber = 7,
+    kDispatchFieldNumber = 10,
+    kIdentityFieldNumber = 11,
+    kResultRefFieldNumber = 12,
     kExecutionMsFieldNumber = 5,
     kStatusFieldNumber = 2,
     kErrorCodeEnumFieldNumber = 9,
@@ -2006,6 +2772,24 @@ class JobResult final :
   const std::string& _internal_artifact_ptrs(int index) const;
   std::string* _internal_add_artifact_ptrs();
   public:
+
+  // repeated .cordum.agent.v1.ResourceRef artifact_refs = 13 [json_name = "artifactRefs"];
+  int artifact_refs_size() const;
+  private:
+  int _internal_artifact_refs_size() const;
+  public:
+  void clear_artifact_refs();
+  ::cordum::agent::v1::ResourceRef* mutable_artifact_refs(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::ResourceRef >*
+      mutable_artifact_refs();
+  private:
+  const ::cordum::agent::v1::ResourceRef& _internal_artifact_refs(int index) const;
+  ::cordum::agent::v1::ResourceRef* _internal_add_artifact_refs();
+  public:
+  const ::cordum::agent::v1::ResourceRef& artifact_refs(int index) const;
+  ::cordum::agent::v1::ResourceRef* add_artifact_refs();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::ResourceRef >&
+      artifact_refs() const;
 
   // string job_id = 1 [json_name = "jobId"];
   void clear_job_id();
@@ -2077,6 +2861,60 @@ class JobResult final :
   std::string* _internal_mutable_error_message();
   public:
 
+  // .cordum.agent.v1.DispatchIdentity dispatch = 10 [json_name = "dispatch"];
+  bool has_dispatch() const;
+  private:
+  bool _internal_has_dispatch() const;
+  public:
+  void clear_dispatch();
+  const ::cordum::agent::v1::DispatchIdentity& dispatch() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::DispatchIdentity* release_dispatch();
+  ::cordum::agent::v1::DispatchIdentity* mutable_dispatch();
+  void set_allocated_dispatch(::cordum::agent::v1::DispatchIdentity* dispatch);
+  private:
+  const ::cordum::agent::v1::DispatchIdentity& _internal_dispatch() const;
+  ::cordum::agent::v1::DispatchIdentity* _internal_mutable_dispatch();
+  public:
+  void unsafe_arena_set_allocated_dispatch(
+      ::cordum::agent::v1::DispatchIdentity* dispatch);
+  ::cordum::agent::v1::DispatchIdentity* unsafe_arena_release_dispatch();
+
+  // .cordum.agent.v1.IdentityBinding identity = 11 [json_name = "identity"];
+  bool has_identity() const;
+  private:
+  bool _internal_has_identity() const;
+  public:
+  void clear_identity();
+  const ::cordum::agent::v1::IdentityBinding& identity() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::IdentityBinding* release_identity();
+  ::cordum::agent::v1::IdentityBinding* mutable_identity();
+  void set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity);
+  private:
+  const ::cordum::agent::v1::IdentityBinding& _internal_identity() const;
+  ::cordum::agent::v1::IdentityBinding* _internal_mutable_identity();
+  public:
+  void unsafe_arena_set_allocated_identity(
+      ::cordum::agent::v1::IdentityBinding* identity);
+  ::cordum::agent::v1::IdentityBinding* unsafe_arena_release_identity();
+
+  // .cordum.agent.v1.ResourceRef result_ref = 12 [json_name = "resultRef"];
+  bool has_result_ref() const;
+  private:
+  bool _internal_has_result_ref() const;
+  public:
+  void clear_result_ref();
+  const ::cordum::agent::v1::ResourceRef& result_ref() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::ResourceRef* release_result_ref();
+  ::cordum::agent::v1::ResourceRef* mutable_result_ref();
+  void set_allocated_result_ref(::cordum::agent::v1::ResourceRef* result_ref);
+  private:
+  const ::cordum::agent::v1::ResourceRef& _internal_result_ref() const;
+  ::cordum::agent::v1::ResourceRef* _internal_mutable_result_ref();
+  public:
+  void unsafe_arena_set_allocated_result_ref(
+      ::cordum::agent::v1::ResourceRef* result_ref);
+  ::cordum::agent::v1::ResourceRef* unsafe_arena_release_result_ref();
+
   // int64 execution_ms = 5 [json_name = "executionMs"];
   void clear_execution_ms();
   int64_t execution_ms() const;
@@ -2113,11 +2951,15 @@ class JobResult final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> artifact_ptrs_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::ResourceRef > artifact_refs_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr job_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr result_ptr_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr worker_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr error_code_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr error_message_;
+    ::cordum::agent::v1::DispatchIdentity* dispatch_;
+    ::cordum::agent::v1::IdentityBinding* identity_;
+    ::cordum::agent::v1::ResourceRef* result_ref_;
     int64_t execution_ms_;
     int status_;
     int error_code_enum_;
@@ -2176,7 +3018,7 @@ class JobProgress final :
                &_JobProgress_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    14;
 
   friend void swap(JobProgress& a, JobProgress& b) {
     a.Swap(&b);
@@ -2250,10 +3092,14 @@ class JobProgress final :
 
   enum : int {
     kArtifactPtrsFieldNumber = 6,
+    kArtifactRefsFieldNumber = 11,
     kJobIdFieldNumber = 1,
     kStepIdFieldNumber = 2,
     kMessageFieldNumber = 4,
     kResultPtrFieldNumber = 5,
+    kDispatchFieldNumber = 8,
+    kIdentityFieldNumber = 9,
+    kResultRefFieldNumber = 10,
     kPercentFieldNumber = 3,
     kStatusFieldNumber = 7,
   };
@@ -2280,6 +3126,24 @@ class JobProgress final :
   const std::string& _internal_artifact_ptrs(int index) const;
   std::string* _internal_add_artifact_ptrs();
   public:
+
+  // repeated .cordum.agent.v1.ResourceRef artifact_refs = 11 [json_name = "artifactRefs"];
+  int artifact_refs_size() const;
+  private:
+  int _internal_artifact_refs_size() const;
+  public:
+  void clear_artifact_refs();
+  ::cordum::agent::v1::ResourceRef* mutable_artifact_refs(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::ResourceRef >*
+      mutable_artifact_refs();
+  private:
+  const ::cordum::agent::v1::ResourceRef& _internal_artifact_refs(int index) const;
+  ::cordum::agent::v1::ResourceRef* _internal_add_artifact_refs();
+  public:
+  const ::cordum::agent::v1::ResourceRef& artifact_refs(int index) const;
+  ::cordum::agent::v1::ResourceRef* add_artifact_refs();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::ResourceRef >&
+      artifact_refs() const;
 
   // string job_id = 1 [json_name = "jobId"];
   void clear_job_id();
@@ -2337,6 +3201,60 @@ class JobProgress final :
   std::string* _internal_mutable_result_ptr();
   public:
 
+  // .cordum.agent.v1.DispatchIdentity dispatch = 8 [json_name = "dispatch"];
+  bool has_dispatch() const;
+  private:
+  bool _internal_has_dispatch() const;
+  public:
+  void clear_dispatch();
+  const ::cordum::agent::v1::DispatchIdentity& dispatch() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::DispatchIdentity* release_dispatch();
+  ::cordum::agent::v1::DispatchIdentity* mutable_dispatch();
+  void set_allocated_dispatch(::cordum::agent::v1::DispatchIdentity* dispatch);
+  private:
+  const ::cordum::agent::v1::DispatchIdentity& _internal_dispatch() const;
+  ::cordum::agent::v1::DispatchIdentity* _internal_mutable_dispatch();
+  public:
+  void unsafe_arena_set_allocated_dispatch(
+      ::cordum::agent::v1::DispatchIdentity* dispatch);
+  ::cordum::agent::v1::DispatchIdentity* unsafe_arena_release_dispatch();
+
+  // .cordum.agent.v1.IdentityBinding identity = 9 [json_name = "identity"];
+  bool has_identity() const;
+  private:
+  bool _internal_has_identity() const;
+  public:
+  void clear_identity();
+  const ::cordum::agent::v1::IdentityBinding& identity() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::IdentityBinding* release_identity();
+  ::cordum::agent::v1::IdentityBinding* mutable_identity();
+  void set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity);
+  private:
+  const ::cordum::agent::v1::IdentityBinding& _internal_identity() const;
+  ::cordum::agent::v1::IdentityBinding* _internal_mutable_identity();
+  public:
+  void unsafe_arena_set_allocated_identity(
+      ::cordum::agent::v1::IdentityBinding* identity);
+  ::cordum::agent::v1::IdentityBinding* unsafe_arena_release_identity();
+
+  // .cordum.agent.v1.ResourceRef result_ref = 10 [json_name = "resultRef"];
+  bool has_result_ref() const;
+  private:
+  bool _internal_has_result_ref() const;
+  public:
+  void clear_result_ref();
+  const ::cordum::agent::v1::ResourceRef& result_ref() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::ResourceRef* release_result_ref();
+  ::cordum::agent::v1::ResourceRef* mutable_result_ref();
+  void set_allocated_result_ref(::cordum::agent::v1::ResourceRef* result_ref);
+  private:
+  const ::cordum::agent::v1::ResourceRef& _internal_result_ref() const;
+  ::cordum::agent::v1::ResourceRef* _internal_mutable_result_ref();
+  public:
+  void unsafe_arena_set_allocated_result_ref(
+      ::cordum::agent::v1::ResourceRef* result_ref);
+  ::cordum::agent::v1::ResourceRef* unsafe_arena_release_result_ref();
+
   // int32 percent = 3 [json_name = "percent"];
   void clear_percent();
   int32_t percent() const;
@@ -2364,10 +3282,14 @@ class JobProgress final :
   typedef void DestructorSkippable_;
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> artifact_ptrs_;
+    ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::ResourceRef > artifact_refs_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr job_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr step_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr message_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr result_ptr_;
+    ::cordum::agent::v1::DispatchIdentity* dispatch_;
+    ::cordum::agent::v1::IdentityBinding* identity_;
+    ::cordum::agent::v1::ResourceRef* result_ref_;
     int32_t percent_;
     int status_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -2425,7 +3347,7 @@ class JobCancel final :
                &_JobCancel_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    15;
 
   friend void swap(JobCancel& a, JobCancel& b) {
     a.Swap(&b);
@@ -2501,6 +3423,8 @@ class JobCancel final :
     kJobIdFieldNumber = 1,
     kReasonFieldNumber = 2,
     kRequestedByFieldNumber = 3,
+    kDispatchFieldNumber = 4,
+    kIdentityFieldNumber = 5,
   };
   // string job_id = 1 [json_name = "jobId"];
   void clear_job_id();
@@ -2544,6 +3468,42 @@ class JobCancel final :
   std::string* _internal_mutable_requested_by();
   public:
 
+  // .cordum.agent.v1.DispatchIdentity dispatch = 4 [json_name = "dispatch"];
+  bool has_dispatch() const;
+  private:
+  bool _internal_has_dispatch() const;
+  public:
+  void clear_dispatch();
+  const ::cordum::agent::v1::DispatchIdentity& dispatch() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::DispatchIdentity* release_dispatch();
+  ::cordum::agent::v1::DispatchIdentity* mutable_dispatch();
+  void set_allocated_dispatch(::cordum::agent::v1::DispatchIdentity* dispatch);
+  private:
+  const ::cordum::agent::v1::DispatchIdentity& _internal_dispatch() const;
+  ::cordum::agent::v1::DispatchIdentity* _internal_mutable_dispatch();
+  public:
+  void unsafe_arena_set_allocated_dispatch(
+      ::cordum::agent::v1::DispatchIdentity* dispatch);
+  ::cordum::agent::v1::DispatchIdentity* unsafe_arena_release_dispatch();
+
+  // .cordum.agent.v1.IdentityBinding identity = 5 [json_name = "identity"];
+  bool has_identity() const;
+  private:
+  bool _internal_has_identity() const;
+  public:
+  void clear_identity();
+  const ::cordum::agent::v1::IdentityBinding& identity() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::IdentityBinding* release_identity();
+  ::cordum::agent::v1::IdentityBinding* mutable_identity();
+  void set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity);
+  private:
+  const ::cordum::agent::v1::IdentityBinding& _internal_identity() const;
+  ::cordum::agent::v1::IdentityBinding* _internal_mutable_identity();
+  public:
+  void unsafe_arena_set_allocated_identity(
+      ::cordum::agent::v1::IdentityBinding* identity);
+  ::cordum::agent::v1::IdentityBinding* unsafe_arena_release_identity();
+
   // @@protoc_insertion_point(class_scope:cordum.agent.v1.JobCancel)
  private:
   class _Internal;
@@ -2555,6 +3515,8 @@ class JobCancel final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr job_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr reason_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr requested_by_;
+    ::cordum::agent::v1::DispatchIdentity* dispatch_;
+    ::cordum::agent::v1::IdentityBinding* identity_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -2569,6 +3531,693 @@ class JobCancel final :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// IdentityBinding
+
+// string tenant_id = 1 [json_name = "tenantId"];
+inline void IdentityBinding::clear_tenant_id() {
+  _impl_.tenant_id_.ClearToEmpty();
+}
+inline const std::string& IdentityBinding::tenant_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.IdentityBinding.tenant_id)
+  return _internal_tenant_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void IdentityBinding::set_tenant_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.tenant_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.IdentityBinding.tenant_id)
+}
+inline std::string* IdentityBinding::mutable_tenant_id() {
+  std::string* _s = _internal_mutable_tenant_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.IdentityBinding.tenant_id)
+  return _s;
+}
+inline const std::string& IdentityBinding::_internal_tenant_id() const {
+  return _impl_.tenant_id_.Get();
+}
+inline void IdentityBinding::_internal_set_tenant_id(const std::string& value) {
+  
+  _impl_.tenant_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* IdentityBinding::_internal_mutable_tenant_id() {
+  
+  return _impl_.tenant_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* IdentityBinding::release_tenant_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.IdentityBinding.tenant_id)
+  return _impl_.tenant_id_.Release();
+}
+inline void IdentityBinding::set_allocated_tenant_id(std::string* tenant_id) {
+  if (tenant_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.tenant_id_.SetAllocated(tenant_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.tenant_id_.IsDefault()) {
+    _impl_.tenant_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.IdentityBinding.tenant_id)
+}
+
+// string principal_id = 2 [json_name = "principalId"];
+inline void IdentityBinding::clear_principal_id() {
+  _impl_.principal_id_.ClearToEmpty();
+}
+inline const std::string& IdentityBinding::principal_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.IdentityBinding.principal_id)
+  return _internal_principal_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void IdentityBinding::set_principal_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.principal_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.IdentityBinding.principal_id)
+}
+inline std::string* IdentityBinding::mutable_principal_id() {
+  std::string* _s = _internal_mutable_principal_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.IdentityBinding.principal_id)
+  return _s;
+}
+inline const std::string& IdentityBinding::_internal_principal_id() const {
+  return _impl_.principal_id_.Get();
+}
+inline void IdentityBinding::_internal_set_principal_id(const std::string& value) {
+  
+  _impl_.principal_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* IdentityBinding::_internal_mutable_principal_id() {
+  
+  return _impl_.principal_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* IdentityBinding::release_principal_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.IdentityBinding.principal_id)
+  return _impl_.principal_id_.Release();
+}
+inline void IdentityBinding::set_allocated_principal_id(std::string* principal_id) {
+  if (principal_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.principal_id_.SetAllocated(principal_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.principal_id_.IsDefault()) {
+    _impl_.principal_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.IdentityBinding.principal_id)
+}
+
+// string actor_id = 3 [json_name = "actorId"];
+inline void IdentityBinding::clear_actor_id() {
+  _impl_.actor_id_.ClearToEmpty();
+}
+inline const std::string& IdentityBinding::actor_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.IdentityBinding.actor_id)
+  return _internal_actor_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void IdentityBinding::set_actor_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.actor_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.IdentityBinding.actor_id)
+}
+inline std::string* IdentityBinding::mutable_actor_id() {
+  std::string* _s = _internal_mutable_actor_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.IdentityBinding.actor_id)
+  return _s;
+}
+inline const std::string& IdentityBinding::_internal_actor_id() const {
+  return _impl_.actor_id_.Get();
+}
+inline void IdentityBinding::_internal_set_actor_id(const std::string& value) {
+  
+  _impl_.actor_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* IdentityBinding::_internal_mutable_actor_id() {
+  
+  return _impl_.actor_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* IdentityBinding::release_actor_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.IdentityBinding.actor_id)
+  return _impl_.actor_id_.Release();
+}
+inline void IdentityBinding::set_allocated_actor_id(std::string* actor_id) {
+  if (actor_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.actor_id_.SetAllocated(actor_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.actor_id_.IsDefault()) {
+    _impl_.actor_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.IdentityBinding.actor_id)
+}
+
+// string delegation_id = 4 [json_name = "delegationId"];
+inline void IdentityBinding::clear_delegation_id() {
+  _impl_.delegation_id_.ClearToEmpty();
+}
+inline const std::string& IdentityBinding::delegation_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.IdentityBinding.delegation_id)
+  return _internal_delegation_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void IdentityBinding::set_delegation_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.delegation_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.IdentityBinding.delegation_id)
+}
+inline std::string* IdentityBinding::mutable_delegation_id() {
+  std::string* _s = _internal_mutable_delegation_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.IdentityBinding.delegation_id)
+  return _s;
+}
+inline const std::string& IdentityBinding::_internal_delegation_id() const {
+  return _impl_.delegation_id_.Get();
+}
+inline void IdentityBinding::_internal_set_delegation_id(const std::string& value) {
+  
+  _impl_.delegation_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* IdentityBinding::_internal_mutable_delegation_id() {
+  
+  return _impl_.delegation_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* IdentityBinding::release_delegation_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.IdentityBinding.delegation_id)
+  return _impl_.delegation_id_.Release();
+}
+inline void IdentityBinding::set_allocated_delegation_id(std::string* delegation_id) {
+  if (delegation_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.delegation_id_.SetAllocated(delegation_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.delegation_id_.IsDefault()) {
+    _impl_.delegation_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.IdentityBinding.delegation_id)
+}
+
+// -------------------------------------------------------------------
+
+// DispatchIdentity
+
+// string dispatch_id = 1 [json_name = "dispatchId"];
+inline void DispatchIdentity::clear_dispatch_id() {
+  _impl_.dispatch_id_.ClearToEmpty();
+}
+inline const std::string& DispatchIdentity::dispatch_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.DispatchIdentity.dispatch_id)
+  return _internal_dispatch_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void DispatchIdentity::set_dispatch_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.dispatch_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.DispatchIdentity.dispatch_id)
+}
+inline std::string* DispatchIdentity::mutable_dispatch_id() {
+  std::string* _s = _internal_mutable_dispatch_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.DispatchIdentity.dispatch_id)
+  return _s;
+}
+inline const std::string& DispatchIdentity::_internal_dispatch_id() const {
+  return _impl_.dispatch_id_.Get();
+}
+inline void DispatchIdentity::_internal_set_dispatch_id(const std::string& value) {
+  
+  _impl_.dispatch_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* DispatchIdentity::_internal_mutable_dispatch_id() {
+  
+  return _impl_.dispatch_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* DispatchIdentity::release_dispatch_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.DispatchIdentity.dispatch_id)
+  return _impl_.dispatch_id_.Release();
+}
+inline void DispatchIdentity::set_allocated_dispatch_id(std::string* dispatch_id) {
+  if (dispatch_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.dispatch_id_.SetAllocated(dispatch_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.dispatch_id_.IsDefault()) {
+    _impl_.dispatch_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.DispatchIdentity.dispatch_id)
+}
+
+// uint64 attempt = 2 [json_name = "attempt"];
+inline void DispatchIdentity::clear_attempt() {
+  _impl_.attempt_ = uint64_t{0u};
+}
+inline uint64_t DispatchIdentity::_internal_attempt() const {
+  return _impl_.attempt_;
+}
+inline uint64_t DispatchIdentity::attempt() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.DispatchIdentity.attempt)
+  return _internal_attempt();
+}
+inline void DispatchIdentity::_internal_set_attempt(uint64_t value) {
+  
+  _impl_.attempt_ = value;
+}
+inline void DispatchIdentity::set_attempt(uint64_t value) {
+  _internal_set_attempt(value);
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.DispatchIdentity.attempt)
+}
+
+// string assigned_worker_id = 3 [json_name = "assignedWorkerId"];
+inline void DispatchIdentity::clear_assigned_worker_id() {
+  _impl_.assigned_worker_id_.ClearToEmpty();
+}
+inline const std::string& DispatchIdentity::assigned_worker_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.DispatchIdentity.assigned_worker_id)
+  return _internal_assigned_worker_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void DispatchIdentity::set_assigned_worker_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.assigned_worker_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.DispatchIdentity.assigned_worker_id)
+}
+inline std::string* DispatchIdentity::mutable_assigned_worker_id() {
+  std::string* _s = _internal_mutable_assigned_worker_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.DispatchIdentity.assigned_worker_id)
+  return _s;
+}
+inline const std::string& DispatchIdentity::_internal_assigned_worker_id() const {
+  return _impl_.assigned_worker_id_.Get();
+}
+inline void DispatchIdentity::_internal_set_assigned_worker_id(const std::string& value) {
+  
+  _impl_.assigned_worker_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* DispatchIdentity::_internal_mutable_assigned_worker_id() {
+  
+  return _impl_.assigned_worker_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* DispatchIdentity::release_assigned_worker_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.DispatchIdentity.assigned_worker_id)
+  return _impl_.assigned_worker_id_.Release();
+}
+inline void DispatchIdentity::set_allocated_assigned_worker_id(std::string* assigned_worker_id) {
+  if (assigned_worker_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.assigned_worker_id_.SetAllocated(assigned_worker_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.assigned_worker_id_.IsDefault()) {
+    _impl_.assigned_worker_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.DispatchIdentity.assigned_worker_id)
+}
+
+// -------------------------------------------------------------------
+
+// ResourceRef
+
+// string resolver_id = 1 [json_name = "resolverId"];
+inline void ResourceRef::clear_resolver_id() {
+  _impl_.resolver_id_.ClearToEmpty();
+}
+inline const std::string& ResourceRef::resolver_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.ResourceRef.resolver_id)
+  return _internal_resolver_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ResourceRef::set_resolver_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.resolver_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.ResourceRef.resolver_id)
+}
+inline std::string* ResourceRef::mutable_resolver_id() {
+  std::string* _s = _internal_mutable_resolver_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.ResourceRef.resolver_id)
+  return _s;
+}
+inline const std::string& ResourceRef::_internal_resolver_id() const {
+  return _impl_.resolver_id_.Get();
+}
+inline void ResourceRef::_internal_set_resolver_id(const std::string& value) {
+  
+  _impl_.resolver_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ResourceRef::_internal_mutable_resolver_id() {
+  
+  return _impl_.resolver_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ResourceRef::release_resolver_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.ResourceRef.resolver_id)
+  return _impl_.resolver_id_.Release();
+}
+inline void ResourceRef::set_allocated_resolver_id(std::string* resolver_id) {
+  if (resolver_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.resolver_id_.SetAllocated(resolver_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.resolver_id_.IsDefault()) {
+    _impl_.resolver_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.ResourceRef.resolver_id)
+}
+
+// string uri = 2 [json_name = "uri"];
+inline void ResourceRef::clear_uri() {
+  _impl_.uri_.ClearToEmpty();
+}
+inline const std::string& ResourceRef::uri() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.ResourceRef.uri)
+  return _internal_uri();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ResourceRef::set_uri(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.uri_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.ResourceRef.uri)
+}
+inline std::string* ResourceRef::mutable_uri() {
+  std::string* _s = _internal_mutable_uri();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.ResourceRef.uri)
+  return _s;
+}
+inline const std::string& ResourceRef::_internal_uri() const {
+  return _impl_.uri_.Get();
+}
+inline void ResourceRef::_internal_set_uri(const std::string& value) {
+  
+  _impl_.uri_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ResourceRef::_internal_mutable_uri() {
+  
+  return _impl_.uri_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ResourceRef::release_uri() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.ResourceRef.uri)
+  return _impl_.uri_.Release();
+}
+inline void ResourceRef::set_allocated_uri(std::string* uri) {
+  if (uri != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.uri_.SetAllocated(uri, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.uri_.IsDefault()) {
+    _impl_.uri_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.ResourceRef.uri)
+}
+
+// bytes sha256 = 3 [json_name = "sha256"];
+inline void ResourceRef::clear_sha256() {
+  _impl_.sha256_.ClearToEmpty();
+}
+inline const std::string& ResourceRef::sha256() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.ResourceRef.sha256)
+  return _internal_sha256();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ResourceRef::set_sha256(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.sha256_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.ResourceRef.sha256)
+}
+inline std::string* ResourceRef::mutable_sha256() {
+  std::string* _s = _internal_mutable_sha256();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.ResourceRef.sha256)
+  return _s;
+}
+inline const std::string& ResourceRef::_internal_sha256() const {
+  return _impl_.sha256_.Get();
+}
+inline void ResourceRef::_internal_set_sha256(const std::string& value) {
+  
+  _impl_.sha256_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ResourceRef::_internal_mutable_sha256() {
+  
+  return _impl_.sha256_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ResourceRef::release_sha256() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.ResourceRef.sha256)
+  return _impl_.sha256_.Release();
+}
+inline void ResourceRef::set_allocated_sha256(std::string* sha256) {
+  if (sha256 != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.sha256_.SetAllocated(sha256, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.sha256_.IsDefault()) {
+    _impl_.sha256_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.ResourceRef.sha256)
+}
+
+// string media_type = 4 [json_name = "mediaType"];
+inline void ResourceRef::clear_media_type() {
+  _impl_.media_type_.ClearToEmpty();
+}
+inline const std::string& ResourceRef::media_type() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.ResourceRef.media_type)
+  return _internal_media_type();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ResourceRef::set_media_type(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.media_type_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.ResourceRef.media_type)
+}
+inline std::string* ResourceRef::mutable_media_type() {
+  std::string* _s = _internal_mutable_media_type();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.ResourceRef.media_type)
+  return _s;
+}
+inline const std::string& ResourceRef::_internal_media_type() const {
+  return _impl_.media_type_.Get();
+}
+inline void ResourceRef::_internal_set_media_type(const std::string& value) {
+  
+  _impl_.media_type_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ResourceRef::_internal_mutable_media_type() {
+  
+  return _impl_.media_type_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ResourceRef::release_media_type() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.ResourceRef.media_type)
+  return _impl_.media_type_.Release();
+}
+inline void ResourceRef::set_allocated_media_type(std::string* media_type) {
+  if (media_type != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.media_type_.SetAllocated(media_type, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.media_type_.IsDefault()) {
+    _impl_.media_type_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.ResourceRef.media_type)
+}
+
+// uint64 size_bytes = 5 [json_name = "sizeBytes"];
+inline void ResourceRef::clear_size_bytes() {
+  _impl_.size_bytes_ = uint64_t{0u};
+}
+inline uint64_t ResourceRef::_internal_size_bytes() const {
+  return _impl_.size_bytes_;
+}
+inline uint64_t ResourceRef::size_bytes() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.ResourceRef.size_bytes)
+  return _internal_size_bytes();
+}
+inline void ResourceRef::_internal_set_size_bytes(uint64_t value) {
+  
+  _impl_.size_bytes_ = value;
+}
+inline void ResourceRef::set_size_bytes(uint64_t value) {
+  _internal_set_size_bytes(value);
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.ResourceRef.size_bytes)
+}
+
+// .google.protobuf.Timestamp expires_at = 6 [json_name = "expiresAt"];
+inline bool ResourceRef::_internal_has_expires_at() const {
+  return this != internal_default_instance() && _impl_.expires_at_ != nullptr;
+}
+inline bool ResourceRef::has_expires_at() const {
+  return _internal_has_expires_at();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& ResourceRef::_internal_expires_at() const {
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp* p = _impl_.expires_at_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Timestamp&>(
+      ::PROTOBUF_NAMESPACE_ID::_Timestamp_default_instance_);
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& ResourceRef::expires_at() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.ResourceRef.expires_at)
+  return _internal_expires_at();
+}
+inline void ResourceRef::unsafe_arena_set_allocated_expires_at(
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* expires_at) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.expires_at_);
+  }
+  _impl_.expires_at_ = expires_at;
+  if (expires_at) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.ResourceRef.expires_at)
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* ResourceRef::release_expires_at() {
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = _impl_.expires_at_;
+  _impl_.expires_at_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* ResourceRef::unsafe_arena_release_expires_at() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.ResourceRef.expires_at)
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = _impl_.expires_at_;
+  _impl_.expires_at_ = nullptr;
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* ResourceRef::_internal_mutable_expires_at() {
+  
+  if (_impl_.expires_at_ == nullptr) {
+    auto* p = CreateMaybeMessage<::PROTOBUF_NAMESPACE_ID::Timestamp>(GetArenaForAllocation());
+    _impl_.expires_at_ = p;
+  }
+  return _impl_.expires_at_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* ResourceRef::mutable_expires_at() {
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _msg = _internal_mutable_expires_at();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.ResourceRef.expires_at)
+  return _msg;
+}
+inline void ResourceRef::set_allocated_expires_at(::PROTOBUF_NAMESPACE_ID::Timestamp* expires_at) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.expires_at_);
+  }
+  if (expires_at) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(expires_at));
+    if (message_arena != submessage_arena) {
+      expires_at = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, expires_at, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.expires_at_ = expires_at;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.ResourceRef.expires_at)
+}
+
+// string purpose = 7 [json_name = "purpose"];
+inline void ResourceRef::clear_purpose() {
+  _impl_.purpose_.ClearToEmpty();
+}
+inline const std::string& ResourceRef::purpose() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.ResourceRef.purpose)
+  return _internal_purpose();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void ResourceRef::set_purpose(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.purpose_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.ResourceRef.purpose)
+}
+inline std::string* ResourceRef::mutable_purpose() {
+  std::string* _s = _internal_mutable_purpose();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.ResourceRef.purpose)
+  return _s;
+}
+inline const std::string& ResourceRef::_internal_purpose() const {
+  return _impl_.purpose_.Get();
+}
+inline void ResourceRef::_internal_set_purpose(const std::string& value) {
+  
+  _impl_.purpose_.Set(value, GetArenaForAllocation());
+}
+inline std::string* ResourceRef::_internal_mutable_purpose() {
+  
+  return _impl_.purpose_.Mutable(GetArenaForAllocation());
+}
+inline std::string* ResourceRef::release_purpose() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.ResourceRef.purpose)
+  return _impl_.purpose_.Release();
+}
+inline void ResourceRef::set_allocated_purpose(std::string* purpose) {
+  if (purpose != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.purpose_.SetAllocated(purpose, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.purpose_.IsDefault()) {
+    _impl_.purpose_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.ResourceRef.purpose)
+}
+
+// -------------------------------------------------------------------
+
 // ContextHints
 
 // int32 max_input_tokens = 1 [json_name = "maxInputTokens"];
@@ -3901,6 +5550,276 @@ inline void Compensation::set_allocated_meta(::cordum::agent::v1::JobMetadata* m
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.meta)
 }
 
+// .cordum.agent.v1.IdentityBinding identity = 13 [json_name = "identity"];
+inline bool Compensation::_internal_has_identity() const {
+  return this != internal_default_instance() && _impl_.identity_ != nullptr;
+}
+inline bool Compensation::has_identity() const {
+  return _internal_has_identity();
+}
+inline void Compensation::clear_identity() {
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
+}
+inline const ::cordum::agent::v1::IdentityBinding& Compensation::_internal_identity() const {
+  const ::cordum::agent::v1::IdentityBinding* p = _impl_.identity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::IdentityBinding&>(
+      ::cordum::agent::v1::_IdentityBinding_default_instance_);
+}
+inline const ::cordum::agent::v1::IdentityBinding& Compensation::identity() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.identity)
+  return _internal_identity();
+}
+inline void Compensation::unsafe_arena_set_allocated_identity(
+    ::cordum::agent::v1::IdentityBinding* identity) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  _impl_.identity_ = identity;
+  if (identity) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.Compensation.identity)
+}
+inline ::cordum::agent::v1::IdentityBinding* Compensation::release_identity() {
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* Compensation::unsafe_arena_release_identity() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.identity)
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* Compensation::_internal_mutable_identity() {
+  
+  if (_impl_.identity_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::IdentityBinding>(GetArenaForAllocation());
+    _impl_.identity_ = p;
+  }
+  return _impl_.identity_;
+}
+inline ::cordum::agent::v1::IdentityBinding* Compensation::mutable_identity() {
+  ::cordum::agent::v1::IdentityBinding* _msg = _internal_mutable_identity();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.identity)
+  return _msg;
+}
+inline void Compensation::set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.identity_;
+  }
+  if (identity) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(identity);
+    if (message_arena != submessage_arena) {
+      identity = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, identity, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.identity_ = identity;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.identity)
+}
+
+// .cordum.agent.v1.DispatchIdentity dispatch = 14 [json_name = "dispatch"];
+inline bool Compensation::_internal_has_dispatch() const {
+  return this != internal_default_instance() && _impl_.dispatch_ != nullptr;
+}
+inline bool Compensation::has_dispatch() const {
+  return _internal_has_dispatch();
+}
+inline void Compensation::clear_dispatch() {
+  if (GetArenaForAllocation() == nullptr && _impl_.dispatch_ != nullptr) {
+    delete _impl_.dispatch_;
+  }
+  _impl_.dispatch_ = nullptr;
+}
+inline const ::cordum::agent::v1::DispatchIdentity& Compensation::_internal_dispatch() const {
+  const ::cordum::agent::v1::DispatchIdentity* p = _impl_.dispatch_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::DispatchIdentity&>(
+      ::cordum::agent::v1::_DispatchIdentity_default_instance_);
+}
+inline const ::cordum::agent::v1::DispatchIdentity& Compensation::dispatch() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.dispatch)
+  return _internal_dispatch();
+}
+inline void Compensation::unsafe_arena_set_allocated_dispatch(
+    ::cordum::agent::v1::DispatchIdentity* dispatch) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.dispatch_);
+  }
+  _impl_.dispatch_ = dispatch;
+  if (dispatch) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.Compensation.dispatch)
+}
+inline ::cordum::agent::v1::DispatchIdentity* Compensation::release_dispatch() {
+  
+  ::cordum::agent::v1::DispatchIdentity* temp = _impl_.dispatch_;
+  _impl_.dispatch_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::DispatchIdentity* Compensation::unsafe_arena_release_dispatch() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.dispatch)
+  
+  ::cordum::agent::v1::DispatchIdentity* temp = _impl_.dispatch_;
+  _impl_.dispatch_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::DispatchIdentity* Compensation::_internal_mutable_dispatch() {
+  
+  if (_impl_.dispatch_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::DispatchIdentity>(GetArenaForAllocation());
+    _impl_.dispatch_ = p;
+  }
+  return _impl_.dispatch_;
+}
+inline ::cordum::agent::v1::DispatchIdentity* Compensation::mutable_dispatch() {
+  ::cordum::agent::v1::DispatchIdentity* _msg = _internal_mutable_dispatch();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.dispatch)
+  return _msg;
+}
+inline void Compensation::set_allocated_dispatch(::cordum::agent::v1::DispatchIdentity* dispatch) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.dispatch_;
+  }
+  if (dispatch) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(dispatch);
+    if (message_arena != submessage_arena) {
+      dispatch = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, dispatch, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.dispatch_ = dispatch;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.dispatch)
+}
+
+// .cordum.agent.v1.ResourceRef context_ref = 15 [json_name = "contextRef"];
+inline bool Compensation::_internal_has_context_ref() const {
+  return this != internal_default_instance() && _impl_.context_ref_ != nullptr;
+}
+inline bool Compensation::has_context_ref() const {
+  return _internal_has_context_ref();
+}
+inline void Compensation::clear_context_ref() {
+  if (GetArenaForAllocation() == nullptr && _impl_.context_ref_ != nullptr) {
+    delete _impl_.context_ref_;
+  }
+  _impl_.context_ref_ = nullptr;
+}
+inline const ::cordum::agent::v1::ResourceRef& Compensation::_internal_context_ref() const {
+  const ::cordum::agent::v1::ResourceRef* p = _impl_.context_ref_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::ResourceRef&>(
+      ::cordum::agent::v1::_ResourceRef_default_instance_);
+}
+inline const ::cordum::agent::v1::ResourceRef& Compensation::context_ref() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.Compensation.context_ref)
+  return _internal_context_ref();
+}
+inline void Compensation::unsafe_arena_set_allocated_context_ref(
+    ::cordum::agent::v1::ResourceRef* context_ref) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.context_ref_);
+  }
+  _impl_.context_ref_ = context_ref;
+  if (context_ref) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.Compensation.context_ref)
+}
+inline ::cordum::agent::v1::ResourceRef* Compensation::release_context_ref() {
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.context_ref_;
+  _impl_.context_ref_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* Compensation::unsafe_arena_release_context_ref() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.Compensation.context_ref)
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.context_ref_;
+  _impl_.context_ref_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* Compensation::_internal_mutable_context_ref() {
+  
+  if (_impl_.context_ref_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::ResourceRef>(GetArenaForAllocation());
+    _impl_.context_ref_ = p;
+  }
+  return _impl_.context_ref_;
+}
+inline ::cordum::agent::v1::ResourceRef* Compensation::mutable_context_ref() {
+  ::cordum::agent::v1::ResourceRef* _msg = _internal_mutable_context_ref();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.Compensation.context_ref)
+  return _msg;
+}
+inline void Compensation::set_allocated_context_ref(::cordum::agent::v1::ResourceRef* context_ref) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.context_ref_;
+  }
+  if (context_ref) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(context_ref);
+    if (message_arena != submessage_arena) {
+      context_ref = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, context_ref, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.context_ref_ = context_ref;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.Compensation.context_ref)
+}
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------
@@ -4817,6 +6736,276 @@ inline void JobRequest::set_allocated_compensation(::cordum::agent::v1::Compensa
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.compensation)
 }
 
+// .cordum.agent.v1.IdentityBinding identity = 18 [json_name = "identity"];
+inline bool JobRequest::_internal_has_identity() const {
+  return this != internal_default_instance() && _impl_.identity_ != nullptr;
+}
+inline bool JobRequest::has_identity() const {
+  return _internal_has_identity();
+}
+inline void JobRequest::clear_identity() {
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
+}
+inline const ::cordum::agent::v1::IdentityBinding& JobRequest::_internal_identity() const {
+  const ::cordum::agent::v1::IdentityBinding* p = _impl_.identity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::IdentityBinding&>(
+      ::cordum::agent::v1::_IdentityBinding_default_instance_);
+}
+inline const ::cordum::agent::v1::IdentityBinding& JobRequest::identity() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobRequest.identity)
+  return _internal_identity();
+}
+inline void JobRequest::unsafe_arena_set_allocated_identity(
+    ::cordum::agent::v1::IdentityBinding* identity) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  _impl_.identity_ = identity;
+  if (identity) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobRequest.identity)
+}
+inline ::cordum::agent::v1::IdentityBinding* JobRequest::release_identity() {
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobRequest::unsafe_arena_release_identity() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobRequest.identity)
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobRequest::_internal_mutable_identity() {
+  
+  if (_impl_.identity_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::IdentityBinding>(GetArenaForAllocation());
+    _impl_.identity_ = p;
+  }
+  return _impl_.identity_;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobRequest::mutable_identity() {
+  ::cordum::agent::v1::IdentityBinding* _msg = _internal_mutable_identity();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobRequest.identity)
+  return _msg;
+}
+inline void JobRequest::set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.identity_;
+  }
+  if (identity) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(identity);
+    if (message_arena != submessage_arena) {
+      identity = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, identity, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.identity_ = identity;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.identity)
+}
+
+// .cordum.agent.v1.DispatchIdentity dispatch = 19 [json_name = "dispatch"];
+inline bool JobRequest::_internal_has_dispatch() const {
+  return this != internal_default_instance() && _impl_.dispatch_ != nullptr;
+}
+inline bool JobRequest::has_dispatch() const {
+  return _internal_has_dispatch();
+}
+inline void JobRequest::clear_dispatch() {
+  if (GetArenaForAllocation() == nullptr && _impl_.dispatch_ != nullptr) {
+    delete _impl_.dispatch_;
+  }
+  _impl_.dispatch_ = nullptr;
+}
+inline const ::cordum::agent::v1::DispatchIdentity& JobRequest::_internal_dispatch() const {
+  const ::cordum::agent::v1::DispatchIdentity* p = _impl_.dispatch_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::DispatchIdentity&>(
+      ::cordum::agent::v1::_DispatchIdentity_default_instance_);
+}
+inline const ::cordum::agent::v1::DispatchIdentity& JobRequest::dispatch() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobRequest.dispatch)
+  return _internal_dispatch();
+}
+inline void JobRequest::unsafe_arena_set_allocated_dispatch(
+    ::cordum::agent::v1::DispatchIdentity* dispatch) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.dispatch_);
+  }
+  _impl_.dispatch_ = dispatch;
+  if (dispatch) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobRequest.dispatch)
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobRequest::release_dispatch() {
+  
+  ::cordum::agent::v1::DispatchIdentity* temp = _impl_.dispatch_;
+  _impl_.dispatch_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobRequest::unsafe_arena_release_dispatch() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobRequest.dispatch)
+  
+  ::cordum::agent::v1::DispatchIdentity* temp = _impl_.dispatch_;
+  _impl_.dispatch_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobRequest::_internal_mutable_dispatch() {
+  
+  if (_impl_.dispatch_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::DispatchIdentity>(GetArenaForAllocation());
+    _impl_.dispatch_ = p;
+  }
+  return _impl_.dispatch_;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobRequest::mutable_dispatch() {
+  ::cordum::agent::v1::DispatchIdentity* _msg = _internal_mutable_dispatch();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobRequest.dispatch)
+  return _msg;
+}
+inline void JobRequest::set_allocated_dispatch(::cordum::agent::v1::DispatchIdentity* dispatch) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.dispatch_;
+  }
+  if (dispatch) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(dispatch);
+    if (message_arena != submessage_arena) {
+      dispatch = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, dispatch, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.dispatch_ = dispatch;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.dispatch)
+}
+
+// .cordum.agent.v1.ResourceRef context_ref = 20 [json_name = "contextRef"];
+inline bool JobRequest::_internal_has_context_ref() const {
+  return this != internal_default_instance() && _impl_.context_ref_ != nullptr;
+}
+inline bool JobRequest::has_context_ref() const {
+  return _internal_has_context_ref();
+}
+inline void JobRequest::clear_context_ref() {
+  if (GetArenaForAllocation() == nullptr && _impl_.context_ref_ != nullptr) {
+    delete _impl_.context_ref_;
+  }
+  _impl_.context_ref_ = nullptr;
+}
+inline const ::cordum::agent::v1::ResourceRef& JobRequest::_internal_context_ref() const {
+  const ::cordum::agent::v1::ResourceRef* p = _impl_.context_ref_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::ResourceRef&>(
+      ::cordum::agent::v1::_ResourceRef_default_instance_);
+}
+inline const ::cordum::agent::v1::ResourceRef& JobRequest::context_ref() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobRequest.context_ref)
+  return _internal_context_ref();
+}
+inline void JobRequest::unsafe_arena_set_allocated_context_ref(
+    ::cordum::agent::v1::ResourceRef* context_ref) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.context_ref_);
+  }
+  _impl_.context_ref_ = context_ref;
+  if (context_ref) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobRequest.context_ref)
+}
+inline ::cordum::agent::v1::ResourceRef* JobRequest::release_context_ref() {
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.context_ref_;
+  _impl_.context_ref_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* JobRequest::unsafe_arena_release_context_ref() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobRequest.context_ref)
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.context_ref_;
+  _impl_.context_ref_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* JobRequest::_internal_mutable_context_ref() {
+  
+  if (_impl_.context_ref_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::ResourceRef>(GetArenaForAllocation());
+    _impl_.context_ref_ = p;
+  }
+  return _impl_.context_ref_;
+}
+inline ::cordum::agent::v1::ResourceRef* JobRequest::mutable_context_ref() {
+  ::cordum::agent::v1::ResourceRef* _msg = _internal_mutable_context_ref();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobRequest.context_ref)
+  return _msg;
+}
+inline void JobRequest::set_allocated_context_ref(::cordum::agent::v1::ResourceRef* context_ref) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.context_ref_;
+  }
+  if (context_ref) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(context_ref);
+    if (message_arena != submessage_arena) {
+      context_ref = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, context_ref, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.context_ref_ = context_ref;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobRequest.context_ref)
+}
+
 // -------------------------------------------------------------------
 
 // JobResult
@@ -5206,6 +7395,316 @@ inline void JobResult::set_error_code_enum(::cordum::agent::v1::ErrorCode value)
   // @@protoc_insertion_point(field_set:cordum.agent.v1.JobResult.error_code_enum)
 }
 
+// .cordum.agent.v1.DispatchIdentity dispatch = 10 [json_name = "dispatch"];
+inline bool JobResult::_internal_has_dispatch() const {
+  return this != internal_default_instance() && _impl_.dispatch_ != nullptr;
+}
+inline bool JobResult::has_dispatch() const {
+  return _internal_has_dispatch();
+}
+inline void JobResult::clear_dispatch() {
+  if (GetArenaForAllocation() == nullptr && _impl_.dispatch_ != nullptr) {
+    delete _impl_.dispatch_;
+  }
+  _impl_.dispatch_ = nullptr;
+}
+inline const ::cordum::agent::v1::DispatchIdentity& JobResult::_internal_dispatch() const {
+  const ::cordum::agent::v1::DispatchIdentity* p = _impl_.dispatch_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::DispatchIdentity&>(
+      ::cordum::agent::v1::_DispatchIdentity_default_instance_);
+}
+inline const ::cordum::agent::v1::DispatchIdentity& JobResult::dispatch() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobResult.dispatch)
+  return _internal_dispatch();
+}
+inline void JobResult::unsafe_arena_set_allocated_dispatch(
+    ::cordum::agent::v1::DispatchIdentity* dispatch) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.dispatch_);
+  }
+  _impl_.dispatch_ = dispatch;
+  if (dispatch) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobResult.dispatch)
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobResult::release_dispatch() {
+  
+  ::cordum::agent::v1::DispatchIdentity* temp = _impl_.dispatch_;
+  _impl_.dispatch_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobResult::unsafe_arena_release_dispatch() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobResult.dispatch)
+  
+  ::cordum::agent::v1::DispatchIdentity* temp = _impl_.dispatch_;
+  _impl_.dispatch_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobResult::_internal_mutable_dispatch() {
+  
+  if (_impl_.dispatch_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::DispatchIdentity>(GetArenaForAllocation());
+    _impl_.dispatch_ = p;
+  }
+  return _impl_.dispatch_;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobResult::mutable_dispatch() {
+  ::cordum::agent::v1::DispatchIdentity* _msg = _internal_mutable_dispatch();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobResult.dispatch)
+  return _msg;
+}
+inline void JobResult::set_allocated_dispatch(::cordum::agent::v1::DispatchIdentity* dispatch) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.dispatch_;
+  }
+  if (dispatch) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(dispatch);
+    if (message_arena != submessage_arena) {
+      dispatch = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, dispatch, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.dispatch_ = dispatch;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobResult.dispatch)
+}
+
+// .cordum.agent.v1.IdentityBinding identity = 11 [json_name = "identity"];
+inline bool JobResult::_internal_has_identity() const {
+  return this != internal_default_instance() && _impl_.identity_ != nullptr;
+}
+inline bool JobResult::has_identity() const {
+  return _internal_has_identity();
+}
+inline void JobResult::clear_identity() {
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
+}
+inline const ::cordum::agent::v1::IdentityBinding& JobResult::_internal_identity() const {
+  const ::cordum::agent::v1::IdentityBinding* p = _impl_.identity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::IdentityBinding&>(
+      ::cordum::agent::v1::_IdentityBinding_default_instance_);
+}
+inline const ::cordum::agent::v1::IdentityBinding& JobResult::identity() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobResult.identity)
+  return _internal_identity();
+}
+inline void JobResult::unsafe_arena_set_allocated_identity(
+    ::cordum::agent::v1::IdentityBinding* identity) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  _impl_.identity_ = identity;
+  if (identity) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobResult.identity)
+}
+inline ::cordum::agent::v1::IdentityBinding* JobResult::release_identity() {
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobResult::unsafe_arena_release_identity() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobResult.identity)
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobResult::_internal_mutable_identity() {
+  
+  if (_impl_.identity_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::IdentityBinding>(GetArenaForAllocation());
+    _impl_.identity_ = p;
+  }
+  return _impl_.identity_;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobResult::mutable_identity() {
+  ::cordum::agent::v1::IdentityBinding* _msg = _internal_mutable_identity();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobResult.identity)
+  return _msg;
+}
+inline void JobResult::set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.identity_;
+  }
+  if (identity) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(identity);
+    if (message_arena != submessage_arena) {
+      identity = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, identity, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.identity_ = identity;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobResult.identity)
+}
+
+// .cordum.agent.v1.ResourceRef result_ref = 12 [json_name = "resultRef"];
+inline bool JobResult::_internal_has_result_ref() const {
+  return this != internal_default_instance() && _impl_.result_ref_ != nullptr;
+}
+inline bool JobResult::has_result_ref() const {
+  return _internal_has_result_ref();
+}
+inline void JobResult::clear_result_ref() {
+  if (GetArenaForAllocation() == nullptr && _impl_.result_ref_ != nullptr) {
+    delete _impl_.result_ref_;
+  }
+  _impl_.result_ref_ = nullptr;
+}
+inline const ::cordum::agent::v1::ResourceRef& JobResult::_internal_result_ref() const {
+  const ::cordum::agent::v1::ResourceRef* p = _impl_.result_ref_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::ResourceRef&>(
+      ::cordum::agent::v1::_ResourceRef_default_instance_);
+}
+inline const ::cordum::agent::v1::ResourceRef& JobResult::result_ref() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobResult.result_ref)
+  return _internal_result_ref();
+}
+inline void JobResult::unsafe_arena_set_allocated_result_ref(
+    ::cordum::agent::v1::ResourceRef* result_ref) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.result_ref_);
+  }
+  _impl_.result_ref_ = result_ref;
+  if (result_ref) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobResult.result_ref)
+}
+inline ::cordum::agent::v1::ResourceRef* JobResult::release_result_ref() {
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.result_ref_;
+  _impl_.result_ref_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* JobResult::unsafe_arena_release_result_ref() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobResult.result_ref)
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.result_ref_;
+  _impl_.result_ref_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* JobResult::_internal_mutable_result_ref() {
+  
+  if (_impl_.result_ref_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::ResourceRef>(GetArenaForAllocation());
+    _impl_.result_ref_ = p;
+  }
+  return _impl_.result_ref_;
+}
+inline ::cordum::agent::v1::ResourceRef* JobResult::mutable_result_ref() {
+  ::cordum::agent::v1::ResourceRef* _msg = _internal_mutable_result_ref();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobResult.result_ref)
+  return _msg;
+}
+inline void JobResult::set_allocated_result_ref(::cordum::agent::v1::ResourceRef* result_ref) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.result_ref_;
+  }
+  if (result_ref) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(result_ref);
+    if (message_arena != submessage_arena) {
+      result_ref = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, result_ref, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.result_ref_ = result_ref;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobResult.result_ref)
+}
+
+// repeated .cordum.agent.v1.ResourceRef artifact_refs = 13 [json_name = "artifactRefs"];
+inline int JobResult::_internal_artifact_refs_size() const {
+  return _impl_.artifact_refs_.size();
+}
+inline int JobResult::artifact_refs_size() const {
+  return _internal_artifact_refs_size();
+}
+inline void JobResult::clear_artifact_refs() {
+  _impl_.artifact_refs_.Clear();
+}
+inline ::cordum::agent::v1::ResourceRef* JobResult::mutable_artifact_refs(int index) {
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobResult.artifact_refs)
+  return _impl_.artifact_refs_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::ResourceRef >*
+JobResult::mutable_artifact_refs() {
+  // @@protoc_insertion_point(field_mutable_list:cordum.agent.v1.JobResult.artifact_refs)
+  return &_impl_.artifact_refs_;
+}
+inline const ::cordum::agent::v1::ResourceRef& JobResult::_internal_artifact_refs(int index) const {
+  return _impl_.artifact_refs_.Get(index);
+}
+inline const ::cordum::agent::v1::ResourceRef& JobResult::artifact_refs(int index) const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobResult.artifact_refs)
+  return _internal_artifact_refs(index);
+}
+inline ::cordum::agent::v1::ResourceRef* JobResult::_internal_add_artifact_refs() {
+  return _impl_.artifact_refs_.Add();
+}
+inline ::cordum::agent::v1::ResourceRef* JobResult::add_artifact_refs() {
+  ::cordum::agent::v1::ResourceRef* _add = _internal_add_artifact_refs();
+  // @@protoc_insertion_point(field_add:cordum.agent.v1.JobResult.artifact_refs)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::ResourceRef >&
+JobResult::artifact_refs() const {
+  // @@protoc_insertion_point(field_list:cordum.agent.v1.JobResult.artifact_refs)
+  return _impl_.artifact_refs_;
+}
+
 // -------------------------------------------------------------------
 
 // JobProgress
@@ -5525,6 +8024,316 @@ inline void JobProgress::set_status(::cordum::agent::v1::JobStatus value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.JobProgress.status)
 }
 
+// .cordum.agent.v1.DispatchIdentity dispatch = 8 [json_name = "dispatch"];
+inline bool JobProgress::_internal_has_dispatch() const {
+  return this != internal_default_instance() && _impl_.dispatch_ != nullptr;
+}
+inline bool JobProgress::has_dispatch() const {
+  return _internal_has_dispatch();
+}
+inline void JobProgress::clear_dispatch() {
+  if (GetArenaForAllocation() == nullptr && _impl_.dispatch_ != nullptr) {
+    delete _impl_.dispatch_;
+  }
+  _impl_.dispatch_ = nullptr;
+}
+inline const ::cordum::agent::v1::DispatchIdentity& JobProgress::_internal_dispatch() const {
+  const ::cordum::agent::v1::DispatchIdentity* p = _impl_.dispatch_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::DispatchIdentity&>(
+      ::cordum::agent::v1::_DispatchIdentity_default_instance_);
+}
+inline const ::cordum::agent::v1::DispatchIdentity& JobProgress::dispatch() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobProgress.dispatch)
+  return _internal_dispatch();
+}
+inline void JobProgress::unsafe_arena_set_allocated_dispatch(
+    ::cordum::agent::v1::DispatchIdentity* dispatch) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.dispatch_);
+  }
+  _impl_.dispatch_ = dispatch;
+  if (dispatch) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobProgress.dispatch)
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobProgress::release_dispatch() {
+  
+  ::cordum::agent::v1::DispatchIdentity* temp = _impl_.dispatch_;
+  _impl_.dispatch_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobProgress::unsafe_arena_release_dispatch() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobProgress.dispatch)
+  
+  ::cordum::agent::v1::DispatchIdentity* temp = _impl_.dispatch_;
+  _impl_.dispatch_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobProgress::_internal_mutable_dispatch() {
+  
+  if (_impl_.dispatch_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::DispatchIdentity>(GetArenaForAllocation());
+    _impl_.dispatch_ = p;
+  }
+  return _impl_.dispatch_;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobProgress::mutable_dispatch() {
+  ::cordum::agent::v1::DispatchIdentity* _msg = _internal_mutable_dispatch();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobProgress.dispatch)
+  return _msg;
+}
+inline void JobProgress::set_allocated_dispatch(::cordum::agent::v1::DispatchIdentity* dispatch) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.dispatch_;
+  }
+  if (dispatch) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(dispatch);
+    if (message_arena != submessage_arena) {
+      dispatch = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, dispatch, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.dispatch_ = dispatch;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobProgress.dispatch)
+}
+
+// .cordum.agent.v1.IdentityBinding identity = 9 [json_name = "identity"];
+inline bool JobProgress::_internal_has_identity() const {
+  return this != internal_default_instance() && _impl_.identity_ != nullptr;
+}
+inline bool JobProgress::has_identity() const {
+  return _internal_has_identity();
+}
+inline void JobProgress::clear_identity() {
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
+}
+inline const ::cordum::agent::v1::IdentityBinding& JobProgress::_internal_identity() const {
+  const ::cordum::agent::v1::IdentityBinding* p = _impl_.identity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::IdentityBinding&>(
+      ::cordum::agent::v1::_IdentityBinding_default_instance_);
+}
+inline const ::cordum::agent::v1::IdentityBinding& JobProgress::identity() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobProgress.identity)
+  return _internal_identity();
+}
+inline void JobProgress::unsafe_arena_set_allocated_identity(
+    ::cordum::agent::v1::IdentityBinding* identity) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  _impl_.identity_ = identity;
+  if (identity) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobProgress.identity)
+}
+inline ::cordum::agent::v1::IdentityBinding* JobProgress::release_identity() {
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobProgress::unsafe_arena_release_identity() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobProgress.identity)
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobProgress::_internal_mutable_identity() {
+  
+  if (_impl_.identity_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::IdentityBinding>(GetArenaForAllocation());
+    _impl_.identity_ = p;
+  }
+  return _impl_.identity_;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobProgress::mutable_identity() {
+  ::cordum::agent::v1::IdentityBinding* _msg = _internal_mutable_identity();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobProgress.identity)
+  return _msg;
+}
+inline void JobProgress::set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.identity_;
+  }
+  if (identity) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(identity);
+    if (message_arena != submessage_arena) {
+      identity = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, identity, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.identity_ = identity;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobProgress.identity)
+}
+
+// .cordum.agent.v1.ResourceRef result_ref = 10 [json_name = "resultRef"];
+inline bool JobProgress::_internal_has_result_ref() const {
+  return this != internal_default_instance() && _impl_.result_ref_ != nullptr;
+}
+inline bool JobProgress::has_result_ref() const {
+  return _internal_has_result_ref();
+}
+inline void JobProgress::clear_result_ref() {
+  if (GetArenaForAllocation() == nullptr && _impl_.result_ref_ != nullptr) {
+    delete _impl_.result_ref_;
+  }
+  _impl_.result_ref_ = nullptr;
+}
+inline const ::cordum::agent::v1::ResourceRef& JobProgress::_internal_result_ref() const {
+  const ::cordum::agent::v1::ResourceRef* p = _impl_.result_ref_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::ResourceRef&>(
+      ::cordum::agent::v1::_ResourceRef_default_instance_);
+}
+inline const ::cordum::agent::v1::ResourceRef& JobProgress::result_ref() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobProgress.result_ref)
+  return _internal_result_ref();
+}
+inline void JobProgress::unsafe_arena_set_allocated_result_ref(
+    ::cordum::agent::v1::ResourceRef* result_ref) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.result_ref_);
+  }
+  _impl_.result_ref_ = result_ref;
+  if (result_ref) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobProgress.result_ref)
+}
+inline ::cordum::agent::v1::ResourceRef* JobProgress::release_result_ref() {
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.result_ref_;
+  _impl_.result_ref_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* JobProgress::unsafe_arena_release_result_ref() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobProgress.result_ref)
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.result_ref_;
+  _impl_.result_ref_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* JobProgress::_internal_mutable_result_ref() {
+  
+  if (_impl_.result_ref_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::ResourceRef>(GetArenaForAllocation());
+    _impl_.result_ref_ = p;
+  }
+  return _impl_.result_ref_;
+}
+inline ::cordum::agent::v1::ResourceRef* JobProgress::mutable_result_ref() {
+  ::cordum::agent::v1::ResourceRef* _msg = _internal_mutable_result_ref();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobProgress.result_ref)
+  return _msg;
+}
+inline void JobProgress::set_allocated_result_ref(::cordum::agent::v1::ResourceRef* result_ref) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.result_ref_;
+  }
+  if (result_ref) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(result_ref);
+    if (message_arena != submessage_arena) {
+      result_ref = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, result_ref, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.result_ref_ = result_ref;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobProgress.result_ref)
+}
+
+// repeated .cordum.agent.v1.ResourceRef artifact_refs = 11 [json_name = "artifactRefs"];
+inline int JobProgress::_internal_artifact_refs_size() const {
+  return _impl_.artifact_refs_.size();
+}
+inline int JobProgress::artifact_refs_size() const {
+  return _internal_artifact_refs_size();
+}
+inline void JobProgress::clear_artifact_refs() {
+  _impl_.artifact_refs_.Clear();
+}
+inline ::cordum::agent::v1::ResourceRef* JobProgress::mutable_artifact_refs(int index) {
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobProgress.artifact_refs)
+  return _impl_.artifact_refs_.Mutable(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::ResourceRef >*
+JobProgress::mutable_artifact_refs() {
+  // @@protoc_insertion_point(field_mutable_list:cordum.agent.v1.JobProgress.artifact_refs)
+  return &_impl_.artifact_refs_;
+}
+inline const ::cordum::agent::v1::ResourceRef& JobProgress::_internal_artifact_refs(int index) const {
+  return _impl_.artifact_refs_.Get(index);
+}
+inline const ::cordum::agent::v1::ResourceRef& JobProgress::artifact_refs(int index) const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobProgress.artifact_refs)
+  return _internal_artifact_refs(index);
+}
+inline ::cordum::agent::v1::ResourceRef* JobProgress::_internal_add_artifact_refs() {
+  return _impl_.artifact_refs_.Add();
+}
+inline ::cordum::agent::v1::ResourceRef* JobProgress::add_artifact_refs() {
+  ::cordum::agent::v1::ResourceRef* _add = _internal_add_artifact_refs();
+  // @@protoc_insertion_point(field_add:cordum.agent.v1.JobProgress.artifact_refs)
+  return _add;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::ResourceRef >&
+JobProgress::artifact_refs() const {
+  // @@protoc_insertion_point(field_list:cordum.agent.v1.JobProgress.artifact_refs)
+  return _impl_.artifact_refs_;
+}
+
 // -------------------------------------------------------------------
 
 // JobCancel
@@ -5679,9 +8488,195 @@ inline void JobCancel::set_allocated_requested_by(std::string* requested_by) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobCancel.requested_by)
 }
 
+// .cordum.agent.v1.DispatchIdentity dispatch = 4 [json_name = "dispatch"];
+inline bool JobCancel::_internal_has_dispatch() const {
+  return this != internal_default_instance() && _impl_.dispatch_ != nullptr;
+}
+inline bool JobCancel::has_dispatch() const {
+  return _internal_has_dispatch();
+}
+inline void JobCancel::clear_dispatch() {
+  if (GetArenaForAllocation() == nullptr && _impl_.dispatch_ != nullptr) {
+    delete _impl_.dispatch_;
+  }
+  _impl_.dispatch_ = nullptr;
+}
+inline const ::cordum::agent::v1::DispatchIdentity& JobCancel::_internal_dispatch() const {
+  const ::cordum::agent::v1::DispatchIdentity* p = _impl_.dispatch_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::DispatchIdentity&>(
+      ::cordum::agent::v1::_DispatchIdentity_default_instance_);
+}
+inline const ::cordum::agent::v1::DispatchIdentity& JobCancel::dispatch() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobCancel.dispatch)
+  return _internal_dispatch();
+}
+inline void JobCancel::unsafe_arena_set_allocated_dispatch(
+    ::cordum::agent::v1::DispatchIdentity* dispatch) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.dispatch_);
+  }
+  _impl_.dispatch_ = dispatch;
+  if (dispatch) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobCancel.dispatch)
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobCancel::release_dispatch() {
+  
+  ::cordum::agent::v1::DispatchIdentity* temp = _impl_.dispatch_;
+  _impl_.dispatch_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobCancel::unsafe_arena_release_dispatch() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobCancel.dispatch)
+  
+  ::cordum::agent::v1::DispatchIdentity* temp = _impl_.dispatch_;
+  _impl_.dispatch_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobCancel::_internal_mutable_dispatch() {
+  
+  if (_impl_.dispatch_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::DispatchIdentity>(GetArenaForAllocation());
+    _impl_.dispatch_ = p;
+  }
+  return _impl_.dispatch_;
+}
+inline ::cordum::agent::v1::DispatchIdentity* JobCancel::mutable_dispatch() {
+  ::cordum::agent::v1::DispatchIdentity* _msg = _internal_mutable_dispatch();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobCancel.dispatch)
+  return _msg;
+}
+inline void JobCancel::set_allocated_dispatch(::cordum::agent::v1::DispatchIdentity* dispatch) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.dispatch_;
+  }
+  if (dispatch) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(dispatch);
+    if (message_arena != submessage_arena) {
+      dispatch = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, dispatch, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.dispatch_ = dispatch;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobCancel.dispatch)
+}
+
+// .cordum.agent.v1.IdentityBinding identity = 5 [json_name = "identity"];
+inline bool JobCancel::_internal_has_identity() const {
+  return this != internal_default_instance() && _impl_.identity_ != nullptr;
+}
+inline bool JobCancel::has_identity() const {
+  return _internal_has_identity();
+}
+inline void JobCancel::clear_identity() {
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
+}
+inline const ::cordum::agent::v1::IdentityBinding& JobCancel::_internal_identity() const {
+  const ::cordum::agent::v1::IdentityBinding* p = _impl_.identity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::IdentityBinding&>(
+      ::cordum::agent::v1::_IdentityBinding_default_instance_);
+}
+inline const ::cordum::agent::v1::IdentityBinding& JobCancel::identity() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.JobCancel.identity)
+  return _internal_identity();
+}
+inline void JobCancel::unsafe_arena_set_allocated_identity(
+    ::cordum::agent::v1::IdentityBinding* identity) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  _impl_.identity_ = identity;
+  if (identity) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.JobCancel.identity)
+}
+inline ::cordum::agent::v1::IdentityBinding* JobCancel::release_identity() {
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobCancel::unsafe_arena_release_identity() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.JobCancel.identity)
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobCancel::_internal_mutable_identity() {
+  
+  if (_impl_.identity_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::IdentityBinding>(GetArenaForAllocation());
+    _impl_.identity_ = p;
+  }
+  return _impl_.identity_;
+}
+inline ::cordum::agent::v1::IdentityBinding* JobCancel::mutable_identity() {
+  ::cordum::agent::v1::IdentityBinding* _msg = _internal_mutable_identity();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.JobCancel.identity)
+  return _msg;
+}
+inline void JobCancel::set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.identity_;
+  }
+  if (identity) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(identity);
+    if (message_arena != submessage_arena) {
+      identity = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, identity, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.identity_ = identity;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.JobCancel.identity)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

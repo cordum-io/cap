@@ -24,6 +24,12 @@ export namespace cordum {
                 /** BusPacket protocolVersion */
                 protocolVersion?: (number|null);
 
+                /** BusPacket signatureMetadata */
+                signatureMetadata?: (cordum.agent.v1.ISignatureMetadata|null);
+
+                /** BusPacket identity */
+                identity?: (cordum.agent.v1.IIdentityBinding|null);
+
                 /** BusPacket jobRequest */
                 jobRequest?: (cordum.agent.v1.IJobRequest|null);
 
@@ -84,6 +90,12 @@ export namespace cordum {
 
                 /** BusPacket protocolVersion. */
                 public protocolVersion: number;
+
+                /** BusPacket signatureMetadata. */
+                public signatureMetadata?: (cordum.agent.v1.ISignatureMetadata|null);
+
+                /** BusPacket identity. */
+                public identity?: (cordum.agent.v1.IIdentityBinding|null);
 
                 /** BusPacket jobRequest. */
                 public jobRequest?: (cordum.agent.v1.IJobRequest|null);
@@ -199,6 +211,490 @@ export namespace cordum {
 
                 /**
                  * Gets the default type url for BusPacket
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a SignatureMetadata. */
+            interface ISignatureMetadata {
+
+                /** SignatureMetadata profileVersion */
+                profileVersion?: (string|null);
+
+                /** SignatureMetadata algorithm */
+                algorithm?: (string|null);
+
+                /** SignatureMetadata messageId */
+                messageId?: (Uint8Array|null);
+
+                /** SignatureMetadata audience */
+                audience?: (string|null);
+
+                /** SignatureMetadata expiresAt */
+                expiresAt?: (google.protobuf.ITimestamp|null);
+
+                /** SignatureMetadata keyId */
+                keyId?: (string|null);
+            }
+
+            /** Represents a SignatureMetadata. */
+            class SignatureMetadata implements ISignatureMetadata {
+
+                /**
+                 * Constructs a new SignatureMetadata.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.ISignatureMetadata);
+
+                /** SignatureMetadata profileVersion. */
+                public profileVersion: string;
+
+                /** SignatureMetadata algorithm. */
+                public algorithm: string;
+
+                /** SignatureMetadata messageId. */
+                public messageId: Uint8Array;
+
+                /** SignatureMetadata audience. */
+                public audience: string;
+
+                /** SignatureMetadata expiresAt. */
+                public expiresAt?: (google.protobuf.ITimestamp|null);
+
+                /** SignatureMetadata keyId. */
+                public keyId: string;
+
+                /**
+                 * Creates a new SignatureMetadata instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns SignatureMetadata instance
+                 */
+                public static create(properties?: cordum.agent.v1.ISignatureMetadata): cordum.agent.v1.SignatureMetadata;
+
+                /**
+                 * Encodes the specified SignatureMetadata message. Does not implicitly {@link cordum.agent.v1.SignatureMetadata.verify|verify} messages.
+                 * @param message SignatureMetadata message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.ISignatureMetadata, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified SignatureMetadata message, length delimited. Does not implicitly {@link cordum.agent.v1.SignatureMetadata.verify|verify} messages.
+                 * @param message SignatureMetadata message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.ISignatureMetadata, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a SignatureMetadata message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns SignatureMetadata
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.SignatureMetadata;
+
+                /**
+                 * Decodes a SignatureMetadata message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns SignatureMetadata
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.SignatureMetadata;
+
+                /**
+                 * Verifies a SignatureMetadata message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a SignatureMetadata message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns SignatureMetadata
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.SignatureMetadata;
+
+                /**
+                 * Creates a plain object from a SignatureMetadata message. Also converts values to other types if specified.
+                 * @param message SignatureMetadata
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.SignatureMetadata, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this SignatureMetadata to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for SignatureMetadata
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of an IdentityBinding. */
+            interface IIdentityBinding {
+
+                /** IdentityBinding tenantId */
+                tenantId?: (string|null);
+
+                /** IdentityBinding principalId */
+                principalId?: (string|null);
+
+                /** IdentityBinding actorId */
+                actorId?: (string|null);
+
+                /** IdentityBinding delegationId */
+                delegationId?: (string|null);
+            }
+
+            /** Represents an IdentityBinding. */
+            class IdentityBinding implements IIdentityBinding {
+
+                /**
+                 * Constructs a new IdentityBinding.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IIdentityBinding);
+
+                /** IdentityBinding tenantId. */
+                public tenantId: string;
+
+                /** IdentityBinding principalId. */
+                public principalId: string;
+
+                /** IdentityBinding actorId. */
+                public actorId: string;
+
+                /** IdentityBinding delegationId. */
+                public delegationId: string;
+
+                /**
+                 * Creates a new IdentityBinding instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns IdentityBinding instance
+                 */
+                public static create(properties?: cordum.agent.v1.IIdentityBinding): cordum.agent.v1.IdentityBinding;
+
+                /**
+                 * Encodes the specified IdentityBinding message. Does not implicitly {@link cordum.agent.v1.IdentityBinding.verify|verify} messages.
+                 * @param message IdentityBinding message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IIdentityBinding, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified IdentityBinding message, length delimited. Does not implicitly {@link cordum.agent.v1.IdentityBinding.verify|verify} messages.
+                 * @param message IdentityBinding message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IIdentityBinding, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes an IdentityBinding message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns IdentityBinding
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.IdentityBinding;
+
+                /**
+                 * Decodes an IdentityBinding message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns IdentityBinding
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.IdentityBinding;
+
+                /**
+                 * Verifies an IdentityBinding message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates an IdentityBinding message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns IdentityBinding
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.IdentityBinding;
+
+                /**
+                 * Creates a plain object from an IdentityBinding message. Also converts values to other types if specified.
+                 * @param message IdentityBinding
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.IdentityBinding, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this IdentityBinding to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for IdentityBinding
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a DispatchIdentity. */
+            interface IDispatchIdentity {
+
+                /** DispatchIdentity dispatchId */
+                dispatchId?: (string|null);
+
+                /** DispatchIdentity attempt */
+                attempt?: (number|Long|null);
+
+                /** DispatchIdentity assignedWorkerId */
+                assignedWorkerId?: (string|null);
+            }
+
+            /** Represents a DispatchIdentity. */
+            class DispatchIdentity implements IDispatchIdentity {
+
+                /**
+                 * Constructs a new DispatchIdentity.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IDispatchIdentity);
+
+                /** DispatchIdentity dispatchId. */
+                public dispatchId: string;
+
+                /** DispatchIdentity attempt. */
+                public attempt: (number|Long);
+
+                /** DispatchIdentity assignedWorkerId. */
+                public assignedWorkerId: string;
+
+                /**
+                 * Creates a new DispatchIdentity instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns DispatchIdentity instance
+                 */
+                public static create(properties?: cordum.agent.v1.IDispatchIdentity): cordum.agent.v1.DispatchIdentity;
+
+                /**
+                 * Encodes the specified DispatchIdentity message. Does not implicitly {@link cordum.agent.v1.DispatchIdentity.verify|verify} messages.
+                 * @param message DispatchIdentity message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IDispatchIdentity, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified DispatchIdentity message, length delimited. Does not implicitly {@link cordum.agent.v1.DispatchIdentity.verify|verify} messages.
+                 * @param message DispatchIdentity message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IDispatchIdentity, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a DispatchIdentity message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns DispatchIdentity
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.DispatchIdentity;
+
+                /**
+                 * Decodes a DispatchIdentity message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns DispatchIdentity
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.DispatchIdentity;
+
+                /**
+                 * Verifies a DispatchIdentity message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a DispatchIdentity message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns DispatchIdentity
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.DispatchIdentity;
+
+                /**
+                 * Creates a plain object from a DispatchIdentity message. Also converts values to other types if specified.
+                 * @param message DispatchIdentity
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.DispatchIdentity, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this DispatchIdentity to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for DispatchIdentity
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a ResourceRef. */
+            interface IResourceRef {
+
+                /** ResourceRef resolverId */
+                resolverId?: (string|null);
+
+                /** ResourceRef uri */
+                uri?: (string|null);
+
+                /** ResourceRef sha256 */
+                sha256?: (Uint8Array|null);
+
+                /** ResourceRef mediaType */
+                mediaType?: (string|null);
+
+                /** ResourceRef sizeBytes */
+                sizeBytes?: (number|Long|null);
+
+                /** ResourceRef expiresAt */
+                expiresAt?: (google.protobuf.ITimestamp|null);
+
+                /** ResourceRef purpose */
+                purpose?: (string|null);
+            }
+
+            /** Represents a ResourceRef. */
+            class ResourceRef implements IResourceRef {
+
+                /**
+                 * Constructs a new ResourceRef.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IResourceRef);
+
+                /** ResourceRef resolverId. */
+                public resolverId: string;
+
+                /** ResourceRef uri. */
+                public uri: string;
+
+                /** ResourceRef sha256. */
+                public sha256: Uint8Array;
+
+                /** ResourceRef mediaType. */
+                public mediaType: string;
+
+                /** ResourceRef sizeBytes. */
+                public sizeBytes: (number|Long);
+
+                /** ResourceRef expiresAt. */
+                public expiresAt?: (google.protobuf.ITimestamp|null);
+
+                /** ResourceRef purpose. */
+                public purpose: string;
+
+                /**
+                 * Creates a new ResourceRef instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns ResourceRef instance
+                 */
+                public static create(properties?: cordum.agent.v1.IResourceRef): cordum.agent.v1.ResourceRef;
+
+                /**
+                 * Encodes the specified ResourceRef message. Does not implicitly {@link cordum.agent.v1.ResourceRef.verify|verify} messages.
+                 * @param message ResourceRef message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IResourceRef, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified ResourceRef message, length delimited. Does not implicitly {@link cordum.agent.v1.ResourceRef.verify|verify} messages.
+                 * @param message ResourceRef message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IResourceRef, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a ResourceRef message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns ResourceRef
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.ResourceRef;
+
+                /**
+                 * Decodes a ResourceRef message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns ResourceRef
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.ResourceRef;
+
+                /**
+                 * Verifies a ResourceRef message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a ResourceRef message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns ResourceRef
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.ResourceRef;
+
+                /**
+                 * Creates a plain object from a ResourceRef message. Also converts values to other types if specified.
+                 * @param message ResourceRef
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.ResourceRef, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this ResourceRef to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for ResourceRef
                  * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns The default type url
                  */
@@ -672,6 +1168,15 @@ export namespace cordum {
 
                 /** Compensation meta */
                 meta?: (cordum.agent.v1.IJobMetadata|null);
+
+                /** Compensation identity */
+                identity?: (cordum.agent.v1.IIdentityBinding|null);
+
+                /** Compensation dispatch */
+                dispatch?: (cordum.agent.v1.IDispatchIdentity|null);
+
+                /** Compensation contextRef */
+                contextRef?: (cordum.agent.v1.IResourceRef|null);
             }
 
             /** Represents a Compensation. */
@@ -718,6 +1223,15 @@ export namespace cordum {
 
                 /** Compensation meta. */
                 public meta?: (cordum.agent.v1.IJobMetadata|null);
+
+                /** Compensation identity. */
+                public identity?: (cordum.agent.v1.IIdentityBinding|null);
+
+                /** Compensation dispatch. */
+                public dispatch?: (cordum.agent.v1.IDispatchIdentity|null);
+
+                /** Compensation contextRef. */
+                public contextRef?: (cordum.agent.v1.IResourceRef|null);
 
                 /**
                  * Creates a new Compensation instance using the specified properties.
@@ -850,6 +1364,15 @@ export namespace cordum {
 
                 /** JobRequest compensation */
                 compensation?: (cordum.agent.v1.ICompensation|null);
+
+                /** JobRequest identity */
+                identity?: (cordum.agent.v1.IIdentityBinding|null);
+
+                /** JobRequest dispatch */
+                dispatch?: (cordum.agent.v1.IDispatchIdentity|null);
+
+                /** JobRequest contextRef */
+                contextRef?: (cordum.agent.v1.IResourceRef|null);
             }
 
             /** Represents a JobRequest. */
@@ -911,6 +1434,15 @@ export namespace cordum {
 
                 /** JobRequest compensation. */
                 public compensation?: (cordum.agent.v1.ICompensation|null);
+
+                /** JobRequest identity. */
+                public identity?: (cordum.agent.v1.IIdentityBinding|null);
+
+                /** JobRequest dispatch. */
+                public dispatch?: (cordum.agent.v1.IDispatchIdentity|null);
+
+                /** JobRequest contextRef. */
+                public contextRef?: (cordum.agent.v1.IResourceRef|null);
 
                 /**
                  * Creates a new JobRequest instance using the specified properties.
@@ -1019,6 +1551,18 @@ export namespace cordum {
 
                 /** JobResult errorCodeEnum */
                 errorCodeEnum?: (cordum.agent.v1.ErrorCode|null);
+
+                /** JobResult dispatch */
+                dispatch?: (cordum.agent.v1.IDispatchIdentity|null);
+
+                /** JobResult identity */
+                identity?: (cordum.agent.v1.IIdentityBinding|null);
+
+                /** JobResult resultRef */
+                resultRef?: (cordum.agent.v1.IResourceRef|null);
+
+                /** JobResult artifactRefs */
+                artifactRefs?: (cordum.agent.v1.IResourceRef[]|null);
             }
 
             /** Represents a JobResult. */
@@ -1056,6 +1600,18 @@ export namespace cordum {
 
                 /** JobResult errorCodeEnum. */
                 public errorCodeEnum: cordum.agent.v1.ErrorCode;
+
+                /** JobResult dispatch. */
+                public dispatch?: (cordum.agent.v1.IDispatchIdentity|null);
+
+                /** JobResult identity. */
+                public identity?: (cordum.agent.v1.IIdentityBinding|null);
+
+                /** JobResult resultRef. */
+                public resultRef?: (cordum.agent.v1.IResourceRef|null);
+
+                /** JobResult artifactRefs. */
+                public artifactRefs: cordum.agent.v1.IResourceRef[];
 
                 /**
                  * Creates a new JobResult instance using the specified properties.
@@ -1158,6 +1714,18 @@ export namespace cordum {
 
                 /** JobProgress status */
                 status?: (cordum.agent.v1.JobStatus|null);
+
+                /** JobProgress dispatch */
+                dispatch?: (cordum.agent.v1.IDispatchIdentity|null);
+
+                /** JobProgress identity */
+                identity?: (cordum.agent.v1.IIdentityBinding|null);
+
+                /** JobProgress resultRef */
+                resultRef?: (cordum.agent.v1.IResourceRef|null);
+
+                /** JobProgress artifactRefs */
+                artifactRefs?: (cordum.agent.v1.IResourceRef[]|null);
             }
 
             /** Represents a JobProgress. */
@@ -1189,6 +1757,18 @@ export namespace cordum {
 
                 /** JobProgress status. */
                 public status: cordum.agent.v1.JobStatus;
+
+                /** JobProgress dispatch. */
+                public dispatch?: (cordum.agent.v1.IDispatchIdentity|null);
+
+                /** JobProgress identity. */
+                public identity?: (cordum.agent.v1.IIdentityBinding|null);
+
+                /** JobProgress resultRef. */
+                public resultRef?: (cordum.agent.v1.IResourceRef|null);
+
+                /** JobProgress artifactRefs. */
+                public artifactRefs: cordum.agent.v1.IResourceRef[];
 
                 /**
                  * Creates a new JobProgress instance using the specified properties.
@@ -1279,6 +1859,12 @@ export namespace cordum {
 
                 /** JobCancel requestedBy */
                 requestedBy?: (string|null);
+
+                /** JobCancel dispatch */
+                dispatch?: (cordum.agent.v1.IDispatchIdentity|null);
+
+                /** JobCancel identity */
+                identity?: (cordum.agent.v1.IIdentityBinding|null);
             }
 
             /** Represents a JobCancel. */
@@ -1298,6 +1884,12 @@ export namespace cordum {
 
                 /** JobCancel requestedBy. */
                 public requestedBy: string;
+
+                /** JobCancel dispatch. */
+                public dispatch?: (cordum.agent.v1.IDispatchIdentity|null);
+
+                /** JobCancel identity. */
+                public identity?: (cordum.agent.v1.IIdentityBinding|null);
 
                 /**
                  * Creates a new JobCancel instance using the specified properties.
@@ -4109,6 +4701,12 @@ export namespace cordum {
                 /** PolicyCheckRequest meta */
                 meta?: (cordum.agent.v1.IJobMetadata|null);
 
+                /** PolicyCheckRequest identity */
+                identity?: (cordum.agent.v1.IIdentityBinding|null);
+
+                /** PolicyCheckRequest inputRef */
+                inputRef?: (cordum.agent.v1.IResourceRef|null);
+
                 /** PolicyCheckRequest inputContent */
                 inputContent?: (Uint8Array|null);
 
@@ -4160,6 +4758,12 @@ export namespace cordum {
 
                 /** PolicyCheckRequest meta. */
                 public meta?: (cordum.agent.v1.IJobMetadata|null);
+
+                /** PolicyCheckRequest identity. */
+                public identity?: (cordum.agent.v1.IIdentityBinding|null);
+
+                /** PolicyCheckRequest inputRef. */
+                public inputRef?: (cordum.agent.v1.IResourceRef|null);
 
                 /** PolicyCheckRequest inputContent. */
                 public inputContent: Uint8Array;
@@ -4973,6 +5577,12 @@ export namespace cordum {
 
                 /** PolicyCheckResponse remediations */
                 remediations?: (cordum.agent.v1.IPolicyRemediation[]|null);
+
+                /** PolicyCheckResponse redactedContextRef */
+                redactedContextRef?: (cordum.agent.v1.IResourceRef|null);
+
+                /** PolicyCheckResponse identity */
+                identity?: (cordum.agent.v1.IIdentityBinding|null);
             }
 
             /** Represents a PolicyCheckResponse. */
@@ -5010,6 +5620,12 @@ export namespace cordum {
 
                 /** PolicyCheckResponse remediations. */
                 public remediations: cordum.agent.v1.IPolicyRemediation[];
+
+                /** PolicyCheckResponse redactedContextRef. */
+                public redactedContextRef?: (cordum.agent.v1.IResourceRef|null);
+
+                /** PolicyCheckResponse identity. */
+                public identity?: (cordum.agent.v1.IIdentityBinding|null);
 
                 /**
                  * Creates a new PolicyCheckResponse instance using the specified properties.

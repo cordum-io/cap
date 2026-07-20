@@ -46,6 +46,8 @@ $root.cordum = (function() {
                  * @property {string|null} [senderId] BusPacket senderId
                  * @property {google.protobuf.ITimestamp|null} [createdAt] BusPacket createdAt
                  * @property {number|null} [protocolVersion] BusPacket protocolVersion
+                 * @property {cordum.agent.v1.ISignatureMetadata|null} [signatureMetadata] BusPacket signatureMetadata
+                 * @property {cordum.agent.v1.IIdentityBinding|null} [identity] BusPacket identity
                  * @property {cordum.agent.v1.IJobRequest|null} [jobRequest] BusPacket jobRequest
                  * @property {cordum.agent.v1.IJobResult|null} [jobResult] BusPacket jobResult
                  * @property {cordum.agent.v1.IHeartbeat|null} [heartbeat] BusPacket heartbeat
@@ -107,6 +109,22 @@ $root.cordum = (function() {
                  * @instance
                  */
                 BusPacket.prototype.protocolVersion = 0;
+
+                /**
+                 * BusPacket signatureMetadata.
+                 * @member {cordum.agent.v1.ISignatureMetadata|null|undefined} signatureMetadata
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.signatureMetadata = null;
+
+                /**
+                 * BusPacket identity.
+                 * @member {cordum.agent.v1.IIdentityBinding|null|undefined} identity
+                 * @memberof cordum.agent.v1.BusPacket
+                 * @instance
+                 */
+                BusPacket.prototype.identity = null;
 
                 /**
                  * BusPacket jobRequest.
@@ -262,6 +280,10 @@ $root.cordum = (function() {
                         $root.google.protobuf.Timestamp.encode(message.createdAt, writer.uint32(/* id 3, wireType 2 =*/26).fork(), q + 1).ldelim();
                     if (message.protocolVersion != null && Object.hasOwnProperty.call(message, "protocolVersion"))
                         writer.uint32(/* id 4, wireType 0 =*/32).int32(message.protocolVersion);
+                    if (message.signatureMetadata != null && Object.hasOwnProperty.call(message, "signatureMetadata"))
+                        $root.cordum.agent.v1.SignatureMetadata.encode(message.signatureMetadata, writer.uint32(/* id 5, wireType 2 =*/42).fork(), q + 1).ldelim();
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        $root.cordum.agent.v1.IdentityBinding.encode(message.identity, writer.uint32(/* id 6, wireType 2 =*/50).fork(), q + 1).ldelim();
                     if (message.jobRequest != null && Object.hasOwnProperty.call(message, "jobRequest"))
                         $root.cordum.agent.v1.JobRequest.encode(message.jobRequest, writer.uint32(/* id 10, wireType 2 =*/82).fork(), q + 1).ldelim();
                     if (message.jobResult != null && Object.hasOwnProperty.call(message, "jobResult"))
@@ -342,6 +364,14 @@ $root.cordum = (function() {
                             }
                         case 4: {
                                 message.protocolVersion = reader.int32();
+                                break;
+                            }
+                        case 5: {
+                                message.signatureMetadata = $root.cordum.agent.v1.SignatureMetadata.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 6: {
+                                message.identity = $root.cordum.agent.v1.IdentityBinding.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         case 10: {
@@ -450,6 +480,16 @@ $root.cordum = (function() {
                     if (message.protocolVersion != null && Object.hasOwnProperty.call(message, "protocolVersion"))
                         if (!$util.isInteger(message.protocolVersion))
                             return "protocolVersion: integer expected";
+                    if (message.signatureMetadata != null && Object.hasOwnProperty.call(message, "signatureMetadata")) {
+                        var error = $root.cordum.agent.v1.SignatureMetadata.verify(message.signatureMetadata, long + 1);
+                        if (error)
+                            return "signatureMetadata." + error;
+                    }
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity")) {
+                        var error = $root.cordum.agent.v1.IdentityBinding.verify(message.identity, long + 1);
+                        if (error)
+                            return "identity." + error;
+                    }
                     if (message.jobRequest != null && Object.hasOwnProperty.call(message, "jobRequest")) {
                         properties.payload = 1;
                         {
@@ -596,6 +636,16 @@ $root.cordum = (function() {
                     }
                     if (object.protocolVersion != null)
                         message.protocolVersion = object.protocolVersion | 0;
+                    if (object.signatureMetadata != null) {
+                        if (!$util.isObject(object.signatureMetadata))
+                            throw TypeError(".cordum.agent.v1.BusPacket.signatureMetadata: object expected");
+                        message.signatureMetadata = $root.cordum.agent.v1.SignatureMetadata.fromObject(object.signatureMetadata, long + 1);
+                    }
+                    if (object.identity != null) {
+                        if (!$util.isObject(object.identity))
+                            throw TypeError(".cordum.agent.v1.BusPacket.identity: object expected");
+                        message.identity = $root.cordum.agent.v1.IdentityBinding.fromObject(object.identity, long + 1);
+                    }
                     if (object.jobRequest != null) {
                         if (!$util.isObject(object.jobRequest))
                             throw TypeError(".cordum.agent.v1.BusPacket.jobRequest: object expected");
@@ -683,6 +733,8 @@ $root.cordum = (function() {
                         object.senderId = "";
                         object.createdAt = null;
                         object.protocolVersion = 0;
+                        object.signatureMetadata = null;
+                        object.identity = null;
                         if (options.bytes === String)
                             object.signature = "";
                         else {
@@ -700,6 +752,10 @@ $root.cordum = (function() {
                         object.createdAt = $root.google.protobuf.Timestamp.toObject(message.createdAt, options, q + 1);
                     if (message.protocolVersion != null && Object.hasOwnProperty.call(message, "protocolVersion"))
                         object.protocolVersion = message.protocolVersion;
+                    if (message.signatureMetadata != null && Object.hasOwnProperty.call(message, "signatureMetadata"))
+                        object.signatureMetadata = $root.cordum.agent.v1.SignatureMetadata.toObject(message.signatureMetadata, options, q + 1);
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        object.identity = $root.cordum.agent.v1.IdentityBinding.toObject(message.identity, options, q + 1);
                     if (message.jobRequest != null && Object.hasOwnProperty.call(message, "jobRequest")) {
                         object.jobRequest = $root.cordum.agent.v1.JobRequest.toObject(message.jobRequest, options, q + 1);
                         if (options.oneofs)
@@ -789,6 +845,1346 @@ $root.cordum = (function() {
                 };
 
                 return BusPacket;
+            })();
+
+            v1.SignatureMetadata = (function() {
+
+                /**
+                 * Properties of a SignatureMetadata.
+                 * @memberof cordum.agent.v1
+                 * @interface ISignatureMetadata
+                 * @property {string|null} [profileVersion] SignatureMetadata profileVersion
+                 * @property {string|null} [algorithm] SignatureMetadata algorithm
+                 * @property {Uint8Array|null} [messageId] SignatureMetadata messageId
+                 * @property {string|null} [audience] SignatureMetadata audience
+                 * @property {google.protobuf.ITimestamp|null} [expiresAt] SignatureMetadata expiresAt
+                 * @property {string|null} [keyId] SignatureMetadata keyId
+                 */
+
+                /**
+                 * Constructs a new SignatureMetadata.
+                 * @memberof cordum.agent.v1
+                 * @classdesc Represents a SignatureMetadata.
+                 * @implements ISignatureMetadata
+                 * @constructor
+                 * @param {cordum.agent.v1.ISignatureMetadata=} [properties] Properties to set
+                 */
+                function SignatureMetadata(properties) {
+                    if (properties)
+                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * SignatureMetadata profileVersion.
+                 * @member {string} profileVersion
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @instance
+                 */
+                SignatureMetadata.prototype.profileVersion = "";
+
+                /**
+                 * SignatureMetadata algorithm.
+                 * @member {string} algorithm
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @instance
+                 */
+                SignatureMetadata.prototype.algorithm = "";
+
+                /**
+                 * SignatureMetadata messageId.
+                 * @member {Uint8Array} messageId
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @instance
+                 */
+                SignatureMetadata.prototype.messageId = $util.newBuffer([]);
+
+                /**
+                 * SignatureMetadata audience.
+                 * @member {string} audience
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @instance
+                 */
+                SignatureMetadata.prototype.audience = "";
+
+                /**
+                 * SignatureMetadata expiresAt.
+                 * @member {google.protobuf.ITimestamp|null|undefined} expiresAt
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @instance
+                 */
+                SignatureMetadata.prototype.expiresAt = null;
+
+                /**
+                 * SignatureMetadata keyId.
+                 * @member {string} keyId
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @instance
+                 */
+                SignatureMetadata.prototype.keyId = "";
+
+                /**
+                 * Creates a new SignatureMetadata instance using the specified properties.
+                 * @function create
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @static
+                 * @param {cordum.agent.v1.ISignatureMetadata=} [properties] Properties to set
+                 * @returns {cordum.agent.v1.SignatureMetadata} SignatureMetadata instance
+                 */
+                SignatureMetadata.create = function create(properties) {
+                    return new SignatureMetadata(properties);
+                };
+
+                /**
+                 * Encodes the specified SignatureMetadata message. Does not implicitly {@link cordum.agent.v1.SignatureMetadata.verify|verify} messages.
+                 * @function encode
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @static
+                 * @param {cordum.agent.v1.ISignatureMetadata} message SignatureMetadata message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                SignatureMetadata.encode = function encode(message, writer, q) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (q === undefined)
+                        q = 0;
+                    if (q > $util.recursionLimit)
+                        throw Error("max depth exceeded");
+                    if (message.profileVersion != null && Object.hasOwnProperty.call(message, "profileVersion"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.profileVersion);
+                    if (message.algorithm != null && Object.hasOwnProperty.call(message, "algorithm"))
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.algorithm);
+                    if (message.messageId != null && Object.hasOwnProperty.call(message, "messageId"))
+                        writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.messageId);
+                    if (message.audience != null && Object.hasOwnProperty.call(message, "audience"))
+                        writer.uint32(/* id 4, wireType 2 =*/34).string(message.audience);
+                    if (message.expiresAt != null && Object.hasOwnProperty.call(message, "expiresAt"))
+                        $root.google.protobuf.Timestamp.encode(message.expiresAt, writer.uint32(/* id 5, wireType 2 =*/42).fork(), q + 1).ldelim();
+                    if (message.keyId != null && Object.hasOwnProperty.call(message, "keyId"))
+                        writer.uint32(/* id 6, wireType 2 =*/50).string(message.keyId);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified SignatureMetadata message, length delimited. Does not implicitly {@link cordum.agent.v1.SignatureMetadata.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @static
+                 * @param {cordum.agent.v1.ISignatureMetadata} message SignatureMetadata message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                SignatureMetadata.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a SignatureMetadata message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {cordum.agent.v1.SignatureMetadata} SignatureMetadata
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                SignatureMetadata.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.SignatureMetadata();
+                    while (reader.pos < end) {
+                        var tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.profileVersion = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.algorithm = reader.string();
+                                break;
+                            }
+                        case 3: {
+                                message.messageId = reader.bytes();
+                                break;
+                            }
+                        case 4: {
+                                message.audience = reader.string();
+                                break;
+                            }
+                        case 5: {
+                                message.expiresAt = $root.google.protobuf.Timestamp.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 6: {
+                                message.keyId = reader.string();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a SignatureMetadata message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {cordum.agent.v1.SignatureMetadata} SignatureMetadata
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                SignatureMetadata.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a SignatureMetadata message.
+                 * @function verify
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                SignatureMetadata.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    if (message.profileVersion != null && Object.hasOwnProperty.call(message, "profileVersion"))
+                        if (!$util.isString(message.profileVersion))
+                            return "profileVersion: string expected";
+                    if (message.algorithm != null && Object.hasOwnProperty.call(message, "algorithm"))
+                        if (!$util.isString(message.algorithm))
+                            return "algorithm: string expected";
+                    if (message.messageId != null && Object.hasOwnProperty.call(message, "messageId"))
+                        if (!(message.messageId && typeof message.messageId.length === "number" || $util.isString(message.messageId)))
+                            return "messageId: buffer expected";
+                    if (message.audience != null && Object.hasOwnProperty.call(message, "audience"))
+                        if (!$util.isString(message.audience))
+                            return "audience: string expected";
+                    if (message.expiresAt != null && Object.hasOwnProperty.call(message, "expiresAt")) {
+                        var error = $root.google.protobuf.Timestamp.verify(message.expiresAt, long + 1);
+                        if (error)
+                            return "expiresAt." + error;
+                    }
+                    if (message.keyId != null && Object.hasOwnProperty.call(message, "keyId"))
+                        if (!$util.isString(message.keyId))
+                            return "keyId: string expected";
+                    return null;
+                };
+
+                /**
+                 * Creates a SignatureMetadata message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {cordum.agent.v1.SignatureMetadata} SignatureMetadata
+                 */
+                SignatureMetadata.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.cordum.agent.v1.SignatureMetadata)
+                        return object;
+                    if (!$util.isObject(object))
+                        throw TypeError(".cordum.agent.v1.SignatureMetadata: object expected");
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    var message = new $root.cordum.agent.v1.SignatureMetadata();
+                    if (object.profileVersion != null)
+                        message.profileVersion = String(object.profileVersion);
+                    if (object.algorithm != null)
+                        message.algorithm = String(object.algorithm);
+                    if (object.messageId != null)
+                        if (typeof object.messageId === "string")
+                            $util.base64.decode(object.messageId, message.messageId = $util.newBuffer($util.base64.length(object.messageId)), 0);
+                        else if (object.messageId.length >= 0)
+                            message.messageId = object.messageId;
+                    if (object.audience != null)
+                        message.audience = String(object.audience);
+                    if (object.expiresAt != null) {
+                        if (!$util.isObject(object.expiresAt))
+                            throw TypeError(".cordum.agent.v1.SignatureMetadata.expiresAt: object expected");
+                        message.expiresAt = $root.google.protobuf.Timestamp.fromObject(object.expiresAt, long + 1);
+                    }
+                    if (object.keyId != null)
+                        message.keyId = String(object.keyId);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a SignatureMetadata message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @static
+                 * @param {cordum.agent.v1.SignatureMetadata} message SignatureMetadata
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                SignatureMetadata.toObject = function toObject(message, options, q) {
+                    if (!options)
+                        options = {};
+                    if (q === undefined)
+                        q = 0;
+                    if (q > $util.recursionLimit)
+                        throw Error("max depth exceeded");
+                    var object = {};
+                    if (options.defaults) {
+                        object.profileVersion = "";
+                        object.algorithm = "";
+                        if (options.bytes === String)
+                            object.messageId = "";
+                        else {
+                            object.messageId = [];
+                            if (options.bytes !== Array)
+                                object.messageId = $util.newBuffer(object.messageId);
+                        }
+                        object.audience = "";
+                        object.expiresAt = null;
+                        object.keyId = "";
+                    }
+                    if (message.profileVersion != null && Object.hasOwnProperty.call(message, "profileVersion"))
+                        object.profileVersion = message.profileVersion;
+                    if (message.algorithm != null && Object.hasOwnProperty.call(message, "algorithm"))
+                        object.algorithm = message.algorithm;
+                    if (message.messageId != null && Object.hasOwnProperty.call(message, "messageId"))
+                        object.messageId = options.bytes === String ? $util.base64.encode(message.messageId, 0, message.messageId.length) : options.bytes === Array ? Array.prototype.slice.call(message.messageId) : message.messageId;
+                    if (message.audience != null && Object.hasOwnProperty.call(message, "audience"))
+                        object.audience = message.audience;
+                    if (message.expiresAt != null && Object.hasOwnProperty.call(message, "expiresAt"))
+                        object.expiresAt = $root.google.protobuf.Timestamp.toObject(message.expiresAt, options, q + 1);
+                    if (message.keyId != null && Object.hasOwnProperty.call(message, "keyId"))
+                        object.keyId = message.keyId;
+                    return object;
+                };
+
+                /**
+                 * Converts this SignatureMetadata to JSON.
+                 * @function toJSON
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                SignatureMetadata.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for SignatureMetadata
+                 * @function getTypeUrl
+                 * @memberof cordum.agent.v1.SignatureMetadata
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                SignatureMetadata.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/cordum.agent.v1.SignatureMetadata";
+                };
+
+                return SignatureMetadata;
+            })();
+
+            v1.IdentityBinding = (function() {
+
+                /**
+                 * Properties of an IdentityBinding.
+                 * @memberof cordum.agent.v1
+                 * @interface IIdentityBinding
+                 * @property {string|null} [tenantId] IdentityBinding tenantId
+                 * @property {string|null} [principalId] IdentityBinding principalId
+                 * @property {string|null} [actorId] IdentityBinding actorId
+                 * @property {string|null} [delegationId] IdentityBinding delegationId
+                 */
+
+                /**
+                 * Constructs a new IdentityBinding.
+                 * @memberof cordum.agent.v1
+                 * @classdesc Represents an IdentityBinding.
+                 * @implements IIdentityBinding
+                 * @constructor
+                 * @param {cordum.agent.v1.IIdentityBinding=} [properties] Properties to set
+                 */
+                function IdentityBinding(properties) {
+                    if (properties)
+                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * IdentityBinding tenantId.
+                 * @member {string} tenantId
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @instance
+                 */
+                IdentityBinding.prototype.tenantId = "";
+
+                /**
+                 * IdentityBinding principalId.
+                 * @member {string} principalId
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @instance
+                 */
+                IdentityBinding.prototype.principalId = "";
+
+                /**
+                 * IdentityBinding actorId.
+                 * @member {string} actorId
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @instance
+                 */
+                IdentityBinding.prototype.actorId = "";
+
+                /**
+                 * IdentityBinding delegationId.
+                 * @member {string} delegationId
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @instance
+                 */
+                IdentityBinding.prototype.delegationId = "";
+
+                /**
+                 * Creates a new IdentityBinding instance using the specified properties.
+                 * @function create
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @static
+                 * @param {cordum.agent.v1.IIdentityBinding=} [properties] Properties to set
+                 * @returns {cordum.agent.v1.IdentityBinding} IdentityBinding instance
+                 */
+                IdentityBinding.create = function create(properties) {
+                    return new IdentityBinding(properties);
+                };
+
+                /**
+                 * Encodes the specified IdentityBinding message. Does not implicitly {@link cordum.agent.v1.IdentityBinding.verify|verify} messages.
+                 * @function encode
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @static
+                 * @param {cordum.agent.v1.IIdentityBinding} message IdentityBinding message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                IdentityBinding.encode = function encode(message, writer, q) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (q === undefined)
+                        q = 0;
+                    if (q > $util.recursionLimit)
+                        throw Error("max depth exceeded");
+                    if (message.tenantId != null && Object.hasOwnProperty.call(message, "tenantId"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.tenantId);
+                    if (message.principalId != null && Object.hasOwnProperty.call(message, "principalId"))
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.principalId);
+                    if (message.actorId != null && Object.hasOwnProperty.call(message, "actorId"))
+                        writer.uint32(/* id 3, wireType 2 =*/26).string(message.actorId);
+                    if (message.delegationId != null && Object.hasOwnProperty.call(message, "delegationId"))
+                        writer.uint32(/* id 4, wireType 2 =*/34).string(message.delegationId);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified IdentityBinding message, length delimited. Does not implicitly {@link cordum.agent.v1.IdentityBinding.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @static
+                 * @param {cordum.agent.v1.IIdentityBinding} message IdentityBinding message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                IdentityBinding.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes an IdentityBinding message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {cordum.agent.v1.IdentityBinding} IdentityBinding
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                IdentityBinding.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.IdentityBinding();
+                    while (reader.pos < end) {
+                        var tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.tenantId = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.principalId = reader.string();
+                                break;
+                            }
+                        case 3: {
+                                message.actorId = reader.string();
+                                break;
+                            }
+                        case 4: {
+                                message.delegationId = reader.string();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes an IdentityBinding message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {cordum.agent.v1.IdentityBinding} IdentityBinding
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                IdentityBinding.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies an IdentityBinding message.
+                 * @function verify
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                IdentityBinding.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    if (message.tenantId != null && Object.hasOwnProperty.call(message, "tenantId"))
+                        if (!$util.isString(message.tenantId))
+                            return "tenantId: string expected";
+                    if (message.principalId != null && Object.hasOwnProperty.call(message, "principalId"))
+                        if (!$util.isString(message.principalId))
+                            return "principalId: string expected";
+                    if (message.actorId != null && Object.hasOwnProperty.call(message, "actorId"))
+                        if (!$util.isString(message.actorId))
+                            return "actorId: string expected";
+                    if (message.delegationId != null && Object.hasOwnProperty.call(message, "delegationId"))
+                        if (!$util.isString(message.delegationId))
+                            return "delegationId: string expected";
+                    return null;
+                };
+
+                /**
+                 * Creates an IdentityBinding message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {cordum.agent.v1.IdentityBinding} IdentityBinding
+                 */
+                IdentityBinding.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.cordum.agent.v1.IdentityBinding)
+                        return object;
+                    if (!$util.isObject(object))
+                        throw TypeError(".cordum.agent.v1.IdentityBinding: object expected");
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    var message = new $root.cordum.agent.v1.IdentityBinding();
+                    if (object.tenantId != null)
+                        message.tenantId = String(object.tenantId);
+                    if (object.principalId != null)
+                        message.principalId = String(object.principalId);
+                    if (object.actorId != null)
+                        message.actorId = String(object.actorId);
+                    if (object.delegationId != null)
+                        message.delegationId = String(object.delegationId);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from an IdentityBinding message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @static
+                 * @param {cordum.agent.v1.IdentityBinding} message IdentityBinding
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                IdentityBinding.toObject = function toObject(message, options, q) {
+                    if (!options)
+                        options = {};
+                    if (q === undefined)
+                        q = 0;
+                    if (q > $util.recursionLimit)
+                        throw Error("max depth exceeded");
+                    var object = {};
+                    if (options.defaults) {
+                        object.tenantId = "";
+                        object.principalId = "";
+                        object.actorId = "";
+                        object.delegationId = "";
+                    }
+                    if (message.tenantId != null && Object.hasOwnProperty.call(message, "tenantId"))
+                        object.tenantId = message.tenantId;
+                    if (message.principalId != null && Object.hasOwnProperty.call(message, "principalId"))
+                        object.principalId = message.principalId;
+                    if (message.actorId != null && Object.hasOwnProperty.call(message, "actorId"))
+                        object.actorId = message.actorId;
+                    if (message.delegationId != null && Object.hasOwnProperty.call(message, "delegationId"))
+                        object.delegationId = message.delegationId;
+                    return object;
+                };
+
+                /**
+                 * Converts this IdentityBinding to JSON.
+                 * @function toJSON
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                IdentityBinding.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for IdentityBinding
+                 * @function getTypeUrl
+                 * @memberof cordum.agent.v1.IdentityBinding
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                IdentityBinding.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/cordum.agent.v1.IdentityBinding";
+                };
+
+                return IdentityBinding;
+            })();
+
+            v1.DispatchIdentity = (function() {
+
+                /**
+                 * Properties of a DispatchIdentity.
+                 * @memberof cordum.agent.v1
+                 * @interface IDispatchIdentity
+                 * @property {string|null} [dispatchId] DispatchIdentity dispatchId
+                 * @property {number|Long|null} [attempt] DispatchIdentity attempt
+                 * @property {string|null} [assignedWorkerId] DispatchIdentity assignedWorkerId
+                 */
+
+                /**
+                 * Constructs a new DispatchIdentity.
+                 * @memberof cordum.agent.v1
+                 * @classdesc Represents a DispatchIdentity.
+                 * @implements IDispatchIdentity
+                 * @constructor
+                 * @param {cordum.agent.v1.IDispatchIdentity=} [properties] Properties to set
+                 */
+                function DispatchIdentity(properties) {
+                    if (properties)
+                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * DispatchIdentity dispatchId.
+                 * @member {string} dispatchId
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @instance
+                 */
+                DispatchIdentity.prototype.dispatchId = "";
+
+                /**
+                 * DispatchIdentity attempt.
+                 * @member {number|Long} attempt
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @instance
+                 */
+                DispatchIdentity.prototype.attempt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
+
+                /**
+                 * DispatchIdentity assignedWorkerId.
+                 * @member {string} assignedWorkerId
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @instance
+                 */
+                DispatchIdentity.prototype.assignedWorkerId = "";
+
+                /**
+                 * Creates a new DispatchIdentity instance using the specified properties.
+                 * @function create
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @static
+                 * @param {cordum.agent.v1.IDispatchIdentity=} [properties] Properties to set
+                 * @returns {cordum.agent.v1.DispatchIdentity} DispatchIdentity instance
+                 */
+                DispatchIdentity.create = function create(properties) {
+                    return new DispatchIdentity(properties);
+                };
+
+                /**
+                 * Encodes the specified DispatchIdentity message. Does not implicitly {@link cordum.agent.v1.DispatchIdentity.verify|verify} messages.
+                 * @function encode
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @static
+                 * @param {cordum.agent.v1.IDispatchIdentity} message DispatchIdentity message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                DispatchIdentity.encode = function encode(message, writer, q) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (q === undefined)
+                        q = 0;
+                    if (q > $util.recursionLimit)
+                        throw Error("max depth exceeded");
+                    if (message.dispatchId != null && Object.hasOwnProperty.call(message, "dispatchId"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.dispatchId);
+                    if (message.attempt != null && Object.hasOwnProperty.call(message, "attempt"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).uint64(message.attempt);
+                    if (message.assignedWorkerId != null && Object.hasOwnProperty.call(message, "assignedWorkerId"))
+                        writer.uint32(/* id 3, wireType 2 =*/26).string(message.assignedWorkerId);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified DispatchIdentity message, length delimited. Does not implicitly {@link cordum.agent.v1.DispatchIdentity.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @static
+                 * @param {cordum.agent.v1.IDispatchIdentity} message DispatchIdentity message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                DispatchIdentity.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a DispatchIdentity message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {cordum.agent.v1.DispatchIdentity} DispatchIdentity
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                DispatchIdentity.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.DispatchIdentity();
+                    while (reader.pos < end) {
+                        var tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.dispatchId = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.attempt = reader.uint64();
+                                break;
+                            }
+                        case 3: {
+                                message.assignedWorkerId = reader.string();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a DispatchIdentity message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {cordum.agent.v1.DispatchIdentity} DispatchIdentity
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                DispatchIdentity.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a DispatchIdentity message.
+                 * @function verify
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                DispatchIdentity.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    if (message.dispatchId != null && Object.hasOwnProperty.call(message, "dispatchId"))
+                        if (!$util.isString(message.dispatchId))
+                            return "dispatchId: string expected";
+                    if (message.attempt != null && Object.hasOwnProperty.call(message, "attempt"))
+                        if (!$util.isInteger(message.attempt) && !(message.attempt && $util.isInteger(message.attempt.low) && $util.isInteger(message.attempt.high)))
+                            return "attempt: integer|Long expected";
+                    if (message.assignedWorkerId != null && Object.hasOwnProperty.call(message, "assignedWorkerId"))
+                        if (!$util.isString(message.assignedWorkerId))
+                            return "assignedWorkerId: string expected";
+                    return null;
+                };
+
+                /**
+                 * Creates a DispatchIdentity message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {cordum.agent.v1.DispatchIdentity} DispatchIdentity
+                 */
+                DispatchIdentity.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.cordum.agent.v1.DispatchIdentity)
+                        return object;
+                    if (!$util.isObject(object))
+                        throw TypeError(".cordum.agent.v1.DispatchIdentity: object expected");
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    var message = new $root.cordum.agent.v1.DispatchIdentity();
+                    if (object.dispatchId != null)
+                        message.dispatchId = String(object.dispatchId);
+                    if (object.attempt != null)
+                        if ($util.Long)
+                            message.attempt = $util.Long.fromValue(object.attempt, true);
+                        else if (typeof object.attempt === "string")
+                            message.attempt = parseInt(object.attempt, 10);
+                        else if (typeof object.attempt === "number")
+                            message.attempt = object.attempt;
+                        else if (typeof object.attempt === "object")
+                            message.attempt = new $util.LongBits(object.attempt.low >>> 0, object.attempt.high >>> 0).toNumber(true);
+                    if (object.assignedWorkerId != null)
+                        message.assignedWorkerId = String(object.assignedWorkerId);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a DispatchIdentity message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @static
+                 * @param {cordum.agent.v1.DispatchIdentity} message DispatchIdentity
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                DispatchIdentity.toObject = function toObject(message, options, q) {
+                    if (!options)
+                        options = {};
+                    if (q === undefined)
+                        q = 0;
+                    if (q > $util.recursionLimit)
+                        throw Error("max depth exceeded");
+                    var object = {};
+                    if (options.defaults) {
+                        object.dispatchId = "";
+                        if ($util.Long) {
+                            var long = new $util.Long(0, 0, true);
+                            object.attempt = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
+                        } else
+                            object.attempt = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
+                        object.assignedWorkerId = "";
+                    }
+                    if (message.dispatchId != null && Object.hasOwnProperty.call(message, "dispatchId"))
+                        object.dispatchId = message.dispatchId;
+                    if (message.attempt != null && Object.hasOwnProperty.call(message, "attempt"))
+                        if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                            object.attempt = typeof message.attempt === "number" ? BigInt(message.attempt) : $util.Long.fromBits(message.attempt.low >>> 0, message.attempt.high >>> 0, true).toBigInt();
+                        else if (typeof message.attempt === "number")
+                            object.attempt = options.longs === String ? String(message.attempt) : message.attempt;
+                        else
+                            object.attempt = options.longs === String ? $util.Long.prototype.toString.call(message.attempt) : options.longs === Number ? new $util.LongBits(message.attempt.low >>> 0, message.attempt.high >>> 0).toNumber(true) : message.attempt;
+                    if (message.assignedWorkerId != null && Object.hasOwnProperty.call(message, "assignedWorkerId"))
+                        object.assignedWorkerId = message.assignedWorkerId;
+                    return object;
+                };
+
+                /**
+                 * Converts this DispatchIdentity to JSON.
+                 * @function toJSON
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                DispatchIdentity.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for DispatchIdentity
+                 * @function getTypeUrl
+                 * @memberof cordum.agent.v1.DispatchIdentity
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                DispatchIdentity.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/cordum.agent.v1.DispatchIdentity";
+                };
+
+                return DispatchIdentity;
+            })();
+
+            v1.ResourceRef = (function() {
+
+                /**
+                 * Properties of a ResourceRef.
+                 * @memberof cordum.agent.v1
+                 * @interface IResourceRef
+                 * @property {string|null} [resolverId] ResourceRef resolverId
+                 * @property {string|null} [uri] ResourceRef uri
+                 * @property {Uint8Array|null} [sha256] ResourceRef sha256
+                 * @property {string|null} [mediaType] ResourceRef mediaType
+                 * @property {number|Long|null} [sizeBytes] ResourceRef sizeBytes
+                 * @property {google.protobuf.ITimestamp|null} [expiresAt] ResourceRef expiresAt
+                 * @property {string|null} [purpose] ResourceRef purpose
+                 */
+
+                /**
+                 * Constructs a new ResourceRef.
+                 * @memberof cordum.agent.v1
+                 * @classdesc Represents a ResourceRef.
+                 * @implements IResourceRef
+                 * @constructor
+                 * @param {cordum.agent.v1.IResourceRef=} [properties] Properties to set
+                 */
+                function ResourceRef(properties) {
+                    if (properties)
+                        for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null && keys[i] !== "__proto__")
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * ResourceRef resolverId.
+                 * @member {string} resolverId
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @instance
+                 */
+                ResourceRef.prototype.resolverId = "";
+
+                /**
+                 * ResourceRef uri.
+                 * @member {string} uri
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @instance
+                 */
+                ResourceRef.prototype.uri = "";
+
+                /**
+                 * ResourceRef sha256.
+                 * @member {Uint8Array} sha256
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @instance
+                 */
+                ResourceRef.prototype.sha256 = $util.newBuffer([]);
+
+                /**
+                 * ResourceRef mediaType.
+                 * @member {string} mediaType
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @instance
+                 */
+                ResourceRef.prototype.mediaType = "";
+
+                /**
+                 * ResourceRef sizeBytes.
+                 * @member {number|Long} sizeBytes
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @instance
+                 */
+                ResourceRef.prototype.sizeBytes = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
+
+                /**
+                 * ResourceRef expiresAt.
+                 * @member {google.protobuf.ITimestamp|null|undefined} expiresAt
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @instance
+                 */
+                ResourceRef.prototype.expiresAt = null;
+
+                /**
+                 * ResourceRef purpose.
+                 * @member {string} purpose
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @instance
+                 */
+                ResourceRef.prototype.purpose = "";
+
+                /**
+                 * Creates a new ResourceRef instance using the specified properties.
+                 * @function create
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @static
+                 * @param {cordum.agent.v1.IResourceRef=} [properties] Properties to set
+                 * @returns {cordum.agent.v1.ResourceRef} ResourceRef instance
+                 */
+                ResourceRef.create = function create(properties) {
+                    return new ResourceRef(properties);
+                };
+
+                /**
+                 * Encodes the specified ResourceRef message. Does not implicitly {@link cordum.agent.v1.ResourceRef.verify|verify} messages.
+                 * @function encode
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @static
+                 * @param {cordum.agent.v1.IResourceRef} message ResourceRef message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                ResourceRef.encode = function encode(message, writer, q) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (q === undefined)
+                        q = 0;
+                    if (q > $util.recursionLimit)
+                        throw Error("max depth exceeded");
+                    if (message.resolverId != null && Object.hasOwnProperty.call(message, "resolverId"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.resolverId);
+                    if (message.uri != null && Object.hasOwnProperty.call(message, "uri"))
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.uri);
+                    if (message.sha256 != null && Object.hasOwnProperty.call(message, "sha256"))
+                        writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.sha256);
+                    if (message.mediaType != null && Object.hasOwnProperty.call(message, "mediaType"))
+                        writer.uint32(/* id 4, wireType 2 =*/34).string(message.mediaType);
+                    if (message.sizeBytes != null && Object.hasOwnProperty.call(message, "sizeBytes"))
+                        writer.uint32(/* id 5, wireType 0 =*/40).uint64(message.sizeBytes);
+                    if (message.expiresAt != null && Object.hasOwnProperty.call(message, "expiresAt"))
+                        $root.google.protobuf.Timestamp.encode(message.expiresAt, writer.uint32(/* id 6, wireType 2 =*/50).fork(), q + 1).ldelim();
+                    if (message.purpose != null && Object.hasOwnProperty.call(message, "purpose"))
+                        writer.uint32(/* id 7, wireType 2 =*/58).string(message.purpose);
+                    return writer;
+                };
+
+                /**
+                 * Encodes the specified ResourceRef message, length delimited. Does not implicitly {@link cordum.agent.v1.ResourceRef.verify|verify} messages.
+                 * @function encodeDelimited
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @static
+                 * @param {cordum.agent.v1.IResourceRef} message ResourceRef message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                ResourceRef.encodeDelimited = function encodeDelimited(message, writer) {
+                    return this.encode(message, writer).ldelim();
+                };
+
+                /**
+                 * Decodes a ResourceRef message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {cordum.agent.v1.ResourceRef} ResourceRef
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                ResourceRef.decode = function decode(reader, length, error, long) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $Reader.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    var end = length === undefined ? reader.len : reader.pos + length, message = new $root.cordum.agent.v1.ResourceRef();
+                    while (reader.pos < end) {
+                        var tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.resolverId = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.uri = reader.string();
+                                break;
+                            }
+                        case 3: {
+                                message.sha256 = reader.bytes();
+                                break;
+                            }
+                        case 4: {
+                                message.mediaType = reader.string();
+                                break;
+                            }
+                        case 5: {
+                                message.sizeBytes = reader.uint64();
+                                break;
+                            }
+                        case 6: {
+                                message.expiresAt = $root.google.protobuf.Timestamp.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 7: {
+                                message.purpose = reader.string();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7, long);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * Decodes a ResourceRef message from the specified reader or buffer, length delimited.
+                 * @function decodeDelimited
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @returns {cordum.agent.v1.ResourceRef} ResourceRef
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                ResourceRef.decodeDelimited = function decodeDelimited(reader) {
+                    if (!(reader instanceof $Reader))
+                        reader = new $Reader(reader);
+                    return this.decode(reader, reader.uint32());
+                };
+
+                /**
+                 * Verifies a ResourceRef message.
+                 * @function verify
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @static
+                 * @param {Object.<string,*>} message Plain object to verify
+                 * @returns {string|null} `null` if valid, otherwise the reason why it is not
+                 */
+                ResourceRef.verify = function verify(message, long) {
+                    if (typeof message !== "object" || message === null)
+                        return "object expected";
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        return "maximum nesting depth exceeded";
+                    if (message.resolverId != null && Object.hasOwnProperty.call(message, "resolverId"))
+                        if (!$util.isString(message.resolverId))
+                            return "resolverId: string expected";
+                    if (message.uri != null && Object.hasOwnProperty.call(message, "uri"))
+                        if (!$util.isString(message.uri))
+                            return "uri: string expected";
+                    if (message.sha256 != null && Object.hasOwnProperty.call(message, "sha256"))
+                        if (!(message.sha256 && typeof message.sha256.length === "number" || $util.isString(message.sha256)))
+                            return "sha256: buffer expected";
+                    if (message.mediaType != null && Object.hasOwnProperty.call(message, "mediaType"))
+                        if (!$util.isString(message.mediaType))
+                            return "mediaType: string expected";
+                    if (message.sizeBytes != null && Object.hasOwnProperty.call(message, "sizeBytes"))
+                        if (!$util.isInteger(message.sizeBytes) && !(message.sizeBytes && $util.isInteger(message.sizeBytes.low) && $util.isInteger(message.sizeBytes.high)))
+                            return "sizeBytes: integer|Long expected";
+                    if (message.expiresAt != null && Object.hasOwnProperty.call(message, "expiresAt")) {
+                        var error = $root.google.protobuf.Timestamp.verify(message.expiresAt, long + 1);
+                        if (error)
+                            return "expiresAt." + error;
+                    }
+                    if (message.purpose != null && Object.hasOwnProperty.call(message, "purpose"))
+                        if (!$util.isString(message.purpose))
+                            return "purpose: string expected";
+                    return null;
+                };
+
+                /**
+                 * Creates a ResourceRef message from a plain object. Also converts values to their respective internal types.
+                 * @function fromObject
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @static
+                 * @param {Object.<string,*>} object Plain object
+                 * @returns {cordum.agent.v1.ResourceRef} ResourceRef
+                 */
+                ResourceRef.fromObject = function fromObject(object, long) {
+                    if (object instanceof $root.cordum.agent.v1.ResourceRef)
+                        return object;
+                    if (!$util.isObject(object))
+                        throw TypeError(".cordum.agent.v1.ResourceRef: object expected");
+                    if (long === undefined)
+                        long = 0;
+                    if (long > $util.recursionLimit)
+                        throw Error("maximum nesting depth exceeded");
+                    var message = new $root.cordum.agent.v1.ResourceRef();
+                    if (object.resolverId != null)
+                        message.resolverId = String(object.resolverId);
+                    if (object.uri != null)
+                        message.uri = String(object.uri);
+                    if (object.sha256 != null)
+                        if (typeof object.sha256 === "string")
+                            $util.base64.decode(object.sha256, message.sha256 = $util.newBuffer($util.base64.length(object.sha256)), 0);
+                        else if (object.sha256.length >= 0)
+                            message.sha256 = object.sha256;
+                    if (object.mediaType != null)
+                        message.mediaType = String(object.mediaType);
+                    if (object.sizeBytes != null)
+                        if ($util.Long)
+                            message.sizeBytes = $util.Long.fromValue(object.sizeBytes, true);
+                        else if (typeof object.sizeBytes === "string")
+                            message.sizeBytes = parseInt(object.sizeBytes, 10);
+                        else if (typeof object.sizeBytes === "number")
+                            message.sizeBytes = object.sizeBytes;
+                        else if (typeof object.sizeBytes === "object")
+                            message.sizeBytes = new $util.LongBits(object.sizeBytes.low >>> 0, object.sizeBytes.high >>> 0).toNumber(true);
+                    if (object.expiresAt != null) {
+                        if (!$util.isObject(object.expiresAt))
+                            throw TypeError(".cordum.agent.v1.ResourceRef.expiresAt: object expected");
+                        message.expiresAt = $root.google.protobuf.Timestamp.fromObject(object.expiresAt, long + 1);
+                    }
+                    if (object.purpose != null)
+                        message.purpose = String(object.purpose);
+                    return message;
+                };
+
+                /**
+                 * Creates a plain object from a ResourceRef message. Also converts values to other types if specified.
+                 * @function toObject
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @static
+                 * @param {cordum.agent.v1.ResourceRef} message ResourceRef
+                 * @param {$protobuf.IConversionOptions} [options] Conversion options
+                 * @returns {Object.<string,*>} Plain object
+                 */
+                ResourceRef.toObject = function toObject(message, options, q) {
+                    if (!options)
+                        options = {};
+                    if (q === undefined)
+                        q = 0;
+                    if (q > $util.recursionLimit)
+                        throw Error("max depth exceeded");
+                    var object = {};
+                    if (options.defaults) {
+                        object.resolverId = "";
+                        object.uri = "";
+                        if (options.bytes === String)
+                            object.sha256 = "";
+                        else {
+                            object.sha256 = [];
+                            if (options.bytes !== Array)
+                                object.sha256 = $util.newBuffer(object.sha256);
+                        }
+                        object.mediaType = "";
+                        if ($util.Long) {
+                            var long = new $util.Long(0, 0, true);
+                            object.sizeBytes = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : typeof BigInt !== "undefined" && options.longs === BigInt ? long.toBigInt() : long;
+                        } else
+                            object.sizeBytes = options.longs === String ? "0" : typeof BigInt !== "undefined" && options.longs === BigInt ? BigInt("0") : 0;
+                        object.expiresAt = null;
+                        object.purpose = "";
+                    }
+                    if (message.resolverId != null && Object.hasOwnProperty.call(message, "resolverId"))
+                        object.resolverId = message.resolverId;
+                    if (message.uri != null && Object.hasOwnProperty.call(message, "uri"))
+                        object.uri = message.uri;
+                    if (message.sha256 != null && Object.hasOwnProperty.call(message, "sha256"))
+                        object.sha256 = options.bytes === String ? $util.base64.encode(message.sha256, 0, message.sha256.length) : options.bytes === Array ? Array.prototype.slice.call(message.sha256) : message.sha256;
+                    if (message.mediaType != null && Object.hasOwnProperty.call(message, "mediaType"))
+                        object.mediaType = message.mediaType;
+                    if (message.sizeBytes != null && Object.hasOwnProperty.call(message, "sizeBytes"))
+                        if (typeof BigInt !== "undefined" && options.longs === BigInt)
+                            object.sizeBytes = typeof message.sizeBytes === "number" ? BigInt(message.sizeBytes) : $util.Long.fromBits(message.sizeBytes.low >>> 0, message.sizeBytes.high >>> 0, true).toBigInt();
+                        else if (typeof message.sizeBytes === "number")
+                            object.sizeBytes = options.longs === String ? String(message.sizeBytes) : message.sizeBytes;
+                        else
+                            object.sizeBytes = options.longs === String ? $util.Long.prototype.toString.call(message.sizeBytes) : options.longs === Number ? new $util.LongBits(message.sizeBytes.low >>> 0, message.sizeBytes.high >>> 0).toNumber(true) : message.sizeBytes;
+                    if (message.expiresAt != null && Object.hasOwnProperty.call(message, "expiresAt"))
+                        object.expiresAt = $root.google.protobuf.Timestamp.toObject(message.expiresAt, options, q + 1);
+                    if (message.purpose != null && Object.hasOwnProperty.call(message, "purpose"))
+                        object.purpose = message.purpose;
+                    return object;
+                };
+
+                /**
+                 * Converts this ResourceRef to JSON.
+                 * @function toJSON
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @instance
+                 * @returns {Object.<string,*>} JSON object
+                 */
+                ResourceRef.prototype.toJSON = function toJSON() {
+                    return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+                };
+
+                /**
+                 * Gets the default type url for ResourceRef
+                 * @function getTypeUrl
+                 * @memberof cordum.agent.v1.ResourceRef
+                 * @static
+                 * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns {string} The default type url
+                 */
+                ResourceRef.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+                    if (typeUrlPrefix === undefined) {
+                        typeUrlPrefix = "type.googleapis.com";
+                    }
+                    return typeUrlPrefix + "/cordum.agent.v1.ResourceRef";
+                };
+
+                return ResourceRef;
             })();
 
             /**
@@ -2114,6 +3510,9 @@ $root.cordum = (function() {
                  * @property {string|null} [principalId] Compensation principalId
                  * @property {Object.<string,string>|null} [labels] Compensation labels
                  * @property {cordum.agent.v1.IJobMetadata|null} [meta] Compensation meta
+                 * @property {cordum.agent.v1.IIdentityBinding|null} [identity] Compensation identity
+                 * @property {cordum.agent.v1.IDispatchIdentity|null} [dispatch] Compensation dispatch
+                 * @property {cordum.agent.v1.IResourceRef|null} [contextRef] Compensation contextRef
                  */
 
                 /**
@@ -2230,6 +3629,30 @@ $root.cordum = (function() {
                 Compensation.prototype.meta = null;
 
                 /**
+                 * Compensation identity.
+                 * @member {cordum.agent.v1.IIdentityBinding|null|undefined} identity
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.identity = null;
+
+                /**
+                 * Compensation dispatch.
+                 * @member {cordum.agent.v1.IDispatchIdentity|null|undefined} dispatch
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.dispatch = null;
+
+                /**
+                 * Compensation contextRef.
+                 * @member {cordum.agent.v1.IResourceRef|null|undefined} contextRef
+                 * @memberof cordum.agent.v1.Compensation
+                 * @instance
+                 */
+                Compensation.prototype.contextRef = null;
+
+                /**
                  * Creates a new Compensation instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.Compensation
@@ -2283,6 +3706,12 @@ $root.cordum = (function() {
                             writer.uint32(/* id 11, wireType 2 =*/90).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.labels[keys[i]]).ldelim();
                     if (message.meta != null && Object.hasOwnProperty.call(message, "meta"))
                         $root.cordum.agent.v1.JobMetadata.encode(message.meta, writer.uint32(/* id 12, wireType 2 =*/98).fork(), q + 1).ldelim();
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        $root.cordum.agent.v1.IdentityBinding.encode(message.identity, writer.uint32(/* id 13, wireType 2 =*/106).fork(), q + 1).ldelim();
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch"))
+                        $root.cordum.agent.v1.DispatchIdentity.encode(message.dispatch, writer.uint32(/* id 14, wireType 2 =*/114).fork(), q + 1).ldelim();
+                    if (message.contextRef != null && Object.hasOwnProperty.call(message, "contextRef"))
+                        $root.cordum.agent.v1.ResourceRef.encode(message.contextRef, writer.uint32(/* id 15, wireType 2 =*/122).fork(), q + 1).ldelim();
                     return writer;
                 };
 
@@ -2413,6 +3842,18 @@ $root.cordum = (function() {
                                 message.meta = $root.cordum.agent.v1.JobMetadata.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
+                        case 13: {
+                                message.identity = $root.cordum.agent.v1.IdentityBinding.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 14: {
+                                message.dispatch = $root.cordum.agent.v1.DispatchIdentity.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 15: {
+                                message.contextRef = $root.cordum.agent.v1.ResourceRef.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7, long);
                             break;
@@ -2511,6 +3952,21 @@ $root.cordum = (function() {
                         if (error)
                             return "meta." + error;
                     }
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity")) {
+                        var error = $root.cordum.agent.v1.IdentityBinding.verify(message.identity, long + 1);
+                        if (error)
+                            return "identity." + error;
+                    }
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch")) {
+                        var error = $root.cordum.agent.v1.DispatchIdentity.verify(message.dispatch, long + 1);
+                        if (error)
+                            return "dispatch." + error;
+                    }
+                    if (message.contextRef != null && Object.hasOwnProperty.call(message, "contextRef")) {
+                        var error = $root.cordum.agent.v1.ResourceRef.verify(message.contextRef, long + 1);
+                        if (error)
+                            return "contextRef." + error;
+                    }
                     return null;
                 };
 
@@ -2603,6 +4059,21 @@ $root.cordum = (function() {
                             throw TypeError(".cordum.agent.v1.Compensation.meta: object expected");
                         message.meta = $root.cordum.agent.v1.JobMetadata.fromObject(object.meta, long + 1);
                     }
+                    if (object.identity != null) {
+                        if (!$util.isObject(object.identity))
+                            throw TypeError(".cordum.agent.v1.Compensation.identity: object expected");
+                        message.identity = $root.cordum.agent.v1.IdentityBinding.fromObject(object.identity, long + 1);
+                    }
+                    if (object.dispatch != null) {
+                        if (!$util.isObject(object.dispatch))
+                            throw TypeError(".cordum.agent.v1.Compensation.dispatch: object expected");
+                        message.dispatch = $root.cordum.agent.v1.DispatchIdentity.fromObject(object.dispatch, long + 1);
+                    }
+                    if (object.contextRef != null) {
+                        if (!$util.isObject(object.contextRef))
+                            throw TypeError(".cordum.agent.v1.Compensation.contextRef: object expected");
+                        message.contextRef = $root.cordum.agent.v1.ResourceRef.fromObject(object.contextRef, long + 1);
+                    }
                     return message;
                 };
 
@@ -2638,6 +4109,9 @@ $root.cordum = (function() {
                         object.tenantId = "";
                         object.principalId = "";
                         object.meta = null;
+                        object.identity = null;
+                        object.dispatch = null;
+                        object.contextRef = null;
                     }
                     if (message.topic != null && Object.hasOwnProperty.call(message, "topic"))
                         object.topic = message.topic;
@@ -2676,6 +4150,12 @@ $root.cordum = (function() {
                     }
                     if (message.meta != null && Object.hasOwnProperty.call(message, "meta"))
                         object.meta = $root.cordum.agent.v1.JobMetadata.toObject(message.meta, options, q + 1);
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        object.identity = $root.cordum.agent.v1.IdentityBinding.toObject(message.identity, options, q + 1);
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch"))
+                        object.dispatch = $root.cordum.agent.v1.DispatchIdentity.toObject(message.dispatch, options, q + 1);
+                    if (message.contextRef != null && Object.hasOwnProperty.call(message, "contextRef"))
+                        object.contextRef = $root.cordum.agent.v1.ResourceRef.toObject(message.contextRef, options, q + 1);
                     return object;
                 };
 
@@ -2731,6 +4211,9 @@ $root.cordum = (function() {
                  * @property {Object.<string,string>|null} [labels] JobRequest labels
                  * @property {cordum.agent.v1.IJobMetadata|null} [meta] JobRequest meta
                  * @property {cordum.agent.v1.ICompensation|null} [compensation] JobRequest compensation
+                 * @property {cordum.agent.v1.IIdentityBinding|null} [identity] JobRequest identity
+                 * @property {cordum.agent.v1.IDispatchIdentity|null} [dispatch] JobRequest dispatch
+                 * @property {cordum.agent.v1.IResourceRef|null} [contextRef] JobRequest contextRef
                  */
 
                 /**
@@ -2887,6 +4370,30 @@ $root.cordum = (function() {
                 JobRequest.prototype.compensation = null;
 
                 /**
+                 * JobRequest identity.
+                 * @member {cordum.agent.v1.IIdentityBinding|null|undefined} identity
+                 * @memberof cordum.agent.v1.JobRequest
+                 * @instance
+                 */
+                JobRequest.prototype.identity = null;
+
+                /**
+                 * JobRequest dispatch.
+                 * @member {cordum.agent.v1.IDispatchIdentity|null|undefined} dispatch
+                 * @memberof cordum.agent.v1.JobRequest
+                 * @instance
+                 */
+                JobRequest.prototype.dispatch = null;
+
+                /**
+                 * JobRequest contextRef.
+                 * @member {cordum.agent.v1.IResourceRef|null|undefined} contextRef
+                 * @memberof cordum.agent.v1.JobRequest
+                 * @instance
+                 */
+                JobRequest.prototype.contextRef = null;
+
+                /**
                  * Creates a new JobRequest instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.JobRequest
@@ -2950,6 +4457,12 @@ $root.cordum = (function() {
                         $root.cordum.agent.v1.JobMetadata.encode(message.meta, writer.uint32(/* id 16, wireType 2 =*/130).fork(), q + 1).ldelim();
                     if (message.compensation != null && Object.hasOwnProperty.call(message, "compensation"))
                         $root.cordum.agent.v1.Compensation.encode(message.compensation, writer.uint32(/* id 17, wireType 2 =*/138).fork(), q + 1).ldelim();
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        $root.cordum.agent.v1.IdentityBinding.encode(message.identity, writer.uint32(/* id 18, wireType 2 =*/146).fork(), q + 1).ldelim();
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch"))
+                        $root.cordum.agent.v1.DispatchIdentity.encode(message.dispatch, writer.uint32(/* id 19, wireType 2 =*/154).fork(), q + 1).ldelim();
+                    if (message.contextRef != null && Object.hasOwnProperty.call(message, "contextRef"))
+                        $root.cordum.agent.v1.ResourceRef.encode(message.contextRef, writer.uint32(/* id 20, wireType 2 =*/162).fork(), q + 1).ldelim();
                     return writer;
                 };
 
@@ -3100,6 +4613,18 @@ $root.cordum = (function() {
                                 message.compensation = $root.cordum.agent.v1.Compensation.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
+                        case 18: {
+                                message.identity = $root.cordum.agent.v1.IdentityBinding.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 19: {
+                                message.dispatch = $root.cordum.agent.v1.DispatchIdentity.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 20: {
+                                message.contextRef = $root.cordum.agent.v1.ResourceRef.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7, long);
                             break;
@@ -3215,6 +4740,21 @@ $root.cordum = (function() {
                         if (error)
                             return "compensation." + error;
                     }
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity")) {
+                        var error = $root.cordum.agent.v1.IdentityBinding.verify(message.identity, long + 1);
+                        if (error)
+                            return "identity." + error;
+                    }
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch")) {
+                        var error = $root.cordum.agent.v1.DispatchIdentity.verify(message.dispatch, long + 1);
+                        if (error)
+                            return "dispatch." + error;
+                    }
+                    if (message.contextRef != null && Object.hasOwnProperty.call(message, "contextRef")) {
+                        var error = $root.cordum.agent.v1.ResourceRef.verify(message.contextRef, long + 1);
+                        if (error)
+                            return "contextRef." + error;
+                    }
                     return null;
                 };
 
@@ -3320,6 +4860,21 @@ $root.cordum = (function() {
                             throw TypeError(".cordum.agent.v1.JobRequest.compensation: object expected");
                         message.compensation = $root.cordum.agent.v1.Compensation.fromObject(object.compensation, long + 1);
                     }
+                    if (object.identity != null) {
+                        if (!$util.isObject(object.identity))
+                            throw TypeError(".cordum.agent.v1.JobRequest.identity: object expected");
+                        message.identity = $root.cordum.agent.v1.IdentityBinding.fromObject(object.identity, long + 1);
+                    }
+                    if (object.dispatch != null) {
+                        if (!$util.isObject(object.dispatch))
+                            throw TypeError(".cordum.agent.v1.JobRequest.dispatch: object expected");
+                        message.dispatch = $root.cordum.agent.v1.DispatchIdentity.fromObject(object.dispatch, long + 1);
+                    }
+                    if (object.contextRef != null) {
+                        if (!$util.isObject(object.contextRef))
+                            throw TypeError(".cordum.agent.v1.JobRequest.contextRef: object expected");
+                        message.contextRef = $root.cordum.agent.v1.ResourceRef.fromObject(object.contextRef, long + 1);
+                    }
                     return message;
                 };
 
@@ -3360,6 +4915,9 @@ $root.cordum = (function() {
                         object.principalId = "";
                         object.meta = null;
                         object.compensation = null;
+                        object.identity = null;
+                        object.dispatch = null;
+                        object.contextRef = null;
                     }
                     if (message.jobId != null && Object.hasOwnProperty.call(message, "jobId"))
                         object.jobId = message.jobId;
@@ -3408,6 +4966,12 @@ $root.cordum = (function() {
                         object.meta = $root.cordum.agent.v1.JobMetadata.toObject(message.meta, options, q + 1);
                     if (message.compensation != null && Object.hasOwnProperty.call(message, "compensation"))
                         object.compensation = $root.cordum.agent.v1.Compensation.toObject(message.compensation, options, q + 1);
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        object.identity = $root.cordum.agent.v1.IdentityBinding.toObject(message.identity, options, q + 1);
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch"))
+                        object.dispatch = $root.cordum.agent.v1.DispatchIdentity.toObject(message.dispatch, options, q + 1);
+                    if (message.contextRef != null && Object.hasOwnProperty.call(message, "contextRef"))
+                        object.contextRef = $root.cordum.agent.v1.ResourceRef.toObject(message.contextRef, options, q + 1);
                     return object;
                 };
 
@@ -3455,6 +5019,10 @@ $root.cordum = (function() {
                  * @property {string|null} [errorMessage] JobResult errorMessage
                  * @property {Array.<string>|null} [artifactPtrs] JobResult artifactPtrs
                  * @property {cordum.agent.v1.ErrorCode|null} [errorCodeEnum] JobResult errorCodeEnum
+                 * @property {cordum.agent.v1.IDispatchIdentity|null} [dispatch] JobResult dispatch
+                 * @property {cordum.agent.v1.IIdentityBinding|null} [identity] JobResult identity
+                 * @property {cordum.agent.v1.IResourceRef|null} [resultRef] JobResult resultRef
+                 * @property {Array.<cordum.agent.v1.IResourceRef>|null} [artifactRefs] JobResult artifactRefs
                  */
 
                 /**
@@ -3467,6 +5035,7 @@ $root.cordum = (function() {
                  */
                 function JobResult(properties) {
                     this.artifactPtrs = [];
+                    this.artifactRefs = [];
                     if (properties)
                         for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null && keys[i] !== "__proto__")
@@ -3546,6 +5115,38 @@ $root.cordum = (function() {
                 JobResult.prototype.errorCodeEnum = 0;
 
                 /**
+                 * JobResult dispatch.
+                 * @member {cordum.agent.v1.IDispatchIdentity|null|undefined} dispatch
+                 * @memberof cordum.agent.v1.JobResult
+                 * @instance
+                 */
+                JobResult.prototype.dispatch = null;
+
+                /**
+                 * JobResult identity.
+                 * @member {cordum.agent.v1.IIdentityBinding|null|undefined} identity
+                 * @memberof cordum.agent.v1.JobResult
+                 * @instance
+                 */
+                JobResult.prototype.identity = null;
+
+                /**
+                 * JobResult resultRef.
+                 * @member {cordum.agent.v1.IResourceRef|null|undefined} resultRef
+                 * @memberof cordum.agent.v1.JobResult
+                 * @instance
+                 */
+                JobResult.prototype.resultRef = null;
+
+                /**
+                 * JobResult artifactRefs.
+                 * @member {Array.<cordum.agent.v1.IResourceRef>} artifactRefs
+                 * @memberof cordum.agent.v1.JobResult
+                 * @instance
+                 */
+                JobResult.prototype.artifactRefs = $util.emptyArray;
+
+                /**
                  * Creates a new JobResult instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.JobResult
@@ -3592,6 +5193,15 @@ $root.cordum = (function() {
                             writer.uint32(/* id 8, wireType 2 =*/66).string(message.artifactPtrs[i]);
                     if (message.errorCodeEnum != null && Object.hasOwnProperty.call(message, "errorCodeEnum"))
                         writer.uint32(/* id 9, wireType 0 =*/72).int32(message.errorCodeEnum);
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch"))
+                        $root.cordum.agent.v1.DispatchIdentity.encode(message.dispatch, writer.uint32(/* id 10, wireType 2 =*/82).fork(), q + 1).ldelim();
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        $root.cordum.agent.v1.IdentityBinding.encode(message.identity, writer.uint32(/* id 11, wireType 2 =*/90).fork(), q + 1).ldelim();
+                    if (message.resultRef != null && Object.hasOwnProperty.call(message, "resultRef"))
+                        $root.cordum.agent.v1.ResourceRef.encode(message.resultRef, writer.uint32(/* id 12, wireType 2 =*/98).fork(), q + 1).ldelim();
+                    if (message.artifactRefs != null && message.artifactRefs.length)
+                        for (var i = 0; i < message.artifactRefs.length; ++i)
+                            $root.cordum.agent.v1.ResourceRef.encode(message.artifactRefs[i], writer.uint32(/* id 13, wireType 2 =*/106).fork(), q + 1).ldelim();
                     return writer;
                 };
 
@@ -3668,6 +5278,24 @@ $root.cordum = (function() {
                             }
                         case 9: {
                                 message.errorCodeEnum = reader.int32();
+                                break;
+                            }
+                        case 10: {
+                                message.dispatch = $root.cordum.agent.v1.DispatchIdentity.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 11: {
+                                message.identity = $root.cordum.agent.v1.IdentityBinding.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 12: {
+                                message.resultRef = $root.cordum.agent.v1.ResourceRef.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 13: {
+                                if (!(message.artifactRefs && message.artifactRefs.length))
+                                    message.artifactRefs = [];
+                                message.artifactRefs.push($root.cordum.agent.v1.ResourceRef.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
@@ -3777,6 +5405,30 @@ $root.cordum = (function() {
                         case 402:
                             break;
                         }
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch")) {
+                        var error = $root.cordum.agent.v1.DispatchIdentity.verify(message.dispatch, long + 1);
+                        if (error)
+                            return "dispatch." + error;
+                    }
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity")) {
+                        var error = $root.cordum.agent.v1.IdentityBinding.verify(message.identity, long + 1);
+                        if (error)
+                            return "identity." + error;
+                    }
+                    if (message.resultRef != null && Object.hasOwnProperty.call(message, "resultRef")) {
+                        var error = $root.cordum.agent.v1.ResourceRef.verify(message.resultRef, long + 1);
+                        if (error)
+                            return "resultRef." + error;
+                    }
+                    if (message.artifactRefs != null && Object.hasOwnProperty.call(message, "artifactRefs")) {
+                        if (!Array.isArray(message.artifactRefs))
+                            return "artifactRefs: array expected";
+                        for (var i = 0; i < message.artifactRefs.length; ++i) {
+                            var error = $root.cordum.agent.v1.ResourceRef.verify(message.artifactRefs[i], long + 1);
+                            if (error)
+                                return "artifactRefs." + error;
+                        }
+                    }
                     return null;
                 };
 
@@ -3964,6 +5616,31 @@ $root.cordum = (function() {
                         message.errorCodeEnum = 402;
                         break;
                     }
+                    if (object.dispatch != null) {
+                        if (!$util.isObject(object.dispatch))
+                            throw TypeError(".cordum.agent.v1.JobResult.dispatch: object expected");
+                        message.dispatch = $root.cordum.agent.v1.DispatchIdentity.fromObject(object.dispatch, long + 1);
+                    }
+                    if (object.identity != null) {
+                        if (!$util.isObject(object.identity))
+                            throw TypeError(".cordum.agent.v1.JobResult.identity: object expected");
+                        message.identity = $root.cordum.agent.v1.IdentityBinding.fromObject(object.identity, long + 1);
+                    }
+                    if (object.resultRef != null) {
+                        if (!$util.isObject(object.resultRef))
+                            throw TypeError(".cordum.agent.v1.JobResult.resultRef: object expected");
+                        message.resultRef = $root.cordum.agent.v1.ResourceRef.fromObject(object.resultRef, long + 1);
+                    }
+                    if (object.artifactRefs) {
+                        if (!Array.isArray(object.artifactRefs))
+                            throw TypeError(".cordum.agent.v1.JobResult.artifactRefs: array expected");
+                        message.artifactRefs = [];
+                        for (var i = 0; i < object.artifactRefs.length; ++i) {
+                            if (!$util.isObject(object.artifactRefs[i]))
+                                throw TypeError(".cordum.agent.v1.JobResult.artifactRefs: object expected");
+                            message.artifactRefs[i] = $root.cordum.agent.v1.ResourceRef.fromObject(object.artifactRefs[i], long + 1);
+                        }
+                    }
                     return message;
                 };
 
@@ -3984,8 +5661,10 @@ $root.cordum = (function() {
                     if (q > $util.recursionLimit)
                         throw Error("max depth exceeded");
                     var object = {};
-                    if (options.arrays || options.defaults)
+                    if (options.arrays || options.defaults) {
                         object.artifactPtrs = [];
+                        object.artifactRefs = [];
+                    }
                     if (options.defaults) {
                         object.jobId = "";
                         object.status = options.enums === String ? "JOB_STATUS_UNSPECIFIED" : 0;
@@ -3999,6 +5678,9 @@ $root.cordum = (function() {
                         object.errorCode = "";
                         object.errorMessage = "";
                         object.errorCodeEnum = options.enums === String ? "ERROR_CODE_UNSPECIFIED" : 0;
+                        object.dispatch = null;
+                        object.identity = null;
+                        object.resultRef = null;
                     }
                     if (message.jobId != null && Object.hasOwnProperty.call(message, "jobId"))
                         object.jobId = message.jobId;
@@ -4026,6 +5708,17 @@ $root.cordum = (function() {
                     }
                     if (message.errorCodeEnum != null && Object.hasOwnProperty.call(message, "errorCodeEnum"))
                         object.errorCodeEnum = options.enums === String ? $root.cordum.agent.v1.ErrorCode[message.errorCodeEnum] === undefined ? message.errorCodeEnum : $root.cordum.agent.v1.ErrorCode[message.errorCodeEnum] : message.errorCodeEnum;
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch"))
+                        object.dispatch = $root.cordum.agent.v1.DispatchIdentity.toObject(message.dispatch, options, q + 1);
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        object.identity = $root.cordum.agent.v1.IdentityBinding.toObject(message.identity, options, q + 1);
+                    if (message.resultRef != null && Object.hasOwnProperty.call(message, "resultRef"))
+                        object.resultRef = $root.cordum.agent.v1.ResourceRef.toObject(message.resultRef, options, q + 1);
+                    if (message.artifactRefs && message.artifactRefs.length) {
+                        object.artifactRefs = [];
+                        for (var j = 0; j < message.artifactRefs.length; ++j)
+                            object.artifactRefs[j] = $root.cordum.agent.v1.ResourceRef.toObject(message.artifactRefs[j], options, q + 1);
+                    }
                     return object;
                 };
 
@@ -4071,6 +5764,10 @@ $root.cordum = (function() {
                  * @property {string|null} [resultPtr] JobProgress resultPtr
                  * @property {Array.<string>|null} [artifactPtrs] JobProgress artifactPtrs
                  * @property {cordum.agent.v1.JobStatus|null} [status] JobProgress status
+                 * @property {cordum.agent.v1.IDispatchIdentity|null} [dispatch] JobProgress dispatch
+                 * @property {cordum.agent.v1.IIdentityBinding|null} [identity] JobProgress identity
+                 * @property {cordum.agent.v1.IResourceRef|null} [resultRef] JobProgress resultRef
+                 * @property {Array.<cordum.agent.v1.IResourceRef>|null} [artifactRefs] JobProgress artifactRefs
                  */
 
                 /**
@@ -4083,6 +5780,7 @@ $root.cordum = (function() {
                  */
                 function JobProgress(properties) {
                     this.artifactPtrs = [];
+                    this.artifactRefs = [];
                     if (properties)
                         for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                             if (properties[keys[i]] != null && keys[i] !== "__proto__")
@@ -4146,6 +5844,38 @@ $root.cordum = (function() {
                 JobProgress.prototype.status = 0;
 
                 /**
+                 * JobProgress dispatch.
+                 * @member {cordum.agent.v1.IDispatchIdentity|null|undefined} dispatch
+                 * @memberof cordum.agent.v1.JobProgress
+                 * @instance
+                 */
+                JobProgress.prototype.dispatch = null;
+
+                /**
+                 * JobProgress identity.
+                 * @member {cordum.agent.v1.IIdentityBinding|null|undefined} identity
+                 * @memberof cordum.agent.v1.JobProgress
+                 * @instance
+                 */
+                JobProgress.prototype.identity = null;
+
+                /**
+                 * JobProgress resultRef.
+                 * @member {cordum.agent.v1.IResourceRef|null|undefined} resultRef
+                 * @memberof cordum.agent.v1.JobProgress
+                 * @instance
+                 */
+                JobProgress.prototype.resultRef = null;
+
+                /**
+                 * JobProgress artifactRefs.
+                 * @member {Array.<cordum.agent.v1.IResourceRef>} artifactRefs
+                 * @memberof cordum.agent.v1.JobProgress
+                 * @instance
+                 */
+                JobProgress.prototype.artifactRefs = $util.emptyArray;
+
+                /**
                  * Creates a new JobProgress instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.JobProgress
@@ -4188,6 +5918,15 @@ $root.cordum = (function() {
                             writer.uint32(/* id 6, wireType 2 =*/50).string(message.artifactPtrs[i]);
                     if (message.status != null && Object.hasOwnProperty.call(message, "status"))
                         writer.uint32(/* id 7, wireType 0 =*/56).int32(message.status);
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch"))
+                        $root.cordum.agent.v1.DispatchIdentity.encode(message.dispatch, writer.uint32(/* id 8, wireType 2 =*/66).fork(), q + 1).ldelim();
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        $root.cordum.agent.v1.IdentityBinding.encode(message.identity, writer.uint32(/* id 9, wireType 2 =*/74).fork(), q + 1).ldelim();
+                    if (message.resultRef != null && Object.hasOwnProperty.call(message, "resultRef"))
+                        $root.cordum.agent.v1.ResourceRef.encode(message.resultRef, writer.uint32(/* id 10, wireType 2 =*/82).fork(), q + 1).ldelim();
+                    if (message.artifactRefs != null && message.artifactRefs.length)
+                        for (var i = 0; i < message.artifactRefs.length; ++i)
+                            $root.cordum.agent.v1.ResourceRef.encode(message.artifactRefs[i], writer.uint32(/* id 11, wireType 2 =*/90).fork(), q + 1).ldelim();
                     return writer;
                 };
 
@@ -4256,6 +5995,24 @@ $root.cordum = (function() {
                             }
                         case 7: {
                                 message.status = reader.int32();
+                                break;
+                            }
+                        case 8: {
+                                message.dispatch = $root.cordum.agent.v1.DispatchIdentity.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 9: {
+                                message.identity = $root.cordum.agent.v1.IdentityBinding.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 10: {
+                                message.resultRef = $root.cordum.agent.v1.ResourceRef.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 11: {
+                                if (!(message.artifactRefs && message.artifactRefs.length))
+                                    message.artifactRefs = [];
+                                message.artifactRefs.push($root.cordum.agent.v1.ResourceRef.decode(reader, reader.uint32(), undefined, long + 1));
                                 break;
                             }
                         default:
@@ -4337,6 +6094,30 @@ $root.cordum = (function() {
                         case 11:
                             break;
                         }
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch")) {
+                        var error = $root.cordum.agent.v1.DispatchIdentity.verify(message.dispatch, long + 1);
+                        if (error)
+                            return "dispatch." + error;
+                    }
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity")) {
+                        var error = $root.cordum.agent.v1.IdentityBinding.verify(message.identity, long + 1);
+                        if (error)
+                            return "identity." + error;
+                    }
+                    if (message.resultRef != null && Object.hasOwnProperty.call(message, "resultRef")) {
+                        var error = $root.cordum.agent.v1.ResourceRef.verify(message.resultRef, long + 1);
+                        if (error)
+                            return "resultRef." + error;
+                    }
+                    if (message.artifactRefs != null && Object.hasOwnProperty.call(message, "artifactRefs")) {
+                        if (!Array.isArray(message.artifactRefs))
+                            return "artifactRefs: array expected";
+                        for (var i = 0; i < message.artifactRefs.length; ++i) {
+                            var error = $root.cordum.agent.v1.ResourceRef.verify(message.artifactRefs[i], long + 1);
+                            if (error)
+                                return "artifactRefs." + error;
+                        }
+                    }
                     return null;
                 };
 
@@ -4431,6 +6212,31 @@ $root.cordum = (function() {
                         message.status = 11;
                         break;
                     }
+                    if (object.dispatch != null) {
+                        if (!$util.isObject(object.dispatch))
+                            throw TypeError(".cordum.agent.v1.JobProgress.dispatch: object expected");
+                        message.dispatch = $root.cordum.agent.v1.DispatchIdentity.fromObject(object.dispatch, long + 1);
+                    }
+                    if (object.identity != null) {
+                        if (!$util.isObject(object.identity))
+                            throw TypeError(".cordum.agent.v1.JobProgress.identity: object expected");
+                        message.identity = $root.cordum.agent.v1.IdentityBinding.fromObject(object.identity, long + 1);
+                    }
+                    if (object.resultRef != null) {
+                        if (!$util.isObject(object.resultRef))
+                            throw TypeError(".cordum.agent.v1.JobProgress.resultRef: object expected");
+                        message.resultRef = $root.cordum.agent.v1.ResourceRef.fromObject(object.resultRef, long + 1);
+                    }
+                    if (object.artifactRefs) {
+                        if (!Array.isArray(object.artifactRefs))
+                            throw TypeError(".cordum.agent.v1.JobProgress.artifactRefs: array expected");
+                        message.artifactRefs = [];
+                        for (var i = 0; i < object.artifactRefs.length; ++i) {
+                            if (!$util.isObject(object.artifactRefs[i]))
+                                throw TypeError(".cordum.agent.v1.JobProgress.artifactRefs: object expected");
+                            message.artifactRefs[i] = $root.cordum.agent.v1.ResourceRef.fromObject(object.artifactRefs[i], long + 1);
+                        }
+                    }
                     return message;
                 };
 
@@ -4451,8 +6257,10 @@ $root.cordum = (function() {
                     if (q > $util.recursionLimit)
                         throw Error("max depth exceeded");
                     var object = {};
-                    if (options.arrays || options.defaults)
+                    if (options.arrays || options.defaults) {
                         object.artifactPtrs = [];
+                        object.artifactRefs = [];
+                    }
                     if (options.defaults) {
                         object.jobId = "";
                         object.stepId = "";
@@ -4460,6 +6268,9 @@ $root.cordum = (function() {
                         object.message = "";
                         object.resultPtr = "";
                         object.status = options.enums === String ? "JOB_STATUS_UNSPECIFIED" : 0;
+                        object.dispatch = null;
+                        object.identity = null;
+                        object.resultRef = null;
                     }
                     if (message.jobId != null && Object.hasOwnProperty.call(message, "jobId"))
                         object.jobId = message.jobId;
@@ -4478,6 +6289,17 @@ $root.cordum = (function() {
                     }
                     if (message.status != null && Object.hasOwnProperty.call(message, "status"))
                         object.status = options.enums === String ? $root.cordum.agent.v1.JobStatus[message.status] === undefined ? message.status : $root.cordum.agent.v1.JobStatus[message.status] : message.status;
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch"))
+                        object.dispatch = $root.cordum.agent.v1.DispatchIdentity.toObject(message.dispatch, options, q + 1);
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        object.identity = $root.cordum.agent.v1.IdentityBinding.toObject(message.identity, options, q + 1);
+                    if (message.resultRef != null && Object.hasOwnProperty.call(message, "resultRef"))
+                        object.resultRef = $root.cordum.agent.v1.ResourceRef.toObject(message.resultRef, options, q + 1);
+                    if (message.artifactRefs && message.artifactRefs.length) {
+                        object.artifactRefs = [];
+                        for (var j = 0; j < message.artifactRefs.length; ++j)
+                            object.artifactRefs[j] = $root.cordum.agent.v1.ResourceRef.toObject(message.artifactRefs[j], options, q + 1);
+                    }
                     return object;
                 };
 
@@ -4519,6 +6341,8 @@ $root.cordum = (function() {
                  * @property {string|null} [jobId] JobCancel jobId
                  * @property {string|null} [reason] JobCancel reason
                  * @property {string|null} [requestedBy] JobCancel requestedBy
+                 * @property {cordum.agent.v1.IDispatchIdentity|null} [dispatch] JobCancel dispatch
+                 * @property {cordum.agent.v1.IIdentityBinding|null} [identity] JobCancel identity
                  */
 
                 /**
@@ -4561,6 +6385,22 @@ $root.cordum = (function() {
                 JobCancel.prototype.requestedBy = "";
 
                 /**
+                 * JobCancel dispatch.
+                 * @member {cordum.agent.v1.IDispatchIdentity|null|undefined} dispatch
+                 * @memberof cordum.agent.v1.JobCancel
+                 * @instance
+                 */
+                JobCancel.prototype.dispatch = null;
+
+                /**
+                 * JobCancel identity.
+                 * @member {cordum.agent.v1.IIdentityBinding|null|undefined} identity
+                 * @memberof cordum.agent.v1.JobCancel
+                 * @instance
+                 */
+                JobCancel.prototype.identity = null;
+
+                /**
                  * Creates a new JobCancel instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.JobCancel
@@ -4594,6 +6434,10 @@ $root.cordum = (function() {
                         writer.uint32(/* id 2, wireType 2 =*/18).string(message.reason);
                     if (message.requestedBy != null && Object.hasOwnProperty.call(message, "requestedBy"))
                         writer.uint32(/* id 3, wireType 2 =*/26).string(message.requestedBy);
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch"))
+                        $root.cordum.agent.v1.DispatchIdentity.encode(message.dispatch, writer.uint32(/* id 4, wireType 2 =*/34).fork(), q + 1).ldelim();
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        $root.cordum.agent.v1.IdentityBinding.encode(message.identity, writer.uint32(/* id 5, wireType 2 =*/42).fork(), q + 1).ldelim();
                     return writer;
                 };
 
@@ -4646,6 +6490,14 @@ $root.cordum = (function() {
                                 message.requestedBy = reader.string();
                                 break;
                             }
+                        case 4: {
+                                message.dispatch = $root.cordum.agent.v1.DispatchIdentity.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 5: {
+                                message.identity = $root.cordum.agent.v1.IdentityBinding.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7, long);
                             break;
@@ -4694,6 +6546,16 @@ $root.cordum = (function() {
                     if (message.requestedBy != null && Object.hasOwnProperty.call(message, "requestedBy"))
                         if (!$util.isString(message.requestedBy))
                             return "requestedBy: string expected";
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch")) {
+                        var error = $root.cordum.agent.v1.DispatchIdentity.verify(message.dispatch, long + 1);
+                        if (error)
+                            return "dispatch." + error;
+                    }
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity")) {
+                        var error = $root.cordum.agent.v1.IdentityBinding.verify(message.identity, long + 1);
+                        if (error)
+                            return "identity." + error;
+                    }
                     return null;
                 };
 
@@ -4721,6 +6583,16 @@ $root.cordum = (function() {
                         message.reason = String(object.reason);
                     if (object.requestedBy != null)
                         message.requestedBy = String(object.requestedBy);
+                    if (object.dispatch != null) {
+                        if (!$util.isObject(object.dispatch))
+                            throw TypeError(".cordum.agent.v1.JobCancel.dispatch: object expected");
+                        message.dispatch = $root.cordum.agent.v1.DispatchIdentity.fromObject(object.dispatch, long + 1);
+                    }
+                    if (object.identity != null) {
+                        if (!$util.isObject(object.identity))
+                            throw TypeError(".cordum.agent.v1.JobCancel.identity: object expected");
+                        message.identity = $root.cordum.agent.v1.IdentityBinding.fromObject(object.identity, long + 1);
+                    }
                     return message;
                 };
 
@@ -4745,6 +6617,8 @@ $root.cordum = (function() {
                         object.jobId = "";
                         object.reason = "";
                         object.requestedBy = "";
+                        object.dispatch = null;
+                        object.identity = null;
                     }
                     if (message.jobId != null && Object.hasOwnProperty.call(message, "jobId"))
                         object.jobId = message.jobId;
@@ -4752,6 +6626,10 @@ $root.cordum = (function() {
                         object.reason = message.reason;
                     if (message.requestedBy != null && Object.hasOwnProperty.call(message, "requestedBy"))
                         object.requestedBy = message.requestedBy;
+                    if (message.dispatch != null && Object.hasOwnProperty.call(message, "dispatch"))
+                        object.dispatch = $root.cordum.agent.v1.DispatchIdentity.toObject(message.dispatch, options, q + 1);
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        object.identity = $root.cordum.agent.v1.IdentityBinding.toObject(message.identity, options, q + 1);
                     return object;
                 };
 
@@ -13283,6 +15161,8 @@ $root.cordum = (function() {
                  * @property {string|null} [memoryId] PolicyCheckRequest memoryId
                  * @property {Uint8Array|null} [effectiveConfig] PolicyCheckRequest effectiveConfig
                  * @property {cordum.agent.v1.IJobMetadata|null} [meta] PolicyCheckRequest meta
+                 * @property {cordum.agent.v1.IIdentityBinding|null} [identity] PolicyCheckRequest identity
+                 * @property {cordum.agent.v1.IResourceRef|null} [inputRef] PolicyCheckRequest inputRef
                  * @property {Uint8Array|null} [inputContent] PolicyCheckRequest inputContent
                  * @property {string|null} [inputContentType] PolicyCheckRequest inputContentType
                  * @property {number|Long|null} [inputSizeBytes] PolicyCheckRequest inputSizeBytes
@@ -13393,6 +15273,22 @@ $root.cordum = (function() {
                 PolicyCheckRequest.prototype.meta = null;
 
                 /**
+                 * PolicyCheckRequest identity.
+                 * @member {cordum.agent.v1.IIdentityBinding|null|undefined} identity
+                 * @memberof cordum.agent.v1.PolicyCheckRequest
+                 * @instance
+                 */
+                PolicyCheckRequest.prototype.identity = null;
+
+                /**
+                 * PolicyCheckRequest inputRef.
+                 * @member {cordum.agent.v1.IResourceRef|null|undefined} inputRef
+                 * @memberof cordum.agent.v1.PolicyCheckRequest
+                 * @instance
+                 */
+                PolicyCheckRequest.prototype.inputRef = null;
+
+                /**
                  * PolicyCheckRequest inputContent.
                  * @member {Uint8Array} inputContent
                  * @memberof cordum.agent.v1.PolicyCheckRequest
@@ -13467,6 +15363,10 @@ $root.cordum = (function() {
                         writer.uint32(/* id 10, wireType 2 =*/82).bytes(message.effectiveConfig);
                     if (message.meta != null && Object.hasOwnProperty.call(message, "meta"))
                         $root.cordum.agent.v1.JobMetadata.encode(message.meta, writer.uint32(/* id 11, wireType 2 =*/90).fork(), q + 1).ldelim();
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        $root.cordum.agent.v1.IdentityBinding.encode(message.identity, writer.uint32(/* id 12, wireType 2 =*/98).fork(), q + 1).ldelim();
+                    if (message.inputRef != null && Object.hasOwnProperty.call(message, "inputRef"))
+                        $root.cordum.agent.v1.ResourceRef.encode(message.inputRef, writer.uint32(/* id 13, wireType 2 =*/106).fork(), q + 1).ldelim();
                     if (message.inputContent != null && Object.hasOwnProperty.call(message, "inputContent"))
                         writer.uint32(/* id 20, wireType 2 =*/162).bytes(message.inputContent);
                     if (message.inputContentType != null && Object.hasOwnProperty.call(message, "inputContentType"))
@@ -13578,6 +15478,14 @@ $root.cordum = (function() {
                                 message.meta = $root.cordum.agent.v1.JobMetadata.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
+                        case 12: {
+                                message.identity = $root.cordum.agent.v1.IdentityBinding.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 13: {
+                                message.inputRef = $root.cordum.agent.v1.ResourceRef.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
                         case 20: {
                                 message.inputContent = reader.bytes();
                                 break;
@@ -13678,6 +15586,16 @@ $root.cordum = (function() {
                         if (error)
                             return "meta." + error;
                     }
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity")) {
+                        var error = $root.cordum.agent.v1.IdentityBinding.verify(message.identity, long + 1);
+                        if (error)
+                            return "identity." + error;
+                    }
+                    if (message.inputRef != null && Object.hasOwnProperty.call(message, "inputRef")) {
+                        var error = $root.cordum.agent.v1.ResourceRef.verify(message.inputRef, long + 1);
+                        if (error)
+                            return "inputRef." + error;
+                    }
                     if (message.inputContent != null && Object.hasOwnProperty.call(message, "inputContent"))
                         if (!(message.inputContent && typeof message.inputContent.length === "number" || $util.isString(message.inputContent)))
                             return "inputContent: buffer expected";
@@ -13769,6 +15687,16 @@ $root.cordum = (function() {
                             throw TypeError(".cordum.agent.v1.PolicyCheckRequest.meta: object expected");
                         message.meta = $root.cordum.agent.v1.JobMetadata.fromObject(object.meta, long + 1);
                     }
+                    if (object.identity != null) {
+                        if (!$util.isObject(object.identity))
+                            throw TypeError(".cordum.agent.v1.PolicyCheckRequest.identity: object expected");
+                        message.identity = $root.cordum.agent.v1.IdentityBinding.fromObject(object.identity, long + 1);
+                    }
+                    if (object.inputRef != null) {
+                        if (!$util.isObject(object.inputRef))
+                            throw TypeError(".cordum.agent.v1.PolicyCheckRequest.inputRef: object expected");
+                        message.inputRef = $root.cordum.agent.v1.ResourceRef.fromObject(object.inputRef, long + 1);
+                    }
                     if (object.inputContent != null)
                         if (typeof object.inputContent === "string")
                             $util.base64.decode(object.inputContent, message.inputContent = $util.newBuffer($util.base64.length(object.inputContent)), 0);
@@ -13824,6 +15752,8 @@ $root.cordum = (function() {
                                 object.effectiveConfig = $util.newBuffer(object.effectiveConfig);
                         }
                         object.meta = null;
+                        object.identity = null;
+                        object.inputRef = null;
                         if (options.bytes === String)
                             object.inputContent = "";
                         else {
@@ -13867,6 +15797,10 @@ $root.cordum = (function() {
                         object.effectiveConfig = options.bytes === String ? $util.base64.encode(message.effectiveConfig, 0, message.effectiveConfig.length) : options.bytes === Array ? Array.prototype.slice.call(message.effectiveConfig) : message.effectiveConfig;
                     if (message.meta != null && Object.hasOwnProperty.call(message, "meta"))
                         object.meta = $root.cordum.agent.v1.JobMetadata.toObject(message.meta, options, q + 1);
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        object.identity = $root.cordum.agent.v1.IdentityBinding.toObject(message.identity, options, q + 1);
+                    if (message.inputRef != null && Object.hasOwnProperty.call(message, "inputRef"))
+                        object.inputRef = $root.cordum.agent.v1.ResourceRef.toObject(message.inputRef, options, q + 1);
                     if (message.inputContent != null && Object.hasOwnProperty.call(message, "inputContent"))
                         object.inputContent = options.bytes === String ? $util.base64.encode(message.inputContent, 0, message.inputContent.length) : options.bytes === Array ? Array.prototype.slice.call(message.inputContent) : message.inputContent;
                     if (message.inputContentType != null && Object.hasOwnProperty.call(message, "inputContentType"))
@@ -15941,6 +17875,8 @@ $root.cordum = (function() {
                  * @property {boolean|null} [approvalRequired] PolicyCheckResponse approvalRequired
                  * @property {string|null} [approvalRef] PolicyCheckResponse approvalRef
                  * @property {Array.<cordum.agent.v1.IPolicyRemediation>|null} [remediations] PolicyCheckResponse remediations
+                 * @property {cordum.agent.v1.IResourceRef|null} [redactedContextRef] PolicyCheckResponse redactedContextRef
+                 * @property {cordum.agent.v1.IIdentityBinding|null} [identity] PolicyCheckResponse identity
                  */
 
                 /**
@@ -16032,6 +17968,22 @@ $root.cordum = (function() {
                 PolicyCheckResponse.prototype.remediations = $util.emptyArray;
 
                 /**
+                 * PolicyCheckResponse redactedContextRef.
+                 * @member {cordum.agent.v1.IResourceRef|null|undefined} redactedContextRef
+                 * @memberof cordum.agent.v1.PolicyCheckResponse
+                 * @instance
+                 */
+                PolicyCheckResponse.prototype.redactedContextRef = null;
+
+                /**
+                 * PolicyCheckResponse identity.
+                 * @member {cordum.agent.v1.IIdentityBinding|null|undefined} identity
+                 * @memberof cordum.agent.v1.PolicyCheckResponse
+                 * @instance
+                 */
+                PolicyCheckResponse.prototype.identity = null;
+
+                /**
                  * Creates a new PolicyCheckResponse instance using the specified properties.
                  * @function create
                  * @memberof cordum.agent.v1.PolicyCheckResponse
@@ -16078,6 +18030,10 @@ $root.cordum = (function() {
                     if (message.remediations != null && message.remediations.length)
                         for (var i = 0; i < message.remediations.length; ++i)
                             $root.cordum.agent.v1.PolicyRemediation.encode(message.remediations[i], writer.uint32(/* id 9, wireType 2 =*/74).fork(), q + 1).ldelim();
+                    if (message.redactedContextRef != null && Object.hasOwnProperty.call(message, "redactedContextRef"))
+                        $root.cordum.agent.v1.ResourceRef.encode(message.redactedContextRef, writer.uint32(/* id 10, wireType 2 =*/82).fork(), q + 1).ldelim();
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        $root.cordum.agent.v1.IdentityBinding.encode(message.identity, writer.uint32(/* id 11, wireType 2 =*/90).fork(), q + 1).ldelim();
                     return writer;
                 };
 
@@ -16154,6 +18110,14 @@ $root.cordum = (function() {
                                 if (!(message.remediations && message.remediations.length))
                                     message.remediations = [];
                                 message.remediations.push($root.cordum.agent.v1.PolicyRemediation.decode(reader, reader.uint32(), undefined, long + 1));
+                                break;
+                            }
+                        case 10: {
+                                message.redactedContextRef = $root.cordum.agent.v1.ResourceRef.decode(reader, reader.uint32(), undefined, long + 1);
+                                break;
+                            }
+                        case 11: {
+                                message.identity = $root.cordum.agent.v1.IdentityBinding.decode(reader, reader.uint32(), undefined, long + 1);
                                 break;
                             }
                         default:
@@ -16240,6 +18204,16 @@ $root.cordum = (function() {
                             if (error)
                                 return "remediations." + error;
                         }
+                    }
+                    if (message.redactedContextRef != null && Object.hasOwnProperty.call(message, "redactedContextRef")) {
+                        var error = $root.cordum.agent.v1.ResourceRef.verify(message.redactedContextRef, long + 1);
+                        if (error)
+                            return "redactedContextRef." + error;
+                    }
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity")) {
+                        var error = $root.cordum.agent.v1.IdentityBinding.verify(message.identity, long + 1);
+                        if (error)
+                            return "identity." + error;
                     }
                     return null;
                 };
@@ -16329,6 +18303,16 @@ $root.cordum = (function() {
                             message.remediations[i] = $root.cordum.agent.v1.PolicyRemediation.fromObject(object.remediations[i], long + 1);
                         }
                     }
+                    if (object.redactedContextRef != null) {
+                        if (!$util.isObject(object.redactedContextRef))
+                            throw TypeError(".cordum.agent.v1.PolicyCheckResponse.redactedContextRef: object expected");
+                        message.redactedContextRef = $root.cordum.agent.v1.ResourceRef.fromObject(object.redactedContextRef, long + 1);
+                    }
+                    if (object.identity != null) {
+                        if (!$util.isObject(object.identity))
+                            throw TypeError(".cordum.agent.v1.PolicyCheckResponse.identity: object expected");
+                        message.identity = $root.cordum.agent.v1.IdentityBinding.fromObject(object.identity, long + 1);
+                    }
                     return message;
                 };
 
@@ -16360,6 +18344,8 @@ $root.cordum = (function() {
                         object.constraints = null;
                         object.approvalRequired = false;
                         object.approvalRef = "";
+                        object.redactedContextRef = null;
+                        object.identity = null;
                     }
                     if (message.decision != null && Object.hasOwnProperty.call(message, "decision"))
                         object.decision = options.enums === String ? $root.cordum.agent.v1.DecisionType[message.decision] === undefined ? message.decision : $root.cordum.agent.v1.DecisionType[message.decision] : message.decision;
@@ -16382,6 +18368,10 @@ $root.cordum = (function() {
                         for (var j = 0; j < message.remediations.length; ++j)
                             object.remediations[j] = $root.cordum.agent.v1.PolicyRemediation.toObject(message.remediations[j], options, q + 1);
                     }
+                    if (message.redactedContextRef != null && Object.hasOwnProperty.call(message, "redactedContextRef"))
+                        object.redactedContextRef = $root.cordum.agent.v1.ResourceRef.toObject(message.redactedContextRef, options, q + 1);
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        object.identity = $root.cordum.agent.v1.IdentityBinding.toObject(message.identity, options, q + 1);
                     return object;
                 };
 

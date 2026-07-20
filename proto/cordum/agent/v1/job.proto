@@ -9,6 +9,37 @@ option csharp_namespace = "Cordum.Agent.V1";
 option php_namespace = "cordum\\Agent\\V1";
 option ruby_package = "Cordum::Agent::V1";
 
+import "google/protobuf/timestamp.proto";
+
+// IdentityBinding mirrors the identity established by authenticated transport.
+// CAP-PRODUCTION receivers reject any disagreement rather than selecting a
+// payload field as authoritative.
+message IdentityBinding {
+    string tenant_id = 1;
+    string principal_id = 2;
+    string actor_id = 3;
+    string delegation_id = 4;
+}
+
+// DispatchIdentity fences every physical delivery and retry attempt.
+message DispatchIdentity {
+    string dispatch_id = 1;
+    uint64 attempt = 2;
+    string assigned_worker_id = 3;
+}
+
+// ResourceRef describes content resolved only through an operator-installed
+// resolver. The URI never carries credentials.
+message ResourceRef {
+    string resolver_id = 1;
+    string uri = 2;
+    bytes sha256 = 3; // exactly 32 bytes
+    string media_type = 4;
+    uint64 size_bytes = 5;
+    google.protobuf.Timestamp expires_at = 6;
+    string purpose = 7;
+}
+
 // JobPriority represents scheduling hints.
 enum JobPriority {
     JOB_PRIORITY_UNSPECIFIED = 0;
@@ -118,6 +149,9 @@ message Compensation {
     string principal_id = 10;     // optional principal override
     map<string, string> labels = 11; // routing/placement overrides
     JobMetadata meta = 12;        // identity/capability metadata (idempotency_key, risk tags, etc.)
+    IdentityBinding identity = 13;
+    DispatchIdentity dispatch = 14;
+    ResourceRef context_ref = 15;
 }
 
 // JobRequest represents a schedulable unit of work.
@@ -139,6 +173,9 @@ message JobRequest {
     map<string, string> labels = 15; // arbitrary routing/placement labels
     JobMetadata meta = 16;       // structured identity/capability metadata
     Compensation compensation = 17; // optional inverse action for rollback
+    IdentityBinding identity = 18;
+    DispatchIdentity dispatch = 19;
+    ResourceRef context_ref = 20;
 }
 
 // JobResult conveys the outcome of a job.
@@ -152,6 +189,10 @@ message JobResult {
     string error_message = 7;     // optional human-readable error
     repeated string artifact_ptrs = 8; // pointers to artifacts (logs/diffs/evidence)
     ErrorCode error_code_enum = 9;     // structured error code (preferred over string error_code)
+    DispatchIdentity dispatch = 10;
+    IdentityBinding identity = 11;
+    ResourceRef result_ref = 12;
+    repeated ResourceRef artifact_refs = 13;
 }
 
 // JobProgress conveys incremental progress for a job.
@@ -163,6 +204,10 @@ message JobProgress {
     string result_ptr = 5;       // optional partial result pointer
     repeated string artifact_ptrs = 6; // optional artifacts emitted so far
     JobStatus status = 7;        // optional status hint
+    DispatchIdentity dispatch = 8;
+    IdentityBinding identity = 9;
+    ResourceRef result_ref = 10;
+    repeated ResourceRef artifact_refs = 11;
 }
 
 // JobCancel requests cancellation of a running job.
@@ -170,4 +215,6 @@ message JobCancel {
     string job_id = 1;
     string reason = 2;
     string requested_by = 3;
+    DispatchIdentity dispatch = 4;
+    IdentityBinding identity = 5;
 }

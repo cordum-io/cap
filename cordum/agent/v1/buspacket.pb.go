@@ -24,11 +24,13 @@ const (
 
 // BusPacket is the envelope for all traffic on the bus.
 type BusPacket struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	TraceId         string                 `protobuf:"bytes,1,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`                          // correlates related packets
-	SenderId        string                 `protobuf:"bytes,2,opt,name=sender_id,json=senderId,proto3" json:"sender_id,omitempty"`                       // emitting agent id
-	CreatedAt       *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`                    // emission time
-	ProtocolVersion int32                  `protobuf:"varint,4,opt,name=protocol_version,json=protocolVersion,proto3" json:"protocol_version,omitempty"` // CAP wire version
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	TraceId           string                 `protobuf:"bytes,1,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`                               // correlates related packets
+	SenderId          string                 `protobuf:"bytes,2,opt,name=sender_id,json=senderId,proto3" json:"sender_id,omitempty"`                            // emitting agent id
+	CreatedAt         *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`                         // emission time
+	ProtocolVersion   int32                  `protobuf:"varint,4,opt,name=protocol_version,json=protocolVersion,proto3" json:"protocol_version,omitempty"`      // CAP wire version
+	SignatureMetadata *SignatureMetadata     `protobuf:"bytes,5,opt,name=signature_metadata,json=signatureMetadata,proto3" json:"signature_metadata,omitempty"` // CAP-PRODUCTION signing profile
+	Identity          *IdentityBinding       `protobuf:"bytes,6,opt,name=identity,proto3" json:"identity,omitempty"`                                            // mirrors authenticated session identity
 	// Types that are valid to be assigned to Payload:
 	//
 	//	*BusPacket_JobRequest
@@ -105,6 +107,20 @@ func (x *BusPacket) GetProtocolVersion() int32 {
 		return x.ProtocolVersion
 	}
 	return 0
+}
+
+func (x *BusPacket) GetSignatureMetadata() *SignatureMetadata {
+	if x != nil {
+		return x.SignatureMetadata
+	}
+	return nil
+}
+
+func (x *BusPacket) GetIdentity() *IdentityBinding {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
 }
 
 func (x *BusPacket) GetPayload() isBusPacket_Payload {
@@ -297,17 +313,105 @@ func (*BusPacket_WorkerHandshakeAuthenticate) isBusPacket_Payload() {}
 
 func (*BusPacket_WorkerHandshakeResult) isBusPacket_Payload() {}
 
+// SignatureMetadata binds a signature to one profile, packet identity,
+// audience, validity window, and locally trusted key identifier.
+type SignatureMetadata struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ProfileVersion string                 `protobuf:"bytes,1,opt,name=profile_version,json=profileVersion,proto3" json:"profile_version,omitempty"`
+	Algorithm      string                 `protobuf:"bytes,2,opt,name=algorithm,proto3" json:"algorithm,omitempty"`
+	MessageId      []byte                 `protobuf:"bytes,3,opt,name=message_id,json=messageId,proto3" json:"message_id,omitempty"` // exactly 16 unpredictable bytes
+	Audience       string                 `protobuf:"bytes,4,opt,name=audience,proto3" json:"audience,omitempty"`
+	ExpiresAt      *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	KeyId          string                 `protobuf:"bytes,6,opt,name=key_id,json=keyId,proto3" json:"key_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *SignatureMetadata) Reset() {
+	*x = SignatureMetadata{}
+	mi := &file_cordum_agent_v1_buspacket_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SignatureMetadata) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SignatureMetadata) ProtoMessage() {}
+
+func (x *SignatureMetadata) ProtoReflect() protoreflect.Message {
+	mi := &file_cordum_agent_v1_buspacket_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SignatureMetadata.ProtoReflect.Descriptor instead.
+func (*SignatureMetadata) Descriptor() ([]byte, []int) {
+	return file_cordum_agent_v1_buspacket_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SignatureMetadata) GetProfileVersion() string {
+	if x != nil {
+		return x.ProfileVersion
+	}
+	return ""
+}
+
+func (x *SignatureMetadata) GetAlgorithm() string {
+	if x != nil {
+		return x.Algorithm
+	}
+	return ""
+}
+
+func (x *SignatureMetadata) GetMessageId() []byte {
+	if x != nil {
+		return x.MessageId
+	}
+	return nil
+}
+
+func (x *SignatureMetadata) GetAudience() string {
+	if x != nil {
+		return x.Audience
+	}
+	return ""
+}
+
+func (x *SignatureMetadata) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+func (x *SignatureMetadata) GetKeyId() string {
+	if x != nil {
+		return x.KeyId
+	}
+	return ""
+}
+
 var File_cordum_agent_v1_buspacket_proto protoreflect.FileDescriptor
 
 const file_cordum_agent_v1_buspacket_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcordum/agent/v1/buspacket.proto\x12\x0fcordum.agent.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19cordum/agent/v1/job.proto\x1a\x1fcordum/agent/v1/heartbeat.proto\x1a\x1bcordum/agent/v1/alert.proto\x1a\x1fcordum/agent/v1/handshake.proto\"\xde\b\n" +
+	"\x1fcordum/agent/v1/buspacket.proto\x12\x0fcordum.agent.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x19cordum/agent/v1/job.proto\x1a\x1fcordum/agent/v1/heartbeat.proto\x1a\x1bcordum/agent/v1/alert.proto\x1a\x1fcordum/agent/v1/handshake.proto\"\xf5\t\n" +
 	"\tBusPacket\x12\x19\n" +
 	"\btrace_id\x18\x01 \x01(\tR\atraceId\x12\x1b\n" +
 	"\tsender_id\x18\x02 \x01(\tR\bsenderId\x129\n" +
 	"\n" +
 	"created_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12)\n" +
-	"\x10protocol_version\x18\x04 \x01(\x05R\x0fprotocolVersion\x12>\n" +
+	"\x10protocol_version\x18\x04 \x01(\x05R\x0fprotocolVersion\x12Q\n" +
+	"\x12signature_metadata\x18\x05 \x01(\v2\".cordum.agent.v1.SignatureMetadataR\x11signatureMetadata\x12<\n" +
+	"\bidentity\x18\x06 \x01(\v2 .cordum.agent.v1.IdentityBindingR\bidentity\x12>\n" +
 	"\vjob_request\x18\n" +
 	" \x01(\v2\x1b.cordum.agent.v1.JobRequestH\x00R\n" +
 	"jobRequest\x12;\n" +
@@ -326,7 +430,16 @@ const file_cordum_agent_v1_buspacket_proto_rawDesc = "" +
 	"\tsignature\x18\x0e \x01(\fR\tsignature\x12\x1d\n" +
 	"\n" +
 	"auth_token\x18\x12 \x01(\tR\tauthTokenB\t\n" +
-	"\apayloadB\x7f\n" +
+	"\apayloadJ\x04\b\x17\x10\x1c\"\xe7\x01\n" +
+	"\x11SignatureMetadata\x12'\n" +
+	"\x0fprofile_version\x18\x01 \x01(\tR\x0eprofileVersion\x12\x1c\n" +
+	"\talgorithm\x18\x02 \x01(\tR\talgorithm\x12\x1d\n" +
+	"\n" +
+	"message_id\x18\x03 \x01(\fR\tmessageId\x12\x1a\n" +
+	"\baudience\x18\x04 \x01(\tR\baudience\x129\n" +
+	"\n" +
+	"expires_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12\x15\n" +
+	"\x06key_id\x18\x06 \x01(\tR\x05keyIdB\x7f\n" +
 	"\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0fCordum.Agent.V1\xca\x02\x0fcordum\\Agent\\V1\xea\x02\x11Cordum::Agent::V1b\x06proto3"
 
 var (
@@ -341,40 +454,45 @@ func file_cordum_agent_v1_buspacket_proto_rawDescGZIP() []byte {
 	return file_cordum_agent_v1_buspacket_proto_rawDescData
 }
 
-var file_cordum_agent_v1_buspacket_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_cordum_agent_v1_buspacket_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_cordum_agent_v1_buspacket_proto_goTypes = []any{
 	(*BusPacket)(nil),                       // 0: cordum.agent.v1.BusPacket
-	(*timestamppb.Timestamp)(nil),           // 1: google.protobuf.Timestamp
-	(*JobRequest)(nil),                      // 2: cordum.agent.v1.JobRequest
-	(*JobResult)(nil),                       // 3: cordum.agent.v1.JobResult
-	(*Heartbeat)(nil),                       // 4: cordum.agent.v1.Heartbeat
-	(*SystemAlert)(nil),                     // 5: cordum.agent.v1.SystemAlert
-	(*JobProgress)(nil),                     // 6: cordum.agent.v1.JobProgress
-	(*JobCancel)(nil),                       // 7: cordum.agent.v1.JobCancel
-	(*Handshake)(nil),                       // 8: cordum.agent.v1.Handshake
-	(*WorkerHandshakeChallengeRequest)(nil), // 9: cordum.agent.v1.WorkerHandshakeChallengeRequest
-	(*WorkerHandshakeChallenge)(nil),        // 10: cordum.agent.v1.WorkerHandshakeChallenge
-	(*WorkerHandshakeAuthenticate)(nil),     // 11: cordum.agent.v1.WorkerHandshakeAuthenticate
-	(*WorkerHandshakeResult)(nil),           // 12: cordum.agent.v1.WorkerHandshakeResult
+	(*SignatureMetadata)(nil),               // 1: cordum.agent.v1.SignatureMetadata
+	(*timestamppb.Timestamp)(nil),           // 2: google.protobuf.Timestamp
+	(*IdentityBinding)(nil),                 // 3: cordum.agent.v1.IdentityBinding
+	(*JobRequest)(nil),                      // 4: cordum.agent.v1.JobRequest
+	(*JobResult)(nil),                       // 5: cordum.agent.v1.JobResult
+	(*Heartbeat)(nil),                       // 6: cordum.agent.v1.Heartbeat
+	(*SystemAlert)(nil),                     // 7: cordum.agent.v1.SystemAlert
+	(*JobProgress)(nil),                     // 8: cordum.agent.v1.JobProgress
+	(*JobCancel)(nil),                       // 9: cordum.agent.v1.JobCancel
+	(*Handshake)(nil),                       // 10: cordum.agent.v1.Handshake
+	(*WorkerHandshakeChallengeRequest)(nil), // 11: cordum.agent.v1.WorkerHandshakeChallengeRequest
+	(*WorkerHandshakeChallenge)(nil),        // 12: cordum.agent.v1.WorkerHandshakeChallenge
+	(*WorkerHandshakeAuthenticate)(nil),     // 13: cordum.agent.v1.WorkerHandshakeAuthenticate
+	(*WorkerHandshakeResult)(nil),           // 14: cordum.agent.v1.WorkerHandshakeResult
 }
 var file_cordum_agent_v1_buspacket_proto_depIdxs = []int32{
-	1,  // 0: cordum.agent.v1.BusPacket.created_at:type_name -> google.protobuf.Timestamp
-	2,  // 1: cordum.agent.v1.BusPacket.job_request:type_name -> cordum.agent.v1.JobRequest
-	3,  // 2: cordum.agent.v1.BusPacket.job_result:type_name -> cordum.agent.v1.JobResult
-	4,  // 3: cordum.agent.v1.BusPacket.heartbeat:type_name -> cordum.agent.v1.Heartbeat
-	5,  // 4: cordum.agent.v1.BusPacket.alert:type_name -> cordum.agent.v1.SystemAlert
-	6,  // 5: cordum.agent.v1.BusPacket.job_progress:type_name -> cordum.agent.v1.JobProgress
-	7,  // 6: cordum.agent.v1.BusPacket.job_cancel:type_name -> cordum.agent.v1.JobCancel
-	8,  // 7: cordum.agent.v1.BusPacket.handshake:type_name -> cordum.agent.v1.Handshake
-	9,  // 8: cordum.agent.v1.BusPacket.worker_handshake_challenge_request:type_name -> cordum.agent.v1.WorkerHandshakeChallengeRequest
-	10, // 9: cordum.agent.v1.BusPacket.worker_handshake_challenge:type_name -> cordum.agent.v1.WorkerHandshakeChallenge
-	11, // 10: cordum.agent.v1.BusPacket.worker_handshake_authenticate:type_name -> cordum.agent.v1.WorkerHandshakeAuthenticate
-	12, // 11: cordum.agent.v1.BusPacket.worker_handshake_result:type_name -> cordum.agent.v1.WorkerHandshakeResult
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	2,  // 0: cordum.agent.v1.BusPacket.created_at:type_name -> google.protobuf.Timestamp
+	1,  // 1: cordum.agent.v1.BusPacket.signature_metadata:type_name -> cordum.agent.v1.SignatureMetadata
+	3,  // 2: cordum.agent.v1.BusPacket.identity:type_name -> cordum.agent.v1.IdentityBinding
+	4,  // 3: cordum.agent.v1.BusPacket.job_request:type_name -> cordum.agent.v1.JobRequest
+	5,  // 4: cordum.agent.v1.BusPacket.job_result:type_name -> cordum.agent.v1.JobResult
+	6,  // 5: cordum.agent.v1.BusPacket.heartbeat:type_name -> cordum.agent.v1.Heartbeat
+	7,  // 6: cordum.agent.v1.BusPacket.alert:type_name -> cordum.agent.v1.SystemAlert
+	8,  // 7: cordum.agent.v1.BusPacket.job_progress:type_name -> cordum.agent.v1.JobProgress
+	9,  // 8: cordum.agent.v1.BusPacket.job_cancel:type_name -> cordum.agent.v1.JobCancel
+	10, // 9: cordum.agent.v1.BusPacket.handshake:type_name -> cordum.agent.v1.Handshake
+	11, // 10: cordum.agent.v1.BusPacket.worker_handshake_challenge_request:type_name -> cordum.agent.v1.WorkerHandshakeChallengeRequest
+	12, // 11: cordum.agent.v1.BusPacket.worker_handshake_challenge:type_name -> cordum.agent.v1.WorkerHandshakeChallenge
+	13, // 12: cordum.agent.v1.BusPacket.worker_handshake_authenticate:type_name -> cordum.agent.v1.WorkerHandshakeAuthenticate
+	14, // 13: cordum.agent.v1.BusPacket.worker_handshake_result:type_name -> cordum.agent.v1.WorkerHandshakeResult
+	2,  // 14: cordum.agent.v1.SignatureMetadata.expires_at:type_name -> google.protobuf.Timestamp
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_cordum_agent_v1_buspacket_proto_init() }
@@ -405,7 +523,7 @@ func file_cordum_agent_v1_buspacket_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cordum_agent_v1_buspacket_proto_rawDesc), len(file_cordum_agent_v1_buspacket_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   1,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

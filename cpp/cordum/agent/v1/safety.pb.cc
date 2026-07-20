@@ -47,6 +47,8 @@ PROTOBUF_CONSTEXPR PolicyCheckRequest::PolicyCheckRequest(
   , /*decltype(_impl_.input_content_type_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.budget_)*/nullptr
   , /*decltype(_impl_.meta_)*/nullptr
+  , /*decltype(_impl_.identity_)*/nullptr
+  , /*decltype(_impl_.input_ref_)*/nullptr
   , /*decltype(_impl_.estimated_cost_)*/0
   , /*decltype(_impl_.input_size_bytes_)*/int64_t{0}
   , /*decltype(_impl_.priority_)*/0
@@ -177,6 +179,8 @@ PROTOBUF_CONSTEXPR PolicyCheckResponse::PolicyCheckResponse(
   , /*decltype(_impl_.rule_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.approval_ref_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.constraints_)*/nullptr
+  , /*decltype(_impl_.redacted_context_ref_)*/nullptr
+  , /*decltype(_impl_.identity_)*/nullptr
   , /*decltype(_impl_.decision_)*/0
   , /*decltype(_impl_.approval_required_)*/false
   , /*decltype(_impl_._cached_size_)*/{}} {}
@@ -248,6 +252,8 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets[] PROTO
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.memory_id_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.effective_config_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.meta_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.identity_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.input_ref_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.input_content_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.input_content_type_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckRequest, _impl_.input_size_bytes_),
@@ -337,6 +343,8 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets[] PROTO
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckResponse, _impl_.approval_required_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckResponse, _impl_.approval_ref_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckResponse, _impl_.remediations_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckResponse, _impl_.redacted_context_ref_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::PolicyCheckResponse, _impl_.identity_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::ListSnapshotsRequest, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -354,16 +362,16 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets[] PROTO
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, 8, -1, sizeof(::cordum::agent::v1::PolicyCheckRequest_LabelsEntry_DoNotUse)},
   { 10, -1, -1, sizeof(::cordum::agent::v1::PolicyCheckRequest)},
-  { 30, -1, -1, sizeof(::cordum::agent::v1::BudgetConstraints)},
-  { 40, -1, -1, sizeof(::cordum::agent::v1::SandboxProfile)},
-  { 50, -1, -1, sizeof(::cordum::agent::v1::ToolchainConstraints)},
-  { 58, -1, -1, sizeof(::cordum::agent::v1::DiffConstraints)},
-  { 67, -1, -1, sizeof(::cordum::agent::v1::PolicyConstraints)},
-  { 78, 86, -1, sizeof(::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse)},
-  { 88, -1, -1, sizeof(::cordum::agent::v1::PolicyRemediation)},
-  { 101, -1, -1, sizeof(::cordum::agent::v1::PolicyCheckResponse)},
-  { 116, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsRequest)},
-  { 122, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsResponse)},
+  { 32, -1, -1, sizeof(::cordum::agent::v1::BudgetConstraints)},
+  { 42, -1, -1, sizeof(::cordum::agent::v1::SandboxProfile)},
+  { 52, -1, -1, sizeof(::cordum::agent::v1::ToolchainConstraints)},
+  { 60, -1, -1, sizeof(::cordum::agent::v1::DiffConstraints)},
+  { 69, -1, -1, sizeof(::cordum::agent::v1::PolicyConstraints)},
+  { 80, 88, -1, sizeof(::cordum::agent::v1::PolicyRemediation_AddLabelsEntry_DoNotUse)},
+  { 90, -1, -1, sizeof(::cordum::agent::v1::PolicyRemediation)},
+  { 103, -1, -1, sizeof(::cordum::agent::v1::PolicyCheckResponse)},
+  { 120, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsRequest)},
+  { 126, -1, -1, sizeof(::cordum::agent::v1::ListSnapshotsResponse)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -383,7 +391,7 @@ static const ::_pb::Message* const file_default_instances[] = {
 
 const char descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\034cordum/agent/v1/safety.proto\022\017cordum.a"
-  "gent.v1\032\031cordum/agent/v1/job.proto\"\211\005\n\022P"
+  "gent.v1\032\031cordum/agent/v1/job.proto\"\202\006\n\022P"
   "olicyCheckRequest\022\025\n\006job_id\030\001 \001(\tR\005jobId"
   "\022\024\n\005topic\030\002 \001(\tR\005topic\022\026\n\006tenant\030\003 \001(\tR\006"
   "tenant\0228\n\010priority\030\004 \001(\0162\034.cordum.agent."
@@ -395,84 +403,91 @@ const char descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto[] PROT
   ".LabelsEntryR\006labels\022\033\n\tmemory_id\030\t \001(\tR"
   "\010memoryId\022)\n\020effective_config\030\n \001(\014R\017eff"
   "ectiveConfig\0220\n\004meta\030\013 \001(\0132\034.cordum.agen"
-  "t.v1.JobMetadataR\004meta\022#\n\rinput_content\030"
-  "\024 \001(\014R\014inputContent\022,\n\022input_content_typ"
-  "e\030\025 \001(\tR\020inputContentType\022(\n\020input_size_"
-  "bytes\030\026 \001(\003R\016inputSizeBytes\0329\n\013LabelsEnt"
-  "ry\022\020\n\003key\030\001 \001(\tR\003key\022\024\n\005value\030\002 \001(\tR\005val"
-  "ue:\0028\001\"\270\001\n\021BudgetConstraints\022$\n\016max_runt"
-  "ime_ms\030\001 \001(\003R\014maxRuntimeMs\022\037\n\013max_retrie"
-  "s\030\002 \001(\005R\nmaxRetries\022,\n\022max_artifact_byte"
-  "s\030\003 \001(\003R\020maxArtifactBytes\022.\n\023max_concurr"
-  "ent_jobs\030\004 \001(\005R\021maxConcurrentJobs\"\237\001\n\016Sa"
-  "ndboxProfile\022\032\n\010isolated\030\001 \001(\010R\010isolated"
-  "\022+\n\021network_allowlist\030\002 \003(\tR\020networkAllo"
-  "wlist\022 \n\014fs_read_only\030\003 \003(\tR\nfsReadOnly\022"
-  "\"\n\rfs_read_write\030\004 \003(\tR\013fsReadWrite\"f\n\024T"
-  "oolchainConstraints\022#\n\rallowed_tools\030\001 \003"
-  "(\tR\014allowedTools\022)\n\020allowed_commands\030\002 \003"
-  "(\tR\017allowedCommands\"s\n\017DiffConstraints\022\033"
-  "\n\tmax_files\030\001 \001(\005R\010maxFiles\022\033\n\tmax_lines"
-  "\030\002 \001(\005R\010maxLines\022&\n\017deny_path_globs\030\003 \003("
-  "\tR\rdenyPathGlobs\"\260\002\n\021PolicyConstraints\022<"
-  "\n\007budgets\030\001 \001(\0132\".cordum.agent.v1.Budget"
-  "ConstraintsR\007budgets\0229\n\007sandbox\030\002 \001(\0132\037."
-  "cordum.agent.v1.SandboxProfileR\007sandbox\022"
-  "C\n\ttoolchain\030\003 \001(\0132%.cordum.agent.v1.Too"
-  "lchainConstraintsR\ttoolchain\0224\n\004diff\030\004 \001"
-  "(\0132 .cordum.agent.v1.DiffConstraintsR\004di"
-  "ff\022\'\n\017redaction_level\030\005 \001(\tR\016redactionLe"
-  "vel\"\354\002\n\021PolicyRemediation\022\016\n\002id\030\001 \001(\tR\002i"
-  "d\022\024\n\005title\030\002 \001(\tR\005title\022\030\n\007summary\030\003 \001(\t"
-  "R\007summary\022+\n\021replacement_topic\030\004 \001(\tR\020re"
-  "placementTopic\0225\n\026replacement_capability"
-  "\030\005 \001(\tR\025replacementCapability\022P\n\nadd_lab"
-  "els\030\006 \003(\01321.cordum.agent.v1.PolicyRemedi"
-  "ation.AddLabelsEntryR\taddLabels\022#\n\rremov"
-  "e_labels\030\007 \003(\tR\014removeLabels\032<\n\016AddLabel"
-  "sEntry\022\020\n\003key\030\001 \001(\tR\003key\022\024\n\005value\030\002 \001(\tR"
-  "\005value:\0028\001\"\272\003\n\023PolicyCheckResponse\0229\n\010de"
-  "cision\030\001 \001(\0162\035.cordum.agent.v1.DecisionT"
-  "ypeR\010decision\022\026\n\006reason\030\002 \001(\tR\006reason\0220\n"
-  "\024redacted_context_ptr\030\003 \001(\tR\022redactedCon"
-  "textPtr\022\'\n\017policy_snapshot\030\004 \001(\tR\016policy"
-  "Snapshot\022\027\n\007rule_id\030\005 \001(\tR\006ruleId\022D\n\013con"
-  "straints\030\006 \001(\0132\".cordum.agent.v1.PolicyC"
-  "onstraintsR\013constraints\022+\n\021approval_requ"
-  "ired\030\007 \001(\010R\020approvalRequired\022!\n\014approval"
-  "_ref\030\010 \001(\tR\013approvalRef\022F\n\014remediations\030"
-  "\t \003(\0132\".cordum.agent.v1.PolicyRemediatio"
-  "nR\014remediations\"\026\n\024ListSnapshotsRequest\""
-  "5\n\025ListSnapshotsResponse\022\034\n\tsnapshots\030\001 "
-  "\003(\tR\tsnapshots*\375\001\n\014DecisionType\022\035\n\031DECIS"
-  "ION_TYPE_UNSPECIFIED\020\000\022\027\n\023DECISION_TYPE_"
-  "ALLOW\020\001\022\026\n\022DECISION_TYPE_DENY\020\002\022\037\n\033DECIS"
-  "ION_TYPE_REQUIRE_HUMAN\020\003\022\032\n\026DECISION_TYP"
-  "E_THROTTLE\020\004\022(\n$DECISION_TYPE_ALLOW_WITH"
-  "_CONSTRAINTS\020\005\022\034\n\030DECISION_TYPE_QUARANTI"
-  "NE\020\006\022\030\n\024DECISION_TYPE_REDACT\020\0072\306\003\n\014Safet"
-  "yKernel\022R\n\005Check\022#.cordum.agent.v1.Polic"
-  "yCheckRequest\032$.cordum.agent.v1.PolicyCh"
-  "eckResponse\022U\n\010Evaluate\022#.cordum.agent.v"
-  "1.PolicyCheckRequest\032$.cordum.agent.v1.P"
-  "olicyCheckResponse\022T\n\007Explain\022#.cordum.a"
-  "gent.v1.PolicyCheckRequest\032$.cordum.agen"
-  "t.v1.PolicyCheckResponse\022U\n\010Simulate\022#.c"
-  "ordum.agent.v1.PolicyCheckRequest\032$.cord"
-  "um.agent.v1.PolicyCheckResponse\022^\n\rListS"
-  "napshots\022%.cordum.agent.v1.ListSnapshots"
-  "Request\032&.cordum.agent.v1.ListSnapshotsR"
-  "esponseB\177\n\026io.cordum.cap.agent.v1P\001Z+git"
-  "hub.com/cordum-io/cap/v2/cordum/agent/v1"
-  "\252\002\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021C"
-  "ordum::Agent::V1b\006proto3"
+  "t.v1.JobMetadataR\004meta\022<\n\010identity\030\014 \001(\013"
+  "2 .cordum.agent.v1.IdentityBindingR\010iden"
+  "tity\0229\n\tinput_ref\030\r \001(\0132\034.cordum.agent.v"
+  "1.ResourceRefR\010inputRef\022#\n\rinput_content"
+  "\030\024 \001(\014R\014inputContent\022,\n\022input_content_ty"
+  "pe\030\025 \001(\tR\020inputContentType\022(\n\020input_size"
+  "_bytes\030\026 \001(\003R\016inputSizeBytes\0329\n\013LabelsEn"
+  "try\022\020\n\003key\030\001 \001(\tR\003key\022\024\n\005value\030\002 \001(\tR\005va"
+  "lue:\0028\001\"\270\001\n\021BudgetConstraints\022$\n\016max_run"
+  "time_ms\030\001 \001(\003R\014maxRuntimeMs\022\037\n\013max_retri"
+  "es\030\002 \001(\005R\nmaxRetries\022,\n\022max_artifact_byt"
+  "es\030\003 \001(\003R\020maxArtifactBytes\022.\n\023max_concur"
+  "rent_jobs\030\004 \001(\005R\021maxConcurrentJobs\"\237\001\n\016S"
+  "andboxProfile\022\032\n\010isolated\030\001 \001(\010R\010isolate"
+  "d\022+\n\021network_allowlist\030\002 \003(\tR\020networkAll"
+  "owlist\022 \n\014fs_read_only\030\003 \003(\tR\nfsReadOnly"
+  "\022\"\n\rfs_read_write\030\004 \003(\tR\013fsReadWrite\"f\n\024"
+  "ToolchainConstraints\022#\n\rallowed_tools\030\001 "
+  "\003(\tR\014allowedTools\022)\n\020allowed_commands\030\002 "
+  "\003(\tR\017allowedCommands\"s\n\017DiffConstraints\022"
+  "\033\n\tmax_files\030\001 \001(\005R\010maxFiles\022\033\n\tmax_line"
+  "s\030\002 \001(\005R\010maxLines\022&\n\017deny_path_globs\030\003 \003"
+  "(\tR\rdenyPathGlobs\"\260\002\n\021PolicyConstraints\022"
+  "<\n\007budgets\030\001 \001(\0132\".cordum.agent.v1.Budge"
+  "tConstraintsR\007budgets\0229\n\007sandbox\030\002 \001(\0132\037"
+  ".cordum.agent.v1.SandboxProfileR\007sandbox"
+  "\022C\n\ttoolchain\030\003 \001(\0132%.cordum.agent.v1.To"
+  "olchainConstraintsR\ttoolchain\0224\n\004diff\030\004 "
+  "\001(\0132 .cordum.agent.v1.DiffConstraintsR\004d"
+  "iff\022\'\n\017redaction_level\030\005 \001(\tR\016redactionL"
+  "evel\"\354\002\n\021PolicyRemediation\022\016\n\002id\030\001 \001(\tR\002"
+  "id\022\024\n\005title\030\002 \001(\tR\005title\022\030\n\007summary\030\003 \001("
+  "\tR\007summary\022+\n\021replacement_topic\030\004 \001(\tR\020r"
+  "eplacementTopic\0225\n\026replacement_capabilit"
+  "y\030\005 \001(\tR\025replacementCapability\022P\n\nadd_la"
+  "bels\030\006 \003(\01321.cordum.agent.v1.PolicyRemed"
+  "iation.AddLabelsEntryR\taddLabels\022#\n\rremo"
+  "ve_labels\030\007 \003(\tR\014removeLabels\032<\n\016AddLabe"
+  "lsEntry\022\020\n\003key\030\001 \001(\tR\003key\022\024\n\005value\030\002 \001(\t"
+  "R\005value:\0028\001\"\310\004\n\023PolicyCheckResponse\0229\n\010d"
+  "ecision\030\001 \001(\0162\035.cordum.agent.v1.Decision"
+  "TypeR\010decision\022\026\n\006reason\030\002 \001(\tR\006reason\0220"
+  "\n\024redacted_context_ptr\030\003 \001(\tR\022redactedCo"
+  "ntextPtr\022\'\n\017policy_snapshot\030\004 \001(\tR\016polic"
+  "ySnapshot\022\027\n\007rule_id\030\005 \001(\tR\006ruleId\022D\n\013co"
+  "nstraints\030\006 \001(\0132\".cordum.agent.v1.Policy"
+  "ConstraintsR\013constraints\022+\n\021approval_req"
+  "uired\030\007 \001(\010R\020approvalRequired\022!\n\014approva"
+  "l_ref\030\010 \001(\tR\013approvalRef\022F\n\014remediations"
+  "\030\t \003(\0132\".cordum.agent.v1.PolicyRemediati"
+  "onR\014remediations\022N\n\024redacted_context_ref"
+  "\030\n \001(\0132\034.cordum.agent.v1.ResourceRefR\022re"
+  "dactedContextRef\022<\n\010identity\030\013 \001(\0132 .cor"
+  "dum.agent.v1.IdentityBindingR\010identity\"\026"
+  "\n\024ListSnapshotsRequest\"5\n\025ListSnapshotsR"
+  "esponse\022\034\n\tsnapshots\030\001 \003(\tR\tsnapshots*\375\001"
+  "\n\014DecisionType\022\035\n\031DECISION_TYPE_UNSPECIF"
+  "IED\020\000\022\027\n\023DECISION_TYPE_ALLOW\020\001\022\026\n\022DECISI"
+  "ON_TYPE_DENY\020\002\022\037\n\033DECISION_TYPE_REQUIRE_"
+  "HUMAN\020\003\022\032\n\026DECISION_TYPE_THROTTLE\020\004\022(\n$D"
+  "ECISION_TYPE_ALLOW_WITH_CONSTRAINTS\020\005\022\034\n"
+  "\030DECISION_TYPE_QUARANTINE\020\006\022\030\n\024DECISION_"
+  "TYPE_REDACT\020\0072\306\003\n\014SafetyKernel\022R\n\005Check\022"
+  "#.cordum.agent.v1.PolicyCheckRequest\032$.c"
+  "ordum.agent.v1.PolicyCheckResponse\022U\n\010Ev"
+  "aluate\022#.cordum.agent.v1.PolicyCheckRequ"
+  "est\032$.cordum.agent.v1.PolicyCheckRespons"
+  "e\022T\n\007Explain\022#.cordum.agent.v1.PolicyChe"
+  "ckRequest\032$.cordum.agent.v1.PolicyCheckR"
+  "esponse\022U\n\010Simulate\022#.cordum.agent.v1.Po"
+  "licyCheckRequest\032$.cordum.agent.v1.Polic"
+  "yCheckResponse\022^\n\rListSnapshots\022%.cordum"
+  ".agent.v1.ListSnapshotsRequest\032&.cordum."
+  "agent.v1.ListSnapshotsResponseB\177\n\026io.cor"
+  "dum.cap.agent.v1P\001Z+github.com/cordum-io"
+  "/cap/v2/cordum/agent/v1\252\002\017Cordum.Agent.V"
+  "1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent::V1b"
+  "\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_deps[1] = {
   &::descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto,
 };
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto = {
-    false, false, 3344, descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto,
+    false, false, 3607, descriptor_table_protodef_cordum_2fagent_2fv1_2fsafety_2eproto,
     "cordum/agent/v1/safety.proto",
     &descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_once, descriptor_table_cordum_2fagent_2fv1_2fsafety_2eproto_deps, 1, 12,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fsafety_2eproto::offsets,
@@ -529,6 +544,8 @@ class PolicyCheckRequest::_Internal {
  public:
   static const ::cordum::agent::v1::Budget& budget(const PolicyCheckRequest* msg);
   static const ::cordum::agent::v1::JobMetadata& meta(const PolicyCheckRequest* msg);
+  static const ::cordum::agent::v1::IdentityBinding& identity(const PolicyCheckRequest* msg);
+  static const ::cordum::agent::v1::ResourceRef& input_ref(const PolicyCheckRequest* msg);
 };
 
 const ::cordum::agent::v1::Budget&
@@ -538,6 +555,14 @@ PolicyCheckRequest::_Internal::budget(const PolicyCheckRequest* msg) {
 const ::cordum::agent::v1::JobMetadata&
 PolicyCheckRequest::_Internal::meta(const PolicyCheckRequest* msg) {
   return *msg->_impl_.meta_;
+}
+const ::cordum::agent::v1::IdentityBinding&
+PolicyCheckRequest::_Internal::identity(const PolicyCheckRequest* msg) {
+  return *msg->_impl_.identity_;
+}
+const ::cordum::agent::v1::ResourceRef&
+PolicyCheckRequest::_Internal::input_ref(const PolicyCheckRequest* msg) {
+  return *msg->_impl_.input_ref_;
 }
 void PolicyCheckRequest::clear_budget() {
   if (GetArenaForAllocation() == nullptr && _impl_.budget_ != nullptr) {
@@ -550,6 +575,18 @@ void PolicyCheckRequest::clear_meta() {
     delete _impl_.meta_;
   }
   _impl_.meta_ = nullptr;
+}
+void PolicyCheckRequest::clear_identity() {
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
+}
+void PolicyCheckRequest::clear_input_ref() {
+  if (GetArenaForAllocation() == nullptr && _impl_.input_ref_ != nullptr) {
+    delete _impl_.input_ref_;
+  }
+  _impl_.input_ref_ = nullptr;
 }
 PolicyCheckRequest::PolicyCheckRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
@@ -575,6 +612,8 @@ PolicyCheckRequest::PolicyCheckRequest(const PolicyCheckRequest& from)
     , decltype(_impl_.input_content_type_){}
     , decltype(_impl_.budget_){nullptr}
     , decltype(_impl_.meta_){nullptr}
+    , decltype(_impl_.identity_){nullptr}
+    , decltype(_impl_.input_ref_){nullptr}
     , decltype(_impl_.estimated_cost_){}
     , decltype(_impl_.input_size_bytes_){}
     , decltype(_impl_.priority_){}
@@ -652,6 +691,12 @@ PolicyCheckRequest::PolicyCheckRequest(const PolicyCheckRequest& from)
   if (from._internal_has_meta()) {
     _this->_impl_.meta_ = new ::cordum::agent::v1::JobMetadata(*from._impl_.meta_);
   }
+  if (from._internal_has_identity()) {
+    _this->_impl_.identity_ = new ::cordum::agent::v1::IdentityBinding(*from._impl_.identity_);
+  }
+  if (from._internal_has_input_ref()) {
+    _this->_impl_.input_ref_ = new ::cordum::agent::v1::ResourceRef(*from._impl_.input_ref_);
+  }
   ::memcpy(&_impl_.estimated_cost_, &from._impl_.estimated_cost_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.priority_) -
     reinterpret_cast<char*>(&_impl_.estimated_cost_)) + sizeof(_impl_.priority_));
@@ -674,6 +719,8 @@ inline void PolicyCheckRequest::SharedCtor(
     , decltype(_impl_.input_content_type_){}
     , decltype(_impl_.budget_){nullptr}
     , decltype(_impl_.meta_){nullptr}
+    , decltype(_impl_.identity_){nullptr}
+    , decltype(_impl_.input_ref_){nullptr}
     , decltype(_impl_.estimated_cost_){0}
     , decltype(_impl_.input_size_bytes_){int64_t{0}}
     , decltype(_impl_.priority_){0}
@@ -737,6 +784,8 @@ inline void PolicyCheckRequest::SharedDtor() {
   _impl_.input_content_type_.Destroy();
   if (this != internal_default_instance()) delete _impl_.budget_;
   if (this != internal_default_instance()) delete _impl_.meta_;
+  if (this != internal_default_instance()) delete _impl_.identity_;
+  if (this != internal_default_instance()) delete _impl_.input_ref_;
 }
 
 void PolicyCheckRequest::ArenaDtor(void* object) {
@@ -770,6 +819,14 @@ void PolicyCheckRequest::Clear() {
     delete _impl_.meta_;
   }
   _impl_.meta_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.input_ref_ != nullptr) {
+    delete _impl_.input_ref_;
+  }
+  _impl_.input_ref_ = nullptr;
   ::memset(&_impl_.estimated_cost_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.priority_) -
       reinterpret_cast<char*>(&_impl_.estimated_cost_)) + sizeof(_impl_.priority_));
@@ -883,6 +940,22 @@ const char* PolicyCheckRequest::_InternalParse(const char* ptr, ::_pbi::ParseCon
       case 11:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
           ptr = ctx->ParseMessage(_internal_mutable_meta(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.IdentityBinding identity = 12 [json_name = "identity"];
+      case 12:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 98)) {
+          ptr = ctx->ParseMessage(_internal_mutable_identity(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.ResourceRef input_ref = 13 [json_name = "inputRef"];
+      case 13:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 106)) {
+          ptr = ctx->ParseMessage(_internal_mutable_input_ref(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -1060,6 +1133,20 @@ uint8_t* PolicyCheckRequest::_InternalSerialize(
         _Internal::meta(this).GetCachedSize(), target, stream);
   }
 
+  // .cordum.agent.v1.IdentityBinding identity = 12 [json_name = "identity"];
+  if (this->_internal_has_identity()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(12, _Internal::identity(this),
+        _Internal::identity(this).GetCachedSize(), target, stream);
+  }
+
+  // .cordum.agent.v1.ResourceRef input_ref = 13 [json_name = "inputRef"];
+  if (this->_internal_has_input_ref()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(13, _Internal::input_ref(this),
+        _Internal::input_ref(this).GetCachedSize(), target, stream);
+  }
+
   // bytes input_content = 20 [json_name = "inputContent"];
   if (!this->_internal_input_content().empty()) {
     target = stream->WriteBytesMaybeAliased(
@@ -1177,6 +1264,20 @@ size_t PolicyCheckRequest::ByteSizeLong() const {
         *_impl_.meta_);
   }
 
+  // .cordum.agent.v1.IdentityBinding identity = 12 [json_name = "identity"];
+  if (this->_internal_has_identity()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.identity_);
+  }
+
+  // .cordum.agent.v1.ResourceRef input_ref = 13 [json_name = "inputRef"];
+  if (this->_internal_has_input_ref()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.input_ref_);
+  }
+
   // double estimated_cost = 5 [json_name = "estimatedCost"];
   static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
   double tmp_estimated_cost = this->_internal_estimated_cost();
@@ -1249,6 +1350,14 @@ void PolicyCheckRequest::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, con
   if (from._internal_has_meta()) {
     _this->_internal_mutable_meta()->::cordum::agent::v1::JobMetadata::MergeFrom(
         from._internal_meta());
+  }
+  if (from._internal_has_identity()) {
+    _this->_internal_mutable_identity()->::cordum::agent::v1::IdentityBinding::MergeFrom(
+        from._internal_identity());
+  }
+  if (from._internal_has_input_ref()) {
+    _this->_internal_mutable_input_ref()->::cordum::agent::v1::ResourceRef::MergeFrom(
+        from._internal_input_ref());
   }
   static_assert(sizeof(uint64_t) == sizeof(double), "Code assumes uint64_t and double are the same size.");
   double tmp_estimated_cost = from._internal_estimated_cost();
@@ -3264,11 +3373,33 @@ void PolicyRemediation::InternalSwap(PolicyRemediation* other) {
 class PolicyCheckResponse::_Internal {
  public:
   static const ::cordum::agent::v1::PolicyConstraints& constraints(const PolicyCheckResponse* msg);
+  static const ::cordum::agent::v1::ResourceRef& redacted_context_ref(const PolicyCheckResponse* msg);
+  static const ::cordum::agent::v1::IdentityBinding& identity(const PolicyCheckResponse* msg);
 };
 
 const ::cordum::agent::v1::PolicyConstraints&
 PolicyCheckResponse::_Internal::constraints(const PolicyCheckResponse* msg) {
   return *msg->_impl_.constraints_;
+}
+const ::cordum::agent::v1::ResourceRef&
+PolicyCheckResponse::_Internal::redacted_context_ref(const PolicyCheckResponse* msg) {
+  return *msg->_impl_.redacted_context_ref_;
+}
+const ::cordum::agent::v1::IdentityBinding&
+PolicyCheckResponse::_Internal::identity(const PolicyCheckResponse* msg) {
+  return *msg->_impl_.identity_;
+}
+void PolicyCheckResponse::clear_redacted_context_ref() {
+  if (GetArenaForAllocation() == nullptr && _impl_.redacted_context_ref_ != nullptr) {
+    delete _impl_.redacted_context_ref_;
+  }
+  _impl_.redacted_context_ref_ = nullptr;
+}
+void PolicyCheckResponse::clear_identity() {
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
 }
 PolicyCheckResponse::PolicyCheckResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
@@ -3287,6 +3418,8 @@ PolicyCheckResponse::PolicyCheckResponse(const PolicyCheckResponse& from)
     , decltype(_impl_.rule_id_){}
     , decltype(_impl_.approval_ref_){}
     , decltype(_impl_.constraints_){nullptr}
+    , decltype(_impl_.redacted_context_ref_){nullptr}
+    , decltype(_impl_.identity_){nullptr}
     , decltype(_impl_.decision_){}
     , decltype(_impl_.approval_required_){}
     , /*decltype(_impl_._cached_size_)*/{}};
@@ -3335,6 +3468,12 @@ PolicyCheckResponse::PolicyCheckResponse(const PolicyCheckResponse& from)
   if (from._internal_has_constraints()) {
     _this->_impl_.constraints_ = new ::cordum::agent::v1::PolicyConstraints(*from._impl_.constraints_);
   }
+  if (from._internal_has_redacted_context_ref()) {
+    _this->_impl_.redacted_context_ref_ = new ::cordum::agent::v1::ResourceRef(*from._impl_.redacted_context_ref_);
+  }
+  if (from._internal_has_identity()) {
+    _this->_impl_.identity_ = new ::cordum::agent::v1::IdentityBinding(*from._impl_.identity_);
+  }
   ::memcpy(&_impl_.decision_, &from._impl_.decision_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.approval_required_) -
     reinterpret_cast<char*>(&_impl_.decision_)) + sizeof(_impl_.approval_required_));
@@ -3353,6 +3492,8 @@ inline void PolicyCheckResponse::SharedCtor(
     , decltype(_impl_.rule_id_){}
     , decltype(_impl_.approval_ref_){}
     , decltype(_impl_.constraints_){nullptr}
+    , decltype(_impl_.redacted_context_ref_){nullptr}
+    , decltype(_impl_.identity_){nullptr}
     , decltype(_impl_.decision_){0}
     , decltype(_impl_.approval_required_){false}
     , /*decltype(_impl_._cached_size_)*/{}
@@ -3397,6 +3538,8 @@ inline void PolicyCheckResponse::SharedDtor() {
   _impl_.rule_id_.Destroy();
   _impl_.approval_ref_.Destroy();
   if (this != internal_default_instance()) delete _impl_.constraints_;
+  if (this != internal_default_instance()) delete _impl_.redacted_context_ref_;
+  if (this != internal_default_instance()) delete _impl_.identity_;
 }
 
 void PolicyCheckResponse::SetCachedSize(int size) const {
@@ -3419,6 +3562,14 @@ void PolicyCheckResponse::Clear() {
     delete _impl_.constraints_;
   }
   _impl_.constraints_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.redacted_context_ref_ != nullptr) {
+    delete _impl_.redacted_context_ref_;
+  }
+  _impl_.redacted_context_ref_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
   ::memset(&_impl_.decision_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.approval_required_) -
       reinterpret_cast<char*>(&_impl_.decision_)) + sizeof(_impl_.approval_required_));
@@ -3516,6 +3667,22 @@ const char* PolicyCheckResponse::_InternalParse(const char* ptr, ::_pbi::ParseCo
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<74>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.ResourceRef redacted_context_ref = 10 [json_name = "redactedContextRef"];
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 82)) {
+          ptr = ctx->ParseMessage(_internal_mutable_redacted_context_ref(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.IdentityBinding identity = 11 [json_name = "identity"];
+      case 11:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
+          ptr = ctx->ParseMessage(_internal_mutable_identity(), ptr);
+          CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
@@ -3626,6 +3793,20 @@ uint8_t* PolicyCheckResponse::_InternalSerialize(
         InternalWriteMessage(9, repfield, repfield.GetCachedSize(), target, stream);
   }
 
+  // .cordum.agent.v1.ResourceRef redacted_context_ref = 10 [json_name = "redactedContextRef"];
+  if (this->_internal_has_redacted_context_ref()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(10, _Internal::redacted_context_ref(this),
+        _Internal::redacted_context_ref(this).GetCachedSize(), target, stream);
+  }
+
+  // .cordum.agent.v1.IdentityBinding identity = 11 [json_name = "identity"];
+  if (this->_internal_has_identity()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(11, _Internal::identity(this),
+        _Internal::identity(this).GetCachedSize(), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
@@ -3691,6 +3872,20 @@ size_t PolicyCheckResponse::ByteSizeLong() const {
         *_impl_.constraints_);
   }
 
+  // .cordum.agent.v1.ResourceRef redacted_context_ref = 10 [json_name = "redactedContextRef"];
+  if (this->_internal_has_redacted_context_ref()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.redacted_context_ref_);
+  }
+
+  // .cordum.agent.v1.IdentityBinding identity = 11 [json_name = "identity"];
+  if (this->_internal_has_identity()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.identity_);
+  }
+
   // .cordum.agent.v1.DecisionType decision = 1 [json_name = "decision"];
   if (this->_internal_decision() != 0) {
     total_size += 1 +
@@ -3739,6 +3934,14 @@ void PolicyCheckResponse::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, co
   if (from._internal_has_constraints()) {
     _this->_internal_mutable_constraints()->::cordum::agent::v1::PolicyConstraints::MergeFrom(
         from._internal_constraints());
+  }
+  if (from._internal_has_redacted_context_ref()) {
+    _this->_internal_mutable_redacted_context_ref()->::cordum::agent::v1::ResourceRef::MergeFrom(
+        from._internal_redacted_context_ref());
+  }
+  if (from._internal_has_identity()) {
+    _this->_internal_mutable_identity()->::cordum::agent::v1::IdentityBinding::MergeFrom(
+        from._internal_identity());
   }
   if (from._internal_decision() != 0) {
     _this->_internal_set_decision(from._internal_decision());

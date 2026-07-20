@@ -104,6 +104,8 @@ type PolicyCheckRequest struct {
 	MemoryId        string                 `protobuf:"bytes,9,opt,name=memory_id,json=memoryId,proto3" json:"memory_id,omitempty"`
 	EffectiveConfig []byte                 `protobuf:"bytes,10,opt,name=effective_config,json=effectiveConfig,proto3" json:"effective_config,omitempty"` // marshaled EffectiveConfig for policy context
 	Meta            *JobMetadata           `protobuf:"bytes,11,opt,name=meta,proto3" json:"meta,omitempty"`                                              // structured identity/capability metadata
+	Identity        *IdentityBinding       `protobuf:"bytes,12,opt,name=identity,proto3" json:"identity,omitempty"`
+	InputRef        *ResourceRef           `protobuf:"bytes,13,opt,name=input_ref,json=inputRef,proto3" json:"input_ref,omitempty"`
 	// Input content for pre-execution content-level policy inspection.
 	// Populated by the scheduler after dereferencing context_ptr from Redis.
 	// Omitted when content is unavailable or exceeds size cap.
@@ -220,6 +222,20 @@ func (x *PolicyCheckRequest) GetEffectiveConfig() []byte {
 func (x *PolicyCheckRequest) GetMeta() *JobMetadata {
 	if x != nil {
 		return x.Meta
+	}
+	return nil
+}
+
+func (x *PolicyCheckRequest) GetIdentity() *IdentityBinding {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+func (x *PolicyCheckRequest) GetInputRef() *ResourceRef {
+	if x != nil {
+		return x.InputRef
 	}
 	return nil
 }
@@ -679,6 +695,8 @@ type PolicyCheckResponse struct {
 	ApprovalRequired   bool                   `protobuf:"varint,7,opt,name=approval_required,json=approvalRequired,proto3" json:"approval_required,omitempty"`
 	ApprovalRef        string                 `protobuf:"bytes,8,opt,name=approval_ref,json=approvalRef,proto3" json:"approval_ref,omitempty"`
 	Remediations       []*PolicyRemediation   `protobuf:"bytes,9,rep,name=remediations,proto3" json:"remediations,omitempty"`
+	RedactedContextRef *ResourceRef           `protobuf:"bytes,10,opt,name=redacted_context_ref,json=redactedContextRef,proto3" json:"redacted_context_ref,omitempty"`
+	Identity           *IdentityBinding       `protobuf:"bytes,11,opt,name=identity,proto3" json:"identity,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -776,6 +794,20 @@ func (x *PolicyCheckResponse) GetRemediations() []*PolicyRemediation {
 	return nil
 }
 
+func (x *PolicyCheckResponse) GetRedactedContextRef() *ResourceRef {
+	if x != nil {
+		return x.RedactedContextRef
+	}
+	return nil
+}
+
+func (x *PolicyCheckResponse) GetIdentity() *IdentityBinding {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
 // ListSnapshotsRequest asks for loaded policy snapshots.
 type ListSnapshotsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -862,7 +894,7 @@ var File_cordum_agent_v1_safety_proto protoreflect.FileDescriptor
 
 const file_cordum_agent_v1_safety_proto_rawDesc = "" +
 	"\n" +
-	"\x1ccordum/agent/v1/safety.proto\x12\x0fcordum.agent.v1\x1a\x19cordum/agent/v1/job.proto\"\x89\x05\n" +
+	"\x1ccordum/agent/v1/safety.proto\x12\x0fcordum.agent.v1\x1a\x19cordum/agent/v1/job.proto\"\x82\x06\n" +
 	"\x12PolicyCheckRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x14\n" +
 	"\x05topic\x18\x02 \x01(\tR\x05topic\x12\x16\n" +
@@ -875,7 +907,9 @@ const file_cordum_agent_v1_safety_proto_rawDesc = "" +
 	"\tmemory_id\x18\t \x01(\tR\bmemoryId\x12)\n" +
 	"\x10effective_config\x18\n" +
 	" \x01(\fR\x0feffectiveConfig\x120\n" +
-	"\x04meta\x18\v \x01(\v2\x1c.cordum.agent.v1.JobMetadataR\x04meta\x12#\n" +
+	"\x04meta\x18\v \x01(\v2\x1c.cordum.agent.v1.JobMetadataR\x04meta\x12<\n" +
+	"\bidentity\x18\f \x01(\v2 .cordum.agent.v1.IdentityBindingR\bidentity\x129\n" +
+	"\tinput_ref\x18\r \x01(\v2\x1c.cordum.agent.v1.ResourceRefR\binputRef\x12#\n" +
 	"\rinput_content\x18\x14 \x01(\fR\finputContent\x12,\n" +
 	"\x12input_content_type\x18\x15 \x01(\tR\x10inputContentType\x12(\n" +
 	"\x10input_size_bytes\x18\x16 \x01(\x03R\x0einputSizeBytes\x1a9\n" +
@@ -918,7 +952,7 @@ const file_cordum_agent_v1_safety_proto_rawDesc = "" +
 	"\rremove_labels\x18\a \x03(\tR\fremoveLabels\x1a<\n" +
 	"\x0eAddLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xba\x03\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xc8\x04\n" +
 	"\x13PolicyCheckResponse\x129\n" +
 	"\bdecision\x18\x01 \x01(\x0e2\x1d.cordum.agent.v1.DecisionTypeR\bdecision\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x120\n" +
@@ -928,7 +962,10 @@ const file_cordum_agent_v1_safety_proto_rawDesc = "" +
 	"\vconstraints\x18\x06 \x01(\v2\".cordum.agent.v1.PolicyConstraintsR\vconstraints\x12+\n" +
 	"\x11approval_required\x18\a \x01(\bR\x10approvalRequired\x12!\n" +
 	"\fapproval_ref\x18\b \x01(\tR\vapprovalRef\x12F\n" +
-	"\fremediations\x18\t \x03(\v2\".cordum.agent.v1.PolicyRemediationR\fremediations\"\x16\n" +
+	"\fremediations\x18\t \x03(\v2\".cordum.agent.v1.PolicyRemediationR\fremediations\x12N\n" +
+	"\x14redacted_context_ref\x18\n" +
+	" \x01(\v2\x1c.cordum.agent.v1.ResourceRefR\x12redactedContextRef\x12<\n" +
+	"\bidentity\x18\v \x01(\v2 .cordum.agent.v1.IdentityBindingR\bidentity\"\x16\n" +
 	"\x14ListSnapshotsRequest\"5\n" +
 	"\x15ListSnapshotsResponse\x12\x1c\n" +
 	"\tsnapshots\x18\x01 \x03(\tR\tsnapshots*\xfd\x01\n" +
@@ -980,35 +1017,41 @@ var file_cordum_agent_v1_safety_proto_goTypes = []any{
 	(JobPriority)(0),              // 13: cordum.agent.v1.JobPriority
 	(*Budget)(nil),                // 14: cordum.agent.v1.Budget
 	(*JobMetadata)(nil),           // 15: cordum.agent.v1.JobMetadata
+	(*IdentityBinding)(nil),       // 16: cordum.agent.v1.IdentityBinding
+	(*ResourceRef)(nil),           // 17: cordum.agent.v1.ResourceRef
 }
 var file_cordum_agent_v1_safety_proto_depIdxs = []int32{
 	13, // 0: cordum.agent.v1.PolicyCheckRequest.priority:type_name -> cordum.agent.v1.JobPriority
 	14, // 1: cordum.agent.v1.PolicyCheckRequest.budget:type_name -> cordum.agent.v1.Budget
 	11, // 2: cordum.agent.v1.PolicyCheckRequest.labels:type_name -> cordum.agent.v1.PolicyCheckRequest.LabelsEntry
 	15, // 3: cordum.agent.v1.PolicyCheckRequest.meta:type_name -> cordum.agent.v1.JobMetadata
-	2,  // 4: cordum.agent.v1.PolicyConstraints.budgets:type_name -> cordum.agent.v1.BudgetConstraints
-	3,  // 5: cordum.agent.v1.PolicyConstraints.sandbox:type_name -> cordum.agent.v1.SandboxProfile
-	4,  // 6: cordum.agent.v1.PolicyConstraints.toolchain:type_name -> cordum.agent.v1.ToolchainConstraints
-	5,  // 7: cordum.agent.v1.PolicyConstraints.diff:type_name -> cordum.agent.v1.DiffConstraints
-	12, // 8: cordum.agent.v1.PolicyRemediation.add_labels:type_name -> cordum.agent.v1.PolicyRemediation.AddLabelsEntry
-	0,  // 9: cordum.agent.v1.PolicyCheckResponse.decision:type_name -> cordum.agent.v1.DecisionType
-	6,  // 10: cordum.agent.v1.PolicyCheckResponse.constraints:type_name -> cordum.agent.v1.PolicyConstraints
-	7,  // 11: cordum.agent.v1.PolicyCheckResponse.remediations:type_name -> cordum.agent.v1.PolicyRemediation
-	1,  // 12: cordum.agent.v1.SafetyKernel.Check:input_type -> cordum.agent.v1.PolicyCheckRequest
-	1,  // 13: cordum.agent.v1.SafetyKernel.Evaluate:input_type -> cordum.agent.v1.PolicyCheckRequest
-	1,  // 14: cordum.agent.v1.SafetyKernel.Explain:input_type -> cordum.agent.v1.PolicyCheckRequest
-	1,  // 15: cordum.agent.v1.SafetyKernel.Simulate:input_type -> cordum.agent.v1.PolicyCheckRequest
-	9,  // 16: cordum.agent.v1.SafetyKernel.ListSnapshots:input_type -> cordum.agent.v1.ListSnapshotsRequest
-	8,  // 17: cordum.agent.v1.SafetyKernel.Check:output_type -> cordum.agent.v1.PolicyCheckResponse
-	8,  // 18: cordum.agent.v1.SafetyKernel.Evaluate:output_type -> cordum.agent.v1.PolicyCheckResponse
-	8,  // 19: cordum.agent.v1.SafetyKernel.Explain:output_type -> cordum.agent.v1.PolicyCheckResponse
-	8,  // 20: cordum.agent.v1.SafetyKernel.Simulate:output_type -> cordum.agent.v1.PolicyCheckResponse
-	10, // 21: cordum.agent.v1.SafetyKernel.ListSnapshots:output_type -> cordum.agent.v1.ListSnapshotsResponse
-	17, // [17:22] is the sub-list for method output_type
-	12, // [12:17] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	16, // 4: cordum.agent.v1.PolicyCheckRequest.identity:type_name -> cordum.agent.v1.IdentityBinding
+	17, // 5: cordum.agent.v1.PolicyCheckRequest.input_ref:type_name -> cordum.agent.v1.ResourceRef
+	2,  // 6: cordum.agent.v1.PolicyConstraints.budgets:type_name -> cordum.agent.v1.BudgetConstraints
+	3,  // 7: cordum.agent.v1.PolicyConstraints.sandbox:type_name -> cordum.agent.v1.SandboxProfile
+	4,  // 8: cordum.agent.v1.PolicyConstraints.toolchain:type_name -> cordum.agent.v1.ToolchainConstraints
+	5,  // 9: cordum.agent.v1.PolicyConstraints.diff:type_name -> cordum.agent.v1.DiffConstraints
+	12, // 10: cordum.agent.v1.PolicyRemediation.add_labels:type_name -> cordum.agent.v1.PolicyRemediation.AddLabelsEntry
+	0,  // 11: cordum.agent.v1.PolicyCheckResponse.decision:type_name -> cordum.agent.v1.DecisionType
+	6,  // 12: cordum.agent.v1.PolicyCheckResponse.constraints:type_name -> cordum.agent.v1.PolicyConstraints
+	7,  // 13: cordum.agent.v1.PolicyCheckResponse.remediations:type_name -> cordum.agent.v1.PolicyRemediation
+	17, // 14: cordum.agent.v1.PolicyCheckResponse.redacted_context_ref:type_name -> cordum.agent.v1.ResourceRef
+	16, // 15: cordum.agent.v1.PolicyCheckResponse.identity:type_name -> cordum.agent.v1.IdentityBinding
+	1,  // 16: cordum.agent.v1.SafetyKernel.Check:input_type -> cordum.agent.v1.PolicyCheckRequest
+	1,  // 17: cordum.agent.v1.SafetyKernel.Evaluate:input_type -> cordum.agent.v1.PolicyCheckRequest
+	1,  // 18: cordum.agent.v1.SafetyKernel.Explain:input_type -> cordum.agent.v1.PolicyCheckRequest
+	1,  // 19: cordum.agent.v1.SafetyKernel.Simulate:input_type -> cordum.agent.v1.PolicyCheckRequest
+	9,  // 20: cordum.agent.v1.SafetyKernel.ListSnapshots:input_type -> cordum.agent.v1.ListSnapshotsRequest
+	8,  // 21: cordum.agent.v1.SafetyKernel.Check:output_type -> cordum.agent.v1.PolicyCheckResponse
+	8,  // 22: cordum.agent.v1.SafetyKernel.Evaluate:output_type -> cordum.agent.v1.PolicyCheckResponse
+	8,  // 23: cordum.agent.v1.SafetyKernel.Explain:output_type -> cordum.agent.v1.PolicyCheckResponse
+	8,  // 24: cordum.agent.v1.SafetyKernel.Simulate:output_type -> cordum.agent.v1.PolicyCheckResponse
+	10, // 25: cordum.agent.v1.SafetyKernel.ListSnapshots:output_type -> cordum.agent.v1.ListSnapshotsResponse
+	21, // [21:26] is the sub-list for method output_type
+	16, // [16:21] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_cordum_agent_v1_safety_proto_init() }

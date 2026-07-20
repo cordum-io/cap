@@ -23,6 +23,16 @@ export class BusPacket extends jspb.Message {
   getProtocolVersion(): number;
   setProtocolVersion(value: number): void;
 
+  hasSignatureMetadata(): boolean;
+  clearSignatureMetadata(): void;
+  getSignatureMetadata(): SignatureMetadata | undefined;
+  setSignatureMetadata(value?: SignatureMetadata): void;
+
+  hasIdentity(): boolean;
+  clearIdentity(): void;
+  getIdentity(): cordum_agent_v1_job_pb.IdentityBinding | undefined;
+  setIdentity(value?: cordum_agent_v1_job_pb.IdentityBinding): void;
+
   hasJobRequest(): boolean;
   clearJobRequest(): void;
   getJobRequest(): cordum_agent_v1_job_pb.JobRequest | undefined;
@@ -103,6 +113,8 @@ export namespace BusPacket {
     senderId: string,
     createdAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
     protocolVersion: number,
+    signatureMetadata?: SignatureMetadata.AsObject,
+    identity?: cordum_agent_v1_job_pb.IdentityBinding.AsObject,
     jobRequest?: cordum_agent_v1_job_pb.JobRequest.AsObject,
     jobResult?: cordum_agent_v1_job_pb.JobResult.AsObject,
     heartbeat?: cordum_agent_v1_heartbeat_pb.Heartbeat.AsObject,
@@ -131,6 +143,50 @@ export namespace BusPacket {
     WORKER_HANDSHAKE_CHALLENGE = 20,
     WORKER_HANDSHAKE_AUTHENTICATE = 21,
     WORKER_HANDSHAKE_RESULT = 22,
+  }
+}
+
+export class SignatureMetadata extends jspb.Message {
+  getProfileVersion(): string;
+  setProfileVersion(value: string): void;
+
+  getAlgorithm(): string;
+  setAlgorithm(value: string): void;
+
+  getMessageId(): Uint8Array | string;
+  getMessageId_asU8(): Uint8Array;
+  getMessageId_asB64(): string;
+  setMessageId(value: Uint8Array | string): void;
+
+  getAudience(): string;
+  setAudience(value: string): void;
+
+  hasExpiresAt(): boolean;
+  clearExpiresAt(): void;
+  getExpiresAt(): google_protobuf_timestamp_pb.Timestamp | undefined;
+  setExpiresAt(value?: google_protobuf_timestamp_pb.Timestamp): void;
+
+  getKeyId(): string;
+  setKeyId(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): SignatureMetadata.AsObject;
+  static toObject(includeInstance: boolean, msg: SignatureMetadata): SignatureMetadata.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: SignatureMetadata, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): SignatureMetadata;
+  static deserializeBinaryFromReader(message: SignatureMetadata, reader: jspb.BinaryReader): SignatureMetadata;
+}
+
+export namespace SignatureMetadata {
+  export type AsObject = {
+    profileVersion: string,
+    algorithm: string,
+    messageId: Uint8Array | string,
+    audience: string,
+    expiresAt?: google_protobuf_timestamp_pb.Timestamp.AsObject,
+    keyId: string,
   }
 }
 

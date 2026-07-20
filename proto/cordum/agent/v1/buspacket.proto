@@ -21,6 +21,13 @@ message BusPacket {
     string sender_id = 2;                   // emitting agent id
     google.protobuf.Timestamp created_at = 3; // emission time
     int32 protocol_version = 4;             // CAP wire version
+    SignatureMetadata signature_metadata = 5; // CAP-PRODUCTION signing profile
+    IdentityBinding identity = 6;           // mirrors authenticated session identity
+
+    // Reserved for append-only CAP-PRODUCTION envelope payloads. Keeping these
+    // out of circulation prevents concurrent protocol work from colliding with
+    // the frozen worker-handshake payloads at 19-22.
+    reserved 23 to 27;
 
     oneof payload {
         JobRequest job_request = 10;
@@ -37,4 +44,15 @@ message BusPacket {
     }
     bytes signature = 14;                   // digital signature of the serialized BusPacket
     string auth_token = 18;                 // trusted runtime session token
+}
+
+// SignatureMetadata binds a signature to one profile, packet identity,
+// audience, validity window, and locally trusted key identifier.
+message SignatureMetadata {
+    string profile_version = 1;
+    string algorithm = 2;
+    bytes message_id = 3; // exactly 16 unpredictable bytes
+    string audience = 4;
+    google.protobuf.Timestamp expires_at = 5;
+    string key_id = 6;
 }

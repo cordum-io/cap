@@ -74,6 +74,10 @@ export class RuntimeWorkerTrust {
     return this.lifecycle?.sessionToken;
   }
 
+  get productionSessionActive(): boolean {
+    return this.admitting && this.enforcing && Boolean(this.sessionToken);
+  }
+
   outboundSessionToken(): string {
     const token = this.sessionToken;
     if (this.enforcing && !token) throw new Error("authenticated worker session is unavailable");

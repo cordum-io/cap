@@ -55,11 +55,15 @@ namespace v1 {
 class BusPacket;
 struct BusPacketDefaultTypeInternal;
 extern BusPacketDefaultTypeInternal _BusPacket_default_instance_;
+class SignatureMetadata;
+struct SignatureMetadataDefaultTypeInternal;
+extern SignatureMetadataDefaultTypeInternal _SignatureMetadata_default_instance_;
 }  // namespace v1
 }  // namespace agent
 }  // namespace cordum
 PROTOBUF_NAMESPACE_OPEN
 template<> ::cordum::agent::v1::BusPacket* Arena::CreateMaybeMessage<::cordum::agent::v1::BusPacket>(Arena*);
+template<> ::cordum::agent::v1::SignatureMetadata* Arena::CreateMaybeMessage<::cordum::agent::v1::SignatureMetadata>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace cordum {
 namespace agent {
@@ -208,6 +212,8 @@ class BusPacket final :
     kSignatureFieldNumber = 14,
     kAuthTokenFieldNumber = 18,
     kCreatedAtFieldNumber = 3,
+    kSignatureMetadataFieldNumber = 5,
+    kIdentityFieldNumber = 6,
     kProtocolVersionFieldNumber = 4,
     kJobRequestFieldNumber = 10,
     kJobResultFieldNumber = 11,
@@ -294,6 +300,42 @@ class BusPacket final :
   void unsafe_arena_set_allocated_created_at(
       ::PROTOBUF_NAMESPACE_ID::Timestamp* created_at);
   ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_created_at();
+
+  // .cordum.agent.v1.SignatureMetadata signature_metadata = 5 [json_name = "signatureMetadata"];
+  bool has_signature_metadata() const;
+  private:
+  bool _internal_has_signature_metadata() const;
+  public:
+  void clear_signature_metadata();
+  const ::cordum::agent::v1::SignatureMetadata& signature_metadata() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::SignatureMetadata* release_signature_metadata();
+  ::cordum::agent::v1::SignatureMetadata* mutable_signature_metadata();
+  void set_allocated_signature_metadata(::cordum::agent::v1::SignatureMetadata* signature_metadata);
+  private:
+  const ::cordum::agent::v1::SignatureMetadata& _internal_signature_metadata() const;
+  ::cordum::agent::v1::SignatureMetadata* _internal_mutable_signature_metadata();
+  public:
+  void unsafe_arena_set_allocated_signature_metadata(
+      ::cordum::agent::v1::SignatureMetadata* signature_metadata);
+  ::cordum::agent::v1::SignatureMetadata* unsafe_arena_release_signature_metadata();
+
+  // .cordum.agent.v1.IdentityBinding identity = 6 [json_name = "identity"];
+  bool has_identity() const;
+  private:
+  bool _internal_has_identity() const;
+  public:
+  void clear_identity();
+  const ::cordum::agent::v1::IdentityBinding& identity() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::IdentityBinding* release_identity();
+  ::cordum::agent::v1::IdentityBinding* mutable_identity();
+  void set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity);
+  private:
+  const ::cordum::agent::v1::IdentityBinding& _internal_identity() const;
+  ::cordum::agent::v1::IdentityBinding* _internal_mutable_identity();
+  public:
+  void unsafe_arena_set_allocated_identity(
+      ::cordum::agent::v1::IdentityBinding* identity);
+  ::cordum::agent::v1::IdentityBinding* unsafe_arena_release_identity();
 
   // int32 protocol_version = 4 [json_name = "protocolVersion"];
   void clear_protocol_version();
@@ -531,6 +573,8 @@ class BusPacket final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr signature_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr auth_token_;
     ::PROTOBUF_NAMESPACE_ID::Timestamp* created_at_;
+    ::cordum::agent::v1::SignatureMetadata* signature_metadata_;
+    ::cordum::agent::v1::IdentityBinding* identity_;
     int32_t protocol_version_;
     union PayloadUnion {
       constexpr PayloadUnion() : _constinit_{} {}
@@ -550,6 +594,243 @@ class BusPacket final :
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
     uint32_t _oneof_case_[1];
 
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_cordum_2fagent_2fv1_2fbuspacket_2eproto;
+};
+// -------------------------------------------------------------------
+
+class SignatureMetadata final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cordum.agent.v1.SignatureMetadata) */ {
+ public:
+  inline SignatureMetadata() : SignatureMetadata(nullptr) {}
+  ~SignatureMetadata() override;
+  explicit PROTOBUF_CONSTEXPR SignatureMetadata(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  SignatureMetadata(const SignatureMetadata& from);
+  SignatureMetadata(SignatureMetadata&& from) noexcept
+    : SignatureMetadata() {
+    *this = ::std::move(from);
+  }
+
+  inline SignatureMetadata& operator=(const SignatureMetadata& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline SignatureMetadata& operator=(SignatureMetadata&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const SignatureMetadata& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const SignatureMetadata* internal_default_instance() {
+    return reinterpret_cast<const SignatureMetadata*>(
+               &_SignatureMetadata_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(SignatureMetadata& a, SignatureMetadata& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(SignatureMetadata* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(SignatureMetadata* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  SignatureMetadata* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<SignatureMetadata>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const SignatureMetadata& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const SignatureMetadata& from) {
+    SignatureMetadata::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(SignatureMetadata* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "cordum.agent.v1.SignatureMetadata";
+  }
+  protected:
+  explicit SignatureMetadata(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kProfileVersionFieldNumber = 1,
+    kAlgorithmFieldNumber = 2,
+    kMessageIdFieldNumber = 3,
+    kAudienceFieldNumber = 4,
+    kKeyIdFieldNumber = 6,
+    kExpiresAtFieldNumber = 5,
+  };
+  // string profile_version = 1 [json_name = "profileVersion"];
+  void clear_profile_version();
+  const std::string& profile_version() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_profile_version(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_profile_version();
+  PROTOBUF_NODISCARD std::string* release_profile_version();
+  void set_allocated_profile_version(std::string* profile_version);
+  private:
+  const std::string& _internal_profile_version() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_profile_version(const std::string& value);
+  std::string* _internal_mutable_profile_version();
+  public:
+
+  // string algorithm = 2 [json_name = "algorithm"];
+  void clear_algorithm();
+  const std::string& algorithm() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_algorithm(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_algorithm();
+  PROTOBUF_NODISCARD std::string* release_algorithm();
+  void set_allocated_algorithm(std::string* algorithm);
+  private:
+  const std::string& _internal_algorithm() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_algorithm(const std::string& value);
+  std::string* _internal_mutable_algorithm();
+  public:
+
+  // bytes message_id = 3 [json_name = "messageId"];
+  void clear_message_id();
+  const std::string& message_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_message_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_message_id();
+  PROTOBUF_NODISCARD std::string* release_message_id();
+  void set_allocated_message_id(std::string* message_id);
+  private:
+  const std::string& _internal_message_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_message_id(const std::string& value);
+  std::string* _internal_mutable_message_id();
+  public:
+
+  // string audience = 4 [json_name = "audience"];
+  void clear_audience();
+  const std::string& audience() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_audience(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_audience();
+  PROTOBUF_NODISCARD std::string* release_audience();
+  void set_allocated_audience(std::string* audience);
+  private:
+  const std::string& _internal_audience() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_audience(const std::string& value);
+  std::string* _internal_mutable_audience();
+  public:
+
+  // string key_id = 6 [json_name = "keyId"];
+  void clear_key_id();
+  const std::string& key_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_key_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_key_id();
+  PROTOBUF_NODISCARD std::string* release_key_id();
+  void set_allocated_key_id(std::string* key_id);
+  private:
+  const std::string& _internal_key_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_key_id(const std::string& value);
+  std::string* _internal_mutable_key_id();
+  public:
+
+  // .google.protobuf.Timestamp expires_at = 5 [json_name = "expiresAt"];
+  bool has_expires_at() const;
+  private:
+  bool _internal_has_expires_at() const;
+  public:
+  void clear_expires_at();
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& expires_at() const;
+  PROTOBUF_NODISCARD ::PROTOBUF_NAMESPACE_ID::Timestamp* release_expires_at();
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* mutable_expires_at();
+  void set_allocated_expires_at(::PROTOBUF_NAMESPACE_ID::Timestamp* expires_at);
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp& _internal_expires_at() const;
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _internal_mutable_expires_at();
+  public:
+  void unsafe_arena_set_allocated_expires_at(
+      ::PROTOBUF_NAMESPACE_ID::Timestamp* expires_at);
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* unsafe_arena_release_expires_at();
+
+  // @@protoc_insertion_point(class_scope:cordum.agent.v1.SignatureMetadata)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr profile_version_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr algorithm_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr message_id_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr audience_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr key_id_;
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* expires_at_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
   friend struct ::TableStruct_cordum_2fagent_2fv1_2fbuspacket_2eproto;
@@ -768,6 +1049,181 @@ inline void BusPacket::_internal_set_protocol_version(int32_t value) {
 inline void BusPacket::set_protocol_version(int32_t value) {
   _internal_set_protocol_version(value);
   // @@protoc_insertion_point(field_set:cordum.agent.v1.BusPacket.protocol_version)
+}
+
+// .cordum.agent.v1.SignatureMetadata signature_metadata = 5 [json_name = "signatureMetadata"];
+inline bool BusPacket::_internal_has_signature_metadata() const {
+  return this != internal_default_instance() && _impl_.signature_metadata_ != nullptr;
+}
+inline bool BusPacket::has_signature_metadata() const {
+  return _internal_has_signature_metadata();
+}
+inline void BusPacket::clear_signature_metadata() {
+  if (GetArenaForAllocation() == nullptr && _impl_.signature_metadata_ != nullptr) {
+    delete _impl_.signature_metadata_;
+  }
+  _impl_.signature_metadata_ = nullptr;
+}
+inline const ::cordum::agent::v1::SignatureMetadata& BusPacket::_internal_signature_metadata() const {
+  const ::cordum::agent::v1::SignatureMetadata* p = _impl_.signature_metadata_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::SignatureMetadata&>(
+      ::cordum::agent::v1::_SignatureMetadata_default_instance_);
+}
+inline const ::cordum::agent::v1::SignatureMetadata& BusPacket::signature_metadata() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.BusPacket.signature_metadata)
+  return _internal_signature_metadata();
+}
+inline void BusPacket::unsafe_arena_set_allocated_signature_metadata(
+    ::cordum::agent::v1::SignatureMetadata* signature_metadata) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.signature_metadata_);
+  }
+  _impl_.signature_metadata_ = signature_metadata;
+  if (signature_metadata) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.BusPacket.signature_metadata)
+}
+inline ::cordum::agent::v1::SignatureMetadata* BusPacket::release_signature_metadata() {
+  
+  ::cordum::agent::v1::SignatureMetadata* temp = _impl_.signature_metadata_;
+  _impl_.signature_metadata_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::SignatureMetadata* BusPacket::unsafe_arena_release_signature_metadata() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.BusPacket.signature_metadata)
+  
+  ::cordum::agent::v1::SignatureMetadata* temp = _impl_.signature_metadata_;
+  _impl_.signature_metadata_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::SignatureMetadata* BusPacket::_internal_mutable_signature_metadata() {
+  
+  if (_impl_.signature_metadata_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::SignatureMetadata>(GetArenaForAllocation());
+    _impl_.signature_metadata_ = p;
+  }
+  return _impl_.signature_metadata_;
+}
+inline ::cordum::agent::v1::SignatureMetadata* BusPacket::mutable_signature_metadata() {
+  ::cordum::agent::v1::SignatureMetadata* _msg = _internal_mutable_signature_metadata();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.BusPacket.signature_metadata)
+  return _msg;
+}
+inline void BusPacket::set_allocated_signature_metadata(::cordum::agent::v1::SignatureMetadata* signature_metadata) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete _impl_.signature_metadata_;
+  }
+  if (signature_metadata) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(signature_metadata);
+    if (message_arena != submessage_arena) {
+      signature_metadata = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, signature_metadata, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.signature_metadata_ = signature_metadata;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.BusPacket.signature_metadata)
+}
+
+// .cordum.agent.v1.IdentityBinding identity = 6 [json_name = "identity"];
+inline bool BusPacket::_internal_has_identity() const {
+  return this != internal_default_instance() && _impl_.identity_ != nullptr;
+}
+inline bool BusPacket::has_identity() const {
+  return _internal_has_identity();
+}
+inline const ::cordum::agent::v1::IdentityBinding& BusPacket::_internal_identity() const {
+  const ::cordum::agent::v1::IdentityBinding* p = _impl_.identity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::IdentityBinding&>(
+      ::cordum::agent::v1::_IdentityBinding_default_instance_);
+}
+inline const ::cordum::agent::v1::IdentityBinding& BusPacket::identity() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.BusPacket.identity)
+  return _internal_identity();
+}
+inline void BusPacket::unsafe_arena_set_allocated_identity(
+    ::cordum::agent::v1::IdentityBinding* identity) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  _impl_.identity_ = identity;
+  if (identity) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.BusPacket.identity)
+}
+inline ::cordum::agent::v1::IdentityBinding* BusPacket::release_identity() {
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* BusPacket::unsafe_arena_release_identity() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.BusPacket.identity)
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* BusPacket::_internal_mutable_identity() {
+  
+  if (_impl_.identity_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::IdentityBinding>(GetArenaForAllocation());
+    _impl_.identity_ = p;
+  }
+  return _impl_.identity_;
+}
+inline ::cordum::agent::v1::IdentityBinding* BusPacket::mutable_identity() {
+  ::cordum::agent::v1::IdentityBinding* _msg = _internal_mutable_identity();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.BusPacket.identity)
+  return _msg;
+}
+inline void BusPacket::set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  if (identity) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(identity));
+    if (message_arena != submessage_arena) {
+      identity = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, identity, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.identity_ = identity;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.BusPacket.identity)
 }
 
 // .cordum.agent.v1.JobRequest job_request = 10 [json_name = "jobRequest"];
@@ -1605,9 +2061,350 @@ inline void BusPacket::clear_has_payload() {
 inline BusPacket::PayloadCase BusPacket::payload_case() const {
   return BusPacket::PayloadCase(_impl_._oneof_case_[0]);
 }
+// -------------------------------------------------------------------
+
+// SignatureMetadata
+
+// string profile_version = 1 [json_name = "profileVersion"];
+inline void SignatureMetadata::clear_profile_version() {
+  _impl_.profile_version_.ClearToEmpty();
+}
+inline const std::string& SignatureMetadata::profile_version() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.SignatureMetadata.profile_version)
+  return _internal_profile_version();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void SignatureMetadata::set_profile_version(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.profile_version_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.SignatureMetadata.profile_version)
+}
+inline std::string* SignatureMetadata::mutable_profile_version() {
+  std::string* _s = _internal_mutable_profile_version();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.SignatureMetadata.profile_version)
+  return _s;
+}
+inline const std::string& SignatureMetadata::_internal_profile_version() const {
+  return _impl_.profile_version_.Get();
+}
+inline void SignatureMetadata::_internal_set_profile_version(const std::string& value) {
+  
+  _impl_.profile_version_.Set(value, GetArenaForAllocation());
+}
+inline std::string* SignatureMetadata::_internal_mutable_profile_version() {
+  
+  return _impl_.profile_version_.Mutable(GetArenaForAllocation());
+}
+inline std::string* SignatureMetadata::release_profile_version() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.SignatureMetadata.profile_version)
+  return _impl_.profile_version_.Release();
+}
+inline void SignatureMetadata::set_allocated_profile_version(std::string* profile_version) {
+  if (profile_version != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.profile_version_.SetAllocated(profile_version, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.profile_version_.IsDefault()) {
+    _impl_.profile_version_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SignatureMetadata.profile_version)
+}
+
+// string algorithm = 2 [json_name = "algorithm"];
+inline void SignatureMetadata::clear_algorithm() {
+  _impl_.algorithm_.ClearToEmpty();
+}
+inline const std::string& SignatureMetadata::algorithm() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.SignatureMetadata.algorithm)
+  return _internal_algorithm();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void SignatureMetadata::set_algorithm(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.algorithm_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.SignatureMetadata.algorithm)
+}
+inline std::string* SignatureMetadata::mutable_algorithm() {
+  std::string* _s = _internal_mutable_algorithm();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.SignatureMetadata.algorithm)
+  return _s;
+}
+inline const std::string& SignatureMetadata::_internal_algorithm() const {
+  return _impl_.algorithm_.Get();
+}
+inline void SignatureMetadata::_internal_set_algorithm(const std::string& value) {
+  
+  _impl_.algorithm_.Set(value, GetArenaForAllocation());
+}
+inline std::string* SignatureMetadata::_internal_mutable_algorithm() {
+  
+  return _impl_.algorithm_.Mutable(GetArenaForAllocation());
+}
+inline std::string* SignatureMetadata::release_algorithm() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.SignatureMetadata.algorithm)
+  return _impl_.algorithm_.Release();
+}
+inline void SignatureMetadata::set_allocated_algorithm(std::string* algorithm) {
+  if (algorithm != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.algorithm_.SetAllocated(algorithm, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.algorithm_.IsDefault()) {
+    _impl_.algorithm_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SignatureMetadata.algorithm)
+}
+
+// bytes message_id = 3 [json_name = "messageId"];
+inline void SignatureMetadata::clear_message_id() {
+  _impl_.message_id_.ClearToEmpty();
+}
+inline const std::string& SignatureMetadata::message_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.SignatureMetadata.message_id)
+  return _internal_message_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void SignatureMetadata::set_message_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.message_id_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.SignatureMetadata.message_id)
+}
+inline std::string* SignatureMetadata::mutable_message_id() {
+  std::string* _s = _internal_mutable_message_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.SignatureMetadata.message_id)
+  return _s;
+}
+inline const std::string& SignatureMetadata::_internal_message_id() const {
+  return _impl_.message_id_.Get();
+}
+inline void SignatureMetadata::_internal_set_message_id(const std::string& value) {
+  
+  _impl_.message_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* SignatureMetadata::_internal_mutable_message_id() {
+  
+  return _impl_.message_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* SignatureMetadata::release_message_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.SignatureMetadata.message_id)
+  return _impl_.message_id_.Release();
+}
+inline void SignatureMetadata::set_allocated_message_id(std::string* message_id) {
+  if (message_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.message_id_.SetAllocated(message_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.message_id_.IsDefault()) {
+    _impl_.message_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SignatureMetadata.message_id)
+}
+
+// string audience = 4 [json_name = "audience"];
+inline void SignatureMetadata::clear_audience() {
+  _impl_.audience_.ClearToEmpty();
+}
+inline const std::string& SignatureMetadata::audience() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.SignatureMetadata.audience)
+  return _internal_audience();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void SignatureMetadata::set_audience(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.audience_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.SignatureMetadata.audience)
+}
+inline std::string* SignatureMetadata::mutable_audience() {
+  std::string* _s = _internal_mutable_audience();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.SignatureMetadata.audience)
+  return _s;
+}
+inline const std::string& SignatureMetadata::_internal_audience() const {
+  return _impl_.audience_.Get();
+}
+inline void SignatureMetadata::_internal_set_audience(const std::string& value) {
+  
+  _impl_.audience_.Set(value, GetArenaForAllocation());
+}
+inline std::string* SignatureMetadata::_internal_mutable_audience() {
+  
+  return _impl_.audience_.Mutable(GetArenaForAllocation());
+}
+inline std::string* SignatureMetadata::release_audience() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.SignatureMetadata.audience)
+  return _impl_.audience_.Release();
+}
+inline void SignatureMetadata::set_allocated_audience(std::string* audience) {
+  if (audience != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.audience_.SetAllocated(audience, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.audience_.IsDefault()) {
+    _impl_.audience_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SignatureMetadata.audience)
+}
+
+// .google.protobuf.Timestamp expires_at = 5 [json_name = "expiresAt"];
+inline bool SignatureMetadata::_internal_has_expires_at() const {
+  return this != internal_default_instance() && _impl_.expires_at_ != nullptr;
+}
+inline bool SignatureMetadata::has_expires_at() const {
+  return _internal_has_expires_at();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& SignatureMetadata::_internal_expires_at() const {
+  const ::PROTOBUF_NAMESPACE_ID::Timestamp* p = _impl_.expires_at_;
+  return p != nullptr ? *p : reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Timestamp&>(
+      ::PROTOBUF_NAMESPACE_ID::_Timestamp_default_instance_);
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Timestamp& SignatureMetadata::expires_at() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.SignatureMetadata.expires_at)
+  return _internal_expires_at();
+}
+inline void SignatureMetadata::unsafe_arena_set_allocated_expires_at(
+    ::PROTOBUF_NAMESPACE_ID::Timestamp* expires_at) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.expires_at_);
+  }
+  _impl_.expires_at_ = expires_at;
+  if (expires_at) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.SignatureMetadata.expires_at)
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* SignatureMetadata::release_expires_at() {
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = _impl_.expires_at_;
+  _impl_.expires_at_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* SignatureMetadata::unsafe_arena_release_expires_at() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.SignatureMetadata.expires_at)
+  
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* temp = _impl_.expires_at_;
+  _impl_.expires_at_ = nullptr;
+  return temp;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* SignatureMetadata::_internal_mutable_expires_at() {
+  
+  if (_impl_.expires_at_ == nullptr) {
+    auto* p = CreateMaybeMessage<::PROTOBUF_NAMESPACE_ID::Timestamp>(GetArenaForAllocation());
+    _impl_.expires_at_ = p;
+  }
+  return _impl_.expires_at_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::Timestamp* SignatureMetadata::mutable_expires_at() {
+  ::PROTOBUF_NAMESPACE_ID::Timestamp* _msg = _internal_mutable_expires_at();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.SignatureMetadata.expires_at)
+  return _msg;
+}
+inline void SignatureMetadata::set_allocated_expires_at(::PROTOBUF_NAMESPACE_ID::Timestamp* expires_at) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.expires_at_);
+  }
+  if (expires_at) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(expires_at));
+    if (message_arena != submessage_arena) {
+      expires_at = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, expires_at, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.expires_at_ = expires_at;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SignatureMetadata.expires_at)
+}
+
+// string key_id = 6 [json_name = "keyId"];
+inline void SignatureMetadata::clear_key_id() {
+  _impl_.key_id_.ClearToEmpty();
+}
+inline const std::string& SignatureMetadata::key_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.SignatureMetadata.key_id)
+  return _internal_key_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void SignatureMetadata::set_key_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.key_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.SignatureMetadata.key_id)
+}
+inline std::string* SignatureMetadata::mutable_key_id() {
+  std::string* _s = _internal_mutable_key_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.SignatureMetadata.key_id)
+  return _s;
+}
+inline const std::string& SignatureMetadata::_internal_key_id() const {
+  return _impl_.key_id_.Get();
+}
+inline void SignatureMetadata::_internal_set_key_id(const std::string& value) {
+  
+  _impl_.key_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* SignatureMetadata::_internal_mutable_key_id() {
+  
+  return _impl_.key_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* SignatureMetadata::release_key_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.SignatureMetadata.key_id)
+  return _impl_.key_id_.Release();
+}
+inline void SignatureMetadata::set_allocated_key_id(std::string* key_id) {
+  if (key_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.key_id_.SetAllocated(key_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.key_id_.IsDefault()) {
+    _impl_.key_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SignatureMetadata.key_id)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 

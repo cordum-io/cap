@@ -110,6 +110,7 @@ func (a *Agent) failStart(startErr error) error {
 	a.clearSession()
 	a.trustMode = ""
 	a.trustConfig = nil
+	a.productionConfig = nil
 	return startErr
 }
 

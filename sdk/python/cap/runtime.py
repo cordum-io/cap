@@ -1,10 +1,13 @@
 import asyncio
+import hashlib
 import json
 import logging
 import os
 import secrets
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from datetime import timezone
+from types import MappingProxyType
 from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Type, TypeVar, Union
 
 from google.protobuf import timestamp_pb2
@@ -28,6 +31,15 @@ from cap.errors import InvalidInputError
 from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
 from cap.packet_boundary import decode_packet, finalize_packet, parse_packet
+from cap.production_signing import (
+    ProductionSignatureError,
+    ProductionTrust,
+    extract_signature,
+    verify_production_packet,
+)
+from cap.production_replay import ReplayConflictError, ReplayOutcome, ReplayStore, ReplayStoreUnavailableError
+from cap.production_validation import IdentityMismatchError, validate_identity_binding
+from cap.validate import validate_bus_packet
 from cap.worker_trust import WorkerTrustConfig, WorkerTrustMode
 from cap.worker_trust_runtime import (
     DEFAULT_RENEW_MIN_INTERVAL,
@@ -41,6 +53,22 @@ from cap.constants import DEFAULT_PROTOCOL_VERSION  # noqa: E402 — must be aft
 
 _HANDLER_FAILED_MESSAGE = "handler failed"
 _LOG_FIELD_LIMIT = 256
+
+
+def _snapshot_production_trust(
+    trust: Optional[ProductionTrust],
+) -> Optional[ProductionTrust]:
+    if trust is None:
+        return None
+    return replace(trust, public_keys=MappingProxyType(dict(trust.public_keys)))
+
+
+def _replay_error_category(error: Exception) -> str:
+    if isinstance(error, ReplayConflictError):
+        return "replay conflict"
+    if isinstance(error, ReplayStoreUnavailableError):
+        return "replay store unavailable"
+    return "replay store unavailable"
 
 
 def _bounded_log_field(value: object) -> str:
@@ -331,6 +359,8 @@ class Agent:
         worker_trust: Optional[WorkerTrustConfig] = None,
         worker_trust_timeout: Optional[float] = None, worker_trust_retries: Optional[int] = None,
         worker_trust_renew_min_interval: float = DEFAULT_RENEW_MIN_INTERVAL,
+        production_trust: Optional[ProductionTrust] = None,
+        replay_store: Optional[ReplayStore] = None,
     ) -> None:
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
@@ -355,6 +385,15 @@ class Agent:
         self._configure_worker_trust(worker_trust_mode, worker_trust,
             worker_trust_timeout, worker_trust_retries,
             worker_trust_renew_min_interval)
+        # CAP-PRODUCTION raw-packet admission (task-a13f83fa step-7). Both
+        # must be set to enable; this is the explicit migration/compat
+        # switch — production is never inferred. See _decode_production_packet.
+        if (production_trust is None) != (replay_store is None):
+            raise ValueError(
+                "production_trust and replay_store must be configured together"
+            )
+        self._production_trust = _snapshot_production_trust(production_trust)
+        self._replay_store = replay_store
         Agent._initialize_lifecycle(self)
 
     def _configure_worker_trust(
@@ -441,6 +480,7 @@ class Agent:
             retries=self._worker_trust_retries,
             renew_min_interval=self._worker_trust_renew_min_interval,
         )
+        self._validate_production_startup()
         self._capability = self._build_capability_handshake()
         self._lifecycle_state = "starting"
         try:
@@ -922,9 +962,90 @@ class Agent:
                     raise
                 self._safe_cleanup_log("agent close", exc)
 
-    def _decode_admitted_packet(
-        self, payload: bytes
+    def _production_enabled(self) -> bool:
+        return self._production_trust is not None and self._replay_store is not None
+
+    def _decode_production_packet(
+        self,
+        payload: bytes,
+        audience: Optional[str] = None,
+        bind_session: bool = False,
     ) -> Optional[buspacket_pb2.BusPacket]:
+        """Raw-wire CAP-PRODUCTION admission: verify the exact received
+        bytes (never a re-serialized object), then authoritative identity,
+        then atomic replay admission — all BEFORE any handler runs. Any
+        rejection is logged without the raw signature/payload bytes."""
+        base_trust = self._production_trust
+        replay_store = self._replay_store
+        if base_trust is None or replay_store is None:
+            return None
+        try:
+            trust = replace(
+                base_trust, audience=audience or base_trust.audience
+            )
+            if bind_session:
+                trust = self._session_bound_production_trust(trust)
+            unsigned, _ = extract_signature(payload)
+            packet = verify_production_packet(payload, trust)
+        except ProductionSignatureError as exc:
+            self._logger.warning("production admission rejected packet: %s", exc)
+            return None
+        if validate_bus_packet(packet):
+            self._logger.warning("production admission rejected packet: invalid envelope")
+            return None
+        if packet.HasField("job_request") and packet.HasField("identity"):
+            try:
+                validate_identity_binding(packet.job_request, packet.identity)
+            except IdentityMismatchError as exc:
+                self._logger.warning("production admission rejected packet: %s", exc)
+                return None
+        if not self._admit_production_replay(
+            packet, unsigned, trust, replay_store
+        ):
+            return None
+        return packet
+
+    def _admit_production_replay(
+        self,
+        packet: buspacket_pb2.BusPacket,
+        unsigned: bytes,
+        trust: ProductionTrust,
+        replay_store: ReplayStore,
+    ) -> bool:
+        metadata = packet.signature_metadata
+        digest = hashlib.sha256(unsigned).digest()
+        expiry = metadata.expires_at.ToDatetime(tzinfo=timezone.utc)
+        try:
+            outcome = replay_store.admit(
+                packet.identity.tenant_id,
+                metadata.audience,
+                packet.sender_id,
+                metadata.message_id,
+                digest,
+                expiry + trust.clock_skew,
+            )
+        except Exception as exc:
+            self._logger.warning(
+                "production admission rejected packet: %s",
+                _replay_error_category(exc),
+            )
+            return False
+        if outcome == ReplayOutcome.DUPLICATE:
+            return False
+        if outcome != ReplayOutcome.FIRST:
+            self._logger.warning(
+                "production admission rejected packet: invalid outcome"
+            )
+            return False
+        return True
+
+    def _decode_admitted_packet(
+        self, payload: bytes, audience: Optional[str] = None
+    ) -> Optional[buspacket_pb2.BusPacket]:
+        if self._production_enabled():
+            if not audience or not self._production_session_active():
+                return None
+            return self._decode_production_packet(payload, audience, bind_session=True)
         if not self._trust_admitting:
             return None
         settings = self._trust_settings
@@ -942,9 +1063,55 @@ class Agent:
                 return packet
         return None
 
+    def _production_session_active(self) -> bool:
+        return (
+            self._trust_admitting
+            and self._enforce_trust()
+            and bool(self.session_token)
+        )
+
+    def _validate_production_startup(self) -> None:
+        if not self._production_enabled():
+            return
+        settings = self._trust_settings
+        if settings is None or settings.mode != WorkerTrustMode.ENFORCE:
+            raise RuntimeError("CAP-PRODUCTION requires worker trust ENFORCE")
+        config = settings.config
+        if config is None:
+            raise RuntimeError("CAP-PRODUCTION requires worker trust configuration")
+        trust = self._production_trust
+        if trust is None:
+            raise RuntimeError("CAP-PRODUCTION trust is unavailable")
+        self._session_bound_production_trust(trust)
+
+    def _session_bound_production_trust(self, trust: ProductionTrust) -> ProductionTrust:
+        settings = self._trust_settings
+        config = settings.config if settings is not None else None
+        if config is None:
+            raise ProductionSignatureError("authenticated session authority unavailable")
+        authorities = (trust.audience, trust.tenant, trust.sender)
+        if any(
+            not isinstance(value, str)
+            or not value.strip()
+            or value != value.strip()
+            for value in authorities
+        ):
+            raise ProductionSignatureError("production trust authority required")
+        if trust.tenant != config.tenant_id:
+            raise ProductionSignatureError("production tenant conflicts with session")
+        if trust.sender != config.expected_scheduler_id:
+            raise ProductionSignatureError("production sender conflicts with session")
+        return replace(
+            trust,
+            tenant=config.tenant_id,
+            sender=config.expected_scheduler_id,
+        )
+
     async def _on_direct_msg(self, msg: Any) -> None:
         """Route a direct worker message to the correct handler by topic."""
-        packet = self._decode_admitted_packet(msg.data)
+        packet = self._decode_admitted_packet(
+            msg.data, getattr(msg, "subject", None)
+        )
         if packet is None:
             return
         topic = packet.job_request.topic if packet.job_request else ""
@@ -961,7 +1128,9 @@ class Agent:
         packet: Optional[buspacket_pb2.BusPacket] = None,
     ) -> None:
         if packet is None:
-            packet = self._decode_admitted_packet(msg.data)
+            packet = self._decode_admitted_packet(
+                msg.data, getattr(msg, "subject", None)
+            )
         if packet is None:
             return
 

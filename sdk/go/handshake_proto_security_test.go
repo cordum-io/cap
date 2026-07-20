@@ -88,6 +88,7 @@ func assertAppendOnlyLegacyFields(t *testing.T) {
 	assertFields(t, packet, []expectedField{
 		{name: "trace_id", number: 1}, {name: "sender_id", number: 2},
 		{name: "created_at", number: 3}, {name: "protocol_version", number: 4},
+		{name: "signature_metadata", number: 5}, {name: "identity", number: 6},
 		{name: "job_request", number: 10}, {name: "job_result", number: 11},
 		{name: "heartbeat", number: 12}, {name: "alert", number: 13},
 		{name: "signature", number: 14}, {name: "job_progress", number: 15},

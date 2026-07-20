@@ -30,6 +30,8 @@ PROTOBUF_CONSTEXPR BusPacket::BusPacket(
   , /*decltype(_impl_.signature_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.auth_token_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.created_at_)*/nullptr
+  , /*decltype(_impl_.signature_metadata_)*/nullptr
+  , /*decltype(_impl_.identity_)*/nullptr
   , /*decltype(_impl_.protocol_version_)*/0
   , /*decltype(_impl_.payload_)*/{}
   , /*decltype(_impl_._cached_size_)*/{}
@@ -43,10 +45,28 @@ struct BusPacketDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 BusPacketDefaultTypeInternal _BusPacket_default_instance_;
+PROTOBUF_CONSTEXPR SignatureMetadata::SignatureMetadata(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.profile_version_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.algorithm_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.message_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.audience_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.key_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.expires_at_)*/nullptr
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct SignatureMetadataDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SignatureMetadataDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SignatureMetadataDefaultTypeInternal() {}
+  union {
+    SignatureMetadata _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SignatureMetadataDefaultTypeInternal _SignatureMetadata_default_instance_;
 }  // namespace v1
 }  // namespace agent
 }  // namespace cordum
-static ::_pb::Metadata file_level_metadata_cordum_2fagent_2fv1_2fbuspacket_2eproto[1];
+static ::_pb::Metadata file_level_metadata_cordum_2fagent_2fv1_2fbuspacket_2eproto[2];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_cordum_2fagent_2fv1_2fbuspacket_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_cordum_2fagent_2fv1_2fbuspacket_2eproto = nullptr;
 
@@ -61,6 +81,8 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fbuspacket_2eproto::offsets[] PR
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::BusPacket, _impl_.sender_id_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::BusPacket, _impl_.created_at_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::BusPacket, _impl_.protocol_version_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::BusPacket, _impl_.signature_metadata_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::BusPacket, _impl_.identity_),
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
   ::_pbi::kInvalidFieldOffsetTag,
@@ -75,13 +97,27 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fbuspacket_2eproto::offsets[] PR
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::BusPacket, _impl_.signature_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::BusPacket, _impl_.auth_token_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::BusPacket, _impl_.payload_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SignatureMetadata, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SignatureMetadata, _impl_.profile_version_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SignatureMetadata, _impl_.algorithm_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SignatureMetadata, _impl_.message_id_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SignatureMetadata, _impl_.audience_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SignatureMetadata, _impl_.expires_at_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SignatureMetadata, _impl_.key_id_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::cordum::agent::v1::BusPacket)},
+  { 26, -1, -1, sizeof(::cordum::agent::v1::SignatureMetadata)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
   &::cordum::agent::v1::_BusPacket_default_instance_._instance,
+  &::cordum::agent::v1::_SignatureMetadata_default_instance_._instance,
 };
 
 const char descriptor_table_protodef_cordum_2fagent_2fv1_2fbuspacket_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
@@ -90,38 +126,48 @@ const char descriptor_table_protodef_cordum_2fagent_2fv1_2fbuspacket_2eproto[] P
   "oto\032\031cordum/agent/v1/job.proto\032\037cordum/a"
   "gent/v1/heartbeat.proto\032\033cordum/agent/v1"
   "/alert.proto\032\037cordum/agent/v1/handshake."
-  "proto\"\336\010\n\tBusPacket\022\031\n\010trace_id\030\001 \001(\tR\007t"
+  "proto\"\365\t\n\tBusPacket\022\031\n\010trace_id\030\001 \001(\tR\007t"
   "raceId\022\033\n\tsender_id\030\002 \001(\tR\010senderId\0229\n\nc"
   "reated_at\030\003 \001(\0132\032.google.protobuf.Timest"
   "ampR\tcreatedAt\022)\n\020protocol_version\030\004 \001(\005"
-  "R\017protocolVersion\022>\n\013job_request\030\n \001(\0132\033"
-  ".cordum.agent.v1.JobRequestH\000R\njobReques"
-  "t\022;\n\njob_result\030\013 \001(\0132\032.cordum.agent.v1."
-  "JobResultH\000R\tjobResult\022:\n\theartbeat\030\014 \001("
-  "\0132\032.cordum.agent.v1.HeartbeatH\000R\theartbe"
-  "at\0224\n\005alert\030\r \001(\0132\034.cordum.agent.v1.Syst"
-  "emAlertH\000R\005alert\022A\n\014job_progress\030\017 \001(\0132\034"
-  ".cordum.agent.v1.JobProgressH\000R\013jobProgr"
-  "ess\022;\n\njob_cancel\030\020 \001(\0132\032.cordum.agent.v"
-  "1.JobCancelH\000R\tjobCancel\022:\n\thandshake\030\021 "
-  "\001(\0132\032.cordum.agent.v1.HandshakeH\000R\thands"
-  "hake\022\177\n\"worker_handshake_challenge_reque"
-  "st\030\023 \001(\01320.cordum.agent.v1.WorkerHandsha"
-  "keChallengeRequestH\000R\037workerHandshakeCha"
-  "llengeRequest\022i\n\032worker_handshake_challe"
-  "nge\030\024 \001(\0132).cordum.agent.v1.WorkerHandsh"
-  "akeChallengeH\000R\030workerHandshakeChallenge"
-  "\022r\n\035worker_handshake_authenticate\030\025 \001(\0132"
-  ",.cordum.agent.v1.WorkerHandshakeAuthent"
-  "icateH\000R\033workerHandshakeAuthenticate\022`\n\027"
-  "worker_handshake_result\030\026 \001(\0132&.cordum.a"
-  "gent.v1.WorkerHandshakeResultH\000R\025workerH"
-  "andshakeResult\022\034\n\tsignature\030\016 \001(\014R\tsigna"
-  "ture\022\035\n\nauth_token\030\022 \001(\tR\tauthTokenB\t\n\007p"
-  "ayloadB\177\n\026io.cordum.cap.agent.v1P\001Z+gith"
-  "ub.com/cordum-io/cap/v2/cordum/agent/v1\252"
-  "\002\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Co"
-  "rdum::Agent::V1b\006proto3"
+  "R\017protocolVersion\022Q\n\022signature_metadata\030"
+  "\005 \001(\0132\".cordum.agent.v1.SignatureMetadat"
+  "aR\021signatureMetadata\022<\n\010identity\030\006 \001(\0132 "
+  ".cordum.agent.v1.IdentityBindingR\010identi"
+  "ty\022>\n\013job_request\030\n \001(\0132\033.cordum.agent.v"
+  "1.JobRequestH\000R\njobRequest\022;\n\njob_result"
+  "\030\013 \001(\0132\032.cordum.agent.v1.JobResultH\000R\tjo"
+  "bResult\022:\n\theartbeat\030\014 \001(\0132\032.cordum.agen"
+  "t.v1.HeartbeatH\000R\theartbeat\0224\n\005alert\030\r \001"
+  "(\0132\034.cordum.agent.v1.SystemAlertH\000R\005aler"
+  "t\022A\n\014job_progress\030\017 \001(\0132\034.cordum.agent.v"
+  "1.JobProgressH\000R\013jobProgress\022;\n\njob_canc"
+  "el\030\020 \001(\0132\032.cordum.agent.v1.JobCancelH\000R\t"
+  "jobCancel\022:\n\thandshake\030\021 \001(\0132\032.cordum.ag"
+  "ent.v1.HandshakeH\000R\thandshake\022\177\n\"worker_"
+  "handshake_challenge_request\030\023 \001(\01320.cord"
+  "um.agent.v1.WorkerHandshakeChallengeRequ"
+  "estH\000R\037workerHandshakeChallengeRequest\022i"
+  "\n\032worker_handshake_challenge\030\024 \001(\0132).cor"
+  "dum.agent.v1.WorkerHandshakeChallengeH\000R"
+  "\030workerHandshakeChallenge\022r\n\035worker_hand"
+  "shake_authenticate\030\025 \001(\0132,.cordum.agent."
+  "v1.WorkerHandshakeAuthenticateH\000R\033worker"
+  "HandshakeAuthenticate\022`\n\027worker_handshak"
+  "e_result\030\026 \001(\0132&.cordum.agent.v1.WorkerH"
+  "andshakeResultH\000R\025workerHandshakeResult\022"
+  "\034\n\tsignature\030\016 \001(\014R\tsignature\022\035\n\nauth_to"
+  "ken\030\022 \001(\tR\tauthTokenB\t\n\007payloadJ\004\010\027\020\034\"\347\001"
+  "\n\021SignatureMetadata\022\'\n\017profile_version\030\001"
+  " \001(\tR\016profileVersion\022\034\n\talgorithm\030\002 \001(\tR"
+  "\talgorithm\022\035\n\nmessage_id\030\003 \001(\014R\tmessageI"
+  "d\022\032\n\010audience\030\004 \001(\tR\010audience\0229\n\nexpires"
+  "_at\030\005 \001(\0132\032.google.protobuf.TimestampR\te"
+  "xpiresAt\022\025\n\006key_id\030\006 \001(\tR\005keyIdB\177\n\026io.co"
+  "rdum.cap.agent.v1P\001Z+github.com/cordum-i"
+  "o/cap/v2/cordum/agent/v1\252\002\017Cordum.Agent."
+  "V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent::V1"
+  "b\006proto3"
   ;
 static const ::_pbi::DescriptorTable* const descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_deps[5] = {
   &::descriptor_table_cordum_2fagent_2fv1_2falert_2eproto,
@@ -132,9 +178,9 @@ static const ::_pbi::DescriptorTable* const descriptor_table_cordum_2fagent_2fv1
 };
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto = {
-    false, false, 1463, descriptor_table_protodef_cordum_2fagent_2fv1_2fbuspacket_2eproto,
+    false, false, 1848, descriptor_table_protodef_cordum_2fagent_2fv1_2fbuspacket_2eproto,
     "cordum/agent/v1/buspacket.proto",
-    &descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_once, descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_deps, 5, 1,
+    &descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_once, descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_deps, 5, 2,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fbuspacket_2eproto::offsets,
     file_level_metadata_cordum_2fagent_2fv1_2fbuspacket_2eproto, file_level_enum_descriptors_cordum_2fagent_2fv1_2fbuspacket_2eproto,
     file_level_service_descriptors_cordum_2fagent_2fv1_2fbuspacket_2eproto,
@@ -154,6 +200,8 @@ namespace v1 {
 class BusPacket::_Internal {
  public:
   static const ::PROTOBUF_NAMESPACE_ID::Timestamp& created_at(const BusPacket* msg);
+  static const ::cordum::agent::v1::SignatureMetadata& signature_metadata(const BusPacket* msg);
+  static const ::cordum::agent::v1::IdentityBinding& identity(const BusPacket* msg);
   static const ::cordum::agent::v1::JobRequest& job_request(const BusPacket* msg);
   static const ::cordum::agent::v1::JobResult& job_result(const BusPacket* msg);
   static const ::cordum::agent::v1::Heartbeat& heartbeat(const BusPacket* msg);
@@ -170,6 +218,14 @@ class BusPacket::_Internal {
 const ::PROTOBUF_NAMESPACE_ID::Timestamp&
 BusPacket::_Internal::created_at(const BusPacket* msg) {
   return *msg->_impl_.created_at_;
+}
+const ::cordum::agent::v1::SignatureMetadata&
+BusPacket::_Internal::signature_metadata(const BusPacket* msg) {
+  return *msg->_impl_.signature_metadata_;
+}
+const ::cordum::agent::v1::IdentityBinding&
+BusPacket::_Internal::identity(const BusPacket* msg) {
+  return *msg->_impl_.identity_;
 }
 const ::cordum::agent::v1::JobRequest&
 BusPacket::_Internal::job_request(const BusPacket* msg) {
@@ -220,6 +276,12 @@ void BusPacket::clear_created_at() {
     delete _impl_.created_at_;
   }
   _impl_.created_at_ = nullptr;
+}
+void BusPacket::clear_identity() {
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
 }
 void BusPacket::set_allocated_job_request(::cordum::agent::v1::JobRequest* job_request) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
@@ -500,6 +562,8 @@ BusPacket::BusPacket(const BusPacket& from)
     , decltype(_impl_.signature_){}
     , decltype(_impl_.auth_token_){}
     , decltype(_impl_.created_at_){nullptr}
+    , decltype(_impl_.signature_metadata_){nullptr}
+    , decltype(_impl_.identity_){nullptr}
     , decltype(_impl_.protocol_version_){}
     , decltype(_impl_.payload_){}
     , /*decltype(_impl_._cached_size_)*/{}
@@ -540,6 +604,12 @@ BusPacket::BusPacket(const BusPacket& from)
   }
   if (from._internal_has_created_at()) {
     _this->_impl_.created_at_ = new ::PROTOBUF_NAMESPACE_ID::Timestamp(*from._impl_.created_at_);
+  }
+  if (from._internal_has_signature_metadata()) {
+    _this->_impl_.signature_metadata_ = new ::cordum::agent::v1::SignatureMetadata(*from._impl_.signature_metadata_);
+  }
+  if (from._internal_has_identity()) {
+    _this->_impl_.identity_ = new ::cordum::agent::v1::IdentityBinding(*from._impl_.identity_);
   }
   _this->_impl_.protocol_version_ = from._impl_.protocol_version_;
   clear_has_payload();
@@ -616,6 +686,8 @@ inline void BusPacket::SharedCtor(
     , decltype(_impl_.signature_){}
     , decltype(_impl_.auth_token_){}
     , decltype(_impl_.created_at_){nullptr}
+    , decltype(_impl_.signature_metadata_){nullptr}
+    , decltype(_impl_.identity_){nullptr}
     , decltype(_impl_.protocol_version_){0}
     , decltype(_impl_.payload_){}
     , /*decltype(_impl_._cached_size_)*/{}
@@ -656,6 +728,8 @@ inline void BusPacket::SharedDtor() {
   _impl_.signature_.Destroy();
   _impl_.auth_token_.Destroy();
   if (this != internal_default_instance()) delete _impl_.created_at_;
+  if (this != internal_default_instance()) delete _impl_.signature_metadata_;
+  if (this != internal_default_instance()) delete _impl_.identity_;
   if (has_payload()) {
     clear_payload();
   }
@@ -756,6 +830,14 @@ void BusPacket::Clear() {
     delete _impl_.created_at_;
   }
   _impl_.created_at_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.signature_metadata_ != nullptr) {
+    delete _impl_.signature_metadata_;
+  }
+  _impl_.signature_metadata_ = nullptr;
+  if (GetArenaForAllocation() == nullptr && _impl_.identity_ != nullptr) {
+    delete _impl_.identity_;
+  }
+  _impl_.identity_ = nullptr;
   _impl_.protocol_version_ = 0;
   clear_payload();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
@@ -799,6 +881,22 @@ const char* BusPacket::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
           _impl_.protocol_version_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.SignatureMetadata signature_metadata = 5 [json_name = "signatureMetadata"];
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          ptr = ctx->ParseMessage(_internal_mutable_signature_metadata(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.IdentityBinding identity = 6 [json_name = "identity"];
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          ptr = ctx->ParseMessage(_internal_mutable_identity(), ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -972,6 +1070,20 @@ uint8_t* BusPacket::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(4, this->_internal_protocol_version(), target);
   }
 
+  // .cordum.agent.v1.SignatureMetadata signature_metadata = 5 [json_name = "signatureMetadata"];
+  if (this->_internal_has_signature_metadata()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(5, _Internal::signature_metadata(this),
+        _Internal::signature_metadata(this).GetCachedSize(), target, stream);
+  }
+
+  // .cordum.agent.v1.IdentityBinding identity = 6 [json_name = "identity"];
+  if (this->_internal_has_identity()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(6, _Internal::identity(this),
+        _Internal::identity(this).GetCachedSize(), target, stream);
+  }
+
   // .cordum.agent.v1.JobRequest job_request = 10 [json_name = "jobRequest"];
   if (_internal_has_job_request()) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -1116,6 +1228,20 @@ size_t BusPacket::ByteSizeLong() const {
         *_impl_.created_at_);
   }
 
+  // .cordum.agent.v1.SignatureMetadata signature_metadata = 5 [json_name = "signatureMetadata"];
+  if (this->_internal_has_signature_metadata()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.signature_metadata_);
+  }
+
+  // .cordum.agent.v1.IdentityBinding identity = 6 [json_name = "identity"];
+  if (this->_internal_has_identity()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.identity_);
+  }
+
   // int32 protocol_version = 4 [json_name = "protocolVersion"];
   if (this->_internal_protocol_version() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_protocol_version());
@@ -1237,6 +1363,14 @@ void BusPacket::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROT
     _this->_internal_mutable_created_at()->::PROTOBUF_NAMESPACE_ID::Timestamp::MergeFrom(
         from._internal_created_at());
   }
+  if (from._internal_has_signature_metadata()) {
+    _this->_internal_mutable_signature_metadata()->::cordum::agent::v1::SignatureMetadata::MergeFrom(
+        from._internal_signature_metadata());
+  }
+  if (from._internal_has_identity()) {
+    _this->_internal_mutable_identity()->::cordum::agent::v1::IdentityBinding::MergeFrom(
+        from._internal_identity());
+  }
   if (from._internal_protocol_version() != 0) {
     _this->_internal_set_protocol_version(from._internal_protocol_version());
   }
@@ -1351,6 +1485,452 @@ void BusPacket::InternalSwap(BusPacket* other) {
       file_level_metadata_cordum_2fagent_2fv1_2fbuspacket_2eproto[0]);
 }
 
+// ===================================================================
+
+class SignatureMetadata::_Internal {
+ public:
+  static const ::PROTOBUF_NAMESPACE_ID::Timestamp& expires_at(const SignatureMetadata* msg);
+};
+
+const ::PROTOBUF_NAMESPACE_ID::Timestamp&
+SignatureMetadata::_Internal::expires_at(const SignatureMetadata* msg) {
+  return *msg->_impl_.expires_at_;
+}
+void SignatureMetadata::clear_expires_at() {
+  if (GetArenaForAllocation() == nullptr && _impl_.expires_at_ != nullptr) {
+    delete _impl_.expires_at_;
+  }
+  _impl_.expires_at_ = nullptr;
+}
+SignatureMetadata::SignatureMetadata(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:cordum.agent.v1.SignatureMetadata)
+}
+SignatureMetadata::SignatureMetadata(const SignatureMetadata& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  SignatureMetadata* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.profile_version_){}
+    , decltype(_impl_.algorithm_){}
+    , decltype(_impl_.message_id_){}
+    , decltype(_impl_.audience_){}
+    , decltype(_impl_.key_id_){}
+    , decltype(_impl_.expires_at_){nullptr}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.profile_version_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.profile_version_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_profile_version().empty()) {
+    _this->_impl_.profile_version_.Set(from._internal_profile_version(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.algorithm_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.algorithm_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_algorithm().empty()) {
+    _this->_impl_.algorithm_.Set(from._internal_algorithm(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.message_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.message_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_message_id().empty()) {
+    _this->_impl_.message_id_.Set(from._internal_message_id(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.audience_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.audience_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_audience().empty()) {
+    _this->_impl_.audience_.Set(from._internal_audience(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.key_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.key_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_key_id().empty()) {
+    _this->_impl_.key_id_.Set(from._internal_key_id(), 
+      _this->GetArenaForAllocation());
+  }
+  if (from._internal_has_expires_at()) {
+    _this->_impl_.expires_at_ = new ::PROTOBUF_NAMESPACE_ID::Timestamp(*from._impl_.expires_at_);
+  }
+  // @@protoc_insertion_point(copy_constructor:cordum.agent.v1.SignatureMetadata)
+}
+
+inline void SignatureMetadata::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.profile_version_){}
+    , decltype(_impl_.algorithm_){}
+    , decltype(_impl_.message_id_){}
+    , decltype(_impl_.audience_){}
+    , decltype(_impl_.key_id_){}
+    , decltype(_impl_.expires_at_){nullptr}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.profile_version_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.profile_version_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.algorithm_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.algorithm_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.message_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.message_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.audience_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.audience_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.key_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.key_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+SignatureMetadata::~SignatureMetadata() {
+  // @@protoc_insertion_point(destructor:cordum.agent.v1.SignatureMetadata)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void SignatureMetadata::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.profile_version_.Destroy();
+  _impl_.algorithm_.Destroy();
+  _impl_.message_id_.Destroy();
+  _impl_.audience_.Destroy();
+  _impl_.key_id_.Destroy();
+  if (this != internal_default_instance()) delete _impl_.expires_at_;
+}
+
+void SignatureMetadata::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void SignatureMetadata::Clear() {
+// @@protoc_insertion_point(message_clear_start:cordum.agent.v1.SignatureMetadata)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.profile_version_.ClearToEmpty();
+  _impl_.algorithm_.ClearToEmpty();
+  _impl_.message_id_.ClearToEmpty();
+  _impl_.audience_.ClearToEmpty();
+  _impl_.key_id_.ClearToEmpty();
+  if (GetArenaForAllocation() == nullptr && _impl_.expires_at_ != nullptr) {
+    delete _impl_.expires_at_;
+  }
+  _impl_.expires_at_ = nullptr;
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* SignatureMetadata::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string profile_version = 1 [json_name = "profileVersion"];
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_profile_version();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.SignatureMetadata.profile_version"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string algorithm = 2 [json_name = "algorithm"];
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_algorithm();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.SignatureMetadata.algorithm"));
+        } else
+          goto handle_unusual;
+        continue;
+      // bytes message_id = 3 [json_name = "messageId"];
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
+          auto str = _internal_mutable_message_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string audience = 4 [json_name = "audience"];
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_audience();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.SignatureMetadata.audience"));
+        } else
+          goto handle_unusual;
+        continue;
+      // .google.protobuf.Timestamp expires_at = 5 [json_name = "expiresAt"];
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          ptr = ctx->ParseMessage(_internal_mutable_expires_at(), ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // string key_id = 6 [json_name = "keyId"];
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
+          auto str = _internal_mutable_key_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.SignatureMetadata.key_id"));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* SignatureMetadata::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:cordum.agent.v1.SignatureMetadata)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string profile_version = 1 [json_name = "profileVersion"];
+  if (!this->_internal_profile_version().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_profile_version().data(), static_cast<int>(this->_internal_profile_version().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.SignatureMetadata.profile_version");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_profile_version(), target);
+  }
+
+  // string algorithm = 2 [json_name = "algorithm"];
+  if (!this->_internal_algorithm().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_algorithm().data(), static_cast<int>(this->_internal_algorithm().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.SignatureMetadata.algorithm");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_algorithm(), target);
+  }
+
+  // bytes message_id = 3 [json_name = "messageId"];
+  if (!this->_internal_message_id().empty()) {
+    target = stream->WriteBytesMaybeAliased(
+        3, this->_internal_message_id(), target);
+  }
+
+  // string audience = 4 [json_name = "audience"];
+  if (!this->_internal_audience().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_audience().data(), static_cast<int>(this->_internal_audience().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.SignatureMetadata.audience");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_audience(), target);
+  }
+
+  // .google.protobuf.Timestamp expires_at = 5 [json_name = "expiresAt"];
+  if (this->_internal_has_expires_at()) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessage(5, _Internal::expires_at(this),
+        _Internal::expires_at(this).GetCachedSize(), target, stream);
+  }
+
+  // string key_id = 6 [json_name = "keyId"];
+  if (!this->_internal_key_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_key_id().data(), static_cast<int>(this->_internal_key_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.SignatureMetadata.key_id");
+    target = stream->WriteStringMaybeAliased(
+        6, this->_internal_key_id(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:cordum.agent.v1.SignatureMetadata)
+  return target;
+}
+
+size_t SignatureMetadata::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:cordum.agent.v1.SignatureMetadata)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string profile_version = 1 [json_name = "profileVersion"];
+  if (!this->_internal_profile_version().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_profile_version());
+  }
+
+  // string algorithm = 2 [json_name = "algorithm"];
+  if (!this->_internal_algorithm().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_algorithm());
+  }
+
+  // bytes message_id = 3 [json_name = "messageId"];
+  if (!this->_internal_message_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_message_id());
+  }
+
+  // string audience = 4 [json_name = "audience"];
+  if (!this->_internal_audience().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_audience());
+  }
+
+  // string key_id = 6 [json_name = "keyId"];
+  if (!this->_internal_key_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_key_id());
+  }
+
+  // .google.protobuf.Timestamp expires_at = 5 [json_name = "expiresAt"];
+  if (this->_internal_has_expires_at()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *_impl_.expires_at_);
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData SignatureMetadata::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    SignatureMetadata::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*SignatureMetadata::GetClassData() const { return &_class_data_; }
+
+
+void SignatureMetadata::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<SignatureMetadata*>(&to_msg);
+  auto& from = static_cast<const SignatureMetadata&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:cordum.agent.v1.SignatureMetadata)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_profile_version().empty()) {
+    _this->_internal_set_profile_version(from._internal_profile_version());
+  }
+  if (!from._internal_algorithm().empty()) {
+    _this->_internal_set_algorithm(from._internal_algorithm());
+  }
+  if (!from._internal_message_id().empty()) {
+    _this->_internal_set_message_id(from._internal_message_id());
+  }
+  if (!from._internal_audience().empty()) {
+    _this->_internal_set_audience(from._internal_audience());
+  }
+  if (!from._internal_key_id().empty()) {
+    _this->_internal_set_key_id(from._internal_key_id());
+  }
+  if (from._internal_has_expires_at()) {
+    _this->_internal_mutable_expires_at()->::PROTOBUF_NAMESPACE_ID::Timestamp::MergeFrom(
+        from._internal_expires_at());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void SignatureMetadata::CopyFrom(const SignatureMetadata& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:cordum.agent.v1.SignatureMetadata)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool SignatureMetadata::IsInitialized() const {
+  return true;
+}
+
+void SignatureMetadata::InternalSwap(SignatureMetadata* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.profile_version_, lhs_arena,
+      &other->_impl_.profile_version_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.algorithm_, lhs_arena,
+      &other->_impl_.algorithm_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.message_id_, lhs_arena,
+      &other->_impl_.message_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.audience_, lhs_arena,
+      &other->_impl_.audience_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.key_id_, lhs_arena,
+      &other->_impl_.key_id_, rhs_arena
+  );
+  swap(_impl_.expires_at_, other->_impl_.expires_at_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata SignatureMetadata::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2fbuspacket_2eproto_once,
+      file_level_metadata_cordum_2fagent_2fv1_2fbuspacket_2eproto[1]);
+}
+
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace v1
 }  // namespace agent
@@ -1359,6 +1939,10 @@ PROTOBUF_NAMESPACE_OPEN
 template<> PROTOBUF_NOINLINE ::cordum::agent::v1::BusPacket*
 Arena::CreateMaybeMessage< ::cordum::agent::v1::BusPacket >(Arena* arena) {
   return Arena::CreateMessageInternal< ::cordum::agent::v1::BusPacket >(arena);
+}
+template<> PROTOBUF_NOINLINE ::cordum::agent::v1::SignatureMetadata*
+Arena::CreateMaybeMessage< ::cordum::agent::v1::SignatureMetadata >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::cordum::agent::v1::SignatureMetadata >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

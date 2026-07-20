@@ -43,6 +43,16 @@ export class PolicyCheckRequest extends jspb.Message {
   getMeta(): cordum_agent_v1_job_pb.JobMetadata | undefined;
   setMeta(value?: cordum_agent_v1_job_pb.JobMetadata): void;
 
+  hasIdentity(): boolean;
+  clearIdentity(): void;
+  getIdentity(): cordum_agent_v1_job_pb.IdentityBinding | undefined;
+  setIdentity(value?: cordum_agent_v1_job_pb.IdentityBinding): void;
+
+  hasInputRef(): boolean;
+  clearInputRef(): void;
+  getInputRef(): cordum_agent_v1_job_pb.ResourceRef | undefined;
+  setInputRef(value?: cordum_agent_v1_job_pb.ResourceRef): void;
+
   getInputContent(): Uint8Array | string;
   getInputContent_asU8(): Uint8Array;
   getInputContent_asB64(): string;
@@ -77,6 +87,8 @@ export namespace PolicyCheckRequest {
     memoryId: string,
     effectiveConfig: Uint8Array | string,
     meta?: cordum_agent_v1_job_pb.JobMetadata.AsObject,
+    identity?: cordum_agent_v1_job_pb.IdentityBinding.AsObject,
+    inputRef?: cordum_agent_v1_job_pb.ResourceRef.AsObject,
     inputContent: Uint8Array | string,
     inputContentType: string,
     inputSizeBytes: number,
@@ -332,6 +344,16 @@ export class PolicyCheckResponse extends jspb.Message {
   setRemediationsList(value: Array<PolicyRemediation>): void;
   addRemediations(value?: PolicyRemediation, index?: number): PolicyRemediation;
 
+  hasRedactedContextRef(): boolean;
+  clearRedactedContextRef(): void;
+  getRedactedContextRef(): cordum_agent_v1_job_pb.ResourceRef | undefined;
+  setRedactedContextRef(value?: cordum_agent_v1_job_pb.ResourceRef): void;
+
+  hasIdentity(): boolean;
+  clearIdentity(): void;
+  getIdentity(): cordum_agent_v1_job_pb.IdentityBinding | undefined;
+  setIdentity(value?: cordum_agent_v1_job_pb.IdentityBinding): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): PolicyCheckResponse.AsObject;
   static toObject(includeInstance: boolean, msg: PolicyCheckResponse): PolicyCheckResponse.AsObject;
@@ -353,6 +375,8 @@ export namespace PolicyCheckResponse {
     approvalRequired: boolean,
     approvalRef: string,
     remediationsList: Array<PolicyRemediation.AsObject>,
+    redactedContextRef?: cordum_agent_v1_job_pb.ResourceRef.AsObject,
+    identity?: cordum_agent_v1_job_pb.IdentityBinding.AsObject,
   }
 }
 

@@ -175,25 +175,32 @@ type Agent struct {
 	// keys used by warn and enforce modes. It is intentionally distinct from
 	// the generic packet PrivateKey/PublicKeys configuration above.
 	WorkerTrust capsdk.WorkerTrustConfig
+	// Production opts into the CAP-PRODUCTION raw-packet admission layer
+	// (exact-wire signature verification + atomic replay defense) ahead of
+	// the legacy handshake-mode/object-signature path. Zero-valued (Enabled
+	// false) preserves pre-existing behavior exactly — production is never
+	// inferred, only explicitly configured. See production_admission.go.
+	Production ProductionAdmission
 
-	handlers    map[string]handlerSpec
-	middlewares []Middleware
-	trustMode   HandshakeMode
-	trustConfig *capsdk.WorkerTrustConfig
-	session     *sessionState
-	renew       *renewer
-	capability  *agentv1.Handshake
-	ownedNATS   bool
-	ownedStore  bool
-	subs        []*nats.Subscription
-	subsMu      sync.Mutex
-	connectNATS func(string, string, time.Duration) (NATSConn, error)
-	openStore   func(string) (BlobStore, error)
-	closeOnce   sync.Once
-	closeErr    error
-	lifecycleMu sync.Mutex
-	started     bool
-	closed      bool
+	handlers         map[string]handlerSpec
+	middlewares      []Middleware
+	trustMode        HandshakeMode
+	trustConfig      *capsdk.WorkerTrustConfig
+	productionConfig *ProductionAdmission
+	session          *sessionState
+	renew            *renewer
+	capability       *agentv1.Handshake
+	ownedNATS        bool
+	ownedStore       bool
+	subs             []*nats.Subscription
+	subsMu           sync.Mutex
+	connectNATS      func(string, string, time.Duration) (NATSConn, error)
+	openStore        func(string) (BlobStore, error)
+	closeOnce        sync.Once
+	closeErr         error
+	lifecycleMu      sync.Mutex
+	started          bool
+	closed           bool
 }
 
 // Register registers a typed handler for a topic.
@@ -251,9 +258,17 @@ func (a *Agent) Start() error {
 	a.trustMode = frozenMode
 	frozenTrust := cloneRuntimeWorkerTrust(a.WorkerTrust)
 	a.trustConfig = &frozenTrust
+	a.freezeProductionAdmission()
+	if err := a.validateProductionStartup(); err != nil {
+		a.trustMode = ""
+		a.trustConfig = nil
+		a.productionConfig = nil
+		return err
+	}
 	if err := a.validateTrustStartup(); err != nil {
 		a.trustMode = ""
 		a.trustConfig = nil
+		a.productionConfig = nil
 		return err
 	}
 	a.configureRuntimeDefaults()
@@ -338,17 +353,38 @@ func (a *Agent) Close() error {
 
 func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 	start := time.Now()
-	var packet agentv1.BusPacket
-	if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-		a.Logger.Error("decode failed", "error", capsdk.NewMalformedPacketError(err.Error()))
-		return
+	var packet *agentv1.BusPacket
+	if a.productionAdmissionEnabled() {
+		if !a.productionSessionActive() {
+			a.Logger.Warn("production admission rejected packet", "error", "authenticated session is not active")
+			return
+		}
+		// CAP-PRODUCTION: verify the exact received wire bytes (never a
+		// re-serialized object) and admit atomically for replay BEFORE any
+		// protobuf handler runs. A rejection here never reaches Unmarshal-
+		// based dispatch below.
+		verified, err := a.admitProductionPacketForAudience(msg.Data, msg.Subject)
+		if err != nil {
+			a.Logger.Warn("production admission rejected packet", "error", err)
+			return
+		}
+		if verified == nil {
+			return // identical replay was admitted previously; drop idempotently
+		}
+		packet = verified
+	} else {
+		packet = &agentv1.BusPacket{}
+		if err := proto.Unmarshal(msg.Data, packet); err != nil {
+			a.Logger.Error("decode failed", "error", capsdk.NewMalformedPacketError(err.Error()))
+			return
+		}
+		if err := a.validateInboundPacket(packet); err != nil {
+			a.Logger.Warn("invalid packet", "error", err)
+			return
+		}
 	}
 	if packet.GetProtocolVersion() != capsdk.DefaultProtocolVersion {
 		a.Logger.Warn("invalid packet", "error", "unsupported protocol_version")
-		return
-	}
-	if err := a.validateInboundPacket(&packet); err != nil {
-		a.Logger.Warn("invalid packet", "error", err)
 		return
 	}
 
@@ -364,7 +400,7 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 		"trace_id", packet.GetTraceId(),
 		"topic", req.GetTopic(),
 	)
-	ctx := Context{Job: req, Packet: &packet, Logger: ctxLogger}
+	ctx := Context{Job: req, Packet: packet, Logger: ctxLogger}
 
 	payload, err := a.fetchContext(req.GetContextPtr())
 	if err != nil {

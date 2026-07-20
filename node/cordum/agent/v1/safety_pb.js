@@ -287,6 +287,8 @@ labelsMap: (f = msg.getLabelsMap()) ? f.toObject(includeInstance, undefined) : [
 memoryId: jspb.Message.getFieldWithDefault(msg, 9, ""),
 effectiveConfig: msg.getEffectiveConfig_asB64(),
 meta: (f = msg.getMeta()) && cordum_agent_v1_job_pb.JobMetadata.toObject(includeInstance, f),
+identity: (f = msg.getIdentity()) && cordum_agent_v1_job_pb.IdentityBinding.toObject(includeInstance, f),
+inputRef: (f = msg.getInputRef()) && cordum_agent_v1_job_pb.ResourceRef.toObject(includeInstance, f),
 inputContent: msg.getInputContent_asB64(),
 inputContentType: jspb.Message.getFieldWithDefault(msg, 21, ""),
 inputSizeBytes: jspb.Message.getFieldWithDefault(msg, 22, 0)
@@ -373,6 +375,16 @@ proto.cordum.agent.v1.PolicyCheckRequest.deserializeBinaryFromReader = function(
       var value = new cordum_agent_v1_job_pb.JobMetadata;
       reader.readMessage(value,cordum_agent_v1_job_pb.JobMetadata.deserializeBinaryFromReader);
       msg.setMeta(value);
+      break;
+    case 12:
+      var value = new cordum_agent_v1_job_pb.IdentityBinding;
+      reader.readMessage(value,cordum_agent_v1_job_pb.IdentityBinding.deserializeBinaryFromReader);
+      msg.setIdentity(value);
+      break;
+    case 13:
+      var value = new cordum_agent_v1_job_pb.ResourceRef;
+      reader.readMessage(value,cordum_agent_v1_job_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setInputRef(value);
       break;
     case 20:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
@@ -489,6 +501,22 @@ proto.cordum.agent.v1.PolicyCheckRequest.serializeBinaryToWriter = function(mess
       11,
       f,
       cordum_agent_v1_job_pb.JobMetadata.serializeBinaryToWriter
+    );
+  }
+  f = message.getIdentity();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      cordum_agent_v1_job_pb.IdentityBinding.serializeBinaryToWriter
+    );
+  }
+  f = message.getInputRef();
+  if (f != null) {
+    writer.writeMessage(
+      13,
+      f,
+      cordum_agent_v1_job_pb.ResourceRef.serializeBinaryToWriter
     );
   }
   f = message.getInputContent_asU8();
@@ -777,6 +805,80 @@ proto.cordum.agent.v1.PolicyCheckRequest.prototype.clearMeta = function() {
  */
 proto.cordum.agent.v1.PolicyCheckRequest.prototype.hasMeta = function() {
   return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional IdentityBinding identity = 12;
+ * @return {?proto.cordum.agent.v1.IdentityBinding}
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.getIdentity = function() {
+  return /** @type{?proto.cordum.agent.v1.IdentityBinding} */ (
+    jspb.Message.getWrapperField(this, cordum_agent_v1_job_pb.IdentityBinding, 12));
+};
+
+
+/**
+ * @param {?proto.cordum.agent.v1.IdentityBinding|undefined} value
+ * @return {!proto.cordum.agent.v1.PolicyCheckRequest} returns this
+*/
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.setIdentity = function(value) {
+  return jspb.Message.setWrapperField(this, 12, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.cordum.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.clearIdentity = function() {
+  return this.setIdentity(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.hasIdentity = function() {
+  return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional ResourceRef input_ref = 13;
+ * @return {?proto.cordum.agent.v1.ResourceRef}
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.getInputRef = function() {
+  return /** @type{?proto.cordum.agent.v1.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, cordum_agent_v1_job_pb.ResourceRef, 13));
+};
+
+
+/**
+ * @param {?proto.cordum.agent.v1.ResourceRef|undefined} value
+ * @return {!proto.cordum.agent.v1.PolicyCheckRequest} returns this
+*/
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.setInputRef = function(value) {
+  return jspb.Message.setWrapperField(this, 13, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.cordum.agent.v1.PolicyCheckRequest} returns this
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.clearInputRef = function() {
+  return this.setInputRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.cordum.agent.v1.PolicyCheckRequest.prototype.hasInputRef = function() {
+  return jspb.Message.getField(this, 13) != null;
 };
 
 
@@ -2505,7 +2607,9 @@ constraints: (f = msg.getConstraints()) && proto.cordum.agent.v1.PolicyConstrain
 approvalRequired: jspb.Message.getBooleanFieldWithDefault(msg, 7, false),
 approvalRef: jspb.Message.getFieldWithDefault(msg, 8, ""),
 remediationsList: jspb.Message.toObjectList(msg.getRemediationsList(),
-    proto.cordum.agent.v1.PolicyRemediation.toObject, includeInstance)
+    proto.cordum.agent.v1.PolicyRemediation.toObject, includeInstance),
+redactedContextRef: (f = msg.getRedactedContextRef()) && cordum_agent_v1_job_pb.ResourceRef.toObject(includeInstance, f),
+identity: (f = msg.getIdentity()) && cordum_agent_v1_job_pb.IdentityBinding.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -2579,6 +2683,16 @@ proto.cordum.agent.v1.PolicyCheckResponse.deserializeBinaryFromReader = function
       var value = new proto.cordum.agent.v1.PolicyRemediation;
       reader.readMessage(value,proto.cordum.agent.v1.PolicyRemediation.deserializeBinaryFromReader);
       msg.addRemediations(value);
+      break;
+    case 10:
+      var value = new cordum_agent_v1_job_pb.ResourceRef;
+      reader.readMessage(value,cordum_agent_v1_job_pb.ResourceRef.deserializeBinaryFromReader);
+      msg.setRedactedContextRef(value);
+      break;
+    case 11:
+      var value = new cordum_agent_v1_job_pb.IdentityBinding;
+      reader.readMessage(value,cordum_agent_v1_job_pb.IdentityBinding.deserializeBinaryFromReader);
+      msg.setIdentity(value);
       break;
     default:
       reader.skipField();
@@ -2672,6 +2786,22 @@ proto.cordum.agent.v1.PolicyCheckResponse.serializeBinaryToWriter = function(mes
       9,
       f,
       proto.cordum.agent.v1.PolicyRemediation.serializeBinaryToWriter
+    );
+  }
+  f = message.getRedactedContextRef();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      cordum_agent_v1_job_pb.ResourceRef.serializeBinaryToWriter
+    );
+  }
+  f = message.getIdentity();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      cordum_agent_v1_job_pb.IdentityBinding.serializeBinaryToWriter
     );
   }
 };
@@ -2875,6 +3005,80 @@ proto.cordum.agent.v1.PolicyCheckResponse.prototype.addRemediations = function(o
  */
 proto.cordum.agent.v1.PolicyCheckResponse.prototype.clearRemediationsList = function() {
   return this.setRemediationsList([]);
+};
+
+
+/**
+ * optional ResourceRef redacted_context_ref = 10;
+ * @return {?proto.cordum.agent.v1.ResourceRef}
+ */
+proto.cordum.agent.v1.PolicyCheckResponse.prototype.getRedactedContextRef = function() {
+  return /** @type{?proto.cordum.agent.v1.ResourceRef} */ (
+    jspb.Message.getWrapperField(this, cordum_agent_v1_job_pb.ResourceRef, 10));
+};
+
+
+/**
+ * @param {?proto.cordum.agent.v1.ResourceRef|undefined} value
+ * @return {!proto.cordum.agent.v1.PolicyCheckResponse} returns this
+*/
+proto.cordum.agent.v1.PolicyCheckResponse.prototype.setRedactedContextRef = function(value) {
+  return jspb.Message.setWrapperField(this, 10, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.cordum.agent.v1.PolicyCheckResponse} returns this
+ */
+proto.cordum.agent.v1.PolicyCheckResponse.prototype.clearRedactedContextRef = function() {
+  return this.setRedactedContextRef(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.cordum.agent.v1.PolicyCheckResponse.prototype.hasRedactedContextRef = function() {
+  return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional IdentityBinding identity = 11;
+ * @return {?proto.cordum.agent.v1.IdentityBinding}
+ */
+proto.cordum.agent.v1.PolicyCheckResponse.prototype.getIdentity = function() {
+  return /** @type{?proto.cordum.agent.v1.IdentityBinding} */ (
+    jspb.Message.getWrapperField(this, cordum_agent_v1_job_pb.IdentityBinding, 11));
+};
+
+
+/**
+ * @param {?proto.cordum.agent.v1.IdentityBinding|undefined} value
+ * @return {!proto.cordum.agent.v1.PolicyCheckResponse} returns this
+*/
+proto.cordum.agent.v1.PolicyCheckResponse.prototype.setIdentity = function(value) {
+  return jspb.Message.setWrapperField(this, 11, value);
+};
+
+
+/**
+ * Clears the message field making it undefined.
+ * @return {!proto.cordum.agent.v1.PolicyCheckResponse} returns this
+ */
+proto.cordum.agent.v1.PolicyCheckResponse.prototype.clearIdentity = function() {
+  return this.setIdentity(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {boolean}
+ */
+proto.cordum.agent.v1.PolicyCheckResponse.prototype.hasIdentity = function() {
+  return jspb.Message.getField(this, 11) != null;
 };
 
 

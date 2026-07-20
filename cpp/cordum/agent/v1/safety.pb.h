@@ -306,6 +306,8 @@ class PolicyCheckRequest final :
     kInputContentTypeFieldNumber = 21,
     kBudgetFieldNumber = 6,
     kMetaFieldNumber = 11,
+    kIdentityFieldNumber = 12,
+    kInputRefFieldNumber = 13,
     kEstimatedCostFieldNumber = 5,
     kInputSizeBytesFieldNumber = 22,
     kPriorityFieldNumber = 4,
@@ -475,6 +477,42 @@ class PolicyCheckRequest final :
       ::cordum::agent::v1::JobMetadata* meta);
   ::cordum::agent::v1::JobMetadata* unsafe_arena_release_meta();
 
+  // .cordum.agent.v1.IdentityBinding identity = 12 [json_name = "identity"];
+  bool has_identity() const;
+  private:
+  bool _internal_has_identity() const;
+  public:
+  void clear_identity();
+  const ::cordum::agent::v1::IdentityBinding& identity() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::IdentityBinding* release_identity();
+  ::cordum::agent::v1::IdentityBinding* mutable_identity();
+  void set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity);
+  private:
+  const ::cordum::agent::v1::IdentityBinding& _internal_identity() const;
+  ::cordum::agent::v1::IdentityBinding* _internal_mutable_identity();
+  public:
+  void unsafe_arena_set_allocated_identity(
+      ::cordum::agent::v1::IdentityBinding* identity);
+  ::cordum::agent::v1::IdentityBinding* unsafe_arena_release_identity();
+
+  // .cordum.agent.v1.ResourceRef input_ref = 13 [json_name = "inputRef"];
+  bool has_input_ref() const;
+  private:
+  bool _internal_has_input_ref() const;
+  public:
+  void clear_input_ref();
+  const ::cordum::agent::v1::ResourceRef& input_ref() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::ResourceRef* release_input_ref();
+  ::cordum::agent::v1::ResourceRef* mutable_input_ref();
+  void set_allocated_input_ref(::cordum::agent::v1::ResourceRef* input_ref);
+  private:
+  const ::cordum::agent::v1::ResourceRef& _internal_input_ref() const;
+  ::cordum::agent::v1::ResourceRef* _internal_mutable_input_ref();
+  public:
+  void unsafe_arena_set_allocated_input_ref(
+      ::cordum::agent::v1::ResourceRef* input_ref);
+  ::cordum::agent::v1::ResourceRef* unsafe_arena_release_input_ref();
+
   // double estimated_cost = 5 [json_name = "estimatedCost"];
   void clear_estimated_cost();
   double estimated_cost() const;
@@ -525,6 +563,8 @@ class PolicyCheckRequest final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr input_content_type_;
     ::cordum::agent::v1::Budget* budget_;
     ::cordum::agent::v1::JobMetadata* meta_;
+    ::cordum::agent::v1::IdentityBinding* identity_;
+    ::cordum::agent::v1::ResourceRef* input_ref_;
     double estimated_cost_;
     int64_t input_size_bytes_;
     int priority_;
@@ -1974,6 +2014,8 @@ class PolicyCheckResponse final :
     kRuleIdFieldNumber = 5,
     kApprovalRefFieldNumber = 8,
     kConstraintsFieldNumber = 6,
+    kRedactedContextRefFieldNumber = 10,
+    kIdentityFieldNumber = 11,
     kDecisionFieldNumber = 1,
     kApprovalRequiredFieldNumber = 7,
   };
@@ -2083,6 +2125,42 @@ class PolicyCheckResponse final :
       ::cordum::agent::v1::PolicyConstraints* constraints);
   ::cordum::agent::v1::PolicyConstraints* unsafe_arena_release_constraints();
 
+  // .cordum.agent.v1.ResourceRef redacted_context_ref = 10 [json_name = "redactedContextRef"];
+  bool has_redacted_context_ref() const;
+  private:
+  bool _internal_has_redacted_context_ref() const;
+  public:
+  void clear_redacted_context_ref();
+  const ::cordum::agent::v1::ResourceRef& redacted_context_ref() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::ResourceRef* release_redacted_context_ref();
+  ::cordum::agent::v1::ResourceRef* mutable_redacted_context_ref();
+  void set_allocated_redacted_context_ref(::cordum::agent::v1::ResourceRef* redacted_context_ref);
+  private:
+  const ::cordum::agent::v1::ResourceRef& _internal_redacted_context_ref() const;
+  ::cordum::agent::v1::ResourceRef* _internal_mutable_redacted_context_ref();
+  public:
+  void unsafe_arena_set_allocated_redacted_context_ref(
+      ::cordum::agent::v1::ResourceRef* redacted_context_ref);
+  ::cordum::agent::v1::ResourceRef* unsafe_arena_release_redacted_context_ref();
+
+  // .cordum.agent.v1.IdentityBinding identity = 11 [json_name = "identity"];
+  bool has_identity() const;
+  private:
+  bool _internal_has_identity() const;
+  public:
+  void clear_identity();
+  const ::cordum::agent::v1::IdentityBinding& identity() const;
+  PROTOBUF_NODISCARD ::cordum::agent::v1::IdentityBinding* release_identity();
+  ::cordum::agent::v1::IdentityBinding* mutable_identity();
+  void set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity);
+  private:
+  const ::cordum::agent::v1::IdentityBinding& _internal_identity() const;
+  ::cordum::agent::v1::IdentityBinding* _internal_mutable_identity();
+  public:
+  void unsafe_arena_set_allocated_identity(
+      ::cordum::agent::v1::IdentityBinding* identity);
+  ::cordum::agent::v1::IdentityBinding* unsafe_arena_release_identity();
+
   // .cordum.agent.v1.DecisionType decision = 1 [json_name = "decision"];
   void clear_decision();
   ::cordum::agent::v1::DecisionType decision() const;
@@ -2116,6 +2194,8 @@ class PolicyCheckResponse final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr rule_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr approval_ref_;
     ::cordum::agent::v1::PolicyConstraints* constraints_;
+    ::cordum::agent::v1::ResourceRef* redacted_context_ref_;
+    ::cordum::agent::v1::IdentityBinding* identity_;
     int decision_;
     bool approval_required_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -2954,6 +3034,176 @@ inline void PolicyCheckRequest::set_allocated_meta(::cordum::agent::v1::JobMetad
   }
   _impl_.meta_ = meta;
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.meta)
+}
+
+// .cordum.agent.v1.IdentityBinding identity = 12 [json_name = "identity"];
+inline bool PolicyCheckRequest::_internal_has_identity() const {
+  return this != internal_default_instance() && _impl_.identity_ != nullptr;
+}
+inline bool PolicyCheckRequest::has_identity() const {
+  return _internal_has_identity();
+}
+inline const ::cordum::agent::v1::IdentityBinding& PolicyCheckRequest::_internal_identity() const {
+  const ::cordum::agent::v1::IdentityBinding* p = _impl_.identity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::IdentityBinding&>(
+      ::cordum::agent::v1::_IdentityBinding_default_instance_);
+}
+inline const ::cordum::agent::v1::IdentityBinding& PolicyCheckRequest::identity() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyCheckRequest.identity)
+  return _internal_identity();
+}
+inline void PolicyCheckRequest::unsafe_arena_set_allocated_identity(
+    ::cordum::agent::v1::IdentityBinding* identity) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  _impl_.identity_ = identity;
+  if (identity) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.PolicyCheckRequest.identity)
+}
+inline ::cordum::agent::v1::IdentityBinding* PolicyCheckRequest::release_identity() {
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* PolicyCheckRequest::unsafe_arena_release_identity() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyCheckRequest.identity)
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* PolicyCheckRequest::_internal_mutable_identity() {
+  
+  if (_impl_.identity_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::IdentityBinding>(GetArenaForAllocation());
+    _impl_.identity_ = p;
+  }
+  return _impl_.identity_;
+}
+inline ::cordum::agent::v1::IdentityBinding* PolicyCheckRequest::mutable_identity() {
+  ::cordum::agent::v1::IdentityBinding* _msg = _internal_mutable_identity();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyCheckRequest.identity)
+  return _msg;
+}
+inline void PolicyCheckRequest::set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  if (identity) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(identity));
+    if (message_arena != submessage_arena) {
+      identity = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, identity, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.identity_ = identity;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.identity)
+}
+
+// .cordum.agent.v1.ResourceRef input_ref = 13 [json_name = "inputRef"];
+inline bool PolicyCheckRequest::_internal_has_input_ref() const {
+  return this != internal_default_instance() && _impl_.input_ref_ != nullptr;
+}
+inline bool PolicyCheckRequest::has_input_ref() const {
+  return _internal_has_input_ref();
+}
+inline const ::cordum::agent::v1::ResourceRef& PolicyCheckRequest::_internal_input_ref() const {
+  const ::cordum::agent::v1::ResourceRef* p = _impl_.input_ref_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::ResourceRef&>(
+      ::cordum::agent::v1::_ResourceRef_default_instance_);
+}
+inline const ::cordum::agent::v1::ResourceRef& PolicyCheckRequest::input_ref() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyCheckRequest.input_ref)
+  return _internal_input_ref();
+}
+inline void PolicyCheckRequest::unsafe_arena_set_allocated_input_ref(
+    ::cordum::agent::v1::ResourceRef* input_ref) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.input_ref_);
+  }
+  _impl_.input_ref_ = input_ref;
+  if (input_ref) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.PolicyCheckRequest.input_ref)
+}
+inline ::cordum::agent::v1::ResourceRef* PolicyCheckRequest::release_input_ref() {
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.input_ref_;
+  _impl_.input_ref_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* PolicyCheckRequest::unsafe_arena_release_input_ref() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyCheckRequest.input_ref)
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.input_ref_;
+  _impl_.input_ref_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* PolicyCheckRequest::_internal_mutable_input_ref() {
+  
+  if (_impl_.input_ref_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::ResourceRef>(GetArenaForAllocation());
+    _impl_.input_ref_ = p;
+  }
+  return _impl_.input_ref_;
+}
+inline ::cordum::agent::v1::ResourceRef* PolicyCheckRequest::mutable_input_ref() {
+  ::cordum::agent::v1::ResourceRef* _msg = _internal_mutable_input_ref();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyCheckRequest.input_ref)
+  return _msg;
+}
+inline void PolicyCheckRequest::set_allocated_input_ref(::cordum::agent::v1::ResourceRef* input_ref) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.input_ref_);
+  }
+  if (input_ref) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(input_ref));
+    if (message_arena != submessage_arena) {
+      input_ref = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, input_ref, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.input_ref_ = input_ref;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.input_ref)
 }
 
 // bytes input_content = 20 [json_name = "inputContent"];
@@ -4878,6 +5128,176 @@ inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::Pol
 PolicyCheckResponse::remediations() const {
   // @@protoc_insertion_point(field_list:cordum.agent.v1.PolicyCheckResponse.remediations)
   return _impl_.remediations_;
+}
+
+// .cordum.agent.v1.ResourceRef redacted_context_ref = 10 [json_name = "redactedContextRef"];
+inline bool PolicyCheckResponse::_internal_has_redacted_context_ref() const {
+  return this != internal_default_instance() && _impl_.redacted_context_ref_ != nullptr;
+}
+inline bool PolicyCheckResponse::has_redacted_context_ref() const {
+  return _internal_has_redacted_context_ref();
+}
+inline const ::cordum::agent::v1::ResourceRef& PolicyCheckResponse::_internal_redacted_context_ref() const {
+  const ::cordum::agent::v1::ResourceRef* p = _impl_.redacted_context_ref_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::ResourceRef&>(
+      ::cordum::agent::v1::_ResourceRef_default_instance_);
+}
+inline const ::cordum::agent::v1::ResourceRef& PolicyCheckResponse::redacted_context_ref() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyCheckResponse.redacted_context_ref)
+  return _internal_redacted_context_ref();
+}
+inline void PolicyCheckResponse::unsafe_arena_set_allocated_redacted_context_ref(
+    ::cordum::agent::v1::ResourceRef* redacted_context_ref) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.redacted_context_ref_);
+  }
+  _impl_.redacted_context_ref_ = redacted_context_ref;
+  if (redacted_context_ref) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.PolicyCheckResponse.redacted_context_ref)
+}
+inline ::cordum::agent::v1::ResourceRef* PolicyCheckResponse::release_redacted_context_ref() {
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.redacted_context_ref_;
+  _impl_.redacted_context_ref_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* PolicyCheckResponse::unsafe_arena_release_redacted_context_ref() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyCheckResponse.redacted_context_ref)
+  
+  ::cordum::agent::v1::ResourceRef* temp = _impl_.redacted_context_ref_;
+  _impl_.redacted_context_ref_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::ResourceRef* PolicyCheckResponse::_internal_mutable_redacted_context_ref() {
+  
+  if (_impl_.redacted_context_ref_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::ResourceRef>(GetArenaForAllocation());
+    _impl_.redacted_context_ref_ = p;
+  }
+  return _impl_.redacted_context_ref_;
+}
+inline ::cordum::agent::v1::ResourceRef* PolicyCheckResponse::mutable_redacted_context_ref() {
+  ::cordum::agent::v1::ResourceRef* _msg = _internal_mutable_redacted_context_ref();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyCheckResponse.redacted_context_ref)
+  return _msg;
+}
+inline void PolicyCheckResponse::set_allocated_redacted_context_ref(::cordum::agent::v1::ResourceRef* redacted_context_ref) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.redacted_context_ref_);
+  }
+  if (redacted_context_ref) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(redacted_context_ref));
+    if (message_arena != submessage_arena) {
+      redacted_context_ref = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, redacted_context_ref, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.redacted_context_ref_ = redacted_context_ref;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckResponse.redacted_context_ref)
+}
+
+// .cordum.agent.v1.IdentityBinding identity = 11 [json_name = "identity"];
+inline bool PolicyCheckResponse::_internal_has_identity() const {
+  return this != internal_default_instance() && _impl_.identity_ != nullptr;
+}
+inline bool PolicyCheckResponse::has_identity() const {
+  return _internal_has_identity();
+}
+inline const ::cordum::agent::v1::IdentityBinding& PolicyCheckResponse::_internal_identity() const {
+  const ::cordum::agent::v1::IdentityBinding* p = _impl_.identity_;
+  return p != nullptr ? *p : reinterpret_cast<const ::cordum::agent::v1::IdentityBinding&>(
+      ::cordum::agent::v1::_IdentityBinding_default_instance_);
+}
+inline const ::cordum::agent::v1::IdentityBinding& PolicyCheckResponse::identity() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyCheckResponse.identity)
+  return _internal_identity();
+}
+inline void PolicyCheckResponse::unsafe_arena_set_allocated_identity(
+    ::cordum::agent::v1::IdentityBinding* identity) {
+  if (GetArenaForAllocation() == nullptr) {
+    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  _impl_.identity_ = identity;
+  if (identity) {
+    
+  } else {
+    
+  }
+  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:cordum.agent.v1.PolicyCheckResponse.identity)
+}
+inline ::cordum::agent::v1::IdentityBinding* PolicyCheckResponse::release_identity() {
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+#ifdef PROTOBUF_FORCE_COPY_IN_RELEASE
+  auto* old =  reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(temp);
+  temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  if (GetArenaForAllocation() == nullptr) { delete old; }
+#else  // PROTOBUF_FORCE_COPY_IN_RELEASE
+  if (GetArenaForAllocation() != nullptr) {
+    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
+  }
+#endif  // !PROTOBUF_FORCE_COPY_IN_RELEASE
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* PolicyCheckResponse::unsafe_arena_release_identity() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyCheckResponse.identity)
+  
+  ::cordum::agent::v1::IdentityBinding* temp = _impl_.identity_;
+  _impl_.identity_ = nullptr;
+  return temp;
+}
+inline ::cordum::agent::v1::IdentityBinding* PolicyCheckResponse::_internal_mutable_identity() {
+  
+  if (_impl_.identity_ == nullptr) {
+    auto* p = CreateMaybeMessage<::cordum::agent::v1::IdentityBinding>(GetArenaForAllocation());
+    _impl_.identity_ = p;
+  }
+  return _impl_.identity_;
+}
+inline ::cordum::agent::v1::IdentityBinding* PolicyCheckResponse::mutable_identity() {
+  ::cordum::agent::v1::IdentityBinding* _msg = _internal_mutable_identity();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyCheckResponse.identity)
+  return _msg;
+}
+inline void PolicyCheckResponse::set_allocated_identity(::cordum::agent::v1::IdentityBinding* identity) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
+  if (message_arena == nullptr) {
+    delete reinterpret_cast< ::PROTOBUF_NAMESPACE_ID::MessageLite*>(_impl_.identity_);
+  }
+  if (identity) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
+        ::PROTOBUF_NAMESPACE_ID::Arena::InternalGetOwningArena(
+                reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(identity));
+    if (message_arena != submessage_arena) {
+      identity = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, identity, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  _impl_.identity_ = identity;
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckResponse.identity)
 }
 
 // -------------------------------------------------------------------

@@ -9,6 +9,7 @@ package v1
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -304,6 +305,232 @@ func (ErrorCode) EnumDescriptor() ([]byte, []int) {
 	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{3}
 }
 
+// IdentityBinding mirrors the identity established by authenticated transport.
+// CAP-PRODUCTION receivers reject any disagreement rather than selecting a
+// payload field as authoritative.
+type IdentityBinding struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	TenantId      string                 `protobuf:"bytes,1,opt,name=tenant_id,json=tenantId,proto3" json:"tenant_id,omitempty"`
+	PrincipalId   string                 `protobuf:"bytes,2,opt,name=principal_id,json=principalId,proto3" json:"principal_id,omitempty"`
+	ActorId       string                 `protobuf:"bytes,3,opt,name=actor_id,json=actorId,proto3" json:"actor_id,omitempty"`
+	DelegationId  string                 `protobuf:"bytes,4,opt,name=delegation_id,json=delegationId,proto3" json:"delegation_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IdentityBinding) Reset() {
+	*x = IdentityBinding{}
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IdentityBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IdentityBinding) ProtoMessage() {}
+
+func (x *IdentityBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IdentityBinding.ProtoReflect.Descriptor instead.
+func (*IdentityBinding) Descriptor() ([]byte, []int) {
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *IdentityBinding) GetTenantId() string {
+	if x != nil {
+		return x.TenantId
+	}
+	return ""
+}
+
+func (x *IdentityBinding) GetPrincipalId() string {
+	if x != nil {
+		return x.PrincipalId
+	}
+	return ""
+}
+
+func (x *IdentityBinding) GetActorId() string {
+	if x != nil {
+		return x.ActorId
+	}
+	return ""
+}
+
+func (x *IdentityBinding) GetDelegationId() string {
+	if x != nil {
+		return x.DelegationId
+	}
+	return ""
+}
+
+// DispatchIdentity fences every physical delivery and retry attempt.
+type DispatchIdentity struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	DispatchId       string                 `protobuf:"bytes,1,opt,name=dispatch_id,json=dispatchId,proto3" json:"dispatch_id,omitempty"`
+	Attempt          uint64                 `protobuf:"varint,2,opt,name=attempt,proto3" json:"attempt,omitempty"`
+	AssignedWorkerId string                 `protobuf:"bytes,3,opt,name=assigned_worker_id,json=assignedWorkerId,proto3" json:"assigned_worker_id,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *DispatchIdentity) Reset() {
+	*x = DispatchIdentity{}
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DispatchIdentity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DispatchIdentity) ProtoMessage() {}
+
+func (x *DispatchIdentity) ProtoReflect() protoreflect.Message {
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DispatchIdentity.ProtoReflect.Descriptor instead.
+func (*DispatchIdentity) Descriptor() ([]byte, []int) {
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *DispatchIdentity) GetDispatchId() string {
+	if x != nil {
+		return x.DispatchId
+	}
+	return ""
+}
+
+func (x *DispatchIdentity) GetAttempt() uint64 {
+	if x != nil {
+		return x.Attempt
+	}
+	return 0
+}
+
+func (x *DispatchIdentity) GetAssignedWorkerId() string {
+	if x != nil {
+		return x.AssignedWorkerId
+	}
+	return ""
+}
+
+// ResourceRef describes content resolved only through an operator-installed
+// resolver. The URI never carries credentials.
+type ResourceRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ResolverId    string                 `protobuf:"bytes,1,opt,name=resolver_id,json=resolverId,proto3" json:"resolver_id,omitempty"`
+	Uri           string                 `protobuf:"bytes,2,opt,name=uri,proto3" json:"uri,omitempty"`
+	Sha256        []byte                 `protobuf:"bytes,3,opt,name=sha256,proto3" json:"sha256,omitempty"` // exactly 32 bytes
+	MediaType     string                 `protobuf:"bytes,4,opt,name=media_type,json=mediaType,proto3" json:"media_type,omitempty"`
+	SizeBytes     uint64                 `protobuf:"varint,5,opt,name=size_bytes,json=sizeBytes,proto3" json:"size_bytes,omitempty"`
+	ExpiresAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
+	Purpose       string                 `protobuf:"bytes,7,opt,name=purpose,proto3" json:"purpose,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResourceRef) Reset() {
+	*x = ResourceRef{}
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResourceRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResourceRef) ProtoMessage() {}
+
+func (x *ResourceRef) ProtoReflect() protoreflect.Message {
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResourceRef.ProtoReflect.Descriptor instead.
+func (*ResourceRef) Descriptor() ([]byte, []int) {
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ResourceRef) GetResolverId() string {
+	if x != nil {
+		return x.ResolverId
+	}
+	return ""
+}
+
+func (x *ResourceRef) GetUri() string {
+	if x != nil {
+		return x.Uri
+	}
+	return ""
+}
+
+func (x *ResourceRef) GetSha256() []byte {
+	if x != nil {
+		return x.Sha256
+	}
+	return nil
+}
+
+func (x *ResourceRef) GetMediaType() string {
+	if x != nil {
+		return x.MediaType
+	}
+	return ""
+}
+
+func (x *ResourceRef) GetSizeBytes() uint64 {
+	if x != nil {
+		return x.SizeBytes
+	}
+	return 0
+}
+
+func (x *ResourceRef) GetExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ExpiresAt
+	}
+	return nil
+}
+
+func (x *ResourceRef) GetPurpose() string {
+	if x != nil {
+		return x.Purpose
+	}
+	return ""
+}
+
 // ContextHints describe how a worker may fetch or adapt context.
 type ContextHints struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
@@ -317,7 +544,7 @@ type ContextHints struct {
 
 func (x *ContextHints) Reset() {
 	*x = ContextHints{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[0]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -329,7 +556,7 @@ func (x *ContextHints) String() string {
 func (*ContextHints) ProtoMessage() {}
 
 func (x *ContextHints) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[0]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -342,7 +569,7 @@ func (x *ContextHints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContextHints.ProtoReflect.Descriptor instead.
 func (*ContextHints) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{0}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *ContextHints) GetMaxInputTokens() int32 {
@@ -386,7 +613,7 @@ type Budget struct {
 
 func (x *Budget) Reset() {
 	*x = Budget{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[1]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -398,7 +625,7 @@ func (x *Budget) String() string {
 func (*Budget) ProtoMessage() {}
 
 func (x *Budget) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[1]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -411,7 +638,7 @@ func (x *Budget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Budget.ProtoReflect.Descriptor instead.
 func (*Budget) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{1}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Budget) GetMaxInputTokens() int64 {
@@ -460,7 +687,7 @@ type JobMetadata struct {
 
 func (x *JobMetadata) Reset() {
 	*x = JobMetadata{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[2]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -472,7 +699,7 @@ func (x *JobMetadata) String() string {
 func (*JobMetadata) ProtoMessage() {}
 
 func (x *JobMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[2]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -485,7 +712,7 @@ func (x *JobMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobMetadata.ProtoReflect.Descriptor instead.
 func (*JobMetadata) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{2}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *JobMetadata) GetTenantId() string {
@@ -567,13 +794,16 @@ type Compensation struct {
 	PrincipalId   string                 `protobuf:"bytes,10,opt,name=principal_id,json=principalId,proto3" json:"principal_id,omitempty"`                                              // optional principal override
 	Labels        map[string]string      `protobuf:"bytes,11,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // routing/placement overrides
 	Meta          *JobMetadata           `protobuf:"bytes,12,opt,name=meta,proto3" json:"meta,omitempty"`                                                                               // identity/capability metadata (idempotency_key, risk tags, etc.)
+	Identity      *IdentityBinding       `protobuf:"bytes,13,opt,name=identity,proto3" json:"identity,omitempty"`
+	Dispatch      *DispatchIdentity      `protobuf:"bytes,14,opt,name=dispatch,proto3" json:"dispatch,omitempty"`
+	ContextRef    *ResourceRef           `protobuf:"bytes,15,opt,name=context_ref,json=contextRef,proto3" json:"context_ref,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Compensation) Reset() {
 	*x = Compensation{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[3]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -585,7 +815,7 @@ func (x *Compensation) String() string {
 func (*Compensation) ProtoMessage() {}
 
 func (x *Compensation) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[3]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -598,7 +828,7 @@ func (x *Compensation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Compensation.ProtoReflect.Descriptor instead.
 func (*Compensation) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{3}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Compensation) GetTopic() string {
@@ -685,6 +915,27 @@ func (x *Compensation) GetMeta() *JobMetadata {
 	return nil
 }
 
+func (x *Compensation) GetIdentity() *IdentityBinding {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+func (x *Compensation) GetDispatch() *DispatchIdentity {
+	if x != nil {
+		return x.Dispatch
+	}
+	return nil
+}
+
+func (x *Compensation) GetContextRef() *ResourceRef {
+	if x != nil {
+		return x.ContextRef
+	}
+	return nil
+}
+
 // JobRequest represents a schedulable unit of work.
 type JobRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -705,13 +956,16 @@ type JobRequest struct {
 	Labels        map[string]string      `protobuf:"bytes,15,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"` // arbitrary routing/placement labels
 	Meta          *JobMetadata           `protobuf:"bytes,16,opt,name=meta,proto3" json:"meta,omitempty"`                                                                               // structured identity/capability metadata
 	Compensation  *Compensation          `protobuf:"bytes,17,opt,name=compensation,proto3" json:"compensation,omitempty"`                                                               // optional inverse action for rollback
+	Identity      *IdentityBinding       `protobuf:"bytes,18,opt,name=identity,proto3" json:"identity,omitempty"`
+	Dispatch      *DispatchIdentity      `protobuf:"bytes,19,opt,name=dispatch,proto3" json:"dispatch,omitempty"`
+	ContextRef    *ResourceRef           `protobuf:"bytes,20,opt,name=context_ref,json=contextRef,proto3" json:"context_ref,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *JobRequest) Reset() {
 	*x = JobRequest{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[4]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -723,7 +977,7 @@ func (x *JobRequest) String() string {
 func (*JobRequest) ProtoMessage() {}
 
 func (x *JobRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[4]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -736,7 +990,7 @@ func (x *JobRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobRequest.ProtoReflect.Descriptor instead.
 func (*JobRequest) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{4}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *JobRequest) GetJobId() string {
@@ -858,6 +1112,27 @@ func (x *JobRequest) GetCompensation() *Compensation {
 	return nil
 }
 
+func (x *JobRequest) GetIdentity() *IdentityBinding {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+func (x *JobRequest) GetDispatch() *DispatchIdentity {
+	if x != nil {
+		return x.Dispatch
+	}
+	return nil
+}
+
+func (x *JobRequest) GetContextRef() *ResourceRef {
+	if x != nil {
+		return x.ContextRef
+	}
+	return nil
+}
+
 // JobResult conveys the outcome of a job.
 type JobResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -870,13 +1145,17 @@ type JobResult struct {
 	ErrorMessage  string                 `protobuf:"bytes,7,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`                                      // optional human-readable error
 	ArtifactPtrs  []string               `protobuf:"bytes,8,rep,name=artifact_ptrs,json=artifactPtrs,proto3" json:"artifact_ptrs,omitempty"`                                      // pointers to artifacts (logs/diffs/evidence)
 	ErrorCodeEnum ErrorCode              `protobuf:"varint,9,opt,name=error_code_enum,json=errorCodeEnum,proto3,enum=cordum.agent.v1.ErrorCode" json:"error_code_enum,omitempty"` // structured error code (preferred over string error_code)
+	Dispatch      *DispatchIdentity      `protobuf:"bytes,10,opt,name=dispatch,proto3" json:"dispatch,omitempty"`
+	Identity      *IdentityBinding       `protobuf:"bytes,11,opt,name=identity,proto3" json:"identity,omitempty"`
+	ResultRef     *ResourceRef           `protobuf:"bytes,12,opt,name=result_ref,json=resultRef,proto3" json:"result_ref,omitempty"`
+	ArtifactRefs  []*ResourceRef         `protobuf:"bytes,13,rep,name=artifact_refs,json=artifactRefs,proto3" json:"artifact_refs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *JobResult) Reset() {
 	*x = JobResult{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[5]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -888,7 +1167,7 @@ func (x *JobResult) String() string {
 func (*JobResult) ProtoMessage() {}
 
 func (x *JobResult) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[5]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -901,7 +1180,7 @@ func (x *JobResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobResult.ProtoReflect.Descriptor instead.
 func (*JobResult) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{5}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *JobResult) GetJobId() string {
@@ -967,6 +1246,34 @@ func (x *JobResult) GetErrorCodeEnum() ErrorCode {
 	return ErrorCode_ERROR_CODE_UNSPECIFIED
 }
 
+func (x *JobResult) GetDispatch() *DispatchIdentity {
+	if x != nil {
+		return x.Dispatch
+	}
+	return nil
+}
+
+func (x *JobResult) GetIdentity() *IdentityBinding {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+func (x *JobResult) GetResultRef() *ResourceRef {
+	if x != nil {
+		return x.ResultRef
+	}
+	return nil
+}
+
+func (x *JobResult) GetArtifactRefs() []*ResourceRef {
+	if x != nil {
+		return x.ArtifactRefs
+	}
+	return nil
+}
+
 // JobProgress conveys incremental progress for a job.
 type JobProgress struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -977,13 +1284,17 @@ type JobProgress struct {
 	ResultPtr     string                 `protobuf:"bytes,5,opt,name=result_ptr,json=resultPtr,proto3" json:"result_ptr,omitempty"`          // optional partial result pointer
 	ArtifactPtrs  []string               `protobuf:"bytes,6,rep,name=artifact_ptrs,json=artifactPtrs,proto3" json:"artifact_ptrs,omitempty"` // optional artifacts emitted so far
 	Status        JobStatus              `protobuf:"varint,7,opt,name=status,proto3,enum=cordum.agent.v1.JobStatus" json:"status,omitempty"` // optional status hint
+	Dispatch      *DispatchIdentity      `protobuf:"bytes,8,opt,name=dispatch,proto3" json:"dispatch,omitempty"`
+	Identity      *IdentityBinding       `protobuf:"bytes,9,opt,name=identity,proto3" json:"identity,omitempty"`
+	ResultRef     *ResourceRef           `protobuf:"bytes,10,opt,name=result_ref,json=resultRef,proto3" json:"result_ref,omitempty"`
+	ArtifactRefs  []*ResourceRef         `protobuf:"bytes,11,rep,name=artifact_refs,json=artifactRefs,proto3" json:"artifact_refs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *JobProgress) Reset() {
 	*x = JobProgress{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[6]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -995,7 +1306,7 @@ func (x *JobProgress) String() string {
 func (*JobProgress) ProtoMessage() {}
 
 func (x *JobProgress) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[6]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1008,7 +1319,7 @@ func (x *JobProgress) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobProgress.ProtoReflect.Descriptor instead.
 func (*JobProgress) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{6}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *JobProgress) GetJobId() string {
@@ -1060,19 +1371,49 @@ func (x *JobProgress) GetStatus() JobStatus {
 	return JobStatus_JOB_STATUS_UNSPECIFIED
 }
 
+func (x *JobProgress) GetDispatch() *DispatchIdentity {
+	if x != nil {
+		return x.Dispatch
+	}
+	return nil
+}
+
+func (x *JobProgress) GetIdentity() *IdentityBinding {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+func (x *JobProgress) GetResultRef() *ResourceRef {
+	if x != nil {
+		return x.ResultRef
+	}
+	return nil
+}
+
+func (x *JobProgress) GetArtifactRefs() []*ResourceRef {
+	if x != nil {
+		return x.ArtifactRefs
+	}
+	return nil
+}
+
 // JobCancel requests cancellation of a running job.
 type JobCancel struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	JobId         string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
 	Reason        string                 `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
 	RequestedBy   string                 `protobuf:"bytes,3,opt,name=requested_by,json=requestedBy,proto3" json:"requested_by,omitempty"`
+	Dispatch      *DispatchIdentity      `protobuf:"bytes,4,opt,name=dispatch,proto3" json:"dispatch,omitempty"`
+	Identity      *IdentityBinding       `protobuf:"bytes,5,opt,name=identity,proto3" json:"identity,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *JobCancel) Reset() {
 	*x = JobCancel{}
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[7]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1084,7 +1425,7 @@ func (x *JobCancel) String() string {
 func (*JobCancel) ProtoMessage() {}
 
 func (x *JobCancel) ProtoReflect() protoreflect.Message {
-	mi := &file_cordum_agent_v1_job_proto_msgTypes[7]
+	mi := &file_cordum_agent_v1_job_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1097,7 +1438,7 @@ func (x *JobCancel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use JobCancel.ProtoReflect.Descriptor instead.
 func (*JobCancel) Descriptor() ([]byte, []int) {
-	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{7}
+	return file_cordum_agent_v1_job_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *JobCancel) GetJobId() string {
@@ -1121,11 +1462,47 @@ func (x *JobCancel) GetRequestedBy() string {
 	return ""
 }
 
+func (x *JobCancel) GetDispatch() *DispatchIdentity {
+	if x != nil {
+		return x.Dispatch
+	}
+	return nil
+}
+
+func (x *JobCancel) GetIdentity() *IdentityBinding {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
 var File_cordum_agent_v1_job_proto protoreflect.FileDescriptor
 
 const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"\n" +
-	"\x19cordum/agent/v1/job.proto\x12\x0fcordum.agent.v1\"\xa6\x01\n" +
+	"\x19cordum/agent/v1/job.proto\x12\x0fcordum.agent.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x91\x01\n" +
+	"\x0fIdentityBinding\x12\x1b\n" +
+	"\ttenant_id\x18\x01 \x01(\tR\btenantId\x12!\n" +
+	"\fprincipal_id\x18\x02 \x01(\tR\vprincipalId\x12\x19\n" +
+	"\bactor_id\x18\x03 \x01(\tR\aactorId\x12#\n" +
+	"\rdelegation_id\x18\x04 \x01(\tR\fdelegationId\"{\n" +
+	"\x10DispatchIdentity\x12\x1f\n" +
+	"\vdispatch_id\x18\x01 \x01(\tR\n" +
+	"dispatchId\x12\x18\n" +
+	"\aattempt\x18\x02 \x01(\x04R\aattempt\x12,\n" +
+	"\x12assigned_worker_id\x18\x03 \x01(\tR\x10assignedWorkerId\"\xeb\x01\n" +
+	"\vResourceRef\x12\x1f\n" +
+	"\vresolver_id\x18\x01 \x01(\tR\n" +
+	"resolverId\x12\x10\n" +
+	"\x03uri\x18\x02 \x01(\tR\x03uri\x12\x16\n" +
+	"\x06sha256\x18\x03 \x01(\fR\x06sha256\x12\x1d\n" +
+	"\n" +
+	"media_type\x18\x04 \x01(\tR\tmediaType\x12\x1d\n" +
+	"\n" +
+	"size_bytes\x18\x05 \x01(\x04R\tsizeBytes\x129\n" +
+	"\n" +
+	"expires_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x12\x18\n" +
+	"\apurpose\x18\a \x01(\tR\apurpose\"\xa6\x01\n" +
 	"\fContextHints\x12(\n" +
 	"\x10max_input_tokens\x18\x01 \x01(\x05R\x0emaxInputTokens\x12/\n" +
 	"\x13allow_summarization\x18\x02 \x01(\bR\x12allowSummarization\x12'\n" +
@@ -1152,7 +1529,7 @@ const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"\x06labels\x18\t \x03(\v2(.cordum.agent.v1.JobMetadata.LabelsEntryR\x06labels\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x92\x05\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xce\x06\n" +
 	"\fCompensation\x12\x14\n" +
 	"\x05topic\x18\x01 \x01(\tR\x05topic\x12\x1f\n" +
 	"\vcontext_ptr\x18\x02 \x01(\tR\n" +
@@ -1168,13 +1545,17 @@ const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"\fprincipal_id\x18\n" +
 	" \x01(\tR\vprincipalId\x12A\n" +
 	"\x06labels\x18\v \x03(\v2).cordum.agent.v1.Compensation.LabelsEntryR\x06labels\x120\n" +
-	"\x04meta\x18\f \x01(\v2\x1c.cordum.agent.v1.JobMetadataR\x04meta\x1a6\n" +
+	"\x04meta\x18\f \x01(\v2\x1c.cordum.agent.v1.JobMetadataR\x04meta\x12<\n" +
+	"\bidentity\x18\r \x01(\v2 .cordum.agent.v1.IdentityBindingR\bidentity\x12=\n" +
+	"\bdispatch\x18\x0e \x01(\v2!.cordum.agent.v1.DispatchIdentityR\bdispatch\x12=\n" +
+	"\vcontext_ref\x18\x0f \x01(\v2\x1c.cordum.agent.v1.ResourceRefR\n" +
+	"contextRef\x1a6\n" +
 	"\bEnvEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xca\x06\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x86\b\n" +
 	"\n" +
 	"JobRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x14\n" +
@@ -1198,13 +1579,17 @@ const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"\fprincipal_id\x18\x0e \x01(\tR\vprincipalId\x12?\n" +
 	"\x06labels\x18\x0f \x03(\v2'.cordum.agent.v1.JobRequest.LabelsEntryR\x06labels\x120\n" +
 	"\x04meta\x18\x10 \x01(\v2\x1c.cordum.agent.v1.JobMetadataR\x04meta\x12A\n" +
-	"\fcompensation\x18\x11 \x01(\v2\x1d.cordum.agent.v1.CompensationR\fcompensation\x1a6\n" +
+	"\fcompensation\x18\x11 \x01(\v2\x1d.cordum.agent.v1.CompensationR\fcompensation\x12<\n" +
+	"\bidentity\x18\x12 \x01(\v2 .cordum.agent.v1.IdentityBindingR\bidentity\x12=\n" +
+	"\bdispatch\x18\x13 \x01(\v2!.cordum.agent.v1.DispatchIdentityR\bdispatch\x12=\n" +
+	"\vcontext_ref\x18\x14 \x01(\v2\x1c.cordum.agent.v1.ResourceRefR\n" +
+	"contextRef\x1a6\n" +
 	"\bEnvEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xe2\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\xdf\x04\n" +
 	"\tJobResult\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x122\n" +
 	"\x06status\x18\x02 \x01(\x0e2\x1a.cordum.agent.v1.JobStatusR\x06status\x12\x1d\n" +
@@ -1216,7 +1601,13 @@ const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"error_code\x18\x06 \x01(\tR\terrorCode\x12#\n" +
 	"\rerror_message\x18\a \x01(\tR\ferrorMessage\x12#\n" +
 	"\rartifact_ptrs\x18\b \x03(\tR\fartifactPtrs\x12B\n" +
-	"\x0ferror_code_enum\x18\t \x01(\x0e2\x1a.cordum.agent.v1.ErrorCodeR\rerrorCodeEnum\"\xe9\x01\n" +
+	"\x0ferror_code_enum\x18\t \x01(\x0e2\x1a.cordum.agent.v1.ErrorCodeR\rerrorCodeEnum\x12=\n" +
+	"\bdispatch\x18\n" +
+	" \x01(\v2!.cordum.agent.v1.DispatchIdentityR\bdispatch\x12<\n" +
+	"\bidentity\x18\v \x01(\v2 .cordum.agent.v1.IdentityBindingR\bidentity\x12;\n" +
+	"\n" +
+	"result_ref\x18\f \x01(\v2\x1c.cordum.agent.v1.ResourceRefR\tresultRef\x12A\n" +
+	"\rartifact_refs\x18\r \x03(\v2\x1c.cordum.agent.v1.ResourceRefR\fartifactRefs\"\xe6\x03\n" +
 	"\vJobProgress\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x17\n" +
 	"\astep_id\x18\x02 \x01(\tR\x06stepId\x12\x18\n" +
@@ -1225,11 +1616,19 @@ const file_cordum_agent_v1_job_proto_rawDesc = "" +
 	"\n" +
 	"result_ptr\x18\x05 \x01(\tR\tresultPtr\x12#\n" +
 	"\rartifact_ptrs\x18\x06 \x03(\tR\fartifactPtrs\x122\n" +
-	"\x06status\x18\a \x01(\x0e2\x1a.cordum.agent.v1.JobStatusR\x06status\"]\n" +
+	"\x06status\x18\a \x01(\x0e2\x1a.cordum.agent.v1.JobStatusR\x06status\x12=\n" +
+	"\bdispatch\x18\b \x01(\v2!.cordum.agent.v1.DispatchIdentityR\bdispatch\x12<\n" +
+	"\bidentity\x18\t \x01(\v2 .cordum.agent.v1.IdentityBindingR\bidentity\x12;\n" +
+	"\n" +
+	"result_ref\x18\n" +
+	" \x01(\v2\x1c.cordum.agent.v1.ResourceRefR\tresultRef\x12A\n" +
+	"\rartifact_refs\x18\v \x03(\v2\x1c.cordum.agent.v1.ResourceRefR\fartifactRefs\"\xda\x01\n" +
 	"\tJobCancel\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x16\n" +
 	"\x06reason\x18\x02 \x01(\tR\x06reason\x12!\n" +
-	"\frequested_by\x18\x03 \x01(\tR\vrequestedBy*|\n" +
+	"\frequested_by\x18\x03 \x01(\tR\vrequestedBy\x12=\n" +
+	"\bdispatch\x18\x04 \x01(\v2!.cordum.agent.v1.DispatchIdentityR\bdispatch\x12<\n" +
+	"\bidentity\x18\x05 \x01(\v2 .cordum.agent.v1.IdentityBindingR\bidentity*|\n" +
 	"\vJobPriority\x12\x1c\n" +
 	"\x18JOB_PRIORITY_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18JOB_PRIORITY_INTERACTIVE\x10\x01\x12\x16\n" +
@@ -1288,50 +1687,71 @@ func file_cordum_agent_v1_job_proto_rawDescGZIP() []byte {
 }
 
 var file_cordum_agent_v1_job_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_cordum_agent_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_cordum_agent_v1_job_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_cordum_agent_v1_job_proto_goTypes = []any{
-	(JobPriority)(0),     // 0: cordum.agent.v1.JobPriority
-	(JobStatus)(0),       // 1: cordum.agent.v1.JobStatus
-	(ActorType)(0),       // 2: cordum.agent.v1.ActorType
-	(ErrorCode)(0),       // 3: cordum.agent.v1.ErrorCode
-	(*ContextHints)(nil), // 4: cordum.agent.v1.ContextHints
-	(*Budget)(nil),       // 5: cordum.agent.v1.Budget
-	(*JobMetadata)(nil),  // 6: cordum.agent.v1.JobMetadata
-	(*Compensation)(nil), // 7: cordum.agent.v1.Compensation
-	(*JobRequest)(nil),   // 8: cordum.agent.v1.JobRequest
-	(*JobResult)(nil),    // 9: cordum.agent.v1.JobResult
-	(*JobProgress)(nil),  // 10: cordum.agent.v1.JobProgress
-	(*JobCancel)(nil),    // 11: cordum.agent.v1.JobCancel
-	nil,                  // 12: cordum.agent.v1.JobMetadata.LabelsEntry
-	nil,                  // 13: cordum.agent.v1.Compensation.EnvEntry
-	nil,                  // 14: cordum.agent.v1.Compensation.LabelsEntry
-	nil,                  // 15: cordum.agent.v1.JobRequest.EnvEntry
-	nil,                  // 16: cordum.agent.v1.JobRequest.LabelsEntry
+	(JobPriority)(0),              // 0: cordum.agent.v1.JobPriority
+	(JobStatus)(0),                // 1: cordum.agent.v1.JobStatus
+	(ActorType)(0),                // 2: cordum.agent.v1.ActorType
+	(ErrorCode)(0),                // 3: cordum.agent.v1.ErrorCode
+	(*IdentityBinding)(nil),       // 4: cordum.agent.v1.IdentityBinding
+	(*DispatchIdentity)(nil),      // 5: cordum.agent.v1.DispatchIdentity
+	(*ResourceRef)(nil),           // 6: cordum.agent.v1.ResourceRef
+	(*ContextHints)(nil),          // 7: cordum.agent.v1.ContextHints
+	(*Budget)(nil),                // 8: cordum.agent.v1.Budget
+	(*JobMetadata)(nil),           // 9: cordum.agent.v1.JobMetadata
+	(*Compensation)(nil),          // 10: cordum.agent.v1.Compensation
+	(*JobRequest)(nil),            // 11: cordum.agent.v1.JobRequest
+	(*JobResult)(nil),             // 12: cordum.agent.v1.JobResult
+	(*JobProgress)(nil),           // 13: cordum.agent.v1.JobProgress
+	(*JobCancel)(nil),             // 14: cordum.agent.v1.JobCancel
+	nil,                           // 15: cordum.agent.v1.JobMetadata.LabelsEntry
+	nil,                           // 16: cordum.agent.v1.Compensation.EnvEntry
+	nil,                           // 17: cordum.agent.v1.Compensation.LabelsEntry
+	nil,                           // 18: cordum.agent.v1.JobRequest.EnvEntry
+	nil,                           // 19: cordum.agent.v1.JobRequest.LabelsEntry
+	(*timestamppb.Timestamp)(nil), // 20: google.protobuf.Timestamp
 }
 var file_cordum_agent_v1_job_proto_depIdxs = []int32{
-	2,  // 0: cordum.agent.v1.JobMetadata.actor_type:type_name -> cordum.agent.v1.ActorType
-	12, // 1: cordum.agent.v1.JobMetadata.labels:type_name -> cordum.agent.v1.JobMetadata.LabelsEntry
-	0,  // 2: cordum.agent.v1.Compensation.priority:type_name -> cordum.agent.v1.JobPriority
-	13, // 3: cordum.agent.v1.Compensation.env:type_name -> cordum.agent.v1.Compensation.EnvEntry
-	4,  // 4: cordum.agent.v1.Compensation.context_hints:type_name -> cordum.agent.v1.ContextHints
-	5,  // 5: cordum.agent.v1.Compensation.budget:type_name -> cordum.agent.v1.Budget
-	14, // 6: cordum.agent.v1.Compensation.labels:type_name -> cordum.agent.v1.Compensation.LabelsEntry
-	6,  // 7: cordum.agent.v1.Compensation.meta:type_name -> cordum.agent.v1.JobMetadata
-	0,  // 8: cordum.agent.v1.JobRequest.priority:type_name -> cordum.agent.v1.JobPriority
-	15, // 9: cordum.agent.v1.JobRequest.env:type_name -> cordum.agent.v1.JobRequest.EnvEntry
-	4,  // 10: cordum.agent.v1.JobRequest.context_hints:type_name -> cordum.agent.v1.ContextHints
-	5,  // 11: cordum.agent.v1.JobRequest.budget:type_name -> cordum.agent.v1.Budget
-	16, // 12: cordum.agent.v1.JobRequest.labels:type_name -> cordum.agent.v1.JobRequest.LabelsEntry
-	6,  // 13: cordum.agent.v1.JobRequest.meta:type_name -> cordum.agent.v1.JobMetadata
-	7,  // 14: cordum.agent.v1.JobRequest.compensation:type_name -> cordum.agent.v1.Compensation
-	1,  // 15: cordum.agent.v1.JobResult.status:type_name -> cordum.agent.v1.JobStatus
-	3,  // 16: cordum.agent.v1.JobResult.error_code_enum:type_name -> cordum.agent.v1.ErrorCode
-	1,  // 17: cordum.agent.v1.JobProgress.status:type_name -> cordum.agent.v1.JobStatus
-	18, // [18:18] is the sub-list for method output_type
-	18, // [18:18] is the sub-list for method input_type
-	18, // [18:18] is the sub-list for extension type_name
-	18, // [18:18] is the sub-list for extension extendee
-	0,  // [0:18] is the sub-list for field type_name
+	20, // 0: cordum.agent.v1.ResourceRef.expires_at:type_name -> google.protobuf.Timestamp
+	2,  // 1: cordum.agent.v1.JobMetadata.actor_type:type_name -> cordum.agent.v1.ActorType
+	15, // 2: cordum.agent.v1.JobMetadata.labels:type_name -> cordum.agent.v1.JobMetadata.LabelsEntry
+	0,  // 3: cordum.agent.v1.Compensation.priority:type_name -> cordum.agent.v1.JobPriority
+	16, // 4: cordum.agent.v1.Compensation.env:type_name -> cordum.agent.v1.Compensation.EnvEntry
+	7,  // 5: cordum.agent.v1.Compensation.context_hints:type_name -> cordum.agent.v1.ContextHints
+	8,  // 6: cordum.agent.v1.Compensation.budget:type_name -> cordum.agent.v1.Budget
+	17, // 7: cordum.agent.v1.Compensation.labels:type_name -> cordum.agent.v1.Compensation.LabelsEntry
+	9,  // 8: cordum.agent.v1.Compensation.meta:type_name -> cordum.agent.v1.JobMetadata
+	4,  // 9: cordum.agent.v1.Compensation.identity:type_name -> cordum.agent.v1.IdentityBinding
+	5,  // 10: cordum.agent.v1.Compensation.dispatch:type_name -> cordum.agent.v1.DispatchIdentity
+	6,  // 11: cordum.agent.v1.Compensation.context_ref:type_name -> cordum.agent.v1.ResourceRef
+	0,  // 12: cordum.agent.v1.JobRequest.priority:type_name -> cordum.agent.v1.JobPriority
+	18, // 13: cordum.agent.v1.JobRequest.env:type_name -> cordum.agent.v1.JobRequest.EnvEntry
+	7,  // 14: cordum.agent.v1.JobRequest.context_hints:type_name -> cordum.agent.v1.ContextHints
+	8,  // 15: cordum.agent.v1.JobRequest.budget:type_name -> cordum.agent.v1.Budget
+	19, // 16: cordum.agent.v1.JobRequest.labels:type_name -> cordum.agent.v1.JobRequest.LabelsEntry
+	9,  // 17: cordum.agent.v1.JobRequest.meta:type_name -> cordum.agent.v1.JobMetadata
+	10, // 18: cordum.agent.v1.JobRequest.compensation:type_name -> cordum.agent.v1.Compensation
+	4,  // 19: cordum.agent.v1.JobRequest.identity:type_name -> cordum.agent.v1.IdentityBinding
+	5,  // 20: cordum.agent.v1.JobRequest.dispatch:type_name -> cordum.agent.v1.DispatchIdentity
+	6,  // 21: cordum.agent.v1.JobRequest.context_ref:type_name -> cordum.agent.v1.ResourceRef
+	1,  // 22: cordum.agent.v1.JobResult.status:type_name -> cordum.agent.v1.JobStatus
+	3,  // 23: cordum.agent.v1.JobResult.error_code_enum:type_name -> cordum.agent.v1.ErrorCode
+	5,  // 24: cordum.agent.v1.JobResult.dispatch:type_name -> cordum.agent.v1.DispatchIdentity
+	4,  // 25: cordum.agent.v1.JobResult.identity:type_name -> cordum.agent.v1.IdentityBinding
+	6,  // 26: cordum.agent.v1.JobResult.result_ref:type_name -> cordum.agent.v1.ResourceRef
+	6,  // 27: cordum.agent.v1.JobResult.artifact_refs:type_name -> cordum.agent.v1.ResourceRef
+	1,  // 28: cordum.agent.v1.JobProgress.status:type_name -> cordum.agent.v1.JobStatus
+	5,  // 29: cordum.agent.v1.JobProgress.dispatch:type_name -> cordum.agent.v1.DispatchIdentity
+	4,  // 30: cordum.agent.v1.JobProgress.identity:type_name -> cordum.agent.v1.IdentityBinding
+	6,  // 31: cordum.agent.v1.JobProgress.result_ref:type_name -> cordum.agent.v1.ResourceRef
+	6,  // 32: cordum.agent.v1.JobProgress.artifact_refs:type_name -> cordum.agent.v1.ResourceRef
+	5,  // 33: cordum.agent.v1.JobCancel.dispatch:type_name -> cordum.agent.v1.DispatchIdentity
+	4,  // 34: cordum.agent.v1.JobCancel.identity:type_name -> cordum.agent.v1.IdentityBinding
+	35, // [35:35] is the sub-list for method output_type
+	35, // [35:35] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_cordum_agent_v1_job_proto_init() }
@@ -1345,7 +1765,7 @@ func file_cordum_agent_v1_job_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_cordum_agent_v1_job_proto_rawDesc), len(file_cordum_agent_v1_job_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   13,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

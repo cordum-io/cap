@@ -38,4 +38,7 @@ if ($LASTEXITCODE -ne 0) { throw 'hermetic codegen failed' }
 
 Write-Host '>> verifying manifest'
 Push-Location $repoRoot
-try { go run ./cmd/cap-codegen check } finally { Pop-Location }
+try {
+    go run ./cmd/cap-codegen check
+    if ($LASTEXITCODE -ne 0) { throw 'manifest check failed' }
+} finally { Pop-Location }

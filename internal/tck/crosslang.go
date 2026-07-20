@@ -17,6 +17,8 @@ import (
 // StableSDKs are the SDKs classified stable in sdk/support-tiers.json. Every
 // one of them must appear on both axes of the fixture matrix; the list is the
 // single source of the 3x3 completeness expectation.
+// TestStableSDKsMatchSupportTiers fails if this drifts from the manifest;
+// adding an SDK here also requires a matrix driver under tools/tck/matrix/.
 var StableSDKs = []string{"go", "node", "python"}
 
 // MatrixEnvVar opts a run into building real SDK artifacts. It is deliberately

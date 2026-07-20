@@ -13,4 +13,5 @@ export * from "./handshake";
 export * from "./heartbeat";
 export * from "./progress";
 export * from "./trust-signing";
+export * from "./production-signing";
 export * from "./worker-trust";

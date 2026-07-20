@@ -53,7 +53,10 @@ Generate language stubs from `proto/` before building:
 The helpers use NATS, the supported transport. Other buses (Kafka, RabbitMQ) are experimental and unproven; see [`docs/ecosystem.md`](../docs/ecosystem.md#transport-support) for transport status.
 
 ## Signing and Verification
-- SDK helpers sign `BusPacket` envelopes when given a private key; pass a key to enforce verification, or omit it to send unsigned packets.
+- SDK helpers sign `BusPacket` envelopes when given a private key. In Go,
+  omitting keys is an error unless `AllowUnsigned` is explicit (or the caller
+  uses `SubmitUnsigned`); unsigned transport must never result from a missing
+  key by accident.
 - Example ECDSA keypair (P-256):
   ```bash
   openssl ecparam -name prime256v1 -genkey -noout -out cap-priv.pem

@@ -21,7 +21,9 @@ type Handler func(context.Context, *agentv1.BusPacket)
 type Client struct {
 	NATS       *nats.Conn
 	PublicKeys map[string]*ecdsa.PublicKey
-	Logger     *slog.Logger
+	// AllowUnsigned explicitly opts into legacy unsigned packet transport.
+	AllowUnsigned bool
+	Logger        *slog.Logger
 }
 
 // Publisher is an interface that can publish a message to a subject.
@@ -40,6 +42,9 @@ func (c *Client) Submit(ctx context.Context, req *agentv1.JobRequest, traceID, s
 		if err := ctx.Err(); err != nil {
 			return err
 		}
+	}
+	if key == nil && !c.AllowUnsigned {
+		return errors.New("client: private key required; set AllowUnsigned for explicit unsigned legacy mode")
 	}
 
 	packet := &agentv1.BusPacket{
@@ -67,6 +72,9 @@ func (c *Client) Submit(ctx context.Context, req *agentv1.JobRequest, traceID, s
 
 // Subscribe subscribes to a subject and handles incoming packets.
 func (c *Client) Subscribe(subject string, handler Handler) (*nats.Subscription, error) {
+	if err := c.validateLegacyTrust(); err != nil {
+		return nil, err
+	}
 	if c.NATS == nil {
 		return nil, errors.New("client: NATS connection is nil")
 	}
@@ -90,7 +98,7 @@ func (c *Client) Subscribe(subject string, handler Handler) (*nats.Subscription,
 		}
 
 		// Verify the signature
-		if c.PublicKeys != nil {
+		if len(c.PublicKeys) != 0 {
 			pubKey, ok := c.PublicKeys[packet.GetSenderId()]
 			if !ok {
 				logger.Warn("no public key found", "sender_id", packet.GetSenderId())
@@ -116,6 +124,13 @@ func (c *Client) Subscribe(subject string, handler Handler) (*nats.Subscription,
 	return sub, nil
 }
 
+func (c *Client) validateLegacyTrust() error {
+	if len(c.PublicKeys) == 0 && !c.AllowUnsigned {
+		return errors.New("client: public keys required; set AllowUnsigned for explicit unsigned legacy mode")
+	}
+	return nil
+}
+
 // Submit is a convenience function for submitting a job without creating a Client instance.
 //
 // If ctx is already canceled or past its deadline, Submit returns ctx.Err()
@@ -123,10 +138,24 @@ func (c *Client) Subscribe(subject string, handler Handler) (*nats.Subscription,
 // is not context-aware; cancellation after this check does not abort an
 // in-flight publish.
 func Submit(ctx context.Context, pub Publisher, req *agentv1.JobRequest, traceID, senderID string, key *ecdsa.PrivateKey) error {
+	return submit(ctx, pub, req, traceID, senderID, key, false)
+}
+
+// SubmitUnsigned explicitly opts one package-level submission into legacy
+// unsigned transport. Prefer Submit with a private key for authenticated use.
+func SubmitUnsigned(ctx context.Context, pub Publisher, req *agentv1.JobRequest, traceID, senderID string) error {
+	return submit(ctx, pub, req, traceID, senderID, nil, true)
+}
+
+func submit(ctx context.Context, pub Publisher, req *agentv1.JobRequest, traceID, senderID string,
+	key *ecdsa.PrivateKey, allowUnsigned bool) error {
 	if ctx != nil {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
+	}
+	if key == nil && !allowUnsigned {
+		return errors.New("client: private key required; use SubmitUnsigned for explicit unsigned legacy mode")
 	}
 
 	packet := &agentv1.BusPacket{

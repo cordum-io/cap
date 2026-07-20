@@ -8,6 +8,7 @@ import (
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type recordingMetrics struct {
@@ -47,10 +48,12 @@ func TestMetricsOnSuccess(t *testing.T) {
 	_ = store.Set(context.Background(), ctxKey, payload)
 
 	agent := &Agent{
-		NATS:     mock,
-		Store:    store,
-		SenderID: "worker-m1",
-		Metrics:  metrics,
+		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
+		NATS:          mock,
+		Store:         store,
+		SenderID:      "worker-m1",
+		Metrics:       metrics,
 	}
 
 	Register(agent, "job.metrics", func(_ Context, input struct{ Prompt string }) (map[string]string, error) {
@@ -69,6 +72,7 @@ func TestMetricsOnSuccess(t *testing.T) {
 	packet := &agentv1.BusPacket{
 		TraceId:         "trace-m1",
 		SenderId:        "client-m1",
+		CreatedAt:       timestamppb.Now(),
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}
@@ -95,10 +99,12 @@ func TestMetricsOnFailure(t *testing.T) {
 	jobID := "metrics-job-2"
 	// Empty context_ptr triggers failure
 	agent := &Agent{
-		NATS:     mock,
-		Store:    store,
-		SenderID: "worker-m2",
-		Metrics:  metrics,
+		HandshakeMode: HandshakeModeOff,
+		AllowUnsigned: true,
+		NATS:          mock,
+		Store:         store,
+		SenderID:      "worker-m2",
+		Metrics:       metrics,
 	}
 
 	Register(agent, "job.metrics.fail", func(_ Context, input struct{ Prompt string }) (map[string]string, error) {
@@ -117,6 +123,7 @@ func TestMetricsOnFailure(t *testing.T) {
 	packet := &agentv1.BusPacket{
 		TraceId:         "trace-m2",
 		SenderId:        "client-m2",
+		CreatedAt:       timestamppb.Now(),
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		Payload:         &agentv1.BusPacket_JobRequest{JobRequest: req},
 	}

@@ -1,7 +1,34 @@
 import { NatsConnection } from "nats";
-import * as crypto from "crypto";
-import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, DEFAULT_PROTOCOL_VERSION, SUBJECT_PROGRESS, SUBJECT_CANCEL } from "./protos";
+import {
+  encodeOutboundPacket,
+  type MutableBusPacket,
+  prepareOutboundPacket,
+} from "./packet-boundary";
+
+interface PacketEnvelope extends MutableBusPacket {
+  createdAt: unknown;
+  protocolVersion: number;
+  senderId: string;
+  traceId: string;
+}
+
+export interface ProgressPacket extends PacketEnvelope {
+  jobProgress: {
+    jobId: string;
+    message: string;
+    percent: number;
+    stepId: string;
+  };
+}
+
+export interface CancelPacket extends PacketEnvelope {
+  jobCancel: {
+    jobId: string;
+    reason: string;
+    requestedBy: string;
+  };
+}
 
 /**
  * Builds a progress packet wrapped in a BusPacket envelope.
@@ -11,12 +38,13 @@ export async function progressPayload(
   jobId: string,
   stepId: string,
   percent: number,
-  message: string
-): Promise<any> {
+  message: string,
+  sessionToken = ""
+): Promise<ProgressPacket> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
 
-  return BusPacket.fromObject({
+  const packet = BusPacket.fromObject({
     traceId: jobId,
     senderId,
     protocolVersion: DEFAULT_PROTOCOL_VERSION,
@@ -27,7 +55,8 @@ export async function progressPayload(
       percent,
       message,
     },
-  });
+  }) as unknown as ProgressPacket;
+  return prepareOutboundPacket(packet, sessionToken);
 }
 
 /**
@@ -37,12 +66,13 @@ export async function cancelPayload(
   senderId: string,
   jobId: string,
   reason: string,
-  requestedBy: string
-): Promise<any> {
+  requestedBy: string,
+  sessionToken = ""
+): Promise<CancelPacket> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
 
-  return BusPacket.fromObject({
+  const packet = BusPacket.fromObject({
     traceId: jobId,
     senderId,
     protocolVersion: DEFAULT_PROTOCOL_VERSION,
@@ -52,7 +82,8 @@ export async function cancelPayload(
       reason,
       requestedBy,
     },
-  });
+  }) as unknown as CancelPacket;
+  return prepareOutboundPacket(packet, sessionToken);
 }
 
 /**
@@ -60,20 +91,13 @@ export async function cancelPayload(
  */
 export async function emitProgress(
   nc: NatsConnection,
-  packet: any,
+  packet: ProgressPacket,
   privateKey?: string
 ): Promise<void> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
 
-  if (privateKey) {
-    const unsignedData = encodeUnsignedForSignature(BusPacket, packet);
-    const sign = crypto.createSign("sha256");
-    sign.update(unsignedData);
-    packet.signature = sign.sign(privateKey);
-  }
-
-  const data = encodeDeterministic(BusPacket, packet);
+  const data = encodeOutboundPacket(BusPacket, packet, privateKey);
   await nc.publish(SUBJECT_PROGRESS, data);
 }
 
@@ -82,19 +106,12 @@ export async function emitProgress(
  */
 export async function emitCancel(
   nc: NatsConnection,
-  packet: any,
+  packet: CancelPacket,
   privateKey?: string
 ): Promise<void> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
 
-  if (privateKey) {
-    const unsignedData = encodeUnsignedForSignature(BusPacket, packet);
-    const sign = crypto.createSign("sha256");
-    sign.update(unsignedData);
-    packet.signature = sign.sign(privateKey);
-  }
-
-  const data = encodeDeterministic(BusPacket, packet);
+  const data = encodeOutboundPacket(BusPacket, packet, privateKey);
   await nc.publish(SUBJECT_CANCEL, data);
 }

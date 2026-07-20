@@ -1,0 +1,23 @@
+version: v2
+modules:
+  - path: proto
+lint:
+  use:
+    - STANDARD
+  # CAP v1 service/RPC names are published wire contracts; scope exceptions
+  # to the two legacy files so new schemas still receive the full STANDARD set.
+  ignore_only:
+    SERVICE_SUFFIX:
+      - proto/cordum/agent/v1/policy.proto
+      - proto/cordum/agent/v1/safety.proto
+    RPC_REQUEST_STANDARD_NAME:
+      - proto/cordum/agent/v1/policy.proto
+      - proto/cordum/agent/v1/safety.proto
+    RPC_RESPONSE_STANDARD_NAME:
+      - proto/cordum/agent/v1/policy.proto
+      - proto/cordum/agent/v1/safety.proto
+    RPC_REQUEST_RESPONSE_UNIQUE:
+      - proto/cordum/agent/v1/safety.proto
+breaking:
+  use:
+    - FILE

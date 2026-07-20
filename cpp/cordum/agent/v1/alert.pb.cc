@@ -23,12 +23,28 @@ namespace _pbi = _pb::internal;
 namespace cordum {
 namespace agent {
 namespace v1 {
+PROTOBUF_CONSTEXPR SystemAlert_DetailsEntry_DoNotUse::SystemAlert_DetailsEntry_DoNotUse(
+    ::_pbi::ConstantInitialized) {}
+struct SystemAlert_DetailsEntry_DoNotUseDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR SystemAlert_DetailsEntry_DoNotUseDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~SystemAlert_DetailsEntry_DoNotUseDefaultTypeInternal() {}
+  union {
+    SystemAlert_DetailsEntry_DoNotUse _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 SystemAlert_DetailsEntry_DoNotUseDefaultTypeInternal _SystemAlert_DetailsEntry_DoNotUse_default_instance_;
 PROTOBUF_CONSTEXPR SystemAlert::SystemAlert(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.level_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_.details_)*/{::_pbi::ConstantInitialized()}
+  , /*decltype(_impl_.level_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.message_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.component_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.code_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.source_component_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.trace_id_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.severity_)*/0
+  , /*decltype(_impl_.error_code_enum_)*/0
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct SystemAlertDefaultTypeInternal {
   PROTOBUF_CONSTEXPR SystemAlertDefaultTypeInternal()
@@ -42,11 +58,21 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORIT
 }  // namespace v1
 }  // namespace agent
 }  // namespace cordum
-static ::_pb::Metadata file_level_metadata_cordum_2fagent_2fv1_2falert_2eproto[1];
-static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_cordum_2fagent_2fv1_2falert_2eproto = nullptr;
+static ::_pb::Metadata file_level_metadata_cordum_2fagent_2fv1_2falert_2eproto[2];
+static const ::_pb::EnumDescriptor* file_level_enum_descriptors_cordum_2fagent_2fv1_2falert_2eproto[1];
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_cordum_2fagent_2fv1_2falert_2eproto = nullptr;
 
 const uint32_t TableStruct_cordum_2fagent_2fv1_2falert_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert_DetailsEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert_DetailsEntry_DoNotUse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert_DetailsEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert_DetailsEntry_DoNotUse, value_),
+  0,
+  1,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -57,29 +83,53 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2falert_2eproto::offsets[] PROTOB
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert, _impl_.message_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert, _impl_.component_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert, _impl_.code_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert, _impl_.severity_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert, _impl_.error_code_enum_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert, _impl_.source_component_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert, _impl_.details_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::SystemAlert, _impl_.trace_id_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, -1, sizeof(::cordum::agent::v1::SystemAlert)},
+  { 0, 8, -1, sizeof(::cordum::agent::v1::SystemAlert_DetailsEntry_DoNotUse)},
+  { 10, -1, -1, sizeof(::cordum::agent::v1::SystemAlert)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
+  &::cordum::agent::v1::_SystemAlert_DetailsEntry_DoNotUse_default_instance_._instance,
   &::cordum::agent::v1::_SystemAlert_default_instance_._instance,
 };
 
 const char descriptor_table_protodef_cordum_2fagent_2fv1_2falert_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\033cordum/agent/v1/alert.proto\022\017cordum.ag"
-  "ent.v1\"N\n\013SystemAlert\022\r\n\005level\030\001 \001(\t\022\017\n\007"
-  "message\030\002 \001(\t\022\021\n\tcomponent\030\003 \001(\t\022\014\n\004code"
-  "\030\004 \001(\tB\177\n\026io.cordum.cap.agent.v1P\001Z+gith"
-  "ub.com/cordum-io/cap/v2/cordum/agent/v1\252"
-  "\002\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Co"
-  "rdum::Agent::V1b\006proto3"
+  "ent.v1\032\031cordum/agent/v1/job.proto\"\302\003\n\013Sy"
+  "stemAlert\022\030\n\005level\030\001 \001(\tB\002\030\001R\005level\022\030\n\007m"
+  "essage\030\002 \001(\tR\007message\022 \n\tcomponent\030\003 \001(\t"
+  "B\002\030\001R\tcomponent\022\026\n\004code\030\004 \001(\tB\002\030\001R\004code\022"
+  ":\n\010severity\030\005 \001(\0162\036.cordum.agent.v1.Aler"
+  "tSeverityR\010severity\022B\n\017error_code_enum\030\006"
+  " \001(\0162\032.cordum.agent.v1.ErrorCodeR\rerrorC"
+  "odeEnum\022)\n\020source_component\030\007 \001(\tR\017sourc"
+  "eComponent\022C\n\007details\030\010 \003(\0132).cordum.age"
+  "nt.v1.SystemAlert.DetailsEntryR\007details\022"
+  "\031\n\010trace_id\030\t \001(\tR\007traceId\032:\n\014DetailsEnt"
+  "ry\022\020\n\003key\030\001 \001(\tR\003key\022\024\n\005value\030\002 \001(\tR\005val"
+  "ue:\0028\001*\233\001\n\rAlertSeverity\022\036\n\032ALERT_SEVERI"
+  "TY_UNSPECIFIED\020\000\022\027\n\023ALERT_SEVERITY_INFO\020"
+  "\001\022\032\n\026ALERT_SEVERITY_WARNING\020\002\022\030\n\024ALERT_S"
+  "EVERITY_ERROR\020\003\022\033\n\027ALERT_SEVERITY_CRITIC"
+  "AL\020\004B\177\n\026io.cordum.cap.agent.v1P\001Z+github"
+  ".com/cordum-io/cap/v2/cordum/agent/v1\252\002\017"
+  "Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cord"
+  "um::Agent::V1b\006proto3"
   ;
+static const ::_pbi::DescriptorTable* const descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_deps[1] = {
+  &::descriptor_table_cordum_2fagent_2fv1_2fjob_2eproto,
+};
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2falert_2eproto = {
-    false, false, 263, descriptor_table_protodef_cordum_2fagent_2fv1_2falert_2eproto,
+    false, false, 821, descriptor_table_protodef_cordum_2fagent_2fv1_2falert_2eproto,
     "cordum/agent/v1/alert.proto",
-    &descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_once, nullptr, 0, 1,
+    &descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_once, descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_deps, 1, 2,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2falert_2eproto::offsets,
     file_level_metadata_cordum_2fagent_2fv1_2falert_2eproto, file_level_enum_descriptors_cordum_2fagent_2fv1_2falert_2eproto,
     file_level_service_descriptors_cordum_2fagent_2fv1_2falert_2eproto,
@@ -93,6 +143,37 @@ PROTOBUF_ATTRIBUTE_INIT_PRIORITY2 static ::_pbi::AddDescriptorsRunner dynamic_in
 namespace cordum {
 namespace agent {
 namespace v1 {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AlertSeverity_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_cordum_2fagent_2fv1_2falert_2eproto);
+  return file_level_enum_descriptors_cordum_2fagent_2fv1_2falert_2eproto[0];
+}
+bool AlertSeverity_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
+// ===================================================================
+
+SystemAlert_DetailsEntry_DoNotUse::SystemAlert_DetailsEntry_DoNotUse() {}
+SystemAlert_DetailsEntry_DoNotUse::SystemAlert_DetailsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+    : SuperType(arena) {}
+void SystemAlert_DetailsEntry_DoNotUse::MergeFrom(const SystemAlert_DetailsEntry_DoNotUse& other) {
+  MergeFromInternal(other);
+}
+::PROTOBUF_NAMESPACE_ID::Metadata SystemAlert_DetailsEntry_DoNotUse::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_once,
+      file_level_metadata_cordum_2fagent_2fv1_2falert_2eproto[0]);
+}
 
 // ===================================================================
 
@@ -104,19 +185,28 @@ SystemAlert::SystemAlert(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                          bool is_message_owned)
   : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
   SharedCtor(arena, is_message_owned);
+  if (arena != nullptr && !is_message_owned) {
+    arena->OwnCustomDestructor(this, &SystemAlert::ArenaDtor);
+  }
   // @@protoc_insertion_point(arena_constructor:cordum.agent.v1.SystemAlert)
 }
 SystemAlert::SystemAlert(const SystemAlert& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   SystemAlert* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.level_){}
+      /*decltype(_impl_.details_)*/{}
+    , decltype(_impl_.level_){}
     , decltype(_impl_.message_){}
     , decltype(_impl_.component_){}
     , decltype(_impl_.code_){}
+    , decltype(_impl_.source_component_){}
+    , decltype(_impl_.trace_id_){}
+    , decltype(_impl_.severity_){}
+    , decltype(_impl_.error_code_enum_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _this->_impl_.details_.MergeFrom(from._impl_.details_);
   _impl_.level_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.level_.Set("", GetArenaForAllocation());
@@ -149,6 +239,25 @@ SystemAlert::SystemAlert(const SystemAlert& from)
     _this->_impl_.code_.Set(from._internal_code(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.source_component_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.source_component_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_source_component().empty()) {
+    _this->_impl_.source_component_.Set(from._internal_source_component(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.trace_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.trace_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_trace_id().empty()) {
+    _this->_impl_.trace_id_.Set(from._internal_trace_id(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.severity_, &from._impl_.severity_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.error_code_enum_) -
+    reinterpret_cast<char*>(&_impl_.severity_)) + sizeof(_impl_.error_code_enum_));
   // @@protoc_insertion_point(copy_constructor:cordum.agent.v1.SystemAlert)
 }
 
@@ -157,10 +266,15 @@ inline void SystemAlert::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.level_){}
+      /*decltype(_impl_.details_)*/{::_pbi::ArenaInitialized(), arena}
+    , decltype(_impl_.level_){}
     , decltype(_impl_.message_){}
     , decltype(_impl_.component_){}
     , decltype(_impl_.code_){}
+    , decltype(_impl_.source_component_){}
+    , decltype(_impl_.trace_id_){}
+    , decltype(_impl_.severity_){0}
+    , decltype(_impl_.error_code_enum_){0}
     , /*decltype(_impl_._cached_size_)*/{}
   };
   _impl_.level_.InitDefault();
@@ -179,12 +293,21 @@ inline void SystemAlert::SharedCtor(
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.code_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.source_component_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.source_component_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.trace_id_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.trace_id_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 SystemAlert::~SystemAlert() {
   // @@protoc_insertion_point(destructor:cordum.agent.v1.SystemAlert)
   if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
   (void)arena;
+    ArenaDtor(this);
     return;
   }
   SharedDtor();
@@ -192,12 +315,20 @@ SystemAlert::~SystemAlert() {
 
 inline void SystemAlert::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.details_.Destruct();
+  _impl_.details_.~MapField();
   _impl_.level_.Destroy();
   _impl_.message_.Destroy();
   _impl_.component_.Destroy();
   _impl_.code_.Destroy();
+  _impl_.source_component_.Destroy();
+  _impl_.trace_id_.Destroy();
 }
 
+void SystemAlert::ArenaDtor(void* object) {
+  SystemAlert* _this = reinterpret_cast< SystemAlert* >(object);
+  _this->_impl_.details_.Destruct();
+}
 void SystemAlert::SetCachedSize(int size) const {
   _impl_._cached_size_.Set(size);
 }
@@ -208,10 +339,16 @@ void SystemAlert::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  _impl_.details_.Clear();
   _impl_.level_.ClearToEmpty();
   _impl_.message_.ClearToEmpty();
   _impl_.component_.ClearToEmpty();
   _impl_.code_.ClearToEmpty();
+  _impl_.source_component_.ClearToEmpty();
+  _impl_.trace_id_.ClearToEmpty();
+  ::memset(&_impl_.severity_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.error_code_enum_) -
+      reinterpret_cast<char*>(&_impl_.severity_)) + sizeof(_impl_.error_code_enum_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -221,7 +358,7 @@ const char* SystemAlert::_InternalParse(const char* ptr, ::_pbi::ParseContext* c
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // string level = 1;
+      // string level = 1 [json_name = "level", deprecated = true];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
           auto str = _internal_mutable_level();
@@ -231,7 +368,7 @@ const char* SystemAlert::_InternalParse(const char* ptr, ::_pbi::ParseContext* c
         } else
           goto handle_unusual;
         continue;
-      // string message = 2;
+      // string message = 2 [json_name = "message"];
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_message();
@@ -241,7 +378,7 @@ const char* SystemAlert::_InternalParse(const char* ptr, ::_pbi::ParseContext* c
         } else
           goto handle_unusual;
         continue;
-      // string component = 3;
+      // string component = 3 [json_name = "component", deprecated = true];
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           auto str = _internal_mutable_component();
@@ -251,13 +388,64 @@ const char* SystemAlert::_InternalParse(const char* ptr, ::_pbi::ParseContext* c
         } else
           goto handle_unusual;
         continue;
-      // string code = 4;
+      // string code = 4 [json_name = "code", deprecated = true];
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
           auto str = _internal_mutable_code();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.SystemAlert.code"));
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.AlertSeverity severity = 5 [json_name = "severity"];
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_severity(static_cast<::cordum::agent::v1::AlertSeverity>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // .cordum.agent.v1.ErrorCode error_code_enum = 6 [json_name = "errorCodeEnum"];
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
+          uint64_t val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_error_code_enum(static_cast<::cordum::agent::v1::ErrorCode>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // string source_component = 7 [json_name = "sourceComponent"];
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
+          auto str = _internal_mutable_source_component();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.SystemAlert.source_component"));
+        } else
+          goto handle_unusual;
+        continue;
+      // map<string, string> details = 8 [json_name = "details"];
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 66)) {
+          ptr -= 1;
+          do {
+            ptr += 1;
+            ptr = ctx->ParseMessage(&_impl_.details_, ptr);
+            CHK_(ptr);
+            if (!ctx->DataAvailable(ptr)) break;
+          } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<66>(ptr));
+        } else
+          goto handle_unusual;
+        continue;
+      // string trace_id = 9 [json_name = "traceId"];
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 74)) {
+          auto str = _internal_mutable_trace_id();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.SystemAlert.trace_id"));
         } else
           goto handle_unusual;
         continue;
@@ -290,7 +478,7 @@ uint8_t* SystemAlert::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string level = 1;
+  // string level = 1 [json_name = "level", deprecated = true];
   if (!this->_internal_level().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_level().data(), static_cast<int>(this->_internal_level().length()),
@@ -300,7 +488,7 @@ uint8_t* SystemAlert::_InternalSerialize(
         1, this->_internal_level(), target);
   }
 
-  // string message = 2;
+  // string message = 2 [json_name = "message"];
   if (!this->_internal_message().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_message().data(), static_cast<int>(this->_internal_message().length()),
@@ -310,7 +498,7 @@ uint8_t* SystemAlert::_InternalSerialize(
         2, this->_internal_message(), target);
   }
 
-  // string component = 3;
+  // string component = 3 [json_name = "component", deprecated = true];
   if (!this->_internal_component().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_component().data(), static_cast<int>(this->_internal_component().length()),
@@ -320,7 +508,7 @@ uint8_t* SystemAlert::_InternalSerialize(
         3, this->_internal_component(), target);
   }
 
-  // string code = 4;
+  // string code = 4 [json_name = "code", deprecated = true];
   if (!this->_internal_code().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_code().data(), static_cast<int>(this->_internal_code().length()),
@@ -328,6 +516,70 @@ uint8_t* SystemAlert::_InternalSerialize(
       "cordum.agent.v1.SystemAlert.code");
     target = stream->WriteStringMaybeAliased(
         4, this->_internal_code(), target);
+  }
+
+  // .cordum.agent.v1.AlertSeverity severity = 5 [json_name = "severity"];
+  if (this->_internal_severity() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+      5, this->_internal_severity(), target);
+  }
+
+  // .cordum.agent.v1.ErrorCode error_code_enum = 6 [json_name = "errorCodeEnum"];
+  if (this->_internal_error_code_enum() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteEnumToArray(
+      6, this->_internal_error_code_enum(), target);
+  }
+
+  // string source_component = 7 [json_name = "sourceComponent"];
+  if (!this->_internal_source_component().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_source_component().data(), static_cast<int>(this->_internal_source_component().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.SystemAlert.source_component");
+    target = stream->WriteStringMaybeAliased(
+        7, this->_internal_source_component(), target);
+  }
+
+  // map<string, string> details = 8 [json_name = "details"];
+  if (!this->_internal_details().empty()) {
+    using MapType = ::_pb::Map<std::string, std::string>;
+    using WireHelper = SystemAlert_DetailsEntry_DoNotUse::Funcs;
+    const auto& map_field = this->_internal_details();
+    auto check_utf8 = [](const MapType::value_type& entry) {
+      (void)entry;
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.first.data(), static_cast<int>(entry.first.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "cordum.agent.v1.SystemAlert.DetailsEntry.key");
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+        entry.second.data(), static_cast<int>(entry.second.length()),
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+        "cordum.agent.v1.SystemAlert.DetailsEntry.value");
+    };
+
+    if (stream->IsSerializationDeterministic() && map_field.size() > 1) {
+      for (const auto& entry : ::_pbi::MapSorterPtr<MapType>(map_field)) {
+        target = WireHelper::InternalSerialize(8, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    } else {
+      for (const auto& entry : map_field) {
+        target = WireHelper::InternalSerialize(8, entry.first, entry.second, target, stream);
+        check_utf8(entry);
+      }
+    }
+  }
+
+  // string trace_id = 9 [json_name = "traceId"];
+  if (!this->_internal_trace_id().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_trace_id().data(), static_cast<int>(this->_internal_trace_id().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.SystemAlert.trace_id");
+    target = stream->WriteStringMaybeAliased(
+        9, this->_internal_trace_id(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -346,32 +598,67 @@ size_t SystemAlert::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string level = 1;
+  // map<string, string> details = 8 [json_name = "details"];
+  total_size += 1 *
+      ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_details_size());
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
+      it = this->_internal_details().begin();
+      it != this->_internal_details().end(); ++it) {
+    total_size += SystemAlert_DetailsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
+  }
+
+  // string level = 1 [json_name = "level", deprecated = true];
   if (!this->_internal_level().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_level());
   }
 
-  // string message = 2;
+  // string message = 2 [json_name = "message"];
   if (!this->_internal_message().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_message());
   }
 
-  // string component = 3;
+  // string component = 3 [json_name = "component", deprecated = true];
   if (!this->_internal_component().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_component());
   }
 
-  // string code = 4;
+  // string code = 4 [json_name = "code", deprecated = true];
   if (!this->_internal_code().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_code());
+  }
+
+  // string source_component = 7 [json_name = "sourceComponent"];
+  if (!this->_internal_source_component().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_source_component());
+  }
+
+  // string trace_id = 9 [json_name = "traceId"];
+  if (!this->_internal_trace_id().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_trace_id());
+  }
+
+  // .cordum.agent.v1.AlertSeverity severity = 5 [json_name = "severity"];
+  if (this->_internal_severity() != 0) {
+    total_size += 1 +
+      ::_pbi::WireFormatLite::EnumSize(this->_internal_severity());
+  }
+
+  // .cordum.agent.v1.ErrorCode error_code_enum = 6 [json_name = "errorCodeEnum"];
+  if (this->_internal_error_code_enum() != 0) {
+    total_size += 1 +
+      ::_pbi::WireFormatLite::EnumSize(this->_internal_error_code_enum());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
@@ -392,6 +679,7 @@ void SystemAlert::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PR
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
+  _this->_impl_.details_.MergeFrom(from._impl_.details_);
   if (!from._internal_level().empty()) {
     _this->_internal_set_level(from._internal_level());
   }
@@ -403,6 +691,18 @@ void SystemAlert::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PR
   }
   if (!from._internal_code().empty()) {
     _this->_internal_set_code(from._internal_code());
+  }
+  if (!from._internal_source_component().empty()) {
+    _this->_internal_set_source_component(from._internal_source_component());
+  }
+  if (!from._internal_trace_id().empty()) {
+    _this->_internal_set_trace_id(from._internal_trace_id());
+  }
+  if (from._internal_severity() != 0) {
+    _this->_internal_set_severity(from._internal_severity());
+  }
+  if (from._internal_error_code_enum() != 0) {
+    _this->_internal_set_error_code_enum(from._internal_error_code_enum());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -423,6 +723,7 @@ void SystemAlert::InternalSwap(SystemAlert* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  _impl_.details_.InternalSwap(&other->_impl_.details_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.level_, lhs_arena,
       &other->_impl_.level_, rhs_arena
@@ -439,12 +740,26 @@ void SystemAlert::InternalSwap(SystemAlert* other) {
       &_impl_.code_, lhs_arena,
       &other->_impl_.code_, rhs_arena
   );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.source_component_, lhs_arena,
+      &other->_impl_.source_component_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.trace_id_, lhs_arena,
+      &other->_impl_.trace_id_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(SystemAlert, _impl_.error_code_enum_)
+      + sizeof(SystemAlert::_impl_.error_code_enum_)
+      - PROTOBUF_FIELD_OFFSET(SystemAlert, _impl_.severity_)>(
+          reinterpret_cast<char*>(&_impl_.severity_),
+          reinterpret_cast<char*>(&other->_impl_.severity_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata SystemAlert::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_getter, &descriptor_table_cordum_2fagent_2fv1_2falert_2eproto_once,
-      file_level_metadata_cordum_2fagent_2fv1_2falert_2eproto[0]);
+      file_level_metadata_cordum_2fagent_2fv1_2falert_2eproto[1]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -452,6 +767,10 @@ void SystemAlert::InternalSwap(SystemAlert* other) {
 }  // namespace agent
 }  // namespace cordum
 PROTOBUF_NAMESPACE_OPEN
+template<> PROTOBUF_NOINLINE ::cordum::agent::v1::SystemAlert_DetailsEntry_DoNotUse*
+Arena::CreateMaybeMessage< ::cordum::agent::v1::SystemAlert_DetailsEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::cordum::agent::v1::SystemAlert_DetailsEntry_DoNotUse >(arena);
+}
 template<> PROTOBUF_NOINLINE ::cordum::agent::v1::SystemAlert*
 Arena::CreateMaybeMessage< ::cordum::agent::v1::SystemAlert >(Arena* arena) {
   return Arena::CreateMessageInternal< ::cordum::agent::v1::SystemAlert >(arena);

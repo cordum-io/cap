@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 
 const PROTO_DIR_CANDIDATES = [
+  path.resolve(__dirname, "proto"),
   path.resolve(__dirname, "..", "..", "..", "proto"),
   path.resolve(__dirname, "..", "..", "..", "..", "proto"),
 ];
@@ -45,6 +46,8 @@ export const SUBJECT_CANCEL = "sys.job.cancel";
 export const SUBJECT_DLQ = "sys.job.dlq";
 export const SUBJECT_WORKFLOW_EVENT = "sys.workflow.event";
 export const SUBJECT_HANDSHAKE = "sys.handshake";
+export const SUBJECT_WORKER_HANDSHAKE_CHALLENGE = "sys.worker.handshake.challenge";
+export const SUBJECT_WORKER_HANDSHAKE_AUTHENTICATE = "sys.worker.handshake.authenticate";
 export const DEFAULT_PROTOCOL_VERSION = 1;
 
 /** Maximum length (in characters) of a human-facing agent display label. */

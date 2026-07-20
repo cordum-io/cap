@@ -22,9 +22,10 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
+from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ordum/agent/v1/handshake.proto\x12\x0f\x63ordum.agent.v1\"\xa3\x02\n\tHandshake\x12\x14\n\x0c\x63omponent_id\x18\x01 \x01(\t\x12,\n\x04role\x18\x02 \x01(\x0e\x32\x1e.cordum.agent.v1.ComponentRole\x12\x1a\n\x12supported_versions\x18\x03 \x03(\x05\x12\x42\n\x0c\x63\x61pabilities\x18\x04 \x03(\x0b\x32,.cordum.agent.v1.Handshake.CapabilitiesEntry\x12\x13\n\x0bsdk_version\x18\x05 \x01(\t\x12\x14\n\x0cready_topics\x18\x06 \x03(\t\x12\x12\n\nagent_name\x18\x07 \x01(\t\x1a\x33\n\x11\x43\x61pabilitiesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x08:\x02\x38\x01*\xc4\x01\n\rComponentRole\x12\x1e\n\x1a\x43OMPONENT_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n\x16\x43OMPONENT_ROLE_GATEWAY\x10\x01\x12\x1c\n\x18\x43OMPONENT_ROLE_SCHEDULER\x10\x02\x12\x19\n\x15\x43OMPONENT_ROLE_WORKER\x10\x03\x12\x1f\n\x1b\x43OMPONENT_ROLE_ORCHESTRATOR\x10\x04\x12\x1d\n\x19\x43OMPONENT_ROLE_CONTROLLER\x10\x05\x42\x7f\n\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0f\x43ordum.Agent.V1\xca\x02\x0f\x63ordum\\Agent\\V1\xea\x02\x11\x43ordum::Agent::V1b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1f\x63ordum/agent/v1/handshake.proto\x12\x0f\x63ordum.agent.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\xa3\x02\n\tHandshake\x12\x14\n\x0c\x63omponent_id\x18\x01 \x01(\t\x12,\n\x04role\x18\x02 \x01(\x0e\x32\x1e.cordum.agent.v1.ComponentRole\x12\x1a\n\x12supported_versions\x18\x03 \x03(\x05\x12\x42\n\x0c\x63\x61pabilities\x18\x04 \x03(\x0b\x32,.cordum.agent.v1.Handshake.CapabilitiesEntry\x12\x13\n\x0bsdk_version\x18\x05 \x01(\t\x12\x14\n\x0cready_topics\x18\x06 \x03(\t\x12\x12\n\nagent_name\x18\x07 \x01(\t\x1a\x33\n\x11\x43\x61pabilitiesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x08:\x02\x38\x01\"\xca\x02\n\x1fWorkerHandshakeChallengeRequest\x12\x12\n\nrequest_id\x18\x01 \x01(\t\x12\x10\n\x08trace_id\x18\x02 \x01(\t\x12\x11\n\tworker_id\x18\x03 \x01(\t\x12\x14\n\x0cproof_key_id\x18\x04 \x01(\t\x12G\n\x0fproof_algorithm\x18\x05 \x01(\x0e\x32..cordum.agent.v1.WorkerHandshakeProofAlgorithm\x12\x10\n\x08\x61udience\x18\x06 \x01(\t\x12\x38\n\x07purpose\x18\x07 \x01(\x0e\x32\'.cordum.agent.v1.WorkerHandshakePurpose\x12\x14\n\x0c\x63lient_nonce\x18\x08 \x01(\x0c\x12\x18\n\x10protocol_version\x18\t \x01(\x05\x12\x13\n\x0bsdk_version\x18\n \x01(\t\"\x8a\x04\n\x18WorkerHandshakeChallenge\x12\x12\n\nrequest_id\x18\x01 \x01(\t\x12\x14\n\x0c\x63hallenge_id\x18\x02 \x01(\t\x12\x10\n\x08trace_id\x18\x03 \x01(\t\x12\x11\n\tworker_id\x18\x04 \x01(\t\x12\x10\n\x08\x61gent_id\x18\x05 \x01(\t\x12\x11\n\ttenant_id\x18\x06 \x01(\t\x12\x14\n\x0cproof_key_id\x18\x07 \x01(\t\x12G\n\x0fproof_algorithm\x18\x08 \x01(\x0e\x32..cordum.agent.v1.WorkerHandshakeProofAlgorithm\x12\x15\n\rserver_key_id\x18\t \x01(\t\x12\x10\n\x08\x61udience\x18\n \x01(\t\x12\x38\n\x07purpose\x18\x0b \x01(\x0e\x32\'.cordum.agent.v1.WorkerHandshakePurpose\x12\x14\n\x0c\x63lient_nonce\x18\x0c \x01(\x0c\x12\x14\n\x0cserver_nonce\x18\r \x01(\x0c\x12\x18\n\x10protocol_version\x18\x0e \x01(\x05\x12\x13\n\x0bsdk_version\x18\x0f \x01(\t\x12-\n\tissued_at\x18\x10 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12.\n\nexpires_at\x18\x11 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\"\x95\x01\n\x1bWorkerHandshakeAuthenticate\x12<\n\tchallenge\x18\x01 \x01(\x0b\x32).cordum.agent.v1.WorkerHandshakeChallenge\x12\x38\n\x14\x63\x61pability_handshake\x18\x02 \x01(\x0b\x32\x1a.cordum.agent.v1.Handshake\"\x97\x02\n\x15WorkerHandshakeResult\x12<\n\tchallenge\x18\x01 \x01(\x0b\x32).cordum.agent.v1.WorkerHandshakeChallenge\x12\x10\n\x08\x61\x63\x63\x65pted\x18\x02 \x01(\x08\x12I\n\x10rejection_reason\x18\x03 \x01(\x0e\x32/.cordum.agent.v1.WorkerHandshakeRejectionReason\x12\x34\n\x10token_expires_at\x18\x04 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12-\n\tissued_at\x18\x05 \x01(\x0b\x32\x1a.google.protobuf.Timestamp*\xc4\x01\n\rComponentRole\x12\x1e\n\x1a\x43OMPONENT_ROLE_UNSPECIFIED\x10\x00\x12\x1a\n\x16\x43OMPONENT_ROLE_GATEWAY\x10\x01\x12\x1c\n\x18\x43OMPONENT_ROLE_SCHEDULER\x10\x02\x12\x19\n\x15\x43OMPONENT_ROLE_WORKER\x10\x03\x12\x1f\n\x1b\x43OMPONENT_ROLE_ORCHESTRATOR\x10\x04\x12\x1d\n\x19\x43OMPONENT_ROLE_CONTROLLER\x10\x05*\x8a\x01\n\x16WorkerHandshakePurpose\x12(\n$WORKER_HANDSHAKE_PURPOSE_UNSPECIFIED\x10\x00\x12\"\n\x1eWORKER_HANDSHAKE_PURPOSE_ISSUE\x10\x01\x12\"\n\x1eWORKER_HANDSHAKE_PURPOSE_RENEW\x10\x02*\x89\x01\n\x1dWorkerHandshakeProofAlgorithm\x12\x30\n,WORKER_HANDSHAKE_PROOF_ALGORITHM_UNSPECIFIED\x10\x00\x12\x36\n2WORKER_HANDSHAKE_PROOF_ALGORITHM_ECDSA_P256_SHA256\x10\x01*\xc9\x04\n\x1eWorkerHandshakeRejectionReason\x12\x31\n-WORKER_HANDSHAKE_REJECTION_REASON_UNSPECIFIED\x10\x00\x12\x35\n1WORKER_HANDSHAKE_REJECTION_REASON_INVALID_REQUEST\x10\x01\x12;\n7WORKER_HANDSHAKE_REJECTION_REASON_AUTHENTICATION_FAILED\x10\x02\x12\x35\n1WORKER_HANDSHAKE_REJECTION_REASON_REPLAY_DETECTED\x10\x03\x12\x30\n,WORKER_HANDSHAKE_REJECTION_REASON_CLOCK_SKEW\x10\x04\x12\x37\n3WORKER_HANDSHAKE_REJECTION_REASON_CHALLENGE_EXPIRED\x10\x05\x12\x36\n2WORKER_HANDSHAKE_REJECTION_REASON_SESSION_REQUIRED\x10\x06\x12\x35\n1WORKER_HANDSHAKE_REJECTION_REASON_SESSION_INVALID\x10\x07\x12\x39\n5WORKER_HANDSHAKE_REJECTION_REASON_UNSUPPORTED_VERSION\x10\x08\x12\x34\n0WORKER_HANDSHAKE_REJECTION_REASON_INTERNAL_ERROR\x10\tB\x7f\n\x16io.cordum.cap.agent.v1P\x01Z+github.com/cordum-io/cap/v2/cordum/agent/v1\xaa\x02\x0f\x43ordum.Agent.V1\xca\x02\x0f\x63ordum\\Agent\\V1\xea\x02\x11\x43ordum::Agent::V1b\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -34,10 +35,24 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._serialized_options = b'\n\026io.cordum.cap.agent.v1P\001Z+github.com/cordum-io/cap/v2/cordum/agent/v1\252\002\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Agent::V1'
   _globals['_HANDSHAKE_CAPABILITIESENTRY']._loaded_options = None
   _globals['_HANDSHAKE_CAPABILITIESENTRY']._serialized_options = b'8\001'
-  _globals['_COMPONENTROLE']._serialized_start=347
-  _globals['_COMPONENTROLE']._serialized_end=543
-  _globals['_HANDSHAKE']._serialized_start=53
-  _globals['_HANDSHAKE']._serialized_end=344
-  _globals['_HANDSHAKE_CAPABILITIESENTRY']._serialized_start=293
-  _globals['_HANDSHAKE_CAPABILITIESENTRY']._serialized_end=344
+  _globals['_COMPONENTROLE']._serialized_start=1672
+  _globals['_COMPONENTROLE']._serialized_end=1868
+  _globals['_WORKERHANDSHAKEPURPOSE']._serialized_start=1871
+  _globals['_WORKERHANDSHAKEPURPOSE']._serialized_end=2009
+  _globals['_WORKERHANDSHAKEPROOFALGORITHM']._serialized_start=2012
+  _globals['_WORKERHANDSHAKEPROOFALGORITHM']._serialized_end=2149
+  _globals['_WORKERHANDSHAKEREJECTIONREASON']._serialized_start=2152
+  _globals['_WORKERHANDSHAKEREJECTIONREASON']._serialized_end=2737
+  _globals['_HANDSHAKE']._serialized_start=86
+  _globals['_HANDSHAKE']._serialized_end=377
+  _globals['_HANDSHAKE_CAPABILITIESENTRY']._serialized_start=326
+  _globals['_HANDSHAKE_CAPABILITIESENTRY']._serialized_end=377
+  _globals['_WORKERHANDSHAKECHALLENGEREQUEST']._serialized_start=380
+  _globals['_WORKERHANDSHAKECHALLENGEREQUEST']._serialized_end=710
+  _globals['_WORKERHANDSHAKECHALLENGE']._serialized_start=713
+  _globals['_WORKERHANDSHAKECHALLENGE']._serialized_end=1235
+  _globals['_WORKERHANDSHAKEAUTHENTICATE']._serialized_start=1238
+  _globals['_WORKERHANDSHAKEAUTHENTICATE']._serialized_end=1387
+  _globals['_WORKERHANDSHAKERESULT']._serialized_start=1390
+  _globals['_WORKERHANDSHAKERESULT']._serialized_end=1669
 # @@protoc_insertion_point(module_scope)

@@ -9,6 +9,8 @@ option csharp_namespace = "Cordum.Agent.V1";
 option php_namespace = "cordum\\Agent\\V1";
 option ruby_package = "Cordum::Agent::V1";
 
+import "google/protobuf/timestamp.proto";
+
 // ComponentRole identifies the role of a component in the CAP topology.
 enum ComponentRole {
     COMPONENT_ROLE_UNSPECIFIED = 0;
@@ -32,4 +34,82 @@ message Handshake {
     // Consumers MUST prefer authenticated identity records over this self-reported value.
     // Additive/append-only; safe to omit (old clients send empty).
     string agent_name = 7;
+}
+
+// WorkerHandshakePurpose distinguishes initial session issue from renewal.
+enum WorkerHandshakePurpose {
+    WORKER_HANDSHAKE_PURPOSE_UNSPECIFIED = 0;
+    WORKER_HANDSHAKE_PURPOSE_ISSUE = 1;
+    WORKER_HANDSHAKE_PURPOSE_RENEW = 2;
+}
+
+// WorkerHandshakeProofAlgorithm identifies the registered proof-key algorithm.
+enum WorkerHandshakeProofAlgorithm {
+    WORKER_HANDSHAKE_PROOF_ALGORITHM_UNSPECIFIED = 0;
+    WORKER_HANDSHAKE_PROOF_ALGORITHM_ECDSA_P256_SHA256 = 1;
+}
+
+// WorkerHandshakeRejectionReason is intentionally coarse to avoid identity oracles.
+enum WorkerHandshakeRejectionReason {
+    WORKER_HANDSHAKE_REJECTION_REASON_UNSPECIFIED = 0;
+    WORKER_HANDSHAKE_REJECTION_REASON_INVALID_REQUEST = 1;
+    WORKER_HANDSHAKE_REJECTION_REASON_AUTHENTICATION_FAILED = 2;
+    WORKER_HANDSHAKE_REJECTION_REASON_REPLAY_DETECTED = 3;
+    WORKER_HANDSHAKE_REJECTION_REASON_CLOCK_SKEW = 4;
+    WORKER_HANDSHAKE_REJECTION_REASON_CHALLENGE_EXPIRED = 5;
+    WORKER_HANDSHAKE_REJECTION_REASON_SESSION_REQUIRED = 6;
+    WORKER_HANDSHAKE_REJECTION_REASON_SESSION_INVALID = 7;
+    WORKER_HANDSHAKE_REJECTION_REASON_UNSUPPORTED_VERSION = 8;
+    WORKER_HANDSHAKE_REJECTION_REASON_INTERNAL_ERROR = 9;
+}
+
+// WorkerHandshakeChallengeRequest asks the scheduler for a one-time challenge.
+message WorkerHandshakeChallengeRequest {
+    string request_id = 1;
+    string trace_id = 2;
+    string worker_id = 3;
+    string proof_key_id = 4;
+    WorkerHandshakeProofAlgorithm proof_algorithm = 5;
+    string audience = 6;
+    WorkerHandshakePurpose purpose = 7;
+    bytes client_nonce = 8;
+    int32 protocol_version = 9;
+    string sdk_version = 10;
+}
+
+// WorkerHandshakeChallenge binds authoritative identity to fresh client/server nonces.
+message WorkerHandshakeChallenge {
+    string request_id = 1;
+    string challenge_id = 2;
+    string trace_id = 3;
+    string worker_id = 4;
+    string agent_id = 5;
+    string tenant_id = 6;
+    string proof_key_id = 7;
+    WorkerHandshakeProofAlgorithm proof_algorithm = 8;
+    string server_key_id = 9;
+    string audience = 10;
+    WorkerHandshakePurpose purpose = 11;
+    bytes client_nonce = 12;
+    bytes server_nonce = 13;
+    int32 protocol_version = 14;
+    string sdk_version = 15;
+    google.protobuf.Timestamp issued_at = 16;
+    google.protobuf.Timestamp expires_at = 17;
+}
+
+// WorkerHandshakeAuthenticate proves possession and advertises capabilities.
+message WorkerHandshakeAuthenticate {
+    WorkerHandshakeChallenge challenge = 1;
+    Handshake capability_handshake = 2;
+}
+
+// WorkerHandshakeResult returns an opaque rejection or token metadata; an
+// accepted result carries the signed session token in BusPacket.auth_token.
+message WorkerHandshakeResult {
+    WorkerHandshakeChallenge challenge = 1;
+    bool accepted = 2;
+    WorkerHandshakeRejectionReason rejection_reason = 3;
+    google.protobuf.Timestamp token_expires_at = 4;
+    google.protobuf.Timestamp issued_at = 5;
 }

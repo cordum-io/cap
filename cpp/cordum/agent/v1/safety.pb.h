@@ -117,12 +117,14 @@ enum DecisionType : int {
   DECISION_TYPE_REQUIRE_HUMAN = 3,
   DECISION_TYPE_THROTTLE = 4,
   DECISION_TYPE_ALLOW_WITH_CONSTRAINTS = 5,
+  DECISION_TYPE_QUARANTINE = 6,
+  DECISION_TYPE_REDACT = 7,
   DecisionType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
   DecisionType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
 };
 bool DecisionType_IsValid(int value);
 constexpr DecisionType DecisionType_MIN = DECISION_TYPE_UNSPECIFIED;
-constexpr DecisionType DecisionType_MAX = DECISION_TYPE_ALLOW_WITH_CONSTRAINTS;
+constexpr DecisionType DecisionType_MAX = DECISION_TYPE_REDACT;
 constexpr int DecisionType_ARRAYSIZE = DecisionType_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* DecisionType_descriptor();
@@ -300,12 +302,15 @@ class PolicyCheckRequest final :
     kPrincipalIdFieldNumber = 7,
     kMemoryIdFieldNumber = 9,
     kEffectiveConfigFieldNumber = 10,
+    kInputContentFieldNumber = 20,
+    kInputContentTypeFieldNumber = 21,
     kBudgetFieldNumber = 6,
     kMetaFieldNumber = 11,
     kEstimatedCostFieldNumber = 5,
+    kInputSizeBytesFieldNumber = 22,
     kPriorityFieldNumber = 4,
   };
-  // map<string, string> labels = 8;
+  // map<string, string> labels = 8 [json_name = "labels"];
   int labels_size() const;
   private:
   int _internal_labels_size() const;
@@ -322,7 +327,7 @@ class PolicyCheckRequest final :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_labels();
 
-  // string job_id = 1;
+  // string job_id = 1 [json_name = "jobId"];
   void clear_job_id();
   const std::string& job_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -336,7 +341,7 @@ class PolicyCheckRequest final :
   std::string* _internal_mutable_job_id();
   public:
 
-  // string topic = 2;
+  // string topic = 2 [json_name = "topic"];
   void clear_topic();
   const std::string& topic() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -350,7 +355,7 @@ class PolicyCheckRequest final :
   std::string* _internal_mutable_topic();
   public:
 
-  // string tenant = 3;
+  // string tenant = 3 [json_name = "tenant"];
   void clear_tenant();
   const std::string& tenant() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -364,7 +369,7 @@ class PolicyCheckRequest final :
   std::string* _internal_mutable_tenant();
   public:
 
-  // string principal_id = 7;
+  // string principal_id = 7 [json_name = "principalId"];
   void clear_principal_id();
   const std::string& principal_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -378,7 +383,7 @@ class PolicyCheckRequest final :
   std::string* _internal_mutable_principal_id();
   public:
 
-  // string memory_id = 9;
+  // string memory_id = 9 [json_name = "memoryId"];
   void clear_memory_id();
   const std::string& memory_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -392,7 +397,7 @@ class PolicyCheckRequest final :
   std::string* _internal_mutable_memory_id();
   public:
 
-  // bytes effective_config = 10;
+  // bytes effective_config = 10 [json_name = "effectiveConfig"];
   void clear_effective_config();
   const std::string& effective_config() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -406,7 +411,35 @@ class PolicyCheckRequest final :
   std::string* _internal_mutable_effective_config();
   public:
 
-  // .cordum.agent.v1.Budget budget = 6;
+  // bytes input_content = 20 [json_name = "inputContent"];
+  void clear_input_content();
+  const std::string& input_content() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_input_content(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_input_content();
+  PROTOBUF_NODISCARD std::string* release_input_content();
+  void set_allocated_input_content(std::string* input_content);
+  private:
+  const std::string& _internal_input_content() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_input_content(const std::string& value);
+  std::string* _internal_mutable_input_content();
+  public:
+
+  // string input_content_type = 21 [json_name = "inputContentType"];
+  void clear_input_content_type();
+  const std::string& input_content_type() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_input_content_type(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_input_content_type();
+  PROTOBUF_NODISCARD std::string* release_input_content_type();
+  void set_allocated_input_content_type(std::string* input_content_type);
+  private:
+  const std::string& _internal_input_content_type() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_input_content_type(const std::string& value);
+  std::string* _internal_mutable_input_content_type();
+  public:
+
+  // .cordum.agent.v1.Budget budget = 6 [json_name = "budget"];
   bool has_budget() const;
   private:
   bool _internal_has_budget() const;
@@ -424,7 +457,7 @@ class PolicyCheckRequest final :
       ::cordum::agent::v1::Budget* budget);
   ::cordum::agent::v1::Budget* unsafe_arena_release_budget();
 
-  // .cordum.agent.v1.JobMetadata meta = 11;
+  // .cordum.agent.v1.JobMetadata meta = 11 [json_name = "meta"];
   bool has_meta() const;
   private:
   bool _internal_has_meta() const;
@@ -442,7 +475,7 @@ class PolicyCheckRequest final :
       ::cordum::agent::v1::JobMetadata* meta);
   ::cordum::agent::v1::JobMetadata* unsafe_arena_release_meta();
 
-  // double estimated_cost = 5;
+  // double estimated_cost = 5 [json_name = "estimatedCost"];
   void clear_estimated_cost();
   double estimated_cost() const;
   void set_estimated_cost(double value);
@@ -451,7 +484,16 @@ class PolicyCheckRequest final :
   void _internal_set_estimated_cost(double value);
   public:
 
-  // .cordum.agent.v1.JobPriority priority = 4;
+  // int64 input_size_bytes = 22 [json_name = "inputSizeBytes"];
+  void clear_input_size_bytes();
+  int64_t input_size_bytes() const;
+  void set_input_size_bytes(int64_t value);
+  private:
+  int64_t _internal_input_size_bytes() const;
+  void _internal_set_input_size_bytes(int64_t value);
+  public:
+
+  // .cordum.agent.v1.JobPriority priority = 4 [json_name = "priority"];
   void clear_priority();
   ::cordum::agent::v1::JobPriority priority() const;
   void set_priority(::cordum::agent::v1::JobPriority value);
@@ -479,9 +521,12 @@ class PolicyCheckRequest final :
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr principal_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr memory_id_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr effective_config_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr input_content_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr input_content_type_;
     ::cordum::agent::v1::Budget* budget_;
     ::cordum::agent::v1::JobMetadata* meta_;
     double estimated_cost_;
+    int64_t input_size_bytes_;
     int priority_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -616,7 +661,7 @@ class BudgetConstraints final :
     kMaxRetriesFieldNumber = 2,
     kMaxConcurrentJobsFieldNumber = 4,
   };
-  // int64 max_runtime_ms = 1;
+  // int64 max_runtime_ms = 1 [json_name = "maxRuntimeMs"];
   void clear_max_runtime_ms();
   int64_t max_runtime_ms() const;
   void set_max_runtime_ms(int64_t value);
@@ -625,7 +670,7 @@ class BudgetConstraints final :
   void _internal_set_max_runtime_ms(int64_t value);
   public:
 
-  // int64 max_artifact_bytes = 3;
+  // int64 max_artifact_bytes = 3 [json_name = "maxArtifactBytes"];
   void clear_max_artifact_bytes();
   int64_t max_artifact_bytes() const;
   void set_max_artifact_bytes(int64_t value);
@@ -634,7 +679,7 @@ class BudgetConstraints final :
   void _internal_set_max_artifact_bytes(int64_t value);
   public:
 
-  // int32 max_retries = 2;
+  // int32 max_retries = 2 [json_name = "maxRetries"];
   void clear_max_retries();
   int32_t max_retries() const;
   void set_max_retries(int32_t value);
@@ -643,7 +688,7 @@ class BudgetConstraints final :
   void _internal_set_max_retries(int32_t value);
   public:
 
-  // int32 max_concurrent_jobs = 4;
+  // int32 max_concurrent_jobs = 4 [json_name = "maxConcurrentJobs"];
   void clear_max_concurrent_jobs();
   int32_t max_concurrent_jobs() const;
   void set_max_concurrent_jobs(int32_t value);
@@ -797,7 +842,7 @@ class SandboxProfile final :
     kFsReadWriteFieldNumber = 4,
     kIsolatedFieldNumber = 1,
   };
-  // repeated string network_allowlist = 2;
+  // repeated string network_allowlist = 2 [json_name = "networkAllowlist"];
   int network_allowlist_size() const;
   private:
   int _internal_network_allowlist_size() const;
@@ -821,7 +866,7 @@ class SandboxProfile final :
   std::string* _internal_add_network_allowlist();
   public:
 
-  // repeated string fs_read_only = 3;
+  // repeated string fs_read_only = 3 [json_name = "fsReadOnly"];
   int fs_read_only_size() const;
   private:
   int _internal_fs_read_only_size() const;
@@ -845,7 +890,7 @@ class SandboxProfile final :
   std::string* _internal_add_fs_read_only();
   public:
 
-  // repeated string fs_read_write = 4;
+  // repeated string fs_read_write = 4 [json_name = "fsReadWrite"];
   int fs_read_write_size() const;
   private:
   int _internal_fs_read_write_size() const;
@@ -869,7 +914,7 @@ class SandboxProfile final :
   std::string* _internal_add_fs_read_write();
   public:
 
-  // bool isolated = 1;
+  // bool isolated = 1 [json_name = "isolated"];
   void clear_isolated();
   bool isolated() const;
   void set_isolated(bool value);
@@ -1021,7 +1066,7 @@ class ToolchainConstraints final :
     kAllowedToolsFieldNumber = 1,
     kAllowedCommandsFieldNumber = 2,
   };
-  // repeated string allowed_tools = 1;
+  // repeated string allowed_tools = 1 [json_name = "allowedTools"];
   int allowed_tools_size() const;
   private:
   int _internal_allowed_tools_size() const;
@@ -1045,7 +1090,7 @@ class ToolchainConstraints final :
   std::string* _internal_add_allowed_tools();
   public:
 
-  // repeated string allowed_commands = 2;
+  // repeated string allowed_commands = 2 [json_name = "allowedCommands"];
   int allowed_commands_size() const;
   private:
   int _internal_allowed_commands_size() const;
@@ -1211,7 +1256,7 @@ class DiffConstraints final :
     kMaxFilesFieldNumber = 1,
     kMaxLinesFieldNumber = 2,
   };
-  // repeated string deny_path_globs = 3;
+  // repeated string deny_path_globs = 3 [json_name = "denyPathGlobs"];
   int deny_path_globs_size() const;
   private:
   int _internal_deny_path_globs_size() const;
@@ -1235,7 +1280,7 @@ class DiffConstraints final :
   std::string* _internal_add_deny_path_globs();
   public:
 
-  // int32 max_files = 1;
+  // int32 max_files = 1 [json_name = "maxFiles"];
   void clear_max_files();
   int32_t max_files() const;
   void set_max_files(int32_t value);
@@ -1244,7 +1289,7 @@ class DiffConstraints final :
   void _internal_set_max_files(int32_t value);
   public:
 
-  // int32 max_lines = 2;
+  // int32 max_lines = 2 [json_name = "maxLines"];
   void clear_max_lines();
   int32_t max_lines() const;
   void set_max_lines(int32_t value);
@@ -1398,7 +1443,7 @@ class PolicyConstraints final :
     kToolchainFieldNumber = 3,
     kDiffFieldNumber = 4,
   };
-  // string redaction_level = 5;
+  // string redaction_level = 5 [json_name = "redactionLevel"];
   void clear_redaction_level();
   const std::string& redaction_level() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1412,7 +1457,7 @@ class PolicyConstraints final :
   std::string* _internal_mutable_redaction_level();
   public:
 
-  // .cordum.agent.v1.BudgetConstraints budgets = 1;
+  // .cordum.agent.v1.BudgetConstraints budgets = 1 [json_name = "budgets"];
   bool has_budgets() const;
   private:
   bool _internal_has_budgets() const;
@@ -1430,7 +1475,7 @@ class PolicyConstraints final :
       ::cordum::agent::v1::BudgetConstraints* budgets);
   ::cordum::agent::v1::BudgetConstraints* unsafe_arena_release_budgets();
 
-  // .cordum.agent.v1.SandboxProfile sandbox = 2;
+  // .cordum.agent.v1.SandboxProfile sandbox = 2 [json_name = "sandbox"];
   bool has_sandbox() const;
   private:
   bool _internal_has_sandbox() const;
@@ -1448,7 +1493,7 @@ class PolicyConstraints final :
       ::cordum::agent::v1::SandboxProfile* sandbox);
   ::cordum::agent::v1::SandboxProfile* unsafe_arena_release_sandbox();
 
-  // .cordum.agent.v1.ToolchainConstraints toolchain = 3;
+  // .cordum.agent.v1.ToolchainConstraints toolchain = 3 [json_name = "toolchain"];
   bool has_toolchain() const;
   private:
   bool _internal_has_toolchain() const;
@@ -1466,7 +1511,7 @@ class PolicyConstraints final :
       ::cordum::agent::v1::ToolchainConstraints* toolchain);
   ::cordum::agent::v1::ToolchainConstraints* unsafe_arena_release_toolchain();
 
-  // .cordum.agent.v1.DiffConstraints diff = 4;
+  // .cordum.agent.v1.DiffConstraints diff = 4 [json_name = "diff"];
   bool has_diff() const;
   private:
   bool _internal_has_diff() const;
@@ -1664,7 +1709,7 @@ class PolicyRemediation final :
     kReplacementTopicFieldNumber = 4,
     kReplacementCapabilityFieldNumber = 5,
   };
-  // map<string, string> add_labels = 6;
+  // map<string, string> add_labels = 6 [json_name = "addLabels"];
   int add_labels_size() const;
   private:
   int _internal_add_labels_size() const;
@@ -1681,7 +1726,7 @@ class PolicyRemediation final :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
       mutable_add_labels();
 
-  // repeated string remove_labels = 7;
+  // repeated string remove_labels = 7 [json_name = "removeLabels"];
   int remove_labels_size() const;
   private:
   int _internal_remove_labels_size() const;
@@ -1705,7 +1750,7 @@ class PolicyRemediation final :
   std::string* _internal_add_remove_labels();
   public:
 
-  // string id = 1;
+  // string id = 1 [json_name = "id"];
   void clear_id();
   const std::string& id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1719,7 +1764,7 @@ class PolicyRemediation final :
   std::string* _internal_mutable_id();
   public:
 
-  // string title = 2;
+  // string title = 2 [json_name = "title"];
   void clear_title();
   const std::string& title() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1733,7 +1778,7 @@ class PolicyRemediation final :
   std::string* _internal_mutable_title();
   public:
 
-  // string summary = 3;
+  // string summary = 3 [json_name = "summary"];
   void clear_summary();
   const std::string& summary() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1747,7 +1792,7 @@ class PolicyRemediation final :
   std::string* _internal_mutable_summary();
   public:
 
-  // string replacement_topic = 4;
+  // string replacement_topic = 4 [json_name = "replacementTopic"];
   void clear_replacement_topic();
   const std::string& replacement_topic() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1761,7 +1806,7 @@ class PolicyRemediation final :
   std::string* _internal_mutable_replacement_topic();
   public:
 
-  // string replacement_capability = 5;
+  // string replacement_capability = 5 [json_name = "replacementCapability"];
   void clear_replacement_capability();
   const std::string& replacement_capability() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1932,7 +1977,7 @@ class PolicyCheckResponse final :
     kDecisionFieldNumber = 1,
     kApprovalRequiredFieldNumber = 7,
   };
-  // repeated .cordum.agent.v1.PolicyRemediation remediations = 9;
+  // repeated .cordum.agent.v1.PolicyRemediation remediations = 9 [json_name = "remediations"];
   int remediations_size() const;
   private:
   int _internal_remediations_size() const;
@@ -1950,7 +1995,7 @@ class PolicyCheckResponse final :
   const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::cordum::agent::v1::PolicyRemediation >&
       remediations() const;
 
-  // string reason = 2;
+  // string reason = 2 [json_name = "reason"];
   void clear_reason();
   const std::string& reason() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1964,7 +2009,7 @@ class PolicyCheckResponse final :
   std::string* _internal_mutable_reason();
   public:
 
-  // string redacted_context_ptr = 3;
+  // string redacted_context_ptr = 3 [json_name = "redactedContextPtr"];
   void clear_redacted_context_ptr();
   const std::string& redacted_context_ptr() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1978,7 +2023,7 @@ class PolicyCheckResponse final :
   std::string* _internal_mutable_redacted_context_ptr();
   public:
 
-  // string policy_snapshot = 4;
+  // string policy_snapshot = 4 [json_name = "policySnapshot"];
   void clear_policy_snapshot();
   const std::string& policy_snapshot() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -1992,7 +2037,7 @@ class PolicyCheckResponse final :
   std::string* _internal_mutable_policy_snapshot();
   public:
 
-  // string rule_id = 5;
+  // string rule_id = 5 [json_name = "ruleId"];
   void clear_rule_id();
   const std::string& rule_id() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2006,7 +2051,7 @@ class PolicyCheckResponse final :
   std::string* _internal_mutable_rule_id();
   public:
 
-  // string approval_ref = 8;
+  // string approval_ref = 8 [json_name = "approvalRef"];
   void clear_approval_ref();
   const std::string& approval_ref() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -2020,7 +2065,7 @@ class PolicyCheckResponse final :
   std::string* _internal_mutable_approval_ref();
   public:
 
-  // .cordum.agent.v1.PolicyConstraints constraints = 6;
+  // .cordum.agent.v1.PolicyConstraints constraints = 6 [json_name = "constraints"];
   bool has_constraints() const;
   private:
   bool _internal_has_constraints() const;
@@ -2038,7 +2083,7 @@ class PolicyCheckResponse final :
       ::cordum::agent::v1::PolicyConstraints* constraints);
   ::cordum::agent::v1::PolicyConstraints* unsafe_arena_release_constraints();
 
-  // .cordum.agent.v1.DecisionType decision = 1;
+  // .cordum.agent.v1.DecisionType decision = 1 [json_name = "decision"];
   void clear_decision();
   ::cordum::agent::v1::DecisionType decision() const;
   void set_decision(::cordum::agent::v1::DecisionType value);
@@ -2047,7 +2092,7 @@ class PolicyCheckResponse final :
   void _internal_set_decision(::cordum::agent::v1::DecisionType value);
   public:
 
-  // bool approval_required = 7;
+  // bool approval_required = 7 [json_name = "approvalRequired"];
   void clear_approval_required();
   bool approval_required() const;
   void set_approval_required(bool value);
@@ -2321,7 +2366,7 @@ class ListSnapshotsResponse final :
   enum : int {
     kSnapshotsFieldNumber = 1,
   };
-  // repeated string snapshots = 1;
+  // repeated string snapshots = 1 [json_name = "snapshots"];
   int snapshots_size() const;
   private:
   int _internal_snapshots_size() const;
@@ -2372,7 +2417,7 @@ class ListSnapshotsResponse final :
 
 // PolicyCheckRequest
 
-// string job_id = 1;
+// string job_id = 1 [json_name = "jobId"];
 inline void PolicyCheckRequest::clear_job_id() {
   _impl_.job_id_.ClearToEmpty();
 }
@@ -2422,7 +2467,7 @@ inline void PolicyCheckRequest::set_allocated_job_id(std::string* job_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.job_id)
 }
 
-// string topic = 2;
+// string topic = 2 [json_name = "topic"];
 inline void PolicyCheckRequest::clear_topic() {
   _impl_.topic_.ClearToEmpty();
 }
@@ -2472,7 +2517,7 @@ inline void PolicyCheckRequest::set_allocated_topic(std::string* topic) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.topic)
 }
 
-// string tenant = 3;
+// string tenant = 3 [json_name = "tenant"];
 inline void PolicyCheckRequest::clear_tenant() {
   _impl_.tenant_.ClearToEmpty();
 }
@@ -2522,7 +2567,7 @@ inline void PolicyCheckRequest::set_allocated_tenant(std::string* tenant) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.tenant)
 }
 
-// .cordum.agent.v1.JobPriority priority = 4;
+// .cordum.agent.v1.JobPriority priority = 4 [json_name = "priority"];
 inline void PolicyCheckRequest::clear_priority() {
   _impl_.priority_ = 0;
 }
@@ -2542,7 +2587,7 @@ inline void PolicyCheckRequest::set_priority(::cordum::agent::v1::JobPriority va
   // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyCheckRequest.priority)
 }
 
-// double estimated_cost = 5;
+// double estimated_cost = 5 [json_name = "estimatedCost"];
 inline void PolicyCheckRequest::clear_estimated_cost() {
   _impl_.estimated_cost_ = 0;
 }
@@ -2562,7 +2607,7 @@ inline void PolicyCheckRequest::set_estimated_cost(double value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyCheckRequest.estimated_cost)
 }
 
-// .cordum.agent.v1.Budget budget = 6;
+// .cordum.agent.v1.Budget budget = 6 [json_name = "budget"];
 inline bool PolicyCheckRequest::_internal_has_budget() const {
   return this != internal_default_instance() && _impl_.budget_ != nullptr;
 }
@@ -2647,7 +2692,7 @@ inline void PolicyCheckRequest::set_allocated_budget(::cordum::agent::v1::Budget
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.budget)
 }
 
-// string principal_id = 7;
+// string principal_id = 7 [json_name = "principalId"];
 inline void PolicyCheckRequest::clear_principal_id() {
   _impl_.principal_id_.ClearToEmpty();
 }
@@ -2697,7 +2742,7 @@ inline void PolicyCheckRequest::set_allocated_principal_id(std::string* principa
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.principal_id)
 }
 
-// map<string, string> labels = 8;
+// map<string, string> labels = 8 [json_name = "labels"];
 inline int PolicyCheckRequest::_internal_labels_size() const {
   return _impl_.labels_.size();
 }
@@ -2726,7 +2771,7 @@ PolicyCheckRequest::mutable_labels() {
   return _internal_mutable_labels();
 }
 
-// string memory_id = 9;
+// string memory_id = 9 [json_name = "memoryId"];
 inline void PolicyCheckRequest::clear_memory_id() {
   _impl_.memory_id_.ClearToEmpty();
 }
@@ -2776,7 +2821,7 @@ inline void PolicyCheckRequest::set_allocated_memory_id(std::string* memory_id) 
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.memory_id)
 }
 
-// bytes effective_config = 10;
+// bytes effective_config = 10 [json_name = "effectiveConfig"];
 inline void PolicyCheckRequest::clear_effective_config() {
   _impl_.effective_config_.ClearToEmpty();
 }
@@ -2826,7 +2871,7 @@ inline void PolicyCheckRequest::set_allocated_effective_config(std::string* effe
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.effective_config)
 }
 
-// .cordum.agent.v1.JobMetadata meta = 11;
+// .cordum.agent.v1.JobMetadata meta = 11 [json_name = "meta"];
 inline bool PolicyCheckRequest::_internal_has_meta() const {
   return this != internal_default_instance() && _impl_.meta_ != nullptr;
 }
@@ -2911,11 +2956,131 @@ inline void PolicyCheckRequest::set_allocated_meta(::cordum::agent::v1::JobMetad
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.meta)
 }
 
+// bytes input_content = 20 [json_name = "inputContent"];
+inline void PolicyCheckRequest::clear_input_content() {
+  _impl_.input_content_.ClearToEmpty();
+}
+inline const std::string& PolicyCheckRequest::input_content() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyCheckRequest.input_content)
+  return _internal_input_content();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyCheckRequest::set_input_content(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.input_content_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyCheckRequest.input_content)
+}
+inline std::string* PolicyCheckRequest::mutable_input_content() {
+  std::string* _s = _internal_mutable_input_content();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyCheckRequest.input_content)
+  return _s;
+}
+inline const std::string& PolicyCheckRequest::_internal_input_content() const {
+  return _impl_.input_content_.Get();
+}
+inline void PolicyCheckRequest::_internal_set_input_content(const std::string& value) {
+  
+  _impl_.input_content_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyCheckRequest::_internal_mutable_input_content() {
+  
+  return _impl_.input_content_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyCheckRequest::release_input_content() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyCheckRequest.input_content)
+  return _impl_.input_content_.Release();
+}
+inline void PolicyCheckRequest::set_allocated_input_content(std::string* input_content) {
+  if (input_content != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.input_content_.SetAllocated(input_content, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.input_content_.IsDefault()) {
+    _impl_.input_content_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.input_content)
+}
+
+// string input_content_type = 21 [json_name = "inputContentType"];
+inline void PolicyCheckRequest::clear_input_content_type() {
+  _impl_.input_content_type_.ClearToEmpty();
+}
+inline const std::string& PolicyCheckRequest::input_content_type() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyCheckRequest.input_content_type)
+  return _internal_input_content_type();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void PolicyCheckRequest::set_input_content_type(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.input_content_type_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyCheckRequest.input_content_type)
+}
+inline std::string* PolicyCheckRequest::mutable_input_content_type() {
+  std::string* _s = _internal_mutable_input_content_type();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.PolicyCheckRequest.input_content_type)
+  return _s;
+}
+inline const std::string& PolicyCheckRequest::_internal_input_content_type() const {
+  return _impl_.input_content_type_.Get();
+}
+inline void PolicyCheckRequest::_internal_set_input_content_type(const std::string& value) {
+  
+  _impl_.input_content_type_.Set(value, GetArenaForAllocation());
+}
+inline std::string* PolicyCheckRequest::_internal_mutable_input_content_type() {
+  
+  return _impl_.input_content_type_.Mutable(GetArenaForAllocation());
+}
+inline std::string* PolicyCheckRequest::release_input_content_type() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.PolicyCheckRequest.input_content_type)
+  return _impl_.input_content_type_.Release();
+}
+inline void PolicyCheckRequest::set_allocated_input_content_type(std::string* input_content_type) {
+  if (input_content_type != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.input_content_type_.SetAllocated(input_content_type, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.input_content_type_.IsDefault()) {
+    _impl_.input_content_type_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckRequest.input_content_type)
+}
+
+// int64 input_size_bytes = 22 [json_name = "inputSizeBytes"];
+inline void PolicyCheckRequest::clear_input_size_bytes() {
+  _impl_.input_size_bytes_ = int64_t{0};
+}
+inline int64_t PolicyCheckRequest::_internal_input_size_bytes() const {
+  return _impl_.input_size_bytes_;
+}
+inline int64_t PolicyCheckRequest::input_size_bytes() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.PolicyCheckRequest.input_size_bytes)
+  return _internal_input_size_bytes();
+}
+inline void PolicyCheckRequest::_internal_set_input_size_bytes(int64_t value) {
+  
+  _impl_.input_size_bytes_ = value;
+}
+inline void PolicyCheckRequest::set_input_size_bytes(int64_t value) {
+  _internal_set_input_size_bytes(value);
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyCheckRequest.input_size_bytes)
+}
+
 // -------------------------------------------------------------------
 
 // BudgetConstraints
 
-// int64 max_runtime_ms = 1;
+// int64 max_runtime_ms = 1 [json_name = "maxRuntimeMs"];
 inline void BudgetConstraints::clear_max_runtime_ms() {
   _impl_.max_runtime_ms_ = int64_t{0};
 }
@@ -2935,7 +3100,7 @@ inline void BudgetConstraints::set_max_runtime_ms(int64_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.BudgetConstraints.max_runtime_ms)
 }
 
-// int32 max_retries = 2;
+// int32 max_retries = 2 [json_name = "maxRetries"];
 inline void BudgetConstraints::clear_max_retries() {
   _impl_.max_retries_ = 0;
 }
@@ -2955,7 +3120,7 @@ inline void BudgetConstraints::set_max_retries(int32_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.BudgetConstraints.max_retries)
 }
 
-// int64 max_artifact_bytes = 3;
+// int64 max_artifact_bytes = 3 [json_name = "maxArtifactBytes"];
 inline void BudgetConstraints::clear_max_artifact_bytes() {
   _impl_.max_artifact_bytes_ = int64_t{0};
 }
@@ -2975,7 +3140,7 @@ inline void BudgetConstraints::set_max_artifact_bytes(int64_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.BudgetConstraints.max_artifact_bytes)
 }
 
-// int32 max_concurrent_jobs = 4;
+// int32 max_concurrent_jobs = 4 [json_name = "maxConcurrentJobs"];
 inline void BudgetConstraints::clear_max_concurrent_jobs() {
   _impl_.max_concurrent_jobs_ = 0;
 }
@@ -2999,7 +3164,7 @@ inline void BudgetConstraints::set_max_concurrent_jobs(int32_t value) {
 
 // SandboxProfile
 
-// bool isolated = 1;
+// bool isolated = 1 [json_name = "isolated"];
 inline void SandboxProfile::clear_isolated() {
   _impl_.isolated_ = false;
 }
@@ -3019,7 +3184,7 @@ inline void SandboxProfile::set_isolated(bool value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.SandboxProfile.isolated)
 }
 
-// repeated string network_allowlist = 2;
+// repeated string network_allowlist = 2 [json_name = "networkAllowlist"];
 inline int SandboxProfile::_internal_network_allowlist_size() const {
   return _impl_.network_allowlist_.size();
 }
@@ -3094,7 +3259,7 @@ SandboxProfile::mutable_network_allowlist() {
   return &_impl_.network_allowlist_;
 }
 
-// repeated string fs_read_only = 3;
+// repeated string fs_read_only = 3 [json_name = "fsReadOnly"];
 inline int SandboxProfile::_internal_fs_read_only_size() const {
   return _impl_.fs_read_only_.size();
 }
@@ -3169,7 +3334,7 @@ SandboxProfile::mutable_fs_read_only() {
   return &_impl_.fs_read_only_;
 }
 
-// repeated string fs_read_write = 4;
+// repeated string fs_read_write = 4 [json_name = "fsReadWrite"];
 inline int SandboxProfile::_internal_fs_read_write_size() const {
   return _impl_.fs_read_write_.size();
 }
@@ -3248,7 +3413,7 @@ SandboxProfile::mutable_fs_read_write() {
 
 // ToolchainConstraints
 
-// repeated string allowed_tools = 1;
+// repeated string allowed_tools = 1 [json_name = "allowedTools"];
 inline int ToolchainConstraints::_internal_allowed_tools_size() const {
   return _impl_.allowed_tools_.size();
 }
@@ -3323,7 +3488,7 @@ ToolchainConstraints::mutable_allowed_tools() {
   return &_impl_.allowed_tools_;
 }
 
-// repeated string allowed_commands = 2;
+// repeated string allowed_commands = 2 [json_name = "allowedCommands"];
 inline int ToolchainConstraints::_internal_allowed_commands_size() const {
   return _impl_.allowed_commands_.size();
 }
@@ -3402,7 +3567,7 @@ ToolchainConstraints::mutable_allowed_commands() {
 
 // DiffConstraints
 
-// int32 max_files = 1;
+// int32 max_files = 1 [json_name = "maxFiles"];
 inline void DiffConstraints::clear_max_files() {
   _impl_.max_files_ = 0;
 }
@@ -3422,7 +3587,7 @@ inline void DiffConstraints::set_max_files(int32_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.DiffConstraints.max_files)
 }
 
-// int32 max_lines = 2;
+// int32 max_lines = 2 [json_name = "maxLines"];
 inline void DiffConstraints::clear_max_lines() {
   _impl_.max_lines_ = 0;
 }
@@ -3442,7 +3607,7 @@ inline void DiffConstraints::set_max_lines(int32_t value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.DiffConstraints.max_lines)
 }
 
-// repeated string deny_path_globs = 3;
+// repeated string deny_path_globs = 3 [json_name = "denyPathGlobs"];
 inline int DiffConstraints::_internal_deny_path_globs_size() const {
   return _impl_.deny_path_globs_.size();
 }
@@ -3521,7 +3686,7 @@ DiffConstraints::mutable_deny_path_globs() {
 
 // PolicyConstraints
 
-// .cordum.agent.v1.BudgetConstraints budgets = 1;
+// .cordum.agent.v1.BudgetConstraints budgets = 1 [json_name = "budgets"];
 inline bool PolicyConstraints::_internal_has_budgets() const {
   return this != internal_default_instance() && _impl_.budgets_ != nullptr;
 }
@@ -3611,7 +3776,7 @@ inline void PolicyConstraints::set_allocated_budgets(::cordum::agent::v1::Budget
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyConstraints.budgets)
 }
 
-// .cordum.agent.v1.SandboxProfile sandbox = 2;
+// .cordum.agent.v1.SandboxProfile sandbox = 2 [json_name = "sandbox"];
 inline bool PolicyConstraints::_internal_has_sandbox() const {
   return this != internal_default_instance() && _impl_.sandbox_ != nullptr;
 }
@@ -3701,7 +3866,7 @@ inline void PolicyConstraints::set_allocated_sandbox(::cordum::agent::v1::Sandbo
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyConstraints.sandbox)
 }
 
-// .cordum.agent.v1.ToolchainConstraints toolchain = 3;
+// .cordum.agent.v1.ToolchainConstraints toolchain = 3 [json_name = "toolchain"];
 inline bool PolicyConstraints::_internal_has_toolchain() const {
   return this != internal_default_instance() && _impl_.toolchain_ != nullptr;
 }
@@ -3791,7 +3956,7 @@ inline void PolicyConstraints::set_allocated_toolchain(::cordum::agent::v1::Tool
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyConstraints.toolchain)
 }
 
-// .cordum.agent.v1.DiffConstraints diff = 4;
+// .cordum.agent.v1.DiffConstraints diff = 4 [json_name = "diff"];
 inline bool PolicyConstraints::_internal_has_diff() const {
   return this != internal_default_instance() && _impl_.diff_ != nullptr;
 }
@@ -3881,7 +4046,7 @@ inline void PolicyConstraints::set_allocated_diff(::cordum::agent::v1::DiffConst
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyConstraints.diff)
 }
 
-// string redaction_level = 5;
+// string redaction_level = 5 [json_name = "redactionLevel"];
 inline void PolicyConstraints::clear_redaction_level() {
   _impl_.redaction_level_.ClearToEmpty();
 }
@@ -3937,7 +4102,7 @@ inline void PolicyConstraints::set_allocated_redaction_level(std::string* redact
 
 // PolicyRemediation
 
-// string id = 1;
+// string id = 1 [json_name = "id"];
 inline void PolicyRemediation::clear_id() {
   _impl_.id_.ClearToEmpty();
 }
@@ -3987,7 +4152,7 @@ inline void PolicyRemediation::set_allocated_id(std::string* id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyRemediation.id)
 }
 
-// string title = 2;
+// string title = 2 [json_name = "title"];
 inline void PolicyRemediation::clear_title() {
   _impl_.title_.ClearToEmpty();
 }
@@ -4037,7 +4202,7 @@ inline void PolicyRemediation::set_allocated_title(std::string* title) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyRemediation.title)
 }
 
-// string summary = 3;
+// string summary = 3 [json_name = "summary"];
 inline void PolicyRemediation::clear_summary() {
   _impl_.summary_.ClearToEmpty();
 }
@@ -4087,7 +4252,7 @@ inline void PolicyRemediation::set_allocated_summary(std::string* summary) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyRemediation.summary)
 }
 
-// string replacement_topic = 4;
+// string replacement_topic = 4 [json_name = "replacementTopic"];
 inline void PolicyRemediation::clear_replacement_topic() {
   _impl_.replacement_topic_.ClearToEmpty();
 }
@@ -4137,7 +4302,7 @@ inline void PolicyRemediation::set_allocated_replacement_topic(std::string* repl
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyRemediation.replacement_topic)
 }
 
-// string replacement_capability = 5;
+// string replacement_capability = 5 [json_name = "replacementCapability"];
 inline void PolicyRemediation::clear_replacement_capability() {
   _impl_.replacement_capability_.ClearToEmpty();
 }
@@ -4187,7 +4352,7 @@ inline void PolicyRemediation::set_allocated_replacement_capability(std::string*
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyRemediation.replacement_capability)
 }
 
-// map<string, string> add_labels = 6;
+// map<string, string> add_labels = 6 [json_name = "addLabels"];
 inline int PolicyRemediation::_internal_add_labels_size() const {
   return _impl_.add_labels_.size();
 }
@@ -4216,7 +4381,7 @@ PolicyRemediation::mutable_add_labels() {
   return _internal_mutable_add_labels();
 }
 
-// repeated string remove_labels = 7;
+// repeated string remove_labels = 7 [json_name = "removeLabels"];
 inline int PolicyRemediation::_internal_remove_labels_size() const {
   return _impl_.remove_labels_.size();
 }
@@ -4295,7 +4460,7 @@ PolicyRemediation::mutable_remove_labels() {
 
 // PolicyCheckResponse
 
-// .cordum.agent.v1.DecisionType decision = 1;
+// .cordum.agent.v1.DecisionType decision = 1 [json_name = "decision"];
 inline void PolicyCheckResponse::clear_decision() {
   _impl_.decision_ = 0;
 }
@@ -4315,7 +4480,7 @@ inline void PolicyCheckResponse::set_decision(::cordum::agent::v1::DecisionType 
   // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyCheckResponse.decision)
 }
 
-// string reason = 2;
+// string reason = 2 [json_name = "reason"];
 inline void PolicyCheckResponse::clear_reason() {
   _impl_.reason_.ClearToEmpty();
 }
@@ -4365,7 +4530,7 @@ inline void PolicyCheckResponse::set_allocated_reason(std::string* reason) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckResponse.reason)
 }
 
-// string redacted_context_ptr = 3;
+// string redacted_context_ptr = 3 [json_name = "redactedContextPtr"];
 inline void PolicyCheckResponse::clear_redacted_context_ptr() {
   _impl_.redacted_context_ptr_.ClearToEmpty();
 }
@@ -4415,7 +4580,7 @@ inline void PolicyCheckResponse::set_allocated_redacted_context_ptr(std::string*
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckResponse.redacted_context_ptr)
 }
 
-// string policy_snapshot = 4;
+// string policy_snapshot = 4 [json_name = "policySnapshot"];
 inline void PolicyCheckResponse::clear_policy_snapshot() {
   _impl_.policy_snapshot_.ClearToEmpty();
 }
@@ -4465,7 +4630,7 @@ inline void PolicyCheckResponse::set_allocated_policy_snapshot(std::string* poli
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckResponse.policy_snapshot)
 }
 
-// string rule_id = 5;
+// string rule_id = 5 [json_name = "ruleId"];
 inline void PolicyCheckResponse::clear_rule_id() {
   _impl_.rule_id_.ClearToEmpty();
 }
@@ -4515,7 +4680,7 @@ inline void PolicyCheckResponse::set_allocated_rule_id(std::string* rule_id) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckResponse.rule_id)
 }
 
-// .cordum.agent.v1.PolicyConstraints constraints = 6;
+// .cordum.agent.v1.PolicyConstraints constraints = 6 [json_name = "constraints"];
 inline bool PolicyCheckResponse::_internal_has_constraints() const {
   return this != internal_default_instance() && _impl_.constraints_ != nullptr;
 }
@@ -4605,7 +4770,7 @@ inline void PolicyCheckResponse::set_allocated_constraints(::cordum::agent::v1::
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckResponse.constraints)
 }
 
-// bool approval_required = 7;
+// bool approval_required = 7 [json_name = "approvalRequired"];
 inline void PolicyCheckResponse::clear_approval_required() {
   _impl_.approval_required_ = false;
 }
@@ -4625,7 +4790,7 @@ inline void PolicyCheckResponse::set_approval_required(bool value) {
   // @@protoc_insertion_point(field_set:cordum.agent.v1.PolicyCheckResponse.approval_required)
 }
 
-// string approval_ref = 8;
+// string approval_ref = 8 [json_name = "approvalRef"];
 inline void PolicyCheckResponse::clear_approval_ref() {
   _impl_.approval_ref_.ClearToEmpty();
 }
@@ -4675,7 +4840,7 @@ inline void PolicyCheckResponse::set_allocated_approval_ref(std::string* approva
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.PolicyCheckResponse.approval_ref)
 }
 
-// repeated .cordum.agent.v1.PolicyRemediation remediations = 9;
+// repeated .cordum.agent.v1.PolicyRemediation remediations = 9 [json_name = "remediations"];
 inline int PolicyCheckResponse::_internal_remediations_size() const {
   return _impl_.remediations_.size();
 }
@@ -4723,7 +4888,7 @@ PolicyCheckResponse::remediations() const {
 
 // ListSnapshotsResponse
 
-// repeated string snapshots = 1;
+// repeated string snapshots = 1 [json_name = "snapshots"];
 inline int ListSnapshotsResponse::_internal_snapshots_size() const {
   return _impl_.snapshots_.size();
 }

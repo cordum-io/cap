@@ -401,6 +401,8 @@ export interface DecisionTypeMap {
   DECISION_TYPE_REQUIRE_HUMAN: 3;
   DECISION_TYPE_THROTTLE: 4;
   DECISION_TYPE_ALLOW_WITH_CONSTRAINTS: 5;
+  DECISION_TYPE_QUARANTINE: 6;
+  DECISION_TYPE_REDACT: 7;
 }
 
 export const DecisionType: DecisionTypeMap;

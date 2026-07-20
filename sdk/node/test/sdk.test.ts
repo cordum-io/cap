@@ -1,4 +1,4 @@
-import { NatsConnection, Msg, Subscription } from "nats";
+import { NatsConnection, Msg, Subscription, SubscriptionOptions } from "nats";
 import { submitJob } from "../src/client";
 import { startWorker } from "../src/worker";
 import { loadRoot } from "../src/protos";
@@ -10,15 +10,16 @@ import assert from "node:assert";
 // Mock NatsConnection
 class MockNatsConnection {
   _publishedMessages: Msg[] = [];
-  _subscriptions: Map<string, (msg: Msg) => void> = new Map();
+  _subscriptions: Map<string, NonNullable<SubscriptionOptions["callback"]>> = new Map();
 
   async publish(subject: string, data: Uint8Array): Promise<void> {
     this._publishedMessages.push({ subject, data } as Msg);
   }
 
-  subscribe(subject: string, _opts?: any, cb?: (msg: Msg) => void): Subscription {
-    const callback = cb ?? (() => {});
-    this._subscriptions.set(subject, callback);
+  subscribe(subject: string, opts: SubscriptionOptions = {}): Subscription {
+    if (opts.callback) {
+      this._subscriptions.set(subject, opts.callback);
+    }
     return {
       getSubject: () => subject,
       getReceived: () => 1, // Dummy value
@@ -28,8 +29,17 @@ class MockNatsConnection {
       isClosed: () => false,
       drain: async () => {},
       unsubscribe: () => {},
-    } as any; // Cast to any
+    } as unknown as Subscription;
   }
+}
+
+async function waitFor(condition: () => boolean, timeoutMs = 1000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (condition()) return;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  throw new Error("timed out waiting for worker result");
 }
 
 describe("CAP SDK E2E Test", () => {
@@ -96,7 +106,8 @@ describe("CAP SDK E2E Test", () => {
     const workerCallback = mockNats._subscriptions.get(testSubject);
     assert.ok(workerCallback);
     if (workerCallback) {
-      await workerCallback(clientPublishedMsg);
+      await workerCallback(null, clientPublishedMsg);
+      await waitFor(() => mockNats._publishedMessages.length === 2);
     } else {
         throw new Error("Worker did not subscribe correctly");
     }

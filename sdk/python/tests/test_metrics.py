@@ -37,6 +37,7 @@ def _make_packet(job_id: str, topic: str, context_ptr: str, trace_id: str = "t1"
     packet.trace_id = trace_id
     packet.sender_id = sender_id
     packet.protocol_version = 1
+    packet.created_at.GetCurrentTime()
     packet.job_request.CopyFrom(req)
     return packet
 

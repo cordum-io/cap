@@ -8,8 +8,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"os"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -151,7 +149,9 @@ type Agent struct {
 	Store      BlobStore
 	PublicKeys map[string]*ecdsa.PublicKey
 	PrivateKey *ecdsa.PrivateKey
-	SenderID   string
+	// AllowUnsigned explicitly opts into legacy unsigned packet transport.
+	AllowUnsigned bool
+	SenderID      string
 	// AgentName is an optional human-facing display label advertised on the
 	// handshake. It is sanitized/bounded before transport and is a DISPLAY
 	// label only, never an authentication authority.
@@ -171,11 +171,29 @@ type Agent struct {
 	HandshakeMode    HandshakeMode
 	HandshakeTimeout time.Duration
 	HandshakeRetries int
+	// WorkerTrust pins the worker proof identity and scheduler verification
+	// keys used by warn and enforce modes. It is intentionally distinct from
+	// the generic packet PrivateKey/PublicKeys configuration above.
+	WorkerTrust capsdk.WorkerTrustConfig
 
 	handlers    map[string]handlerSpec
 	middlewares []Middleware
+	trustMode   HandshakeMode
+	trustConfig *capsdk.WorkerTrustConfig
 	session     *sessionState
 	renew       *renewer
+	capability  *agentv1.Handshake
+	ownedNATS   bool
+	ownedStore  bool
+	subs        []*nats.Subscription
+	subsMu      sync.Mutex
+	connectNATS func(string, string, time.Duration) (NATSConn, error)
+	openStore   func(string) (BlobStore, error)
+	closeOnce   sync.Once
+	closeErr    error
+	lifecycleMu sync.Mutex
+	started     bool
+	closed      bool
 }
 
 // Register registers a typed handler for a topic.
@@ -215,107 +233,60 @@ func (a *Agent) registerSpec(spec handlerSpec) {
 
 // Start connects to NATS/Redis if needed and registers subscriptions.
 func (a *Agent) Start() error {
+	a.lifecycleMu.Lock()
+	defer a.lifecycleMu.Unlock()
+	if a.closed {
+		return errors.New("runtime: agent is closed")
+	}
+	if a.started {
+		return errors.New("runtime: agent already started")
+	}
 	if len(a.handlers) == 0 {
 		return errors.New("runtime: no handlers registered")
 	}
-	if a.SenderID == "" {
-		a.SenderID = defaultSenderID
-	}
-	if a.Logger == nil {
-		a.Logger = slog.Default()
-	}
-	if a.Metrics == nil {
-		a.Metrics = NoopMetrics
-	}
-	if a.IOTTimeout == 0 {
-		a.IOTTimeout = defaultTimeout
-	}
-	if a.MaxContextBytes == 0 {
-		a.MaxContextBytes = defaultMaxBytes
-	}
-	if a.MaxResultBytes == 0 {
-		a.MaxResultBytes = defaultMaxBytes
-	}
-	if a.NATS == nil {
-		url := strings.TrimSpace(a.NATSURL)
-		if url == "" {
-			url = strings.TrimSpace(os.Getenv("NATS_URL"))
-		}
-		if url == "" {
-			url = defaultNATSURL
-		}
-		connectTimeout := a.IOTTimeout
-		if connectTimeout <= 0 {
-			connectTimeout = defaultTimeout
-		}
-		nc, err := nats.Connect(url, nats.Name(a.SenderID), nats.Timeout(connectTimeout))
-		if err != nil {
-			return err
-		}
-		a.NATS = nc
-	}
-	if a.Store == nil {
-		url := strings.TrimSpace(a.RedisURL)
-		if url == "" {
-			url = strings.TrimSpace(os.Getenv("REDIS_URL"))
-		}
-		if url == "" {
-			url = defaultRedisURL
-		}
-		store, err := NewRedisBlobStore(url)
-		if err != nil {
-			return err
-		}
-		a.Store = store
-	}
-
-	// Phase-2 worker handshake. Must precede job-topic subscription
-	// so that in enforce mode no job handlers ever run without a
-	// trusted session token. In warn/off modes the handshake is
-	// best-effort and Start() proceeds regardless.
-	if _, err := a.performHandshake(context.Background()); err != nil {
+	frozenMode, err := a.resolveHandshakeMode()
+	if err != nil {
 		return err
 	}
-	// Spawn the renew loop only if we obtained a session token; in
-	// warn mode Start() may succeed without one, in which case the
-	// loop would have nothing to refresh.
-	a.startRenewLoop(context.Background())
-
-	for _, spec := range a.handlers {
-		handler := spec
-		_, err := a.NATS.QueueSubscribe(handler.topic, handler.topic, func(msg *nats.Msg) {
-			a.handleMessage(msg, handler)
-		})
-		if err != nil {
-			return fmt.Errorf("subscribe %s: %w", handler.topic, err)
-		}
+	a.trustMode = frozenMode
+	frozenTrust := cloneRuntimeWorkerTrust(a.WorkerTrust)
+	a.trustConfig = &frozenTrust
+	if err := a.validateTrustStartup(); err != nil {
+		a.trustMode = ""
+		a.trustConfig = nil
+		return err
 	}
-	a.publishHandshake()
+	a.configureRuntimeDefaults()
+	if err := a.openRuntimeResources(); err != nil {
+		return a.failStart(err)
+	}
+	if _, err := a.performHandshake(context.Background()); err != nil {
+		return a.failStart(err)
+	}
+	if err := a.subscribeHandlers(); err != nil {
+		return a.failStart(err)
+	}
+	if err := a.publishHandshake(); err != nil {
+		return a.failStart(err)
+	}
+	a.startRenewLoop(context.Background())
+	a.started = true
 	return nil
 }
 
-func (a *Agent) publishHandshake() {
-	caps := make(map[string]bool, len(a.handlers))
-	readyTopics := make([]string, 0, len(a.handlers))
-	for topic := range a.handlers {
-		caps[topic] = true
-		readyTopics = append(readyTopics, topic)
+func (a *Agent) publishHandshake() error {
+	traceID, err := randomHex(16)
+	if err != nil {
+		return fmt.Errorf("build handshake: %w", err)
 	}
-	sort.Strings(readyTopics)
 
 	packet := &agentv1.BusPacket{
+		TraceId:         traceID,
 		SenderId:        a.SenderID,
 		ProtocolVersion: capsdk.DefaultProtocolVersion,
 		CreatedAt:       timestamppb.Now(),
 		Payload: &agentv1.BusPacket_Handshake{
-			Handshake: &agentv1.Handshake{
-				ComponentId:       a.SenderID,
-				Role:              agentv1.ComponentRole_COMPONENT_ROLE_WORKER,
-				SupportedVersions: []int32{capsdk.DefaultProtocolVersion},
-				Capabilities:      caps,
-				ReadyTopics:       readyTopics,
-				AgentName:         capsdk.SanitizeAgentName(a.AgentName),
-			},
+			Handshake: a.capabilityHandshake(),
 		},
 	}
 	// Attach the session token on the legacy handshake packet too —
@@ -324,35 +295,45 @@ func (a *Agent) publishHandshake() {
 	// scheduler tie this broadcast to a trusted agent identity when
 	// enforce mode is active.
 	a.withSessionToken(packet)
+	if err := capsdk.ValidateBusPacket(packet); err != nil {
+		return fmt.Errorf("validate handshake: %w", err)
+	}
 	if a.PrivateKey != nil {
 		if err := capsdk.SignPacket(packet, a.PrivateKey); err != nil {
-			a.Logger.Warn("sign handshake failed", "error", err)
-			return
+			return fmt.Errorf("sign handshake: %w", err)
 		}
 	}
 
 	data, err := capsdk.MarshalDeterministic(packet)
 	if err != nil {
-		a.Logger.Warn("marshal handshake failed", "error", err)
-		return
+		return fmt.Errorf("marshal handshake: %w", err)
 	}
 	if err := a.NATS.Publish(capsdk.SubjectHandshake, data); err != nil {
-		a.Logger.Warn("publish handshake failed", "error", err)
+		return fmt.Errorf("publish handshake: %w", err)
 	}
+	return nil
 }
 
 // Close drains NATS and closes the blob store if possible.
 func (a *Agent) Close() error {
-	a.stopRenewLoop()
-	if conn, ok := a.NATS.(*nats.Conn); ok {
-		if err := conn.Drain(); err != nil {
-			slog.Warn("nats drain failed during close", "error", err)
+	a.lifecycleMu.Lock()
+	defer a.lifecycleMu.Unlock()
+	a.closeOnce.Do(func() {
+		a.closed = true
+		a.started = false
+		a.stopRenewLoop()
+		a.unsubscribeAll()
+		if conn, ok := a.NATS.(*nats.Conn); ok {
+			if err := conn.Drain(); err != nil {
+				slog.Warn("nats drain failed during close", "error", err)
+			}
 		}
-	}
-	if a.Store != nil {
-		return a.Store.Close()
-	}
-	return nil
+		if a.Store != nil {
+			a.closeErr = a.Store.Close()
+		}
+		a.clearSession()
+	})
+	return a.closeErr
 }
 
 func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
@@ -362,21 +343,13 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 		a.Logger.Error("decode failed", "error", capsdk.NewMalformedPacketError(err.Error()))
 		return
 	}
-
-	if a.PublicKeys != nil {
-		pub, ok := a.PublicKeys[packet.GetSenderId()]
-		if !ok {
-			a.Logger.Warn("no public key for sender", "sender_id", packet.GetSenderId())
-			return
-		}
-		if len(packet.GetSignature()) == 0 {
-			a.Logger.Warn("missing signature", "error", capsdk.NewSignatureMissingError("sender "+packet.GetSenderId()), "sender_id", packet.GetSenderId())
-			return
-		}
-		if err := capsdk.VerifyPacketSignature(&packet, pub); err != nil {
-			a.Logger.Warn("invalid signature", "error", capsdk.NewSignatureInvalidError("sender "+packet.GetSenderId()+": "+err.Error()), "sender_id", packet.GetSenderId())
-			return
-		}
+	if packet.GetProtocolVersion() != capsdk.DefaultProtocolVersion {
+		a.Logger.Warn("invalid packet", "error", "unsupported protocol_version")
+		return
+	}
+	if err := a.validateInboundPacket(&packet); err != nil {
+		a.Logger.Warn("invalid packet", "error", err)
+		return
 	}
 
 	req := packet.GetJobRequest()
@@ -509,7 +482,16 @@ func (a *Agent) publishResult(ctx Context, result *agentv1.JobResult) {
 	// signature covers the token bytes. A stripped/tampered token
 	// would invalidate the packet signature — belt-and-suspenders
 	// with the scheduler-side token verification.
-	a.withSessionToken(packet)
+	token, _ := a.SessionToken()
+	if a.activeHandshakeMode() != HandshakeModeOff && token == "" {
+		ctx.Logger.Error("cannot publish privileged result without a live worker session")
+		return
+	}
+	attachSessionToken(packet, token)
+	if err := capsdk.ValidateBusPacket(packet); err != nil {
+		ctx.Logger.Error("invalid outbound packet", "error", err)
+		return
+	}
 	if a.PrivateKey != nil {
 		if err := capsdk.SignPacket(packet, a.PrivateKey); err != nil {
 			ctx.Logger.Error("failed signing packet", "error", err)

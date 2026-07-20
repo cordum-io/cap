@@ -1,7 +1,10 @@
 import { NatsConnection } from "nats";
 import { loadRoot, DEFAULT_PROTOCOL_VERSION, SUBJECT_SUBMIT } from "./protos";
-import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
-import * as crypto from "crypto";
+import {
+  encodeOutboundPacket,
+  type MutableBusPacket,
+  prepareOutboundPacket,
+} from "./packet-boundary";
 
 /**
  * Publishes a JobRequest onto the CAP submit subject.
@@ -11,14 +14,16 @@ import * as crypto from "crypto";
  * @param traceId - Distributed trace identifier propagated through the bus.
  * @param senderId - Identity of the sender (used in the BusPacket envelope).
  * @param privateKey - Optional PEM-encoded ECDSA private key for signing.
+ * @param sessionToken - Optional authenticated worker session token.
  */
 export async function submitJob(
   nc: NatsConnection,
   jobRequest: Record<string, unknown>,
   traceId: string,
   senderId: string,
-  privateKey?: string
-) {
+  privateKey?: string,
+  sessionToken = ""
+): Promise<void> {
   const root = await loadRoot();
   const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
   const JobRequest = root.lookupType("cordum.agent.v1.JobRequest");
@@ -30,17 +35,8 @@ export async function submitJob(
     protocolVersion: DEFAULT_PROTOCOL_VERSION,
     createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
     jobRequest: jrMsg,
-  });
-
-  if (privateKey) {
-    const unsignedData = encodeUnsignedForSignature(BusPacket, payload);
-    const sign = crypto.createSign("sha256");
-    sign.update(unsignedData);
-    const signature = sign.sign(privateKey);
-
-    (payload as any).signature = signature;
-  }
-
-  const data = encodeDeterministic(BusPacket, payload);
+  }) as unknown as MutableBusPacket;
+  prepareOutboundPacket(payload, sessionToken);
+  const data = encodeOutboundPacket(BusPacket, payload, privateKey);
   await nc.publish(SUBJECT_SUBMIT, data);
 }

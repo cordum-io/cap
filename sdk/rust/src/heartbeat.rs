@@ -5,7 +5,7 @@ use tokio::task::JoinHandle;
 
 use crate::codec::marshal_deterministic;
 use crate::errors::CapError;
-use crate::metrics::{MetricsHook, NoopMetrics};
+use crate::metrics::MetricsHook;
 use crate::pb::{bus_packet::Payload, BusPacket, Heartbeat};
 use crate::subjects;
 
@@ -71,7 +71,7 @@ pub fn heartbeat_payload_with_progress(
 }
 
 pub async fn emit_heartbeat(nc: &async_nats::Client, payload: &[u8]) -> Result<(), CapError> {
-    nc.publish(subjects::SUBJECT_HEARTBEAT.into(), payload.to_vec().into())
+    nc.publish(subjects::SUBJECT_HEARTBEAT, payload.to_vec().into())
         .await
         .map_err(|e| CapError::publish_failed(&e.to_string()))
 }

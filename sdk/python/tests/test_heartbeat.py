@@ -5,6 +5,7 @@ import unittest
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 
+from cap.errors import InvalidInputError
 from cap.heartbeat import (
     emit_heartbeat,
     heartbeat_loop,
@@ -137,25 +138,17 @@ class TestHeartbeatPayload(unittest.TestCase):
         self.assertEqual(validate_bus_packet(packet), [])
 
     def test_heartbeat_payload_with_zero_values(self):
-        payload = heartbeat_payload_with_progress(
-            worker_id="",
-            pool="",
-            active_jobs=0,
-            max_parallel=0,
-            cpu_load=0.0,
-            memory_load=0.0,
-            progress_pct=0,
-            last_memo="",
-        )
-        packet = buspacket_pb2.BusPacket()
-        packet.ParseFromString(payload)
-
-        self.assertEqual(packet.sender_id, "")
-        self.assertEqual(packet.protocol_version, 1)
-        self.assertEqual(packet.heartbeat.active_jobs, 0)
-        self.assertEqual(packet.heartbeat.max_parallel_jobs, 0)
-        self.assertEqual(packet.heartbeat.cpu_load, 0.0)
-        self.assertEqual(packet.heartbeat.memory_load, 0.0)
+        with self.assertRaises(InvalidInputError):
+            heartbeat_payload_with_progress(
+                worker_id="",
+                pool="",
+                active_jobs=0,
+                max_parallel=0,
+                cpu_load=0.0,
+                memory_load=0.0,
+                progress_pct=0,
+                last_memo="",
+            )
 
 
 class TestHeartbeatAsync(unittest.IsolatedAsyncioTestCase):

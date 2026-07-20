@@ -4,31 +4,6 @@ Provides helpers for submitting jobs, running workers, and building
 high-level agents on the CAP bus.
 """
 
-import sys
-import types
-
-try:
-    from google.protobuf import runtime_version as _runtime_version  # noqa: F401
-except Exception:
-    try:
-        import google.protobuf as _protobuf
-    except Exception:
-        _protobuf = None
-
-    _shim = types.SimpleNamespace()
-
-    class _Domain:
-        PUBLIC = 0
-
-    def _validate(*_args, **_kwargs):
-        return None
-
-    _shim.Domain = _Domain
-    _shim.ValidateProtobufRuntimeVersion = _validate
-    sys.modules["google.protobuf.runtime_version"] = _shim
-    if _protobuf is not None:
-        setattr(_protobuf, "runtime_version", _shim)
-
 from .client import submit_job
 from .worker import run_worker
 from .bus import connect_nats
@@ -43,6 +18,38 @@ from .heartbeat import (
     heartbeat_loop,
 )
 from .handshake import handshake_payload, publish_handshake
+from .trust_signing import (
+    TrustSigningError,
+    sign_trust_packet,
+    trust_packet_digest,
+    verify_trust_packet,
+)
+from .worker_trust import (
+    WORKER_HANDSHAKE_AUDIENCE,
+    VerifiedWorkerHandshakeChallenge,
+    WorkerHandshakeBindingError,
+    WorkerHandshakeExpiredError,
+    WorkerHandshakePacketError,
+    WorkerHandshakeRejectionError,
+    WorkerHandshakeRequestOptions,
+    WorkerHandshakeSession,
+    WorkerTrustConfig,
+    WorkerTrustConfigError,
+    WorkerTrustError,
+    WorkerTrustMode,
+    WorkerTrustModeError,
+    build_authenticate,
+    build_challenge_request,
+    parse_worker_trust_mode,
+    validate_worker_trust_config,
+    verify_challenge,
+    verify_result,
+)
+from .worker_trust_codec import (
+    marshal_worker_trust_packet,
+    unmarshal_worker_trust_packet,
+)
+from .worker_trust_validate import validate_worker_trust_packet
 from .progress import (
     progress_payload,
     cancel_payload,
@@ -51,8 +58,11 @@ from .progress import (
 )
 from .validate import (
     ValidationError,
+    validate_alert,
     validate_job_request,
     validate_job_result,
+    validate_job_progress,
+    validate_job_cancel,
     validate_bus_packet,
 )
 from .errors import (
@@ -86,6 +96,8 @@ from .subjects import (
     SUBJECT_DLQ,
     SUBJECT_WORKFLOW_EVENT,
     SUBJECT_HANDSHAKE,
+    SUBJECT_WORKER_HANDSHAKE_AUTHENTICATE,
+    SUBJECT_WORKER_HANDSHAKE_CHALLENGE,
 )
 
 __all__ = [
@@ -109,13 +121,42 @@ __all__ = [
     "heartbeat_loop",
     "handshake_payload",
     "publish_handshake",
+    "TrustSigningError",
+    "sign_trust_packet",
+    "trust_packet_digest",
+    "verify_trust_packet",
+    "WORKER_HANDSHAKE_AUDIENCE",
+    "VerifiedWorkerHandshakeChallenge",
+    "WorkerHandshakeBindingError",
+    "WorkerHandshakeExpiredError",
+    "WorkerHandshakePacketError",
+    "WorkerHandshakeRejectionError",
+    "WorkerHandshakeRequestOptions",
+    "WorkerHandshakeSession",
+    "WorkerTrustConfig",
+    "WorkerTrustConfigError",
+    "WorkerTrustError",
+    "WorkerTrustMode",
+    "WorkerTrustModeError",
+    "build_authenticate",
+    "build_challenge_request",
+    "marshal_worker_trust_packet",
+    "parse_worker_trust_mode",
+    "unmarshal_worker_trust_packet",
+    "validate_worker_trust_config",
+    "validate_worker_trust_packet",
+    "verify_challenge",
+    "verify_result",
     "progress_payload",
     "cancel_payload",
     "emit_progress",
     "emit_cancel",
     "ValidationError",
+    "validate_alert",
     "validate_job_request",
     "validate_job_result",
+    "validate_job_progress",
+    "validate_job_cancel",
     "validate_bus_packet",
     "SUBJECT_SUBMIT",
     "SUBJECT_RESULT",
@@ -126,6 +167,8 @@ __all__ = [
     "SUBJECT_DLQ",
     "SUBJECT_WORKFLOW_EVENT",
     "SUBJECT_HANDSHAKE",
+    "SUBJECT_WORKER_HANDSHAKE_AUTHENTICATE",
+    "SUBJECT_WORKER_HANDSHAKE_CHALLENGE",
     "CAPError",
     "VersionMismatchError",
     "MalformedPacketError",

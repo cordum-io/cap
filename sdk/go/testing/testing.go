@@ -74,10 +74,11 @@ func SubmitAndWait(handler worker.Handler, req *agentv1.JobRequest) (*agentv1.Jo
 	bus := NewInMemoryBus()
 
 	w := &worker.Worker{
-		NATS:     bus,
-		Subject:  req.GetTopic(),
-		SenderID: "test-worker",
-		Handler:  handler,
+		NATS:          bus,
+		Subject:       req.GetTopic(),
+		SenderID:      "test-worker",
+		AllowUnsigned: true,
+		Handler:       handler,
 	}
 
 	if err := w.Start(); err != nil {

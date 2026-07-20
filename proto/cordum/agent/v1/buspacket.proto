@@ -30,6 +30,10 @@ message BusPacket {
         JobProgress job_progress = 15;
         JobCancel job_cancel = 16;
         Handshake handshake = 17;
+        WorkerHandshakeChallengeRequest worker_handshake_challenge_request = 19;
+        WorkerHandshakeChallenge worker_handshake_challenge = 20;
+        WorkerHandshakeAuthenticate worker_handshake_authenticate = 21;
+        WorkerHandshakeResult worker_handshake_result = 22;
     }
     bytes signature = 14;                   // digital signature of the serialized BusPacket
     string auth_token = 18;                 // trusted runtime session token

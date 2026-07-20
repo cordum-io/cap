@@ -43,6 +43,8 @@ PROTOBUF_CONSTEXPR Heartbeat::Heartbeat(
   , /*decltype(_impl_.type_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.pool_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.last_memo_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.auth_token_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.agent_name_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.cpu_load_)*/0
   , /*decltype(_impl_.gpu_utilization_)*/0
   , /*decltype(_impl_.active_jobs_)*/0
@@ -96,6 +98,8 @@ const uint32_t TableStruct_cordum_2fagent_2fv1_2fheartbeat_2eproto::offsets[] PR
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Heartbeat, _impl_.memory_load_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Heartbeat, _impl_.progress_pct_),
   PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Heartbeat, _impl_.last_memo_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Heartbeat, _impl_.auth_token_),
+  PROTOBUF_FIELD_OFFSET(::cordum::agent::v1::Heartbeat, _impl_.agent_name_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, 8, -1, sizeof(::cordum::agent::v1::Heartbeat_LabelsEntry_DoNotUse)},
@@ -109,23 +113,29 @@ static const ::_pb::Message* const file_default_instances[] = {
 
 const char descriptor_table_protodef_cordum_2fagent_2fv1_2fheartbeat_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\037cordum/agent/v1/heartbeat.proto\022\017cordu"
-  "m.agent.v1\"\340\002\n\tHeartbeat\022\021\n\tworker_id\030\001 "
-  "\001(\t\022\016\n\006region\030\002 \001(\t\022\014\n\004type\030\003 \001(\t\022\020\n\010cpu"
-  "_load\030\004 \001(\002\022\027\n\017gpu_utilization\030\005 \001(\002\022\023\n\013"
-  "active_jobs\030\006 \001(\005\022\024\n\014capabilities\030\007 \003(\t\022"
-  "\014\n\004pool\030\013 \001(\t\022\031\n\021max_parallel_jobs\030\014 \001(\005"
-  "\0226\n\006labels\030\r \003(\0132&.cordum.agent.v1.Heart"
-  "beat.LabelsEntry\022\023\n\013memory_load\030\016 \001(\002\022\024\n"
-  "\014progress_pct\030\017 \001(\005\022\021\n\tlast_memo\030\020 \001(\t\032-"
-  "\n\013LabelsEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001("
-  "\t:\0028\001B\177\n\026io.cordum.cap.agent.v1P\001Z+githu"
-  "b.com/cordum-io/cap/v2/cordum/agent/v1\252\002"
-  "\017Cordum.Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cor"
-  "dum::Agent::V1b\006proto3"
+  "m.agent.v1\"\311\004\n\tHeartbeat\022\033\n\tworker_id\030\001 "
+  "\001(\tR\010workerId\022\026\n\006region\030\002 \001(\tR\006region\022\022\n"
+  "\004type\030\003 \001(\tR\004type\022\031\n\010cpu_load\030\004 \001(\002R\007cpu"
+  "Load\022\'\n\017gpu_utilization\030\005 \001(\002R\016gpuUtiliz"
+  "ation\022\037\n\013active_jobs\030\006 \001(\005R\nactiveJobs\022\""
+  "\n\014capabilities\030\007 \003(\tR\014capabilities\022\022\n\004po"
+  "ol\030\013 \001(\tR\004pool\022*\n\021max_parallel_jobs\030\014 \001("
+  "\005R\017maxParallelJobs\022>\n\006labels\030\r \003(\0132&.cor"
+  "dum.agent.v1.Heartbeat.LabelsEntryR\006labe"
+  "ls\022\037\n\013memory_load\030\016 \001(\002R\nmemoryLoad\022!\n\014p"
+  "rogress_pct\030\017 \001(\005R\013progressPct\022\033\n\tlast_m"
+  "emo\030\020 \001(\tR\010lastMemo\022\035\n\nauth_token\030\022 \001(\tR"
+  "\tauthToken\022\035\n\nagent_name\030\023 \001(\tR\tagentNam"
+  "e\0329\n\013LabelsEntry\022\020\n\003key\030\001 \001(\tR\003key\022\024\n\005va"
+  "lue\030\002 \001(\tR\005value:\0028\001J\004\010\010\020\tJ\004\010\t\020\nJ\004\010\n\020\013B\177"
+  "\n\026io.cordum.cap.agent.v1P\001Z+github.com/c"
+  "ordum-io/cap/v2/cordum/agent/v1\252\002\017Cordum"
+  ".Agent.V1\312\002\017cordum\\Agent\\V1\352\002\021Cordum::Ag"
+  "ent::V1b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_cordum_2fagent_2fv1_2fheartbeat_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_cordum_2fagent_2fv1_2fheartbeat_2eproto = {
-    false, false, 542, descriptor_table_protodef_cordum_2fagent_2fv1_2fheartbeat_2eproto,
+    false, false, 775, descriptor_table_protodef_cordum_2fagent_2fv1_2fheartbeat_2eproto,
     "cordum/agent/v1/heartbeat.proto",
     &descriptor_table_cordum_2fagent_2fv1_2fheartbeat_2eproto_once, nullptr, 0, 2,
     schemas, file_default_instances, TableStruct_cordum_2fagent_2fv1_2fheartbeat_2eproto::offsets,
@@ -182,6 +192,8 @@ Heartbeat::Heartbeat(const Heartbeat& from)
     , decltype(_impl_.type_){}
     , decltype(_impl_.pool_){}
     , decltype(_impl_.last_memo_){}
+    , decltype(_impl_.auth_token_){}
+    , decltype(_impl_.agent_name_){}
     , decltype(_impl_.cpu_load_){}
     , decltype(_impl_.gpu_utilization_){}
     , decltype(_impl_.active_jobs_){}
@@ -232,6 +244,22 @@ Heartbeat::Heartbeat(const Heartbeat& from)
     _this->_impl_.last_memo_.Set(from._internal_last_memo(), 
       _this->GetArenaForAllocation());
   }
+  _impl_.auth_token_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.auth_token_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_auth_token().empty()) {
+    _this->_impl_.auth_token_.Set(from._internal_auth_token(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.agent_name_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.agent_name_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_agent_name().empty()) {
+    _this->_impl_.agent_name_.Set(from._internal_agent_name(), 
+      _this->GetArenaForAllocation());
+  }
   ::memcpy(&_impl_.cpu_load_, &from._impl_.cpu_load_,
     static_cast<size_t>(reinterpret_cast<char*>(&_impl_.progress_pct_) -
     reinterpret_cast<char*>(&_impl_.cpu_load_)) + sizeof(_impl_.progress_pct_));
@@ -250,6 +278,8 @@ inline void Heartbeat::SharedCtor(
     , decltype(_impl_.type_){}
     , decltype(_impl_.pool_){}
     , decltype(_impl_.last_memo_){}
+    , decltype(_impl_.auth_token_){}
+    , decltype(_impl_.agent_name_){}
     , decltype(_impl_.cpu_load_){0}
     , decltype(_impl_.gpu_utilization_){0}
     , decltype(_impl_.active_jobs_){0}
@@ -278,6 +308,14 @@ inline void Heartbeat::SharedCtor(
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.last_memo_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.auth_token_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.auth_token_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.agent_name_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.agent_name_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
 }
 
 Heartbeat::~Heartbeat() {
@@ -300,6 +338,8 @@ inline void Heartbeat::SharedDtor() {
   _impl_.type_.Destroy();
   _impl_.pool_.Destroy();
   _impl_.last_memo_.Destroy();
+  _impl_.auth_token_.Destroy();
+  _impl_.agent_name_.Destroy();
 }
 
 void Heartbeat::ArenaDtor(void* object) {
@@ -323,6 +363,8 @@ void Heartbeat::Clear() {
   _impl_.type_.ClearToEmpty();
   _impl_.pool_.ClearToEmpty();
   _impl_.last_memo_.ClearToEmpty();
+  _impl_.auth_token_.ClearToEmpty();
+  _impl_.agent_name_.ClearToEmpty();
   ::memset(&_impl_.cpu_load_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.progress_pct_) -
       reinterpret_cast<char*>(&_impl_.cpu_load_)) + sizeof(_impl_.progress_pct_));
@@ -335,7 +377,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // string worker_id = 1;
+      // string worker_id = 1 [json_name = "workerId"];
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
           auto str = _internal_mutable_worker_id();
@@ -345,7 +387,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // string region = 2;
+      // string region = 2 [json_name = "region"];
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
           auto str = _internal_mutable_region();
@@ -355,7 +397,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // string type = 3;
+      // string type = 3 [json_name = "type"];
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
           auto str = _internal_mutable_type();
@@ -365,7 +407,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // float cpu_load = 4;
+      // float cpu_load = 4 [json_name = "cpuLoad"];
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 37)) {
           _impl_.cpu_load_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
@@ -373,7 +415,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // float gpu_utilization = 5;
+      // float gpu_utilization = 5 [json_name = "gpuUtilization"];
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 45)) {
           _impl_.gpu_utilization_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
@@ -381,7 +423,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // int32 active_jobs = 6;
+      // int32 active_jobs = 6 [json_name = "activeJobs"];
       case 6:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 48)) {
           _impl_.active_jobs_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
@@ -389,7 +431,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // repeated string capabilities = 7;
+      // repeated string capabilities = 7 [json_name = "capabilities"];
       case 7:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 58)) {
           ptr -= 1;
@@ -404,7 +446,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // string pool = 11;
+      // string pool = 11 [json_name = "pool"];
       case 11:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 90)) {
           auto str = _internal_mutable_pool();
@@ -414,7 +456,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // int32 max_parallel_jobs = 12;
+      // int32 max_parallel_jobs = 12 [json_name = "maxParallelJobs"];
       case 12:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 96)) {
           _impl_.max_parallel_jobs_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
@@ -422,7 +464,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // map<string, string> labels = 13;
+      // map<string, string> labels = 13 [json_name = "labels"];
       case 13:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 106)) {
           ptr -= 1;
@@ -435,7 +477,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // float memory_load = 14;
+      // float memory_load = 14 [json_name = "memoryLoad"];
       case 14:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 117)) {
           _impl_.memory_load_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
@@ -443,7 +485,7 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // int32 progress_pct = 15;
+      // int32 progress_pct = 15 [json_name = "progressPct"];
       case 15:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 120)) {
           _impl_.progress_pct_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
@@ -451,13 +493,33 @@ const char* Heartbeat::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // string last_memo = 16;
+      // string last_memo = 16 [json_name = "lastMemo"];
       case 16:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 130)) {
           auto str = _internal_mutable_last_memo();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
           CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.Heartbeat.last_memo"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string auth_token = 18 [json_name = "authToken"];
+      case 18:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 146)) {
+          auto str = _internal_mutable_auth_token();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.Heartbeat.auth_token"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string agent_name = 19 [json_name = "agentName"];
+      case 19:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 154)) {
+          auto str = _internal_mutable_agent_name();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "cordum.agent.v1.Heartbeat.agent_name"));
         } else
           goto handle_unusual;
         continue;
@@ -490,7 +552,7 @@ uint8_t* Heartbeat::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // string worker_id = 1;
+  // string worker_id = 1 [json_name = "workerId"];
   if (!this->_internal_worker_id().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_worker_id().data(), static_cast<int>(this->_internal_worker_id().length()),
@@ -500,7 +562,7 @@ uint8_t* Heartbeat::_InternalSerialize(
         1, this->_internal_worker_id(), target);
   }
 
-  // string region = 2;
+  // string region = 2 [json_name = "region"];
   if (!this->_internal_region().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_region().data(), static_cast<int>(this->_internal_region().length()),
@@ -510,7 +572,7 @@ uint8_t* Heartbeat::_InternalSerialize(
         2, this->_internal_region(), target);
   }
 
-  // string type = 3;
+  // string type = 3 [json_name = "type"];
   if (!this->_internal_type().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_type().data(), static_cast<int>(this->_internal_type().length()),
@@ -520,7 +582,7 @@ uint8_t* Heartbeat::_InternalSerialize(
         3, this->_internal_type(), target);
   }
 
-  // float cpu_load = 4;
+  // float cpu_load = 4 [json_name = "cpuLoad"];
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
   float tmp_cpu_load = this->_internal_cpu_load();
   uint32_t raw_cpu_load;
@@ -530,7 +592,7 @@ uint8_t* Heartbeat::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteFloatToArray(4, this->_internal_cpu_load(), target);
   }
 
-  // float gpu_utilization = 5;
+  // float gpu_utilization = 5 [json_name = "gpuUtilization"];
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
   float tmp_gpu_utilization = this->_internal_gpu_utilization();
   uint32_t raw_gpu_utilization;
@@ -540,13 +602,13 @@ uint8_t* Heartbeat::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteFloatToArray(5, this->_internal_gpu_utilization(), target);
   }
 
-  // int32 active_jobs = 6;
+  // int32 active_jobs = 6 [json_name = "activeJobs"];
   if (this->_internal_active_jobs() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(6, this->_internal_active_jobs(), target);
   }
 
-  // repeated string capabilities = 7;
+  // repeated string capabilities = 7 [json_name = "capabilities"];
   for (int i = 0, n = this->_internal_capabilities_size(); i < n; i++) {
     const auto& s = this->_internal_capabilities(i);
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
@@ -556,7 +618,7 @@ uint8_t* Heartbeat::_InternalSerialize(
     target = stream->WriteString(7, s, target);
   }
 
-  // string pool = 11;
+  // string pool = 11 [json_name = "pool"];
   if (!this->_internal_pool().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_pool().data(), static_cast<int>(this->_internal_pool().length()),
@@ -566,13 +628,13 @@ uint8_t* Heartbeat::_InternalSerialize(
         11, this->_internal_pool(), target);
   }
 
-  // int32 max_parallel_jobs = 12;
+  // int32 max_parallel_jobs = 12 [json_name = "maxParallelJobs"];
   if (this->_internal_max_parallel_jobs() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(12, this->_internal_max_parallel_jobs(), target);
   }
 
-  // map<string, string> labels = 13;
+  // map<string, string> labels = 13 [json_name = "labels"];
   if (!this->_internal_labels().empty()) {
     using MapType = ::_pb::Map<std::string, std::string>;
     using WireHelper = Heartbeat_LabelsEntry_DoNotUse::Funcs;
@@ -602,7 +664,7 @@ uint8_t* Heartbeat::_InternalSerialize(
     }
   }
 
-  // float memory_load = 14;
+  // float memory_load = 14 [json_name = "memoryLoad"];
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
   float tmp_memory_load = this->_internal_memory_load();
   uint32_t raw_memory_load;
@@ -612,13 +674,13 @@ uint8_t* Heartbeat::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteFloatToArray(14, this->_internal_memory_load(), target);
   }
 
-  // int32 progress_pct = 15;
+  // int32 progress_pct = 15 [json_name = "progressPct"];
   if (this->_internal_progress_pct() != 0) {
     target = stream->EnsureSpace(target);
     target = ::_pbi::WireFormatLite::WriteInt32ToArray(15, this->_internal_progress_pct(), target);
   }
 
-  // string last_memo = 16;
+  // string last_memo = 16 [json_name = "lastMemo"];
   if (!this->_internal_last_memo().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_last_memo().data(), static_cast<int>(this->_internal_last_memo().length()),
@@ -626,6 +688,26 @@ uint8_t* Heartbeat::_InternalSerialize(
       "cordum.agent.v1.Heartbeat.last_memo");
     target = stream->WriteStringMaybeAliased(
         16, this->_internal_last_memo(), target);
+  }
+
+  // string auth_token = 18 [json_name = "authToken"];
+  if (!this->_internal_auth_token().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_auth_token().data(), static_cast<int>(this->_internal_auth_token().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.Heartbeat.auth_token");
+    target = stream->WriteStringMaybeAliased(
+        18, this->_internal_auth_token(), target);
+  }
+
+  // string agent_name = 19 [json_name = "agentName"];
+  if (!this->_internal_agent_name().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_agent_name().data(), static_cast<int>(this->_internal_agent_name().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "cordum.agent.v1.Heartbeat.agent_name");
+    target = stream->WriteStringMaybeAliased(
+        19, this->_internal_agent_name(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -644,7 +726,7 @@ size_t Heartbeat::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated string capabilities = 7;
+  // repeated string capabilities = 7 [json_name = "capabilities"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(_impl_.capabilities_.size());
   for (int i = 0, n = _impl_.capabilities_.size(); i < n; i++) {
@@ -652,7 +734,7 @@ size_t Heartbeat::ByteSizeLong() const {
       _impl_.capabilities_.Get(i));
   }
 
-  // map<string, string> labels = 13;
+  // map<string, string> labels = 13 [json_name = "labels"];
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_labels_size());
   for (::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >::const_iterator
@@ -661,42 +743,56 @@ size_t Heartbeat::ByteSizeLong() const {
     total_size += Heartbeat_LabelsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
   }
 
-  // string worker_id = 1;
+  // string worker_id = 1 [json_name = "workerId"];
   if (!this->_internal_worker_id().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_worker_id());
   }
 
-  // string region = 2;
+  // string region = 2 [json_name = "region"];
   if (!this->_internal_region().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_region());
   }
 
-  // string type = 3;
+  // string type = 3 [json_name = "type"];
   if (!this->_internal_type().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_type());
   }
 
-  // string pool = 11;
+  // string pool = 11 [json_name = "pool"];
   if (!this->_internal_pool().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_pool());
   }
 
-  // string last_memo = 16;
+  // string last_memo = 16 [json_name = "lastMemo"];
   if (!this->_internal_last_memo().empty()) {
     total_size += 2 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_last_memo());
   }
 
-  // float cpu_load = 4;
+  // string auth_token = 18 [json_name = "authToken"];
+  if (!this->_internal_auth_token().empty()) {
+    total_size += 2 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_auth_token());
+  }
+
+  // string agent_name = 19 [json_name = "agentName"];
+  if (!this->_internal_agent_name().empty()) {
+    total_size += 2 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_agent_name());
+  }
+
+  // float cpu_load = 4 [json_name = "cpuLoad"];
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
   float tmp_cpu_load = this->_internal_cpu_load();
   uint32_t raw_cpu_load;
@@ -705,7 +801,7 @@ size_t Heartbeat::ByteSizeLong() const {
     total_size += 1 + 4;
   }
 
-  // float gpu_utilization = 5;
+  // float gpu_utilization = 5 [json_name = "gpuUtilization"];
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
   float tmp_gpu_utilization = this->_internal_gpu_utilization();
   uint32_t raw_gpu_utilization;
@@ -714,17 +810,17 @@ size_t Heartbeat::ByteSizeLong() const {
     total_size += 1 + 4;
   }
 
-  // int32 active_jobs = 6;
+  // int32 active_jobs = 6 [json_name = "activeJobs"];
   if (this->_internal_active_jobs() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_active_jobs());
   }
 
-  // int32 max_parallel_jobs = 12;
+  // int32 max_parallel_jobs = 12 [json_name = "maxParallelJobs"];
   if (this->_internal_max_parallel_jobs() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_max_parallel_jobs());
   }
 
-  // float memory_load = 14;
+  // float memory_load = 14 [json_name = "memoryLoad"];
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
   float tmp_memory_load = this->_internal_memory_load();
   uint32_t raw_memory_load;
@@ -733,7 +829,7 @@ size_t Heartbeat::ByteSizeLong() const {
     total_size += 1 + 4;
   }
 
-  // int32 progress_pct = 15;
+  // int32 progress_pct = 15 [json_name = "progressPct"];
   if (this->_internal_progress_pct() != 0) {
     total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_progress_pct());
   }
@@ -772,6 +868,12 @@ void Heartbeat::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROT
   }
   if (!from._internal_last_memo().empty()) {
     _this->_internal_set_last_memo(from._internal_last_memo());
+  }
+  if (!from._internal_auth_token().empty()) {
+    _this->_internal_set_auth_token(from._internal_auth_token());
+  }
+  if (!from._internal_agent_name().empty()) {
+    _this->_internal_set_agent_name(from._internal_agent_name());
   }
   static_assert(sizeof(uint32_t) == sizeof(float), "Code assumes uint32_t and float are the same size.");
   float tmp_cpu_load = from._internal_cpu_load();
@@ -843,6 +945,14 @@ void Heartbeat::InternalSwap(Heartbeat* other) {
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.last_memo_, lhs_arena,
       &other->_impl_.last_memo_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.auth_token_, lhs_arena,
+      &other->_impl_.auth_token_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.agent_name_, lhs_arena,
+      &other->_impl_.agent_name_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
       PROTOBUF_FIELD_OFFSET(Heartbeat, _impl_.progress_pct_)

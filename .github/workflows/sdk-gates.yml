@@ -68,3 +68,27 @@ jobs:
           go-version-file: 'go.mod'
       - name: Support + codegen tooling tests
         run: go test ./tools/sdk-support/... ./tools/codegen/... ./cmd/cap-support/... ./cmd/cap-codegen/...
+
+  # Every stable SDK produces fixtures that every other stable SDK decodes,
+  # validates and signature-verifies, all from installed artifacts. This job is
+  # asserted to exist by TestCrossLanguageMatrixIsEnforcedInCI, so the gate
+  # cannot be dropped without a failing test.
+  cross-language-matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install packaging tools
+        run: python -m pip install --upgrade build
+      - name: Cross-language 3x3 fixture and signature matrix
+        env:
+          CAP_TCK_MATRIX: '1'
+        run: go test -count=1 -run TestCrossLanguage -v ./internal/tck/...

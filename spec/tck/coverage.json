@@ -101,25 +101,25 @@
     {
       "behavior": "signature validity (invalid/missing/expired/wrong-audience)",
       "gated": "cap-production",
-      "reason": "the signing/verification and audience model is owned by task-a13f83fa (CAP-PRODUCTION), on no ref",
+      "reason": "signing/verification and the audience model are owned by task-a13f83fa (CAP-PRODUCTION), now merged; cross-SDK signature verification ships in the DoD-2 matrix, but expiry/wrong-audience rejection semantics are that task's conformance surface, not this one's",
       "cases": []
     },
     {
       "behavior": "identity/attempt/resource mismatch rejection",
       "gated": "cap-production",
-      "reason": "requires DispatchIdentity attempt/resource fields from task-a13f83fa, on no ref",
+      "reason": "DispatchIdentity attempt/resource fields from task-a13f83fa are merged and this TCK consumes them for duplicate/retry fencing; standalone identity/resource mismatch rejection remains that task's conformance surface",
       "cases": []
     },
     {
       "behavior": "session mismatch and dispatch-before-authenticated-acceptance rejection",
       "gated": "handshake",
-      "reason": "requires the authenticated worker handshake/session from task-a4b71af, unmerged",
+      "reason": "the authenticated worker handshake/session from task-a4b71af is merged (PR #69); session-binding rejection is the handshake profile's own conformance surface and is not part of this task's core-profile scope",
       "cases": []
     },
     {
       "behavior": "stale policy/content/snapshot cache reuse rejection",
       "gated": "cap-production",
-      "reason": "requires the CAP-PRODUCTION policy snapshot model to define freshness",
+      "reason": "the CAP-PRODUCTION policy snapshot model is merged, but it defines snapshot identity rather than a wire-observable staleness bound, so cache-reuse rejection is not yet expressible as an adapter-v1 conformance case",
       "cases": []
     },
     {
@@ -145,7 +145,7 @@
     {
       "behavior": "cancel-vs-result race, exactly one winner",
       "gated": "cap-production",
-      "reason": "requires the production dispatch/attempt model and real SDK adapters (step 7) to exercise the race",
+      "reason": "deterministic cancellation is covered ungated above (cancellation from any non-terminal state; cancellation after terminal rejected); the concurrent cancel-vs-result race needs a scheduler-level interleaving harness beyond this TCK's request/response adapter contract",
       "cases": []
     }
   ]

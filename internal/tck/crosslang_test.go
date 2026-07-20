@@ -23,6 +23,7 @@ func TestCrossLanguageMatrixCoversAllNineEdges(t *testing.T) {
 	if len(edges) != 9 {
 		t.Fatalf("expected 9 edges for 3 stable SDKs, got %d", len(edges))
 	}
+	totalCases := 0
 	for _, e := range edges {
 		if !e.OK() {
 			t.Errorf("edge %s->%s failed: %v", e.Producer, e.Consumer, e.Failures)
@@ -30,7 +31,13 @@ func TestCrossLanguageMatrixCoversAllNineEdges(t *testing.T) {
 		if e.Cases < 3 {
 			t.Errorf("edge %s->%s carried only %d cases, want >=3", e.Producer, e.Consumer, e.Cases)
 		}
+		totalCases += e.Cases
+		// Emit each edge so a passing run leaves auditable evidence of which
+		// edges actually executed, rather than only an aggregate count.
+		t.Logf("edge %-6s -> %-6s ok=%v cases=%d", e.Producer, e.Consumer, e.OK(), e.Cases)
 	}
+	t.Logf("matrix complete: %d edges, %d producer->consumer case verifications, 0 missing",
+		len(edges), totalCases)
 }
 
 // Every producer must be represented; a driver that silently emits nothing

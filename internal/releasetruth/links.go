@@ -75,7 +75,13 @@ func anchorSet(anchors []string) map[string]bool {
 // Line left for the caller to fill) when the link is broken.
 func checkTarget(repoRoot, file, rawTarget string, root RenderRoot, anchors map[string]bool) (LinkProblem, bool) {
 	target := strings.TrimSpace(rawTarget)
-	urlPart := strings.Fields(target)[0] // drop optional "title"
+	fields := strings.Fields(target)
+	if len(fields) == 0 {
+		// A link with an empty or whitespace-only target, e.g. [text]( ), is broken;
+		// report it rather than indexing an empty slice and panicking.
+		return LinkProblem{Target: rawTarget, Reason: "empty link target"}, true
+	}
+	urlPart := fields[0] // drop optional "title"
 	if isExternal(urlPart) {
 		return LinkProblem{}, false
 	}

@@ -1,10 +1,12 @@
 import asyncio
+import hashlib
 import json
 import logging
 import os
 import secrets
 import time
 from dataclasses import dataclass
+from datetime import timezone
 from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Type, TypeVar, Union
 
 from google.protobuf import timestamp_pb2
@@ -28,6 +30,9 @@ from cap.errors import InvalidInputError
 from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
 from cap.packet_boundary import decode_packet, finalize_packet, parse_packet
+from cap.production_signing import ProductionSignatureError, ProductionTrust, verify_production_packet
+from cap.production_replay import ReplayConflictError, ReplayStore, ReplayStoreUnavailableError
+from cap.production_validation import IdentityMismatchError, validate_identity_binding
 from cap.worker_trust import WorkerTrustConfig, WorkerTrustMode
 from cap.worker_trust_runtime import (
     DEFAULT_RENEW_MIN_INTERVAL,
@@ -331,6 +336,8 @@ class Agent:
         worker_trust: Optional[WorkerTrustConfig] = None,
         worker_trust_timeout: Optional[float] = None, worker_trust_retries: Optional[int] = None,
         worker_trust_renew_min_interval: float = DEFAULT_RENEW_MIN_INTERVAL,
+        production_trust: Optional[ProductionTrust] = None,
+        replay_store: Optional[ReplayStore] = None,
     ) -> None:
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
@@ -355,6 +362,11 @@ class Agent:
         self._configure_worker_trust(worker_trust_mode, worker_trust,
             worker_trust_timeout, worker_trust_retries,
             worker_trust_renew_min_interval)
+        # CAP-PRODUCTION raw-packet admission (task-a13f83fa step-7). Both
+        # must be set to enable; this is the explicit migration/compat
+        # switch — production is never inferred. See _decode_production_packet.
+        self._production_trust = production_trust
+        self._replay_store = replay_store
         Agent._initialize_lifecycle(self)
 
     def _configure_worker_trust(
@@ -922,9 +934,48 @@ class Agent:
                     raise
                 self._safe_cleanup_log("agent close", exc)
 
+    def _production_enabled(self) -> bool:
+        return self._production_trust is not None and self._replay_store is not None
+
+    def _decode_production_packet(
+        self, payload: bytes
+    ) -> Optional[buspacket_pb2.BusPacket]:
+        """Raw-wire CAP-PRODUCTION admission: verify the exact received
+        bytes (never a re-serialized object), then atomic replay admission,
+        then authoritative identity — all BEFORE any handler runs. Any
+        rejection is logged without the raw signature/payload bytes."""
+        try:
+            packet = verify_production_packet(payload, self._production_trust)
+        except ProductionSignatureError as exc:
+            self._logger.warning("production admission rejected packet: %s", exc)
+            return None
+        metadata = packet.signature_metadata
+        digest = hashlib.sha256(payload).digest()
+        try:
+            self._replay_store.admit(
+                packet.identity.tenant_id,
+                metadata.audience,
+                packet.sender_id,
+                metadata.message_id,
+                digest,
+                metadata.expires_at.ToDatetime(tzinfo=timezone.utc),
+            )
+        except (ReplayConflictError, ReplayStoreUnavailableError) as exc:
+            self._logger.warning("production admission rejected packet: %s", exc)
+            return None
+        if packet.HasField("job_request") and packet.HasField("identity"):
+            try:
+                validate_identity_binding(packet.job_request, packet.identity)
+            except IdentityMismatchError as exc:
+                self._logger.warning("production admission rejected packet: %s", exc)
+                return None
+        return packet
+
     def _decode_admitted_packet(
         self, payload: bytes
     ) -> Optional[buspacket_pb2.BusPacket]:
+        if self._production_enabled():
+            return self._decode_production_packet(payload)
         if not self._trust_admitting:
             return None
         settings = self._trust_settings

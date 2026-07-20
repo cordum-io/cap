@@ -7,10 +7,10 @@ CAP ships three protocol SDKs (Go, Node, Python) that speak directly to the NATS
 <!-- cap-release:begin:sdk-table -->
 | Component | Language | Kind | Tier | Registry | Package | Version | Toolchain |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| cap-go | go | sdk | stable | proxy.golang.org | github.com/cordum-io/cap/v2 | 2.14.0 | go1.25.12 |
-| cap-node | node | sdk | stable | registry.npmjs.org | cap-sdk-node | 2.14.0 | node20 |
-| cap-python | python | sdk | stable | pypi.org | cap-sdk-python | 2.14.0 | python3.11 |
-| cordum-guard | python | extension | stable | pypi.org | cordum-guard | 2.14.0 | python3.11 |
+| cap-go | go | sdk | stable | proxy.golang.org | github.com/cordum-io/cap/v2 | 2.15.0 | go1.25.12 |
+| cap-node | node | sdk | stable | registry.npmjs.org | cap-sdk-node | 2.15.0 | node20 |
+| cap-python | python | sdk | stable | pypi.org | cap-sdk-python | 2.15.0 | python3.11 |
+| cordum-guard | python | extension | stable | pypi.org | cordum-guard | 2.15.0 | python3.11 |
 | cap-cpp | cpp | sdk | experimental | - | - | - | - |
 | cap-dotnet | dotnet | sdk | experimental | - | - | - | - |
 | cap-java | java | sdk | experimental | - | - | - | - |

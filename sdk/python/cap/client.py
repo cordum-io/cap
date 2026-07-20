@@ -1,21 +1,23 @@
 from google.protobuf import timestamp_pb2
-from cap.pb.cordum.agent.v1 import buspacket_pb2
+from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives import hashes
 from typing import Optional
 
 
 from cap.constants import DEFAULT_PROTOCOL_VERSION
+from cap.packet_boundary import Publisher, finalize_packet
 from cap.subjects import SUBJECT_SUBMIT
 
 
 async def submit_job(
-    nc,
-    job_request,
+    nc: Publisher,
+    job_request: job_pb2.JobRequest,
     trace_id: str,
     sender_id: str,
     private_key: Optional[ec.EllipticCurvePrivateKey] = None,
-):
+    *,
+    session_token: Optional[str] = None,
+) -> None:
     """Publish a JobRequest onto the CAP submit subject.
 
     Args:
@@ -24,6 +26,7 @@ async def submit_job(
         trace_id: Distributed trace identifier propagated through the bus.
         sender_id: Identity of the sender (used in the BusPacket envelope).
         private_key: Optional ECDSA private key for signing the packet.
+        session_token: Optional trusted runtime token for the outer envelope.
     """
     ts = timestamp_pb2.Timestamp()
     ts.GetCurrentTime()
@@ -34,9 +37,9 @@ async def submit_job(
     packet.protocol_version = DEFAULT_PROTOCOL_VERSION
     packet.job_request.CopyFrom(job_request)
 
-    if private_key:
-        unsigned_data = packet.SerializeToString(deterministic=True)
-        signature = private_key.sign(unsigned_data, ec.ECDSA(hashes.SHA256()))
-        packet.signature = signature
-
-    await nc.publish(SUBJECT_SUBMIT, packet.SerializeToString(deterministic=True))
+    outgoing = finalize_packet(
+        packet, private_key, session_token=session_token
+    )
+    await nc.publish(
+        SUBJECT_SUBMIT, outgoing.SerializeToString(deterministic=True)
+    )

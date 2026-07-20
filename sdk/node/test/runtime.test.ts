@@ -3,22 +3,23 @@ import { z } from "zod";
 import { Agent, InMemoryBlobStore } from "../src/runtime";
 import { loadRoot } from "../src/protos";
 import { encodeDeterministic } from "../src/codec";
+import type { Msg, Subscription, SubscriptionOptions } from "nats";
 
 class MockNatsConnection {
   published: Array<{ subject: string; data: Uint8Array }> = [];
-  subscriptions: Map<string, (msg: any) => void> = new Map();
+  subscriptions: Map<string, NonNullable<SubscriptionOptions["callback"]>> = new Map();
 
   async publish(subject: string, data: Uint8Array): Promise<void> {
     this.published.push({ subject, data });
   }
 
-  subscribe(subject: string, _opts?: any, cb?: (msg: any) => void): any {
-    if (cb) {
-      this.subscriptions.set(subject, cb);
+  subscribe(subject: string, opts: SubscriptionOptions = {}): Subscription {
+    if (opts.callback) {
+      this.subscriptions.set(subject, opts.callback);
     }
     return {
       drain: async () => {},
-    };
+    } as unknown as Subscription;
   }
 
   async drain(): Promise<void> {
@@ -78,13 +79,14 @@ describe("CAP runtime (node)", () => {
       traceId: "trace-1",
       senderId: "client-1",
       protocolVersion: 1,
+      createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
       jobRequest: { jobId, topic: "job.test", contextPtr: `redis://${ctxKey}` },
     });
     const payload = encodeDeterministic(BusPacket, packet);
 
     const cb = mock.subscriptions.get("job.test");
     assert.ok(cb);
-    cb?.({ data: payload });
+    cb?.(null, { data: payload } as Msg);
 
     const result = await waitForPublishedSubject(mock, "sys.job.result");
     const resultPacket = BusPacket.decode(result.data) as any;
@@ -126,13 +128,14 @@ describe("CAP runtime (node)", () => {
       traceId: "trace-2",
       senderId: "client-2",
       protocolVersion: 1,
+      createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
       jobRequest: { jobId, topic: "job.validate", contextPtr: `redis://${ctxKey}` },
     });
     const payload = encodeDeterministic(BusPacket, packet);
 
     const cb = mock.subscriptions.get("job.validate");
     assert.ok(cb);
-    cb?.({ data: payload });
+    cb?.(null, { data: payload } as Msg);
 
     const result = await waitForPublishedSubject(mock, "sys.job.result");
     const resultPacket = BusPacket.decode(result.data) as any;
@@ -176,13 +179,14 @@ describe("CAP runtime (node)", () => {
       traceId: "trace-3",
       senderId: "client-3",
       protocolVersion: 1,
+      createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
       jobRequest: { jobId, topic: "job.retry", contextPtr: `redis://${ctxKey}` },
     });
     const payload = encodeDeterministic(BusPacket, packet);
 
     const cb = mock.subscriptions.get("job.retry");
     assert.ok(cb);
-    cb?.({ data: payload });
+    cb?.(null, { data: payload } as Msg);
 
     const result = await waitForPublishedSubject(mock, "sys.job.result");
     const resultPacket = BusPacket.decode(result.data) as any;

@@ -17,6 +17,70 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Unreleased — Protocol Hardening
 
+### Breaking changes (Go SDK)
+
+- `ValidateBusPacket` now accepts exactly `protocol_version == 1`; earlier Go
+  releases accepted any positive version. Callers carrying future or private
+  versions must use a matching validator rather than passing them through the
+  v1 API.
+- `ValidateBusPacket` now requires `BusPacket.sender_id` to equal
+  `JobResult.worker_id`, `Heartbeat.worker_id`, or `Handshake.component_id` for
+  those three payloads. We deliberately keep these constraints instead of
+  gating them behind a permissive validator: accepting two conflicting sender
+  authorities makes signature and policy attribution ambiguous. This narrows
+  the old acceptance set without changing protobuf fields.
+- Go runtime `warn` and `enforce` modes require a complete
+  `WorkerTrustConfig`; an explicitly configured `SenderID` must equal
+  `WorkerTrust.WorkerID`.
+- Unsigned Go transport is no longer inferred from missing keys. Low-level
+  workers, `ManagedWorker`, runtime `Agent`, and `client.Client` require
+  `AllowUnsigned: true`; package-level submission uses the explicitly named
+  `SubmitUnsigned`. The ordinary `Submit` path requires a private key.
+- `off` remains the compatibility mode, but `Start` rejects dormant trust
+  configuration/tuning and also rejects missing ordinary signing/verification
+  keys unless `AllowUnsigned` is explicit. This prevents a key deployment typo
+  from silently selecting unauthenticated transport.
+
+- **[WIRE]** Added the version-1 authenticated worker trust messages
+  (`WorkerHandshakeChallengeRequest`, `WorkerHandshakeChallenge`,
+  `WorkerHandshakeAuthenticate`, and `WorkerHandshakeResult`) and append-only
+  `BusPacket` oneof tags 19-22. The exchange uses exact-v1, recursively
+  unknown-field-free protobuf packets, P-256 proof keys, phase-domain signing,
+  bounded core-NATS request/reply, and an accepted result's short-lived session
+  token in existing `BusPacket.auth_token` tag 18.
+- **Go/Python/Node SDKs:** Added pinned worker-trust client/runtime lifecycles
+  with `off`/`warn`/`enforce` admission modes, proof-key and scheduler-key
+  binding, exact `cordum-scheduler` audience validation, ISSUE before admission,
+  token-covering RENEW without tokenless fallback, reconnect handling, and
+  expiry-safe token attachment. WARN changes only compatibility admission after
+  operational failure; it does not weaken packet, signature, identity, result,
+  or session verification.
+- **Security documentation:** Defined out-of-band proof public-key enrollment,
+  overlap-based worker/scheduler key rotation, authoritative session
+  supersession/revocation, shared challenge/replay/session authority, safe
+  coarse rejections, and secret-free observability. Legacy heartbeat bearer
+  credentials and standalone capability handshakes are explicitly distinct
+  from proof-bound sessions.
+- **SDK API boundary:** Documented public trust builders, codecs, validators,
+  transcript/signature helpers, and response verifiers as client adapter and
+  compatibility primitives only. They are not a key-enrollment API, scheduler
+  issuer, revocation/session store, or dispatch authorization decision.
+- **CI/release:** Pinned mandatory Python and Node real-NATS gates to NATS
+  2.12.6 by immutable image digest. Node CI and publishing extract and verify
+  the exact `nats-server` binary and pass it through
+  `CAP_NATS_SERVER_BIN`; workflow contract tests reject version drift or a
+  missing binary binding.
+- **Onboarding docs/examples (no wire change):** Reworked the local playground and
+  simple-echo documentation to distinguish direct development-only `job.echo` publishing
+  from governed `sys.job.submit` routing, document the absent security/state/retry
+  components, use opaque `demo://context/...` and `demo://result/...` pointers, and make
+  playground readiness, result deadlines, exit codes, and cleanup deterministic.
+- **Node SDK (non-wire bugfix):** Repaired npm artifacts to bundle all runtime protobuf
+  schemas, corrected NATS callback dispatch and shutdown/reconnect lifecycle handling, and
+  made configured inbound signature verification fail closed before handlers run. No
+  protobuf schema or protocol-version change.
+- **Python SDK:** Corrected the P0 low-level worker and high-level Agent failure paths so an ordinary handler exception emits one generic `JOB_STATUS_FAILED` result without leaking exception text, records bounded newline-safe failure context, and leaves the worker available for subsequent jobs even when logging or metrics hooks fail. Cancellation and process-exit signals remain control flow, while worker/agent shutdown now drains intake, applies deadlines to every cleanup stage, preserves the primary error, and attempts later resources after a timeout.
+- **Python SDK:** Declared and verified CPython 3.9–3.14 support, aligned the runtime floors with generated code (`protobuf>=6.31.1,<7`, `grpcio>=1.76.0,<2`), and added pinned codegen drift, typing, real-NATS, clean wheel/sdist import, metadata, checksum, and tag-to-version release gates. These are unreleased correctness and provenance changes; no wire schema changed.
 - **Go SDK:** Fixed worker heartbeat/progress/cancel payload builders so freshly-built `BusPacket`s pass the SDK's own `ValidateBusPacket`: `HeartbeatPayloadWithProgress` now sets `TraceId=workerID` and `CreatedAt`, and `ProgressPayload` / `CancelPayload` now set `TraceId=jobID`. This is not a [WIRE] change; it populates existing envelope fields without changing protobuf schema or protocol version.
 - **Python/Node SDKs:** Matched Go SDK parity for heartbeat/progress/cancel payload builders by setting heartbeat `trace_id`/`traceId` to the worker id, progress/cancel `trace_id`/`traceId` to the job id, and stamping `created_at` in these helper-built envelopes so packets pass SDK `BusPacket` validation. This is not a [WIRE] change; it populates existing envelope fields without changing protobuf schema or protocol version.
 - **[WIRE]** Added `agent_name` field (19) to `Heartbeat` and `agent_name` field (7) to `Handshake` — an optional human-facing display label (e.g. `Claude Code — Billing Bot`) for dashboard and audit attribution. Additive/append-only; existing clients stay wire-compatible (old clients send empty). It is a DISPLAY label only and **not an authentication authority**: consumers MUST prefer authenticated identity records (worker credential / Agent Identity) over this self-reported value and MUST NOT use it for authorization. Regenerated Go and Python descriptors; C++/Node-generated stubs unchanged (additive field — regenerate via the pinned toolchain in CI).

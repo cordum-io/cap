@@ -1,83 +1,97 @@
 # Protocol Errors
 
-This section specifies when and how CAP components report protocol-level errors using `SystemAlert` messages published to `sys.alert`.
+Protocol errors are wire or trust-boundary failures, not job failures. Job
+failures use `JobResult`; safe ordinary protocol telemetry may use
+`SystemAlert`; worker trust request/reply uses its coarse rejection enum.
 
-## Overview
+## Ordinary BusPacket Errors
 
-Protocol errors occur when a component receives a `BusPacket` that violates wire-level expectations: unsupported versions, failed signatures, malformed data, or unrecognized payload types. These errors are distinct from job-level failures (which are reported via `JobResult`).
+| Condition | ErrorCode | Severity |
+|---|---|---|
+| Unsupported `protocol_version` | `PROTOCOL_VERSION_MISMATCH` (100) | `ERROR` |
+| Packet fails bounded deserialization | `PROTOCOL_MALFORMED_PACKET` (101) | `ERROR` |
+| No recognized payload | `PROTOCOL_UNKNOWN_PAYLOAD` (102) | `WARNING` |
+| Signature fails verification | `PROTOCOL_SIGNATURE_INVALID` (103) | `CRITICAL` |
+| Required signature is missing | `PROTOCOL_SIGNATURE_MISSING` (104) | `CRITICAL` |
 
-Components SHOULD report protocol errors by publishing a `SystemAlert` to `sys.alert` so that controllers, schedulers, and observability backends can detect and respond to issues.
+The consumer MUST drop the packet before invoking a handler or changing job,
+registry, readiness, session, or dispatch state. A component MAY publish a
+bounded `SystemAlert` to `sys.alert` only when doing so cannot reflect secrets
+or amplify attacker traffic. Alert failure does not make the packet valid.
 
-## When to Emit
+## Trust-handshake Validation Order
 
-| Condition | ErrorCode | Severity | Description |
-|-----------|-----------|----------|-------------|
-| Unsupported `protocol_version` | `PROTOCOL_VERSION_MISMATCH` (100) | `ERROR` | Peer advertises a version the consumer does not support. |
-| Packet fails deserialization | `PROTOCOL_MALFORMED_PACKET` (101) | `ERROR` | Raw bytes cannot be parsed as a valid `BusPacket`. |
-| Unknown `payload` oneof variant | `PROTOCOL_UNKNOWN_PAYLOAD` (102) | `WARNING` | Payload variant is unrecognized (expected with older consumers). |
-| Signature verification fails | `PROTOCOL_SIGNATURE_INVALID` (103) | `CRITICAL` | Signature is present but does not verify against the sender's public key. |
-| Signature required but missing | `PROTOCOL_SIGNATURE_MISSING` (104) | `CRITICAL` | Component policy requires signatures but the packet has none. |
+Each worker trust phase MUST fail before state use or mutation. The receiver
+applies this order, with no later stage allowed to repair an earlier failure:
 
-## Who Emits
+1. bound raw bytes and decode exactly one `BusPacket`;
+2. require the expected trust oneof phase, exact outer and inner v1 values, no
+   recursive unknown fields, valid enums, canonical lengths, and valid times;
+3. bind request, trace, sender, worker, agent, tenant, audience, purpose, key
+   IDs, nonces, SDK version, and capability fields to expected or authoritative
+   values;
+4. select only a configured active key and verify the phase-domain signature;
+5. check challenge freshness, replay state, proof-key/credential status, and,
+   for RENEW, the current session and all of its bindings;
+6. atomically consume the challenge;
+7. mint or supersede a session and update authenticated registry/readiness
+   state.
 
-Any component that detects a protocol error SHOULD publish a `SystemAlert` to `sys.alert`. This includes gateways, schedulers, workers, orchestrators, and controllers.
+A challenge-request signature MUST verify before a challenge is created or its
+request ID/client nonce is reserved. Authenticate verification and live-session
+checks MUST succeed before challenge consumption; challenge consumption MUST
+win atomically before token minting. No failure path may call application
+handlers or partially update state.
 
-Components MUST NOT crash on protocol errors. The offending packet SHOULD be dropped after the alert is published.
+## Worker Trust Rejections
 
-## Who Listens
+`WorkerHandshakeRejectionReason` is deliberately coarse:
 
-- **Controllers**: SHOULD consume `sys.alert` and surface protocol errors in dashboards and alerting systems.
-- **Schedulers**: SHOULD consume `sys.alert` to detect misbehaving components and MAY suspend dispatch to offending `sender_id` values.
-- **Observability backends**: SHOULD consume `sys.alert` for logging, metrics, and tracing correlation.
+| Reason | Safe meaning |
+|---|---|
+| `INVALID_REQUEST` | malformed or contradictory request |
+| `AUTHENTICATION_FAILED` | identity, credential, key, or proof did not authenticate |
+| `REPLAY_DETECTED` | one-time request/challenge state was already used |
+| `CLOCK_SKEW` | request time is outside the accepted window |
+| `CHALLENGE_EXPIRED` | challenge is no longer live |
+| `SESSION_REQUIRED` | RENEW omitted its current token |
+| `SESSION_INVALID` | prior session is unusable for any reason |
+| `UNSUPPORTED_VERSION` | exact v1 contract was not met |
+| `INTERNAL_ERROR` | fail-closed authority or internal operation failed |
 
-## Severity Mapping
+`AUTHENTICATION_FAILED` MUST cover missing, unknown, disabled, revoked, and
+mismatched worker/credential/proof-key records plus invalid proof. Likewise,
+`SESSION_INVALID` MUST cover malformed, expired, revoked, superseded,
+wrong-audience, and identity/key-mismatched sessions. A caller must not be able
+to enumerate which worker, key, or session exists by comparing responses,
+latency classes, logs, or retry behavior.
 
-| Severity | Meaning | Recommended Response |
-|----------|---------|---------------------|
-| `CRITICAL` | Security-relevant error (signature failure) | Alert on-call, log for audit, consider blocking sender |
-| `ERROR` | Protocol violation (version mismatch, malformed data) | Log, increment error metrics, drop packet |
-| `WARNING` | Non-critical issue (unknown payload) | Log, increment metrics; no immediate action required |
-| `INFO` | Informational (reserved for future use) | Log only |
+A rejected `WorkerHandshakeResult` MUST set `accepted=false`, a non-zero coarse
+reason, an empty `BusPacket.auth_token`, and no token expiry. When a request is
+too malformed or unauthenticated to establish a safe reply correlation, the
+receiver SHOULD drop it without a reply. A timeout or absent reply is not
+acceptance.
 
-## Recommended Actions
+## Safe Diagnostics
 
-1. **Log**: Every protocol error SHOULD be logged with `trace_id`, `sender_id`, `error_code_enum`, and `message` for post-incident analysis.
-2. **Metrics**: Components SHOULD increment a counter keyed by `error_code_enum` and `source_component` for monitoring.
-3. **Block**: For `CRITICAL` severity (signature failures), operators MAY configure automatic blocking of the offending `sender_id` after a threshold of violations.
-4. **Notify**: Controllers SHOULD forward `CRITICAL` alerts to external notification channels (PagerDuty, Slack, etc.).
+For ordinary alerts, populate only bounded values:
 
-## SystemAlert Fields
+- `severity` and `error_code_enum` from the fixed enums;
+- the emitter's own `source_component`;
+- a previously validated `trace_id`, if one exists;
+- a generic message and an allowlisted, bounded `details` map.
 
-When emitting a protocol error alert, populate the following fields:
+Do not copy an untrusted `sender_id`, subject, payload field, parse error, or
+exception text directly into an alert. A trust rejection normally should be
+counted locally rather than echoed to `sys.alert`.
 
-| Field | Usage |
-|-------|-------|
-| `severity` | Set to the appropriate `AlertSeverity` value per the mapping above. |
-| `error_code_enum` | Set to the corresponding `ErrorCode` value (e.g., `PROTOCOL_SIGNATURE_INVALID`). |
-| `message` | Human-readable description of the error. |
-| `source_component` | The `sender_id` of the component emitting the alert. |
-| `trace_id` | The `trace_id` from the offending `BusPacket`, if available. |
-| `details` | Additional context as key-value pairs (e.g., `{"offending_sender": "worker-5", "expected_version": "1"}`). |
+Logs, metrics, traces, alerts, wire rejections, and crash reports MUST NOT
+contain credentials, `Heartbeat.auth_token`, `BusPacket.auth_token`, proof
+private/public key material, signatures, nonces, raw packets, or complete
+challenge/result messages. Trust-rejection metric labels MUST be bounded enums
+such as phase, mode, outcome, and coarse reason; never tokens, key IDs,
+identities, subjects, or free-form messages.
 
-Legacy fields (`level`, `component`, `code`) MAY be populated for backward compatibility with older consumers but SHOULD NOT be relied upon for new implementations.
-
-## Example
-
-A scheduler detects a signature failure from `worker-5`:
-
-```json
-{
-  "severity": "ALERT_SEVERITY_CRITICAL",
-  "error_code_enum": "ERROR_CODE_PROTOCOL_SIGNATURE_INVALID",
-  "message": "Signature verification failed for BusPacket from worker-5",
-  "source_component": "scheduler-1",
-  "trace_id": "trace-abc-789",
-  "details": {
-    "offending_sender": "worker-5",
-    "subject": "sys.job.result"
-  },
-  "level": "CRITICAL",
-  "component": "scheduler-1",
-  "code": "PROTOCOL_SIGNATURE_INVALID"
-}
-```
+Components MUST remain available after rejecting protocol traffic. Repeated
+invalid traffic SHOULD be rate-limited at an authenticated transport boundary;
+it MUST NOT trigger unbounded alerts, allocations, retries, or logs.

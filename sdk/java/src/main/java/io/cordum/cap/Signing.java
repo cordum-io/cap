@@ -8,6 +8,7 @@ import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.security.SignatureException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -49,7 +50,11 @@ public final class Signing {
         Signature sig = Signature.getInstance("SHA256withECDSA");
         sig.initVerify(key);
         sig.update(unsigned);
-        return sig.verify(sigBytes.toByteArray());
+        try {
+            return sig.verify(sigBytes.toByteArray());
+        } catch (SignatureException ignored) {
+            return false;
+        }
     }
 
     /**

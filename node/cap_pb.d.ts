@@ -9,154 +9,196 @@ export namespace cordum {
         /** Namespace v1. */
         namespace v1 {
 
-            /** AlertSeverity enum. */
-            enum AlertSeverity {
-                ALERT_SEVERITY_UNSPECIFIED = 0,
-                ALERT_SEVERITY_INFO = 1,
-                ALERT_SEVERITY_WARNING = 2,
-                ALERT_SEVERITY_ERROR = 3,
-                ALERT_SEVERITY_CRITICAL = 4
-            }
+            /** Properties of a BusPacket. */
+            interface IBusPacket {
 
-            /** Properties of a SystemAlert. */
-            interface ISystemAlert {
-
-                /** SystemAlert level */
-                level?: (string|null);
-
-                /** SystemAlert message */
-                message?: (string|null);
-
-                /** SystemAlert component */
-                component?: (string|null);
-
-                /** SystemAlert code */
-                code?: (string|null);
-
-                /** SystemAlert severity */
-                severity?: (cordum.agent.v1.AlertSeverity|null);
-
-                /** SystemAlert errorCodeEnum */
-                errorCodeEnum?: (cordum.agent.v1.ErrorCode|null);
-
-                /** SystemAlert sourceComponent */
-                sourceComponent?: (string|null);
-
-                /** SystemAlert details */
-                details?: ({ [k: string]: string }|null);
-
-                /** SystemAlert traceId */
+                /** BusPacket traceId */
                 traceId?: (string|null);
+
+                /** BusPacket senderId */
+                senderId?: (string|null);
+
+                /** BusPacket createdAt */
+                createdAt?: (google.protobuf.ITimestamp|null);
+
+                /** BusPacket protocolVersion */
+                protocolVersion?: (number|null);
+
+                /** BusPacket jobRequest */
+                jobRequest?: (cordum.agent.v1.IJobRequest|null);
+
+                /** BusPacket jobResult */
+                jobResult?: (cordum.agent.v1.IJobResult|null);
+
+                /** BusPacket heartbeat */
+                heartbeat?: (cordum.agent.v1.IHeartbeat|null);
+
+                /** BusPacket alert */
+                alert?: (cordum.agent.v1.ISystemAlert|null);
+
+                /** BusPacket jobProgress */
+                jobProgress?: (cordum.agent.v1.IJobProgress|null);
+
+                /** BusPacket jobCancel */
+                jobCancel?: (cordum.agent.v1.IJobCancel|null);
+
+                /** BusPacket handshake */
+                handshake?: (cordum.agent.v1.IHandshake|null);
+
+                /** BusPacket workerHandshakeChallengeRequest */
+                workerHandshakeChallengeRequest?: (cordum.agent.v1.IWorkerHandshakeChallengeRequest|null);
+
+                /** BusPacket workerHandshakeChallenge */
+                workerHandshakeChallenge?: (cordum.agent.v1.IWorkerHandshakeChallenge|null);
+
+                /** BusPacket workerHandshakeAuthenticate */
+                workerHandshakeAuthenticate?: (cordum.agent.v1.IWorkerHandshakeAuthenticate|null);
+
+                /** BusPacket workerHandshakeResult */
+                workerHandshakeResult?: (cordum.agent.v1.IWorkerHandshakeResult|null);
+
+                /** BusPacket signature */
+                signature?: (Uint8Array|null);
+
+                /** BusPacket authToken */
+                authToken?: (string|null);
             }
 
-            /** Represents a SystemAlert. */
-            class SystemAlert implements ISystemAlert {
+            /** Represents a BusPacket. */
+            class BusPacket implements IBusPacket {
 
                 /**
-                 * Constructs a new SystemAlert.
+                 * Constructs a new BusPacket.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: cordum.agent.v1.ISystemAlert);
+                constructor(properties?: cordum.agent.v1.IBusPacket);
 
-                /** SystemAlert level. */
-                public level: string;
-
-                /** SystemAlert message. */
-                public message: string;
-
-                /** SystemAlert component. */
-                public component: string;
-
-                /** SystemAlert code. */
-                public code: string;
-
-                /** SystemAlert severity. */
-                public severity: cordum.agent.v1.AlertSeverity;
-
-                /** SystemAlert errorCodeEnum. */
-                public errorCodeEnum: cordum.agent.v1.ErrorCode;
-
-                /** SystemAlert sourceComponent. */
-                public sourceComponent: string;
-
-                /** SystemAlert details. */
-                public details: { [k: string]: string };
-
-                /** SystemAlert traceId. */
+                /** BusPacket traceId. */
                 public traceId: string;
 
+                /** BusPacket senderId. */
+                public senderId: string;
+
+                /** BusPacket createdAt. */
+                public createdAt?: (google.protobuf.ITimestamp|null);
+
+                /** BusPacket protocolVersion. */
+                public protocolVersion: number;
+
+                /** BusPacket jobRequest. */
+                public jobRequest?: (cordum.agent.v1.IJobRequest|null);
+
+                /** BusPacket jobResult. */
+                public jobResult?: (cordum.agent.v1.IJobResult|null);
+
+                /** BusPacket heartbeat. */
+                public heartbeat?: (cordum.agent.v1.IHeartbeat|null);
+
+                /** BusPacket alert. */
+                public alert?: (cordum.agent.v1.ISystemAlert|null);
+
+                /** BusPacket jobProgress. */
+                public jobProgress?: (cordum.agent.v1.IJobProgress|null);
+
+                /** BusPacket jobCancel. */
+                public jobCancel?: (cordum.agent.v1.IJobCancel|null);
+
+                /** BusPacket handshake. */
+                public handshake?: (cordum.agent.v1.IHandshake|null);
+
+                /** BusPacket workerHandshakeChallengeRequest. */
+                public workerHandshakeChallengeRequest?: (cordum.agent.v1.IWorkerHandshakeChallengeRequest|null);
+
+                /** BusPacket workerHandshakeChallenge. */
+                public workerHandshakeChallenge?: (cordum.agent.v1.IWorkerHandshakeChallenge|null);
+
+                /** BusPacket workerHandshakeAuthenticate. */
+                public workerHandshakeAuthenticate?: (cordum.agent.v1.IWorkerHandshakeAuthenticate|null);
+
+                /** BusPacket workerHandshakeResult. */
+                public workerHandshakeResult?: (cordum.agent.v1.IWorkerHandshakeResult|null);
+
+                /** BusPacket signature. */
+                public signature: Uint8Array;
+
+                /** BusPacket authToken. */
+                public authToken: string;
+
+                /** BusPacket payload. */
+                public payload?: ("jobRequest"|"jobResult"|"heartbeat"|"alert"|"jobProgress"|"jobCancel"|"handshake"|"workerHandshakeChallengeRequest"|"workerHandshakeChallenge"|"workerHandshakeAuthenticate"|"workerHandshakeResult");
+
                 /**
-                 * Creates a new SystemAlert instance using the specified properties.
+                 * Creates a new BusPacket instance using the specified properties.
                  * @param [properties] Properties to set
-                 * @returns SystemAlert instance
+                 * @returns BusPacket instance
                  */
-                public static create(properties?: cordum.agent.v1.ISystemAlert): cordum.agent.v1.SystemAlert;
+                public static create(properties?: cordum.agent.v1.IBusPacket): cordum.agent.v1.BusPacket;
 
                 /**
-                 * Encodes the specified SystemAlert message. Does not implicitly {@link cordum.agent.v1.SystemAlert.verify|verify} messages.
-                 * @param message SystemAlert message or plain object to encode
+                 * Encodes the specified BusPacket message. Does not implicitly {@link cordum.agent.v1.BusPacket.verify|verify} messages.
+                 * @param message BusPacket message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: cordum.agent.v1.ISystemAlert, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: cordum.agent.v1.IBusPacket, writer?: $protobuf.Writer): $protobuf.Writer;
 
                 /**
-                 * Encodes the specified SystemAlert message, length delimited. Does not implicitly {@link cordum.agent.v1.SystemAlert.verify|verify} messages.
-                 * @param message SystemAlert message or plain object to encode
+                 * Encodes the specified BusPacket message, length delimited. Does not implicitly {@link cordum.agent.v1.BusPacket.verify|verify} messages.
+                 * @param message BusPacket message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encodeDelimited(message: cordum.agent.v1.ISystemAlert, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encodeDelimited(message: cordum.agent.v1.IBusPacket, writer?: $protobuf.Writer): $protobuf.Writer;
 
                 /**
-                 * Decodes a SystemAlert message from the specified reader or buffer.
+                 * Decodes a BusPacket message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
                  * @param [length] Message length if known beforehand
-                 * @returns SystemAlert
+                 * @returns BusPacket
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.SystemAlert;
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.BusPacket;
 
                 /**
-                 * Decodes a SystemAlert message from the specified reader or buffer, length delimited.
+                 * Decodes a BusPacket message from the specified reader or buffer, length delimited.
                  * @param reader Reader or buffer to decode from
-                 * @returns SystemAlert
+                 * @returns BusPacket
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.SystemAlert;
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.BusPacket;
 
                 /**
-                 * Verifies a SystemAlert message.
+                 * Verifies a BusPacket message.
                  * @param message Plain object to verify
                  * @returns `null` if valid, otherwise the reason why it is not
                  */
                 public static verify(message: { [k: string]: any }): (string|null);
 
                 /**
-                 * Creates a SystemAlert message from a plain object. Also converts values to their respective internal types.
+                 * Creates a BusPacket message from a plain object. Also converts values to their respective internal types.
                  * @param object Plain object
-                 * @returns SystemAlert
+                 * @returns BusPacket
                  */
-                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.SystemAlert;
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.BusPacket;
 
                 /**
-                 * Creates a plain object from a SystemAlert message. Also converts values to other types if specified.
-                 * @param message SystemAlert
+                 * Creates a plain object from a BusPacket message. Also converts values to other types if specified.
+                 * @param message BusPacket
                  * @param [options] Conversion options
                  * @returns Plain object
                  */
-                public static toObject(message: cordum.agent.v1.SystemAlert, options?: $protobuf.IConversionOptions): { [k: string]: any };
+                public static toObject(message: cordum.agent.v1.BusPacket, options?: $protobuf.IConversionOptions): { [k: string]: any };
 
                 /**
-                 * Converts this SystemAlert to JSON.
+                 * Converts this BusPacket to JSON.
                  * @returns JSON object
                  */
                 public toJSON(): { [k: string]: any };
 
                 /**
-                 * Gets the default type url for SystemAlert
+                 * Gets the default type url for BusPacket
                  * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
                  * @returns The default type url
                  */
@@ -1335,178 +1377,6 @@ export namespace cordum {
                 public static getTypeUrl(typeUrlPrefix?: string): string;
             }
 
-            /** Properties of a BusPacket. */
-            interface IBusPacket {
-
-                /** BusPacket traceId */
-                traceId?: (string|null);
-
-                /** BusPacket senderId */
-                senderId?: (string|null);
-
-                /** BusPacket createdAt */
-                createdAt?: (google.protobuf.ITimestamp|null);
-
-                /** BusPacket protocolVersion */
-                protocolVersion?: (number|null);
-
-                /** BusPacket jobRequest */
-                jobRequest?: (cordum.agent.v1.IJobRequest|null);
-
-                /** BusPacket jobResult */
-                jobResult?: (cordum.agent.v1.IJobResult|null);
-
-                /** BusPacket heartbeat */
-                heartbeat?: (cordum.agent.v1.IHeartbeat|null);
-
-                /** BusPacket alert */
-                alert?: (cordum.agent.v1.ISystemAlert|null);
-
-                /** BusPacket jobProgress */
-                jobProgress?: (cordum.agent.v1.IJobProgress|null);
-
-                /** BusPacket jobCancel */
-                jobCancel?: (cordum.agent.v1.IJobCancel|null);
-
-                /** BusPacket handshake */
-                handshake?: (cordum.agent.v1.IHandshake|null);
-
-                /** BusPacket signature */
-                signature?: (Uint8Array|null);
-
-                /** BusPacket authToken */
-                authToken?: (string|null);
-            }
-
-            /** Represents a BusPacket. */
-            class BusPacket implements IBusPacket {
-
-                /**
-                 * Constructs a new BusPacket.
-                 * @param [properties] Properties to set
-                 */
-                constructor(properties?: cordum.agent.v1.IBusPacket);
-
-                /** BusPacket traceId. */
-                public traceId: string;
-
-                /** BusPacket senderId. */
-                public senderId: string;
-
-                /** BusPacket createdAt. */
-                public createdAt?: (google.protobuf.ITimestamp|null);
-
-                /** BusPacket protocolVersion. */
-                public protocolVersion: number;
-
-                /** BusPacket jobRequest. */
-                public jobRequest?: (cordum.agent.v1.IJobRequest|null);
-
-                /** BusPacket jobResult. */
-                public jobResult?: (cordum.agent.v1.IJobResult|null);
-
-                /** BusPacket heartbeat. */
-                public heartbeat?: (cordum.agent.v1.IHeartbeat|null);
-
-                /** BusPacket alert. */
-                public alert?: (cordum.agent.v1.ISystemAlert|null);
-
-                /** BusPacket jobProgress. */
-                public jobProgress?: (cordum.agent.v1.IJobProgress|null);
-
-                /** BusPacket jobCancel. */
-                public jobCancel?: (cordum.agent.v1.IJobCancel|null);
-
-                /** BusPacket handshake. */
-                public handshake?: (cordum.agent.v1.IHandshake|null);
-
-                /** BusPacket signature. */
-                public signature: Uint8Array;
-
-                /** BusPacket authToken. */
-                public authToken: string;
-
-                /** BusPacket payload. */
-                public payload?: ("jobRequest"|"jobResult"|"heartbeat"|"alert"|"jobProgress"|"jobCancel"|"handshake");
-
-                /**
-                 * Creates a new BusPacket instance using the specified properties.
-                 * @param [properties] Properties to set
-                 * @returns BusPacket instance
-                 */
-                public static create(properties?: cordum.agent.v1.IBusPacket): cordum.agent.v1.BusPacket;
-
-                /**
-                 * Encodes the specified BusPacket message. Does not implicitly {@link cordum.agent.v1.BusPacket.verify|verify} messages.
-                 * @param message BusPacket message or plain object to encode
-                 * @param [writer] Writer to encode to
-                 * @returns Writer
-                 */
-                public static encode(message: cordum.agent.v1.IBusPacket, writer?: $protobuf.Writer): $protobuf.Writer;
-
-                /**
-                 * Encodes the specified BusPacket message, length delimited. Does not implicitly {@link cordum.agent.v1.BusPacket.verify|verify} messages.
-                 * @param message BusPacket message or plain object to encode
-                 * @param [writer] Writer to encode to
-                 * @returns Writer
-                 */
-                public static encodeDelimited(message: cordum.agent.v1.IBusPacket, writer?: $protobuf.Writer): $protobuf.Writer;
-
-                /**
-                 * Decodes a BusPacket message from the specified reader or buffer.
-                 * @param reader Reader or buffer to decode from
-                 * @param [length] Message length if known beforehand
-                 * @returns BusPacket
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.BusPacket;
-
-                /**
-                 * Decodes a BusPacket message from the specified reader or buffer, length delimited.
-                 * @param reader Reader or buffer to decode from
-                 * @returns BusPacket
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.BusPacket;
-
-                /**
-                 * Verifies a BusPacket message.
-                 * @param message Plain object to verify
-                 * @returns `null` if valid, otherwise the reason why it is not
-                 */
-                public static verify(message: { [k: string]: any }): (string|null);
-
-                /**
-                 * Creates a BusPacket message from a plain object. Also converts values to their respective internal types.
-                 * @param object Plain object
-                 * @returns BusPacket
-                 */
-                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.BusPacket;
-
-                /**
-                 * Creates a plain object from a BusPacket message. Also converts values to other types if specified.
-                 * @param message BusPacket
-                 * @param [options] Conversion options
-                 * @returns Plain object
-                 */
-                public static toObject(message: cordum.agent.v1.BusPacket, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-                /**
-                 * Converts this BusPacket to JSON.
-                 * @returns JSON object
-                 */
-                public toJSON(): { [k: string]: any };
-
-                /**
-                 * Gets the default type url for BusPacket
-                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
-                 * @returns The default type url
-                 */
-                public static getTypeUrl(typeUrlPrefix?: string): string;
-            }
-
             /** Properties of a Heartbeat. */
             interface IHeartbeat {
 
@@ -1551,6 +1421,9 @@ export namespace cordum {
 
                 /** Heartbeat authToken */
                 authToken?: (string|null);
+
+                /** Heartbeat agentName */
+                agentName?: (string|null);
             }
 
             /** Represents a Heartbeat. */
@@ -1603,6 +1476,9 @@ export namespace cordum {
 
                 /** Heartbeat authToken. */
                 public authToken: string;
+
+                /** Heartbeat agentName. */
+                public agentName: string;
 
                 /**
                  * Creates a new Heartbeat instance using the specified properties.
@@ -1682,6 +1558,160 @@ export namespace cordum {
                 public static getTypeUrl(typeUrlPrefix?: string): string;
             }
 
+            /** AlertSeverity enum. */
+            enum AlertSeverity {
+                ALERT_SEVERITY_UNSPECIFIED = 0,
+                ALERT_SEVERITY_INFO = 1,
+                ALERT_SEVERITY_WARNING = 2,
+                ALERT_SEVERITY_ERROR = 3,
+                ALERT_SEVERITY_CRITICAL = 4
+            }
+
+            /** Properties of a SystemAlert. */
+            interface ISystemAlert {
+
+                /** SystemAlert level */
+                level?: (string|null);
+
+                /** SystemAlert message */
+                message?: (string|null);
+
+                /** SystemAlert component */
+                component?: (string|null);
+
+                /** SystemAlert code */
+                code?: (string|null);
+
+                /** SystemAlert severity */
+                severity?: (cordum.agent.v1.AlertSeverity|null);
+
+                /** SystemAlert errorCodeEnum */
+                errorCodeEnum?: (cordum.agent.v1.ErrorCode|null);
+
+                /** SystemAlert sourceComponent */
+                sourceComponent?: (string|null);
+
+                /** SystemAlert details */
+                details?: ({ [k: string]: string }|null);
+
+                /** SystemAlert traceId */
+                traceId?: (string|null);
+            }
+
+            /** Represents a SystemAlert. */
+            class SystemAlert implements ISystemAlert {
+
+                /**
+                 * Constructs a new SystemAlert.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.ISystemAlert);
+
+                /** SystemAlert level. */
+                public level: string;
+
+                /** SystemAlert message. */
+                public message: string;
+
+                /** SystemAlert component. */
+                public component: string;
+
+                /** SystemAlert code. */
+                public code: string;
+
+                /** SystemAlert severity. */
+                public severity: cordum.agent.v1.AlertSeverity;
+
+                /** SystemAlert errorCodeEnum. */
+                public errorCodeEnum: cordum.agent.v1.ErrorCode;
+
+                /** SystemAlert sourceComponent. */
+                public sourceComponent: string;
+
+                /** SystemAlert details. */
+                public details: { [k: string]: string };
+
+                /** SystemAlert traceId. */
+                public traceId: string;
+
+                /**
+                 * Creates a new SystemAlert instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns SystemAlert instance
+                 */
+                public static create(properties?: cordum.agent.v1.ISystemAlert): cordum.agent.v1.SystemAlert;
+
+                /**
+                 * Encodes the specified SystemAlert message. Does not implicitly {@link cordum.agent.v1.SystemAlert.verify|verify} messages.
+                 * @param message SystemAlert message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.ISystemAlert, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified SystemAlert message, length delimited. Does not implicitly {@link cordum.agent.v1.SystemAlert.verify|verify} messages.
+                 * @param message SystemAlert message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.ISystemAlert, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a SystemAlert message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns SystemAlert
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.SystemAlert;
+
+                /**
+                 * Decodes a SystemAlert message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns SystemAlert
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.SystemAlert;
+
+                /**
+                 * Verifies a SystemAlert message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a SystemAlert message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns SystemAlert
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.SystemAlert;
+
+                /**
+                 * Creates a plain object from a SystemAlert message. Also converts values to other types if specified.
+                 * @param message SystemAlert
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.SystemAlert, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this SystemAlert to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for SystemAlert
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
             /** ComponentRole enum. */
             enum ComponentRole {
                 COMPONENT_ROLE_UNSPECIFIED = 0,
@@ -1712,6 +1742,9 @@ export namespace cordum {
 
                 /** Handshake readyTopics */
                 readyTopics?: (string[]|null);
+
+                /** Handshake agentName */
+                agentName?: (string|null);
             }
 
             /** Represents a Handshake. */
@@ -1740,6 +1773,9 @@ export namespace cordum {
 
                 /** Handshake readyTopics. */
                 public readyTopics: string[];
+
+                /** Handshake agentName. */
+                public agentName: string;
 
                 /**
                  * Creates a new Handshake instance using the specified properties.
@@ -1819,6 +1855,2212 @@ export namespace cordum {
                 public static getTypeUrl(typeUrlPrefix?: string): string;
             }
 
+            /** WorkerHandshakePurpose enum. */
+            enum WorkerHandshakePurpose {
+                WORKER_HANDSHAKE_PURPOSE_UNSPECIFIED = 0,
+                WORKER_HANDSHAKE_PURPOSE_ISSUE = 1,
+                WORKER_HANDSHAKE_PURPOSE_RENEW = 2
+            }
+
+            /** WorkerHandshakeProofAlgorithm enum. */
+            enum WorkerHandshakeProofAlgorithm {
+                WORKER_HANDSHAKE_PROOF_ALGORITHM_UNSPECIFIED = 0,
+                WORKER_HANDSHAKE_PROOF_ALGORITHM_ECDSA_P256_SHA256 = 1
+            }
+
+            /** WorkerHandshakeRejectionReason enum. */
+            enum WorkerHandshakeRejectionReason {
+                WORKER_HANDSHAKE_REJECTION_REASON_UNSPECIFIED = 0,
+                WORKER_HANDSHAKE_REJECTION_REASON_INVALID_REQUEST = 1,
+                WORKER_HANDSHAKE_REJECTION_REASON_AUTHENTICATION_FAILED = 2,
+                WORKER_HANDSHAKE_REJECTION_REASON_REPLAY_DETECTED = 3,
+                WORKER_HANDSHAKE_REJECTION_REASON_CLOCK_SKEW = 4,
+                WORKER_HANDSHAKE_REJECTION_REASON_CHALLENGE_EXPIRED = 5,
+                WORKER_HANDSHAKE_REJECTION_REASON_SESSION_REQUIRED = 6,
+                WORKER_HANDSHAKE_REJECTION_REASON_SESSION_INVALID = 7,
+                WORKER_HANDSHAKE_REJECTION_REASON_UNSUPPORTED_VERSION = 8,
+                WORKER_HANDSHAKE_REJECTION_REASON_INTERNAL_ERROR = 9
+            }
+
+            /** Properties of a WorkerHandshakeChallengeRequest. */
+            interface IWorkerHandshakeChallengeRequest {
+
+                /** WorkerHandshakeChallengeRequest requestId */
+                requestId?: (string|null);
+
+                /** WorkerHandshakeChallengeRequest traceId */
+                traceId?: (string|null);
+
+                /** WorkerHandshakeChallengeRequest workerId */
+                workerId?: (string|null);
+
+                /** WorkerHandshakeChallengeRequest proofKeyId */
+                proofKeyId?: (string|null);
+
+                /** WorkerHandshakeChallengeRequest proofAlgorithm */
+                proofAlgorithm?: (cordum.agent.v1.WorkerHandshakeProofAlgorithm|null);
+
+                /** WorkerHandshakeChallengeRequest audience */
+                audience?: (string|null);
+
+                /** WorkerHandshakeChallengeRequest purpose */
+                purpose?: (cordum.agent.v1.WorkerHandshakePurpose|null);
+
+                /** WorkerHandshakeChallengeRequest clientNonce */
+                clientNonce?: (Uint8Array|null);
+
+                /** WorkerHandshakeChallengeRequest protocolVersion */
+                protocolVersion?: (number|null);
+
+                /** WorkerHandshakeChallengeRequest sdkVersion */
+                sdkVersion?: (string|null);
+            }
+
+            /** Represents a WorkerHandshakeChallengeRequest. */
+            class WorkerHandshakeChallengeRequest implements IWorkerHandshakeChallengeRequest {
+
+                /**
+                 * Constructs a new WorkerHandshakeChallengeRequest.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IWorkerHandshakeChallengeRequest);
+
+                /** WorkerHandshakeChallengeRequest requestId. */
+                public requestId: string;
+
+                /** WorkerHandshakeChallengeRequest traceId. */
+                public traceId: string;
+
+                /** WorkerHandshakeChallengeRequest workerId. */
+                public workerId: string;
+
+                /** WorkerHandshakeChallengeRequest proofKeyId. */
+                public proofKeyId: string;
+
+                /** WorkerHandshakeChallengeRequest proofAlgorithm. */
+                public proofAlgorithm: cordum.agent.v1.WorkerHandshakeProofAlgorithm;
+
+                /** WorkerHandshakeChallengeRequest audience. */
+                public audience: string;
+
+                /** WorkerHandshakeChallengeRequest purpose. */
+                public purpose: cordum.agent.v1.WorkerHandshakePurpose;
+
+                /** WorkerHandshakeChallengeRequest clientNonce. */
+                public clientNonce: Uint8Array;
+
+                /** WorkerHandshakeChallengeRequest protocolVersion. */
+                public protocolVersion: number;
+
+                /** WorkerHandshakeChallengeRequest sdkVersion. */
+                public sdkVersion: string;
+
+                /**
+                 * Creates a new WorkerHandshakeChallengeRequest instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns WorkerHandshakeChallengeRequest instance
+                 */
+                public static create(properties?: cordum.agent.v1.IWorkerHandshakeChallengeRequest): cordum.agent.v1.WorkerHandshakeChallengeRequest;
+
+                /**
+                 * Encodes the specified WorkerHandshakeChallengeRequest message. Does not implicitly {@link cordum.agent.v1.WorkerHandshakeChallengeRequest.verify|verify} messages.
+                 * @param message WorkerHandshakeChallengeRequest message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IWorkerHandshakeChallengeRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified WorkerHandshakeChallengeRequest message, length delimited. Does not implicitly {@link cordum.agent.v1.WorkerHandshakeChallengeRequest.verify|verify} messages.
+                 * @param message WorkerHandshakeChallengeRequest message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IWorkerHandshakeChallengeRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a WorkerHandshakeChallengeRequest message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns WorkerHandshakeChallengeRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.WorkerHandshakeChallengeRequest;
+
+                /**
+                 * Decodes a WorkerHandshakeChallengeRequest message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns WorkerHandshakeChallengeRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.WorkerHandshakeChallengeRequest;
+
+                /**
+                 * Verifies a WorkerHandshakeChallengeRequest message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a WorkerHandshakeChallengeRequest message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns WorkerHandshakeChallengeRequest
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.WorkerHandshakeChallengeRequest;
+
+                /**
+                 * Creates a plain object from a WorkerHandshakeChallengeRequest message. Also converts values to other types if specified.
+                 * @param message WorkerHandshakeChallengeRequest
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.WorkerHandshakeChallengeRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this WorkerHandshakeChallengeRequest to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for WorkerHandshakeChallengeRequest
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a WorkerHandshakeChallenge. */
+            interface IWorkerHandshakeChallenge {
+
+                /** WorkerHandshakeChallenge requestId */
+                requestId?: (string|null);
+
+                /** WorkerHandshakeChallenge challengeId */
+                challengeId?: (string|null);
+
+                /** WorkerHandshakeChallenge traceId */
+                traceId?: (string|null);
+
+                /** WorkerHandshakeChallenge workerId */
+                workerId?: (string|null);
+
+                /** WorkerHandshakeChallenge agentId */
+                agentId?: (string|null);
+
+                /** WorkerHandshakeChallenge tenantId */
+                tenantId?: (string|null);
+
+                /** WorkerHandshakeChallenge proofKeyId */
+                proofKeyId?: (string|null);
+
+                /** WorkerHandshakeChallenge proofAlgorithm */
+                proofAlgorithm?: (cordum.agent.v1.WorkerHandshakeProofAlgorithm|null);
+
+                /** WorkerHandshakeChallenge serverKeyId */
+                serverKeyId?: (string|null);
+
+                /** WorkerHandshakeChallenge audience */
+                audience?: (string|null);
+
+                /** WorkerHandshakeChallenge purpose */
+                purpose?: (cordum.agent.v1.WorkerHandshakePurpose|null);
+
+                /** WorkerHandshakeChallenge clientNonce */
+                clientNonce?: (Uint8Array|null);
+
+                /** WorkerHandshakeChallenge serverNonce */
+                serverNonce?: (Uint8Array|null);
+
+                /** WorkerHandshakeChallenge protocolVersion */
+                protocolVersion?: (number|null);
+
+                /** WorkerHandshakeChallenge sdkVersion */
+                sdkVersion?: (string|null);
+
+                /** WorkerHandshakeChallenge issuedAt */
+                issuedAt?: (google.protobuf.ITimestamp|null);
+
+                /** WorkerHandshakeChallenge expiresAt */
+                expiresAt?: (google.protobuf.ITimestamp|null);
+            }
+
+            /** Represents a WorkerHandshakeChallenge. */
+            class WorkerHandshakeChallenge implements IWorkerHandshakeChallenge {
+
+                /**
+                 * Constructs a new WorkerHandshakeChallenge.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IWorkerHandshakeChallenge);
+
+                /** WorkerHandshakeChallenge requestId. */
+                public requestId: string;
+
+                /** WorkerHandshakeChallenge challengeId. */
+                public challengeId: string;
+
+                /** WorkerHandshakeChallenge traceId. */
+                public traceId: string;
+
+                /** WorkerHandshakeChallenge workerId. */
+                public workerId: string;
+
+                /** WorkerHandshakeChallenge agentId. */
+                public agentId: string;
+
+                /** WorkerHandshakeChallenge tenantId. */
+                public tenantId: string;
+
+                /** WorkerHandshakeChallenge proofKeyId. */
+                public proofKeyId: string;
+
+                /** WorkerHandshakeChallenge proofAlgorithm. */
+                public proofAlgorithm: cordum.agent.v1.WorkerHandshakeProofAlgorithm;
+
+                /** WorkerHandshakeChallenge serverKeyId. */
+                public serverKeyId: string;
+
+                /** WorkerHandshakeChallenge audience. */
+                public audience: string;
+
+                /** WorkerHandshakeChallenge purpose. */
+                public purpose: cordum.agent.v1.WorkerHandshakePurpose;
+
+                /** WorkerHandshakeChallenge clientNonce. */
+                public clientNonce: Uint8Array;
+
+                /** WorkerHandshakeChallenge serverNonce. */
+                public serverNonce: Uint8Array;
+
+                /** WorkerHandshakeChallenge protocolVersion. */
+                public protocolVersion: number;
+
+                /** WorkerHandshakeChallenge sdkVersion. */
+                public sdkVersion: string;
+
+                /** WorkerHandshakeChallenge issuedAt. */
+                public issuedAt?: (google.protobuf.ITimestamp|null);
+
+                /** WorkerHandshakeChallenge expiresAt. */
+                public expiresAt?: (google.protobuf.ITimestamp|null);
+
+                /**
+                 * Creates a new WorkerHandshakeChallenge instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns WorkerHandshakeChallenge instance
+                 */
+                public static create(properties?: cordum.agent.v1.IWorkerHandshakeChallenge): cordum.agent.v1.WorkerHandshakeChallenge;
+
+                /**
+                 * Encodes the specified WorkerHandshakeChallenge message. Does not implicitly {@link cordum.agent.v1.WorkerHandshakeChallenge.verify|verify} messages.
+                 * @param message WorkerHandshakeChallenge message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IWorkerHandshakeChallenge, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified WorkerHandshakeChallenge message, length delimited. Does not implicitly {@link cordum.agent.v1.WorkerHandshakeChallenge.verify|verify} messages.
+                 * @param message WorkerHandshakeChallenge message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IWorkerHandshakeChallenge, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a WorkerHandshakeChallenge message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns WorkerHandshakeChallenge
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.WorkerHandshakeChallenge;
+
+                /**
+                 * Decodes a WorkerHandshakeChallenge message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns WorkerHandshakeChallenge
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.WorkerHandshakeChallenge;
+
+                /**
+                 * Verifies a WorkerHandshakeChallenge message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a WorkerHandshakeChallenge message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns WorkerHandshakeChallenge
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.WorkerHandshakeChallenge;
+
+                /**
+                 * Creates a plain object from a WorkerHandshakeChallenge message. Also converts values to other types if specified.
+                 * @param message WorkerHandshakeChallenge
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.WorkerHandshakeChallenge, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this WorkerHandshakeChallenge to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for WorkerHandshakeChallenge
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a WorkerHandshakeAuthenticate. */
+            interface IWorkerHandshakeAuthenticate {
+
+                /** WorkerHandshakeAuthenticate challenge */
+                challenge?: (cordum.agent.v1.IWorkerHandshakeChallenge|null);
+
+                /** WorkerHandshakeAuthenticate capabilityHandshake */
+                capabilityHandshake?: (cordum.agent.v1.IHandshake|null);
+            }
+
+            /** Represents a WorkerHandshakeAuthenticate. */
+            class WorkerHandshakeAuthenticate implements IWorkerHandshakeAuthenticate {
+
+                /**
+                 * Constructs a new WorkerHandshakeAuthenticate.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IWorkerHandshakeAuthenticate);
+
+                /** WorkerHandshakeAuthenticate challenge. */
+                public challenge?: (cordum.agent.v1.IWorkerHandshakeChallenge|null);
+
+                /** WorkerHandshakeAuthenticate capabilityHandshake. */
+                public capabilityHandshake?: (cordum.agent.v1.IHandshake|null);
+
+                /**
+                 * Creates a new WorkerHandshakeAuthenticate instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns WorkerHandshakeAuthenticate instance
+                 */
+                public static create(properties?: cordum.agent.v1.IWorkerHandshakeAuthenticate): cordum.agent.v1.WorkerHandshakeAuthenticate;
+
+                /**
+                 * Encodes the specified WorkerHandshakeAuthenticate message. Does not implicitly {@link cordum.agent.v1.WorkerHandshakeAuthenticate.verify|verify} messages.
+                 * @param message WorkerHandshakeAuthenticate message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IWorkerHandshakeAuthenticate, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified WorkerHandshakeAuthenticate message, length delimited. Does not implicitly {@link cordum.agent.v1.WorkerHandshakeAuthenticate.verify|verify} messages.
+                 * @param message WorkerHandshakeAuthenticate message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IWorkerHandshakeAuthenticate, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a WorkerHandshakeAuthenticate message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns WorkerHandshakeAuthenticate
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.WorkerHandshakeAuthenticate;
+
+                /**
+                 * Decodes a WorkerHandshakeAuthenticate message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns WorkerHandshakeAuthenticate
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.WorkerHandshakeAuthenticate;
+
+                /**
+                 * Verifies a WorkerHandshakeAuthenticate message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a WorkerHandshakeAuthenticate message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns WorkerHandshakeAuthenticate
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.WorkerHandshakeAuthenticate;
+
+                /**
+                 * Creates a plain object from a WorkerHandshakeAuthenticate message. Also converts values to other types if specified.
+                 * @param message WorkerHandshakeAuthenticate
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.WorkerHandshakeAuthenticate, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this WorkerHandshakeAuthenticate to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for WorkerHandshakeAuthenticate
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a WorkerHandshakeResult. */
+            interface IWorkerHandshakeResult {
+
+                /** WorkerHandshakeResult challenge */
+                challenge?: (cordum.agent.v1.IWorkerHandshakeChallenge|null);
+
+                /** WorkerHandshakeResult accepted */
+                accepted?: (boolean|null);
+
+                /** WorkerHandshakeResult rejectionReason */
+                rejectionReason?: (cordum.agent.v1.WorkerHandshakeRejectionReason|null);
+
+                /** WorkerHandshakeResult tokenExpiresAt */
+                tokenExpiresAt?: (google.protobuf.ITimestamp|null);
+
+                /** WorkerHandshakeResult issuedAt */
+                issuedAt?: (google.protobuf.ITimestamp|null);
+            }
+
+            /** Represents a WorkerHandshakeResult. */
+            class WorkerHandshakeResult implements IWorkerHandshakeResult {
+
+                /**
+                 * Constructs a new WorkerHandshakeResult.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IWorkerHandshakeResult);
+
+                /** WorkerHandshakeResult challenge. */
+                public challenge?: (cordum.agent.v1.IWorkerHandshakeChallenge|null);
+
+                /** WorkerHandshakeResult accepted. */
+                public accepted: boolean;
+
+                /** WorkerHandshakeResult rejectionReason. */
+                public rejectionReason: cordum.agent.v1.WorkerHandshakeRejectionReason;
+
+                /** WorkerHandshakeResult tokenExpiresAt. */
+                public tokenExpiresAt?: (google.protobuf.ITimestamp|null);
+
+                /** WorkerHandshakeResult issuedAt. */
+                public issuedAt?: (google.protobuf.ITimestamp|null);
+
+                /**
+                 * Creates a new WorkerHandshakeResult instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns WorkerHandshakeResult instance
+                 */
+                public static create(properties?: cordum.agent.v1.IWorkerHandshakeResult): cordum.agent.v1.WorkerHandshakeResult;
+
+                /**
+                 * Encodes the specified WorkerHandshakeResult message. Does not implicitly {@link cordum.agent.v1.WorkerHandshakeResult.verify|verify} messages.
+                 * @param message WorkerHandshakeResult message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IWorkerHandshakeResult, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified WorkerHandshakeResult message, length delimited. Does not implicitly {@link cordum.agent.v1.WorkerHandshakeResult.verify|verify} messages.
+                 * @param message WorkerHandshakeResult message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IWorkerHandshakeResult, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a WorkerHandshakeResult message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns WorkerHandshakeResult
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.WorkerHandshakeResult;
+
+                /**
+                 * Decodes a WorkerHandshakeResult message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns WorkerHandshakeResult
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.WorkerHandshakeResult;
+
+                /**
+                 * Verifies a WorkerHandshakeResult message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a WorkerHandshakeResult message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns WorkerHandshakeResult
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.WorkerHandshakeResult;
+
+                /**
+                 * Creates a plain object from a WorkerHandshakeResult message. Also converts values to other types if specified.
+                 * @param message WorkerHandshakeResult
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.WorkerHandshakeResult, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this WorkerHandshakeResult to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for WorkerHandshakeResult
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** RuleType enum. */
+            enum RuleType {
+                RULE_TYPE_UNSPECIFIED = 0,
+                RULE_TYPE_INPUT = 1,
+                RULE_TYPE_OUTPUT = 2,
+                RULE_TYPE_VELOCITY = 3,
+                RULE_TYPE_EDGE = 4
+            }
+
+            /** RuleStatus enum. */
+            enum RuleStatus {
+                RULE_STATUS_UNSPECIFIED = 0,
+                RULE_STATUS_DRAFT = 1,
+                RULE_STATUS_PUBLISHED = 2,
+                RULE_STATUS_DEPRECATED = 3
+            }
+
+            /** DecisionSource enum. */
+            enum DecisionSource {
+                DECISION_SOURCE_UNSPECIFIED = 0,
+                DECISION_SOURCE_JOB = 1,
+                DECISION_SOURCE_EDGE = 2
+            }
+
+            /** RuleScopeKind enum. */
+            enum RuleScopeKind {
+                RULE_SCOPE_KIND_UNSPECIFIED = 0,
+                RULE_SCOPE_KIND_GLOBAL = 1,
+                RULE_SCOPE_KIND_TENANT = 2,
+                RULE_SCOPE_KIND_WORKFLOW = 3,
+                RULE_SCOPE_KIND_EDGE_FLEET = 4,
+                RULE_SCOPE_KIND_EDGE_USER = 5
+            }
+
+            /** EdgeMode enum. */
+            enum EdgeMode {
+                EDGE_MODE_UNSPECIFIED = 0,
+                EDGE_MODE_OBSERVE = 1,
+                EDGE_MODE_ENFORCE = 2,
+                EDGE_MODE_ENTERPRISE_STRICT = 3
+            }
+
+            /** Properties of a RuleScope. */
+            interface IRuleScope {
+
+                /** RuleScope kind */
+                kind?: (cordum.agent.v1.RuleScopeKind|null);
+
+                /** RuleScope value */
+                value?: (string|null);
+            }
+
+            /** Represents a RuleScope. */
+            class RuleScope implements IRuleScope {
+
+                /**
+                 * Constructs a new RuleScope.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IRuleScope);
+
+                /** RuleScope kind. */
+                public kind: cordum.agent.v1.RuleScopeKind;
+
+                /** RuleScope value. */
+                public value: string;
+
+                /**
+                 * Creates a new RuleScope instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns RuleScope instance
+                 */
+                public static create(properties?: cordum.agent.v1.IRuleScope): cordum.agent.v1.RuleScope;
+
+                /**
+                 * Encodes the specified RuleScope message. Does not implicitly {@link cordum.agent.v1.RuleScope.verify|verify} messages.
+                 * @param message RuleScope message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IRuleScope, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified RuleScope message, length delimited. Does not implicitly {@link cordum.agent.v1.RuleScope.verify|verify} messages.
+                 * @param message RuleScope message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IRuleScope, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a RuleScope message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns RuleScope
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.RuleScope;
+
+                /**
+                 * Decodes a RuleScope message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns RuleScope
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.RuleScope;
+
+                /**
+                 * Verifies a RuleScope message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a RuleScope message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns RuleScope
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.RuleScope;
+
+                /**
+                 * Creates a plain object from a RuleScope message. Also converts values to other types if specified.
+                 * @param message RuleScope
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.RuleScope, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this RuleScope to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for RuleScope
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of an AuditMetadata. */
+            interface IAuditMetadata {
+
+                /** AuditMetadata createdAt */
+                createdAt?: (google.protobuf.ITimestamp|null);
+
+                /** AuditMetadata createdBy */
+                createdBy?: (string|null);
+
+                /** AuditMetadata updatedAt */
+                updatedAt?: (google.protobuf.ITimestamp|null);
+
+                /** AuditMetadata updatedBy */
+                updatedBy?: (string|null);
+            }
+
+            /** Represents an AuditMetadata. */
+            class AuditMetadata implements IAuditMetadata {
+
+                /**
+                 * Constructs a new AuditMetadata.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IAuditMetadata);
+
+                /** AuditMetadata createdAt. */
+                public createdAt?: (google.protobuf.ITimestamp|null);
+
+                /** AuditMetadata createdBy. */
+                public createdBy: string;
+
+                /** AuditMetadata updatedAt. */
+                public updatedAt?: (google.protobuf.ITimestamp|null);
+
+                /** AuditMetadata updatedBy. */
+                public updatedBy: string;
+
+                /**
+                 * Creates a new AuditMetadata instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns AuditMetadata instance
+                 */
+                public static create(properties?: cordum.agent.v1.IAuditMetadata): cordum.agent.v1.AuditMetadata;
+
+                /**
+                 * Encodes the specified AuditMetadata message. Does not implicitly {@link cordum.agent.v1.AuditMetadata.verify|verify} messages.
+                 * @param message AuditMetadata message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IAuditMetadata, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified AuditMetadata message, length delimited. Does not implicitly {@link cordum.agent.v1.AuditMetadata.verify|verify} messages.
+                 * @param message AuditMetadata message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IAuditMetadata, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes an AuditMetadata message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns AuditMetadata
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.AuditMetadata;
+
+                /**
+                 * Decodes an AuditMetadata message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns AuditMetadata
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.AuditMetadata;
+
+                /**
+                 * Verifies an AuditMetadata message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates an AuditMetadata message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns AuditMetadata
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.AuditMetadata;
+
+                /**
+                 * Creates a plain object from an AuditMetadata message. Also converts values to other types if specified.
+                 * @param message AuditMetadata
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.AuditMetadata, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this AuditMetadata to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for AuditMetadata
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a Rule. */
+            interface IRule {
+
+                /** Rule id */
+                id?: (string|null);
+
+                /** Rule name */
+                name?: (string|null);
+
+                /** Rule type */
+                type?: (cordum.agent.v1.RuleType|null);
+
+                /** Rule scope */
+                scope?: (cordum.agent.v1.IRuleScope|null);
+
+                /** Rule status */
+                status?: (cordum.agent.v1.RuleStatus|null);
+
+                /** Rule version */
+                version?: (string|null);
+
+                /** Rule audit */
+                audit?: (cordum.agent.v1.IAuditMetadata|null);
+
+                /** Rule match */
+                match?: (google.protobuf.IStruct|null);
+
+                /** Rule decide */
+                decide?: (google.protobuf.IStruct|null);
+
+                /** Rule description */
+                description?: (string|null);
+            }
+
+            /** Represents a Rule. */
+            class Rule implements IRule {
+
+                /**
+                 * Constructs a new Rule.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IRule);
+
+                /** Rule id. */
+                public id: string;
+
+                /** Rule name. */
+                public name: string;
+
+                /** Rule type. */
+                public type: cordum.agent.v1.RuleType;
+
+                /** Rule scope. */
+                public scope?: (cordum.agent.v1.IRuleScope|null);
+
+                /** Rule status. */
+                public status: cordum.agent.v1.RuleStatus;
+
+                /** Rule version. */
+                public version: string;
+
+                /** Rule audit. */
+                public audit?: (cordum.agent.v1.IAuditMetadata|null);
+
+                /** Rule match. */
+                public match?: (google.protobuf.IStruct|null);
+
+                /** Rule decide. */
+                public decide?: (google.protobuf.IStruct|null);
+
+                /** Rule description. */
+                public description: string;
+
+                /**
+                 * Creates a new Rule instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns Rule instance
+                 */
+                public static create(properties?: cordum.agent.v1.IRule): cordum.agent.v1.Rule;
+
+                /**
+                 * Encodes the specified Rule message. Does not implicitly {@link cordum.agent.v1.Rule.verify|verify} messages.
+                 * @param message Rule message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IRule, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified Rule message, length delimited. Does not implicitly {@link cordum.agent.v1.Rule.verify|verify} messages.
+                 * @param message Rule message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IRule, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a Rule message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns Rule
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.Rule;
+
+                /**
+                 * Decodes a Rule message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns Rule
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.Rule;
+
+                /**
+                 * Verifies a Rule message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a Rule message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns Rule
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.Rule;
+
+                /**
+                 * Creates a plain object from a Rule message. Also converts values to other types if specified.
+                 * @param message Rule
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.Rule, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this Rule to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for Rule
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a TraceStep. */
+            interface ITraceStep {
+
+                /** TraceStep ruleId */
+                ruleId?: (string|null);
+
+                /** TraceStep bundleId */
+                bundleId?: (string|null);
+
+                /** TraceStep decisionType */
+                decisionType?: (cordum.agent.v1.DecisionType|null);
+
+                /** TraceStep reason */
+                reason?: (string|null);
+
+                /** TraceStep timestamp */
+                timestamp?: (google.protobuf.ITimestamp|null);
+
+                /** TraceStep constraints */
+                constraints?: (google.protobuf.IStruct|null);
+            }
+
+            /** Represents a TraceStep. */
+            class TraceStep implements ITraceStep {
+
+                /**
+                 * Constructs a new TraceStep.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.ITraceStep);
+
+                /** TraceStep ruleId. */
+                public ruleId: string;
+
+                /** TraceStep bundleId. */
+                public bundleId: string;
+
+                /** TraceStep decisionType. */
+                public decisionType: cordum.agent.v1.DecisionType;
+
+                /** TraceStep reason. */
+                public reason: string;
+
+                /** TraceStep timestamp. */
+                public timestamp?: (google.protobuf.ITimestamp|null);
+
+                /** TraceStep constraints. */
+                public constraints?: (google.protobuf.IStruct|null);
+
+                /**
+                 * Creates a new TraceStep instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns TraceStep instance
+                 */
+                public static create(properties?: cordum.agent.v1.ITraceStep): cordum.agent.v1.TraceStep;
+
+                /**
+                 * Encodes the specified TraceStep message. Does not implicitly {@link cordum.agent.v1.TraceStep.verify|verify} messages.
+                 * @param message TraceStep message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.ITraceStep, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified TraceStep message, length delimited. Does not implicitly {@link cordum.agent.v1.TraceStep.verify|verify} messages.
+                 * @param message TraceStep message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.ITraceStep, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a TraceStep message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns TraceStep
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.TraceStep;
+
+                /**
+                 * Decodes a TraceStep message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns TraceStep
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.TraceStep;
+
+                /**
+                 * Verifies a TraceStep message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a TraceStep message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns TraceStep
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.TraceStep;
+
+                /**
+                 * Creates a plain object from a TraceStep message. Also converts values to other types if specified.
+                 * @param message TraceStep
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.TraceStep, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this TraceStep to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for TraceStep
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a Decision. */
+            interface IDecision {
+
+                /** Decision source */
+                source?: (cordum.agent.v1.DecisionSource|null);
+
+                /** Decision ruleId */
+                ruleId?: (string|null);
+
+                /** Decision bundleId */
+                bundleId?: (string|null);
+
+                /** Decision bundleVersion */
+                bundleVersion?: (string|null);
+
+                /** Decision type */
+                type?: (cordum.agent.v1.DecisionType|null);
+
+                /** Decision trace */
+                trace?: (cordum.agent.v1.ITraceStep[]|null);
+
+                /** Decision inputRef */
+                inputRef?: (string|null);
+
+                /** Decision outputRef */
+                outputRef?: (string|null);
+
+                /** Decision auditHash */
+                auditHash?: (string|null);
+
+                /** Decision timestamp */
+                timestamp?: (google.protobuf.ITimestamp|null);
+            }
+
+            /** Represents a Decision. */
+            class Decision implements IDecision {
+
+                /**
+                 * Constructs a new Decision.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IDecision);
+
+                /** Decision source. */
+                public source: cordum.agent.v1.DecisionSource;
+
+                /** Decision ruleId. */
+                public ruleId: string;
+
+                /** Decision bundleId. */
+                public bundleId: string;
+
+                /** Decision bundleVersion. */
+                public bundleVersion: string;
+
+                /** Decision type. */
+                public type: cordum.agent.v1.DecisionType;
+
+                /** Decision trace. */
+                public trace: cordum.agent.v1.ITraceStep[];
+
+                /** Decision inputRef. */
+                public inputRef: string;
+
+                /** Decision outputRef. */
+                public outputRef: string;
+
+                /** Decision auditHash. */
+                public auditHash: string;
+
+                /** Decision timestamp. */
+                public timestamp?: (google.protobuf.ITimestamp|null);
+
+                /**
+                 * Creates a new Decision instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns Decision instance
+                 */
+                public static create(properties?: cordum.agent.v1.IDecision): cordum.agent.v1.Decision;
+
+                /**
+                 * Encodes the specified Decision message. Does not implicitly {@link cordum.agent.v1.Decision.verify|verify} messages.
+                 * @param message Decision message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IDecision, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified Decision message, length delimited. Does not implicitly {@link cordum.agent.v1.Decision.verify|verify} messages.
+                 * @param message Decision message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IDecision, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a Decision message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns Decision
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.Decision;
+
+                /**
+                 * Decodes a Decision message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns Decision
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.Decision;
+
+                /**
+                 * Verifies a Decision message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a Decision message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns Decision
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.Decision;
+
+                /**
+                 * Creates a plain object from a Decision message. Also converts values to other types if specified.
+                 * @param message Decision
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.Decision, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this Decision to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for Decision
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a BundleMetadata. */
+            interface IBundleMetadata {
+
+                /** BundleMetadata edgeMode */
+                edgeMode?: (cordum.agent.v1.EdgeMode|null);
+            }
+
+            /** Represents a BundleMetadata. */
+            class BundleMetadata implements IBundleMetadata {
+
+                /**
+                 * Constructs a new BundleMetadata.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IBundleMetadata);
+
+                /** BundleMetadata edgeMode. */
+                public edgeMode: cordum.agent.v1.EdgeMode;
+
+                /**
+                 * Creates a new BundleMetadata instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns BundleMetadata instance
+                 */
+                public static create(properties?: cordum.agent.v1.IBundleMetadata): cordum.agent.v1.BundleMetadata;
+
+                /**
+                 * Encodes the specified BundleMetadata message. Does not implicitly {@link cordum.agent.v1.BundleMetadata.verify|verify} messages.
+                 * @param message BundleMetadata message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IBundleMetadata, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified BundleMetadata message, length delimited. Does not implicitly {@link cordum.agent.v1.BundleMetadata.verify|verify} messages.
+                 * @param message BundleMetadata message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IBundleMetadata, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a BundleMetadata message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns BundleMetadata
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.BundleMetadata;
+
+                /**
+                 * Decodes a BundleMetadata message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns BundleMetadata
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.BundleMetadata;
+
+                /**
+                 * Verifies a BundleMetadata message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a BundleMetadata message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns BundleMetadata
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.BundleMetadata;
+
+                /**
+                 * Creates a plain object from a BundleMetadata message. Also converts values to other types if specified.
+                 * @param message BundleMetadata
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.BundleMetadata, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this BundleMetadata to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for BundleMetadata
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a BundleVersion. */
+            interface IBundleVersion {
+
+                /** BundleVersion version */
+                version?: (string|null);
+
+                /** BundleVersion ruleSnapshot */
+                ruleSnapshot?: (cordum.agent.v1.IRule[]|null);
+
+                /** BundleVersion deployedAt */
+                deployedAt?: (google.protobuf.ITimestamp|null);
+
+                /** BundleVersion auditHash */
+                auditHash?: (string|null);
+            }
+
+            /** Represents a BundleVersion. */
+            class BundleVersion implements IBundleVersion {
+
+                /**
+                 * Constructs a new BundleVersion.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IBundleVersion);
+
+                /** BundleVersion version. */
+                public version: string;
+
+                /** BundleVersion ruleSnapshot. */
+                public ruleSnapshot: cordum.agent.v1.IRule[];
+
+                /** BundleVersion deployedAt. */
+                public deployedAt?: (google.protobuf.ITimestamp|null);
+
+                /** BundleVersion auditHash. */
+                public auditHash: string;
+
+                /**
+                 * Creates a new BundleVersion instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns BundleVersion instance
+                 */
+                public static create(properties?: cordum.agent.v1.IBundleVersion): cordum.agent.v1.BundleVersion;
+
+                /**
+                 * Encodes the specified BundleVersion message. Does not implicitly {@link cordum.agent.v1.BundleVersion.verify|verify} messages.
+                 * @param message BundleVersion message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IBundleVersion, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified BundleVersion message, length delimited. Does not implicitly {@link cordum.agent.v1.BundleVersion.verify|verify} messages.
+                 * @param message BundleVersion message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IBundleVersion, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a BundleVersion message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns BundleVersion
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.BundleVersion;
+
+                /**
+                 * Decodes a BundleVersion message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns BundleVersion
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.BundleVersion;
+
+                /**
+                 * Verifies a BundleVersion message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a BundleVersion message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns BundleVersion
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.BundleVersion;
+
+                /**
+                 * Creates a plain object from a BundleVersion message. Also converts values to other types if specified.
+                 * @param message BundleVersion
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.BundleVersion, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this BundleVersion to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for BundleVersion
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a Bundle. */
+            interface IBundle {
+
+                /** Bundle id */
+                id?: (string|null);
+
+                /** Bundle name */
+                name?: (string|null);
+
+                /** Bundle ruleIds */
+                ruleIds?: (string[]|null);
+
+                /** Bundle scopeBinding */
+                scopeBinding?: (cordum.agent.v1.IRuleScope|null);
+
+                /** Bundle versions */
+                versions?: (cordum.agent.v1.IBundleVersion[]|null);
+
+                /** Bundle metadata */
+                metadata?: (cordum.agent.v1.IBundleMetadata|null);
+            }
+
+            /** Represents a Bundle. */
+            class Bundle implements IBundle {
+
+                /**
+                 * Constructs a new Bundle.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IBundle);
+
+                /** Bundle id. */
+                public id: string;
+
+                /** Bundle name. */
+                public name: string;
+
+                /** Bundle ruleIds. */
+                public ruleIds: string[];
+
+                /** Bundle scopeBinding. */
+                public scopeBinding?: (cordum.agent.v1.IRuleScope|null);
+
+                /** Bundle versions. */
+                public versions: cordum.agent.v1.IBundleVersion[];
+
+                /** Bundle metadata. */
+                public metadata?: (cordum.agent.v1.IBundleMetadata|null);
+
+                /**
+                 * Creates a new Bundle instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns Bundle instance
+                 */
+                public static create(properties?: cordum.agent.v1.IBundle): cordum.agent.v1.Bundle;
+
+                /**
+                 * Encodes the specified Bundle message. Does not implicitly {@link cordum.agent.v1.Bundle.verify|verify} messages.
+                 * @param message Bundle message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IBundle, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified Bundle message, length delimited. Does not implicitly {@link cordum.agent.v1.Bundle.verify|verify} messages.
+                 * @param message Bundle message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IBundle, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a Bundle message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns Bundle
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.Bundle;
+
+                /**
+                 * Decodes a Bundle message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns Bundle
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.Bundle;
+
+                /**
+                 * Verifies a Bundle message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a Bundle message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns Bundle
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.Bundle;
+
+                /**
+                 * Creates a plain object from a Bundle message. Also converts values to other types if specified.
+                 * @param message Bundle
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.Bundle, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this Bundle to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for Bundle
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a JobEvaluationContext. */
+            interface IJobEvaluationContext {
+
+                /** JobEvaluationContext tenantId */
+                tenantId?: (string|null);
+
+                /** JobEvaluationContext jobId */
+                jobId?: (string|null);
+
+                /** JobEvaluationContext workflowId */
+                workflowId?: (string|null);
+
+                /** JobEvaluationContext topic */
+                topic?: (string|null);
+
+                /** JobEvaluationContext principalId */
+                principalId?: (string|null);
+
+                /** JobEvaluationContext labels */
+                labels?: ({ [k: string]: string }|null);
+
+                /** JobEvaluationContext memoryId */
+                memoryId?: (string|null);
+
+                /** JobEvaluationContext capability */
+                capability?: (string|null);
+
+                /** JobEvaluationContext riskTags */
+                riskTags?: (string[]|null);
+
+                /** JobEvaluationContext inputContent */
+                inputContent?: (Uint8Array|null);
+
+                /** JobEvaluationContext inputContentType */
+                inputContentType?: (string|null);
+
+                /** JobEvaluationContext inputSizeBytes */
+                inputSizeBytes?: (number|Long|null);
+            }
+
+            /** Represents a JobEvaluationContext. */
+            class JobEvaluationContext implements IJobEvaluationContext {
+
+                /**
+                 * Constructs a new JobEvaluationContext.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IJobEvaluationContext);
+
+                /** JobEvaluationContext tenantId. */
+                public tenantId: string;
+
+                /** JobEvaluationContext jobId. */
+                public jobId: string;
+
+                /** JobEvaluationContext workflowId. */
+                public workflowId: string;
+
+                /** JobEvaluationContext topic. */
+                public topic: string;
+
+                /** JobEvaluationContext principalId. */
+                public principalId: string;
+
+                /** JobEvaluationContext labels. */
+                public labels: { [k: string]: string };
+
+                /** JobEvaluationContext memoryId. */
+                public memoryId: string;
+
+                /** JobEvaluationContext capability. */
+                public capability: string;
+
+                /** JobEvaluationContext riskTags. */
+                public riskTags: string[];
+
+                /** JobEvaluationContext inputContent. */
+                public inputContent: Uint8Array;
+
+                /** JobEvaluationContext inputContentType. */
+                public inputContentType: string;
+
+                /** JobEvaluationContext inputSizeBytes. */
+                public inputSizeBytes: (number|Long);
+
+                /**
+                 * Creates a new JobEvaluationContext instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns JobEvaluationContext instance
+                 */
+                public static create(properties?: cordum.agent.v1.IJobEvaluationContext): cordum.agent.v1.JobEvaluationContext;
+
+                /**
+                 * Encodes the specified JobEvaluationContext message. Does not implicitly {@link cordum.agent.v1.JobEvaluationContext.verify|verify} messages.
+                 * @param message JobEvaluationContext message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IJobEvaluationContext, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified JobEvaluationContext message, length delimited. Does not implicitly {@link cordum.agent.v1.JobEvaluationContext.verify|verify} messages.
+                 * @param message JobEvaluationContext message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IJobEvaluationContext, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a JobEvaluationContext message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns JobEvaluationContext
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.JobEvaluationContext;
+
+                /**
+                 * Decodes a JobEvaluationContext message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns JobEvaluationContext
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.JobEvaluationContext;
+
+                /**
+                 * Verifies a JobEvaluationContext message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a JobEvaluationContext message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns JobEvaluationContext
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.JobEvaluationContext;
+
+                /**
+                 * Creates a plain object from a JobEvaluationContext message. Also converts values to other types if specified.
+                 * @param message JobEvaluationContext
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.JobEvaluationContext, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this JobEvaluationContext to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for JobEvaluationContext
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of an EdgeEvaluationContext. */
+            interface IEdgeEvaluationContext {
+
+                /** EdgeEvaluationContext tenantId */
+                tenantId?: (string|null);
+
+                /** EdgeEvaluationContext principalId */
+                principalId?: (string|null);
+
+                /** EdgeEvaluationContext sessionId */
+                sessionId?: (string|null);
+
+                /** EdgeEvaluationContext executionId */
+                executionId?: (string|null);
+
+                /** EdgeEvaluationContext agentProduct */
+                agentProduct?: (string|null);
+
+                /** EdgeEvaluationContext toolName */
+                toolName?: (string|null);
+
+                /** EdgeEvaluationContext toolInputRedacted */
+                toolInputRedacted?: (google.protobuf.IStruct|null);
+
+                /** EdgeEvaluationContext inputHash */
+                inputHash?: (string|null);
+
+                /** EdgeEvaluationContext toolInputHash */
+                toolInputHash?: (string|null);
+
+                /** EdgeEvaluationContext labels */
+                labels?: ({ [k: string]: string }|null);
+
+                /** EdgeEvaluationContext riskTags */
+                riskTags?: (string[]|null);
+            }
+
+            /** Represents an EdgeEvaluationContext. */
+            class EdgeEvaluationContext implements IEdgeEvaluationContext {
+
+                /**
+                 * Constructs a new EdgeEvaluationContext.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IEdgeEvaluationContext);
+
+                /** EdgeEvaluationContext tenantId. */
+                public tenantId: string;
+
+                /** EdgeEvaluationContext principalId. */
+                public principalId: string;
+
+                /** EdgeEvaluationContext sessionId. */
+                public sessionId: string;
+
+                /** EdgeEvaluationContext executionId. */
+                public executionId: string;
+
+                /** EdgeEvaluationContext agentProduct. */
+                public agentProduct: string;
+
+                /** EdgeEvaluationContext toolName. */
+                public toolName: string;
+
+                /** EdgeEvaluationContext toolInputRedacted. */
+                public toolInputRedacted?: (google.protobuf.IStruct|null);
+
+                /** EdgeEvaluationContext inputHash. */
+                public inputHash: string;
+
+                /** EdgeEvaluationContext toolInputHash. */
+                public toolInputHash: string;
+
+                /** EdgeEvaluationContext labels. */
+                public labels: { [k: string]: string };
+
+                /** EdgeEvaluationContext riskTags. */
+                public riskTags: string[];
+
+                /**
+                 * Creates a new EdgeEvaluationContext instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns EdgeEvaluationContext instance
+                 */
+                public static create(properties?: cordum.agent.v1.IEdgeEvaluationContext): cordum.agent.v1.EdgeEvaluationContext;
+
+                /**
+                 * Encodes the specified EdgeEvaluationContext message. Does not implicitly {@link cordum.agent.v1.EdgeEvaluationContext.verify|verify} messages.
+                 * @param message EdgeEvaluationContext message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IEdgeEvaluationContext, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified EdgeEvaluationContext message, length delimited. Does not implicitly {@link cordum.agent.v1.EdgeEvaluationContext.verify|verify} messages.
+                 * @param message EdgeEvaluationContext message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IEdgeEvaluationContext, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes an EdgeEvaluationContext message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns EdgeEvaluationContext
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.EdgeEvaluationContext;
+
+                /**
+                 * Decodes an EdgeEvaluationContext message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns EdgeEvaluationContext
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.EdgeEvaluationContext;
+
+                /**
+                 * Verifies an EdgeEvaluationContext message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates an EdgeEvaluationContext message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns EdgeEvaluationContext
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.EdgeEvaluationContext;
+
+                /**
+                 * Creates a plain object from an EdgeEvaluationContext message. Also converts values to other types if specified.
+                 * @param message EdgeEvaluationContext
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.EdgeEvaluationContext, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this EdgeEvaluationContext to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for EdgeEvaluationContext
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a PolicyEvaluateRequest. */
+            interface IPolicyEvaluateRequest {
+
+                /** PolicyEvaluateRequest rule */
+                rule?: (cordum.agent.v1.IRule|null);
+
+                /** PolicyEvaluateRequest bundleId */
+                bundleId?: (string|null);
+
+                /** PolicyEvaluateRequest scope */
+                scope?: (cordum.agent.v1.IRuleScope|null);
+
+                /** PolicyEvaluateRequest jobContext */
+                jobContext?: (cordum.agent.v1.IJobEvaluationContext|null);
+
+                /** PolicyEvaluateRequest edgeContext */
+                edgeContext?: (cordum.agent.v1.IEdgeEvaluationContext|null);
+            }
+
+            /** Represents a PolicyEvaluateRequest. */
+            class PolicyEvaluateRequest implements IPolicyEvaluateRequest {
+
+                /**
+                 * Constructs a new PolicyEvaluateRequest.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IPolicyEvaluateRequest);
+
+                /** PolicyEvaluateRequest rule. */
+                public rule?: (cordum.agent.v1.IRule|null);
+
+                /** PolicyEvaluateRequest bundleId. */
+                public bundleId: string;
+
+                /** PolicyEvaluateRequest scope. */
+                public scope?: (cordum.agent.v1.IRuleScope|null);
+
+                /** PolicyEvaluateRequest jobContext. */
+                public jobContext?: (cordum.agent.v1.IJobEvaluationContext|null);
+
+                /** PolicyEvaluateRequest edgeContext. */
+                public edgeContext?: (cordum.agent.v1.IEdgeEvaluationContext|null);
+
+                /**
+                 * Creates a new PolicyEvaluateRequest instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns PolicyEvaluateRequest instance
+                 */
+                public static create(properties?: cordum.agent.v1.IPolicyEvaluateRequest): cordum.agent.v1.PolicyEvaluateRequest;
+
+                /**
+                 * Encodes the specified PolicyEvaluateRequest message. Does not implicitly {@link cordum.agent.v1.PolicyEvaluateRequest.verify|verify} messages.
+                 * @param message PolicyEvaluateRequest message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IPolicyEvaluateRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified PolicyEvaluateRequest message, length delimited. Does not implicitly {@link cordum.agent.v1.PolicyEvaluateRequest.verify|verify} messages.
+                 * @param message PolicyEvaluateRequest message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IPolicyEvaluateRequest, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a PolicyEvaluateRequest message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns PolicyEvaluateRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.PolicyEvaluateRequest;
+
+                /**
+                 * Decodes a PolicyEvaluateRequest message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns PolicyEvaluateRequest
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.PolicyEvaluateRequest;
+
+                /**
+                 * Verifies a PolicyEvaluateRequest message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a PolicyEvaluateRequest message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns PolicyEvaluateRequest
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.PolicyEvaluateRequest;
+
+                /**
+                 * Creates a plain object from a PolicyEvaluateRequest message. Also converts values to other types if specified.
+                 * @param message PolicyEvaluateRequest
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.PolicyEvaluateRequest, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this PolicyEvaluateRequest to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for PolicyEvaluateRequest
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Properties of a PolicyEvaluateResponse. */
+            interface IPolicyEvaluateResponse {
+
+                /** PolicyEvaluateResponse decision */
+                decision?: (cordum.agent.v1.IDecision|null);
+            }
+
+            /** Represents a PolicyEvaluateResponse. */
+            class PolicyEvaluateResponse implements IPolicyEvaluateResponse {
+
+                /**
+                 * Constructs a new PolicyEvaluateResponse.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: cordum.agent.v1.IPolicyEvaluateResponse);
+
+                /** PolicyEvaluateResponse decision. */
+                public decision?: (cordum.agent.v1.IDecision|null);
+
+                /**
+                 * Creates a new PolicyEvaluateResponse instance using the specified properties.
+                 * @param [properties] Properties to set
+                 * @returns PolicyEvaluateResponse instance
+                 */
+                public static create(properties?: cordum.agent.v1.IPolicyEvaluateResponse): cordum.agent.v1.PolicyEvaluateResponse;
+
+                /**
+                 * Encodes the specified PolicyEvaluateResponse message. Does not implicitly {@link cordum.agent.v1.PolicyEvaluateResponse.verify|verify} messages.
+                 * @param message PolicyEvaluateResponse message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: cordum.agent.v1.IPolicyEvaluateResponse, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Encodes the specified PolicyEvaluateResponse message, length delimited. Does not implicitly {@link cordum.agent.v1.PolicyEvaluateResponse.verify|verify} messages.
+                 * @param message PolicyEvaluateResponse message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encodeDelimited(message: cordum.agent.v1.IPolicyEvaluateResponse, writer?: $protobuf.Writer): $protobuf.Writer;
+
+                /**
+                 * Decodes a PolicyEvaluateResponse message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns PolicyEvaluateResponse
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): cordum.agent.v1.PolicyEvaluateResponse;
+
+                /**
+                 * Decodes a PolicyEvaluateResponse message from the specified reader or buffer, length delimited.
+                 * @param reader Reader or buffer to decode from
+                 * @returns PolicyEvaluateResponse
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): cordum.agent.v1.PolicyEvaluateResponse;
+
+                /**
+                 * Verifies a PolicyEvaluateResponse message.
+                 * @param message Plain object to verify
+                 * @returns `null` if valid, otherwise the reason why it is not
+                 */
+                public static verify(message: { [k: string]: any }): (string|null);
+
+                /**
+                 * Creates a PolicyEvaluateResponse message from a plain object. Also converts values to their respective internal types.
+                 * @param object Plain object
+                 * @returns PolicyEvaluateResponse
+                 */
+                public static fromObject(object: { [k: string]: any }): cordum.agent.v1.PolicyEvaluateResponse;
+
+                /**
+                 * Creates a plain object from a PolicyEvaluateResponse message. Also converts values to other types if specified.
+                 * @param message PolicyEvaluateResponse
+                 * @param [options] Conversion options
+                 * @returns Plain object
+                 */
+                public static toObject(message: cordum.agent.v1.PolicyEvaluateResponse, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+                /**
+                 * Converts this PolicyEvaluateResponse to JSON.
+                 * @returns JSON object
+                 */
+                public toJSON(): { [k: string]: any };
+
+                /**
+                 * Gets the default type url for PolicyEvaluateResponse
+                 * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+                 * @returns The default type url
+                 */
+                public static getTypeUrl(typeUrlPrefix?: string): string;
+            }
+
+            /** Represents a PolicyEvaluator */
+            class PolicyEvaluator extends $protobuf.rpc.Service {
+
+                /**
+                 * Constructs a new PolicyEvaluator service.
+                 * @param rpcImpl RPC implementation
+                 * @param [requestDelimited=false] Whether requests are length-delimited
+                 * @param [responseDelimited=false] Whether responses are length-delimited
+                 */
+                constructor(rpcImpl: $protobuf.RPCImpl, requestDelimited?: boolean, responseDelimited?: boolean);
+
+                /**
+                 * Creates new PolicyEvaluator service using the specified rpc implementation.
+                 * @param rpcImpl RPC implementation
+                 * @param [requestDelimited=false] Whether requests are length-delimited
+                 * @param [responseDelimited=false] Whether responses are length-delimited
+                 * @returns RPC service. Useful where requests and/or responses are streamed.
+                 */
+                public static create(rpcImpl: $protobuf.RPCImpl, requestDelimited?: boolean, responseDelimited?: boolean): PolicyEvaluator;
+
+                /**
+                 * Calls EvaluateUnified.
+                 * @param request PolicyEvaluateRequest message or plain object
+                 * @param callback Node-style callback called with the error, if any, and PolicyEvaluateResponse
+                 */
+                public evaluateUnified(request: cordum.agent.v1.IPolicyEvaluateRequest, callback: cordum.agent.v1.PolicyEvaluator.EvaluateUnifiedCallback): void;
+
+                /**
+                 * Calls EvaluateUnified.
+                 * @param request PolicyEvaluateRequest message or plain object
+                 * @returns Promise
+                 */
+                public evaluateUnified(request: cordum.agent.v1.IPolicyEvaluateRequest): Promise<cordum.agent.v1.PolicyEvaluateResponse>;
+            }
+
+            namespace PolicyEvaluator {
+
+                /**
+                 * Callback as used by {@link cordum.agent.v1.PolicyEvaluator#evaluateUnified}.
+                 * @param error Error, if any
+                 * @param [response] PolicyEvaluateResponse
+                 */
+                type EvaluateUnifiedCallback = (error: (Error|null), response?: cordum.agent.v1.PolicyEvaluateResponse) => void;
+            }
+
             /** DecisionType enum. */
             enum DecisionType {
                 DECISION_TYPE_UNSPECIFIED = 0,
@@ -1826,7 +4068,9 @@ export namespace cordum {
                 DECISION_TYPE_DENY = 2,
                 DECISION_TYPE_REQUIRE_HUMAN = 3,
                 DECISION_TYPE_THROTTLE = 4,
-                DECISION_TYPE_ALLOW_WITH_CONSTRAINTS = 5
+                DECISION_TYPE_ALLOW_WITH_CONSTRAINTS = 5,
+                DECISION_TYPE_QUARANTINE = 6,
+                DECISION_TYPE_REDACT = 7
             }
 
             /** Properties of a PolicyCheckRequest. */
@@ -3268,6 +5512,335 @@ export namespace google {
 
             /**
              * Gets the default type url for Timestamp
+             * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+             * @returns The default type url
+             */
+            public static getTypeUrl(typeUrlPrefix?: string): string;
+        }
+
+        /** Properties of a Struct. */
+        interface IStruct {
+
+            /** Struct fields */
+            fields?: ({ [k: string]: google.protobuf.IValue }|null);
+        }
+
+        /** Represents a Struct. */
+        class Struct implements IStruct {
+
+            /**
+             * Constructs a new Struct.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: google.protobuf.IStruct);
+
+            /** Struct fields. */
+            public fields: { [k: string]: google.protobuf.IValue };
+
+            /**
+             * Creates a new Struct instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns Struct instance
+             */
+            public static create(properties?: google.protobuf.IStruct): google.protobuf.Struct;
+
+            /**
+             * Encodes the specified Struct message. Does not implicitly {@link google.protobuf.Struct.verify|verify} messages.
+             * @param message Struct message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: google.protobuf.IStruct, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Encodes the specified Struct message, length delimited. Does not implicitly {@link google.protobuf.Struct.verify|verify} messages.
+             * @param message Struct message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encodeDelimited(message: google.protobuf.IStruct, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes a Struct message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns Struct
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): google.protobuf.Struct;
+
+            /**
+             * Decodes a Struct message from the specified reader or buffer, length delimited.
+             * @param reader Reader or buffer to decode from
+             * @returns Struct
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): google.protobuf.Struct;
+
+            /**
+             * Verifies a Struct message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            public static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates a Struct message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns Struct
+             */
+            public static fromObject(object: { [k: string]: any }): google.protobuf.Struct;
+
+            /**
+             * Creates a plain object from a Struct message. Also converts values to other types if specified.
+             * @param message Struct
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            public static toObject(message: google.protobuf.Struct, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this Struct to JSON.
+             * @returns JSON object
+             */
+            public toJSON(): { [k: string]: any };
+
+            /**
+             * Gets the default type url for Struct
+             * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+             * @returns The default type url
+             */
+            public static getTypeUrl(typeUrlPrefix?: string): string;
+        }
+
+        /** Properties of a Value. */
+        interface IValue {
+
+            /** Value nullValue */
+            nullValue?: (google.protobuf.NullValue|null);
+
+            /** Value numberValue */
+            numberValue?: (number|null);
+
+            /** Value stringValue */
+            stringValue?: (string|null);
+
+            /** Value boolValue */
+            boolValue?: (boolean|null);
+
+            /** Value structValue */
+            structValue?: (google.protobuf.IStruct|null);
+
+            /** Value listValue */
+            listValue?: (google.protobuf.IListValue|null);
+        }
+
+        /** Represents a Value. */
+        class Value implements IValue {
+
+            /**
+             * Constructs a new Value.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: google.protobuf.IValue);
+
+            /** Value nullValue. */
+            public nullValue?: (google.protobuf.NullValue|null);
+
+            /** Value numberValue. */
+            public numberValue?: (number|null);
+
+            /** Value stringValue. */
+            public stringValue?: (string|null);
+
+            /** Value boolValue. */
+            public boolValue?: (boolean|null);
+
+            /** Value structValue. */
+            public structValue?: (google.protobuf.IStruct|null);
+
+            /** Value listValue. */
+            public listValue?: (google.protobuf.IListValue|null);
+
+            /** Value kind. */
+            public kind?: ("nullValue"|"numberValue"|"stringValue"|"boolValue"|"structValue"|"listValue");
+
+            /**
+             * Creates a new Value instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns Value instance
+             */
+            public static create(properties?: google.protobuf.IValue): google.protobuf.Value;
+
+            /**
+             * Encodes the specified Value message. Does not implicitly {@link google.protobuf.Value.verify|verify} messages.
+             * @param message Value message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: google.protobuf.IValue, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Encodes the specified Value message, length delimited. Does not implicitly {@link google.protobuf.Value.verify|verify} messages.
+             * @param message Value message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encodeDelimited(message: google.protobuf.IValue, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes a Value message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns Value
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): google.protobuf.Value;
+
+            /**
+             * Decodes a Value message from the specified reader or buffer, length delimited.
+             * @param reader Reader or buffer to decode from
+             * @returns Value
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): google.protobuf.Value;
+
+            /**
+             * Verifies a Value message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            public static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates a Value message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns Value
+             */
+            public static fromObject(object: { [k: string]: any }): google.protobuf.Value;
+
+            /**
+             * Creates a plain object from a Value message. Also converts values to other types if specified.
+             * @param message Value
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            public static toObject(message: google.protobuf.Value, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this Value to JSON.
+             * @returns JSON object
+             */
+            public toJSON(): { [k: string]: any };
+
+            /**
+             * Gets the default type url for Value
+             * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+             * @returns The default type url
+             */
+            public static getTypeUrl(typeUrlPrefix?: string): string;
+        }
+
+        /** NullValue enum. */
+        enum NullValue {
+            NULL_VALUE = 0
+        }
+
+        /** Properties of a ListValue. */
+        interface IListValue {
+
+            /** ListValue values */
+            values?: (google.protobuf.IValue[]|null);
+        }
+
+        /** Represents a ListValue. */
+        class ListValue implements IListValue {
+
+            /**
+             * Constructs a new ListValue.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: google.protobuf.IListValue);
+
+            /** ListValue values. */
+            public values: google.protobuf.IValue[];
+
+            /**
+             * Creates a new ListValue instance using the specified properties.
+             * @param [properties] Properties to set
+             * @returns ListValue instance
+             */
+            public static create(properties?: google.protobuf.IListValue): google.protobuf.ListValue;
+
+            /**
+             * Encodes the specified ListValue message. Does not implicitly {@link google.protobuf.ListValue.verify|verify} messages.
+             * @param message ListValue message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: google.protobuf.IListValue, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Encodes the specified ListValue message, length delimited. Does not implicitly {@link google.protobuf.ListValue.verify|verify} messages.
+             * @param message ListValue message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encodeDelimited(message: google.protobuf.IListValue, writer?: $protobuf.Writer): $protobuf.Writer;
+
+            /**
+             * Decodes a ListValue message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns ListValue
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): google.protobuf.ListValue;
+
+            /**
+             * Decodes a ListValue message from the specified reader or buffer, length delimited.
+             * @param reader Reader or buffer to decode from
+             * @returns ListValue
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): google.protobuf.ListValue;
+
+            /**
+             * Verifies a ListValue message.
+             * @param message Plain object to verify
+             * @returns `null` if valid, otherwise the reason why it is not
+             */
+            public static verify(message: { [k: string]: any }): (string|null);
+
+            /**
+             * Creates a ListValue message from a plain object. Also converts values to their respective internal types.
+             * @param object Plain object
+             * @returns ListValue
+             */
+            public static fromObject(object: { [k: string]: any }): google.protobuf.ListValue;
+
+            /**
+             * Creates a plain object from a ListValue message. Also converts values to other types if specified.
+             * @param message ListValue
+             * @param [options] Conversion options
+             * @returns Plain object
+             */
+            public static toObject(message: google.protobuf.ListValue, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+            /**
+             * Converts this ListValue to JSON.
+             * @returns JSON object
+             */
+            public toJSON(): { [k: string]: any };
+
+            /**
+             * Gets the default type url for ListValue
              * @param [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
              * @returns The default type url
              */

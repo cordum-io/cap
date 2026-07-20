@@ -6,18 +6,9 @@ package runtime
 // so the cutover is seamless from the scheduler's point of view —
 // dispatch never sees an expired token on the inbound path.
 //
-// Failure ladder:
-//   1. attempt renew via WorkerHandshakeRenewSubject.
-//   2. on transport / malformed-response failure: performHandshakeOn
-//      retries with exponential backoff up to HandshakeRetries.
-//   3. if renew still fails: escalate to a fresh handshake over
-//      WorkerHandshakeSubject. This covers the case where the
-//      scheduler lost the active-token record (e.g. Redis rebuild,
-//      miniredis wipe) and needs a brand-new issuance.
-//   4. if the fresh handshake also fails: sleep briefly and loop.
-//      Callers in warn mode keep running with a stale token; in
-//      enforce mode the next outbound packet is rejected by the
-//      scheduler middleware, which is the correct fail-closed behaviour.
+// A renewal always proves possession of the current active token. Failure
+// never falls back to a tokenless ISSUE exchange: WARN retains an existing
+// token only while it remains unexpired, while ENFORCE clears it.
 
 import (
 	"context"
@@ -72,8 +63,7 @@ func (a *Agent) startRenewLoop(parent context.Context) {
 	}()
 }
 
-// stopRenewLoop cancels the renew goroutine and waits up to a short
-// deadline for it to exit. Called from Close().
+// stopRenewLoop cancels the renew goroutine and waits for it to exit.
 func (a *Agent) stopRenewLoop() {
 	if a == nil || a.renew == nil {
 		return
@@ -81,19 +71,13 @@ func (a *Agent) stopRenewLoop() {
 	r := a.renew
 	r.once.Do(func() {
 		r.cancel()
-		select {
-		case <-r.done:
-		case <-time.After(2 * time.Second):
-			// Goroutine stuck in a long sleep — won't free until its
-			// own timer fires, but the cancel closes the context so
-			// the next tick exits anyway. Log level left to caller.
-		}
+		<-r.done
 	})
 }
 
 // renewLoop is the renew goroutine's main body. It waits until the
-// computed renew-at, performs a renew, and on failure falls back to a
-// fresh handshake. Exits cleanly on ctx cancel.
+// computed renew-at and performs an authenticated renew. Exits cleanly on
+// context cancellation without issuing a tokenless fallback.
 func (a *Agent) renewLoop(ctx context.Context) {
 	for {
 		if ctx.Err() != nil {
@@ -113,18 +97,10 @@ func (a *Agent) renewLoop(ctx context.Context) {
 			return
 		}
 		if a.attemptRenewOnce(ctx) {
-			continue // success — new exp installed, recompute next wait.
-		}
-		a.Logger.Warn("cap-runtime: renew exhausted retries; falling back to fresh handshake",
-			"agent_id", a.SenderID,
-		)
-		if a.attemptFreshHandshakeOnce(ctx) {
 			continue
 		}
-		// Fresh handshake also failed. Sleep the min interval before
-		// the next iteration so we don't spin.
-		a.Logger.Error("cap-runtime: fresh handshake failed during renew loop",
-			"agent_id", a.SenderID,
+		a.Logger.Warn("cap-runtime: authenticated session renewal failed",
+			"worker_id", a.SenderID,
 		)
 		if !sleepCtx(ctx, DefaultRenewMinInterval) {
 			return
@@ -138,20 +114,6 @@ func (a *Agent) attemptRenewOnce(ctx context.Context) bool {
 	obtained, err := a.performRenew(ctx)
 	if err != nil {
 		a.Logger.Warn("cap-runtime: renew failed",
-			"agent_id", a.SenderID,
-			"error", err,
-		)
-		return false
-	}
-	return obtained
-}
-
-// attemptFreshHandshakeOnce performs a single fresh-handshake attempt
-// as the renew-failure fallback. Returns true on success.
-func (a *Agent) attemptFreshHandshakeOnce(ctx context.Context) bool {
-	obtained, err := a.performHandshake(ctx)
-	if err != nil {
-		a.Logger.Warn("cap-runtime: fresh handshake failed",
 			"agent_id", a.SenderID,
 			"error", err,
 		)

@@ -18,12 +18,12 @@ Error: Could not connect to server
 
 1. Start NATS:
    ```bash
-   docker run -d --name nats -p 4222:4222 nats:latest
+   docker run -d --name nats -p 127.0.0.1:4222:4222 -p 127.0.0.1:8222:8222 nats:2.12.6-alpine@sha256:1cfc36e2e5e638243d8c722f72c954cd0ec4b15ee82fadbc718ce12e2b3c1652 -m 8222
    ```
 
 2. Verify it's running:
    ```bash
-   docker ps | grep nats
+   curl -fsS http://127.0.0.1:8222/healthz
    ```
 
 3. If using a custom URL, set the environment variable:
@@ -79,7 +79,8 @@ signature verification failed for sender <sender-id>
 invalid signature: ECDSA verify failed
 ```
 
-**Cause:** Key format mismatch, wrong key, or non-deterministic serialization.
+**Cause:** Key format mismatch, wrong or missing sender mapping, an unsigned packet in strict
+mode, or non-deterministic serialization.
 
 **Solution:**
 
@@ -103,9 +104,18 @@ invalid signature: ECDSA verify failed
      node -e "const {generateKeyPairSync}=require('crypto');const {privateKey,publicKey}=generateKeyPairSync('ec',{namedCurve:'prime256v1',publicKeyEncoding:{type:'spki',format:'pem'},privateKeyEncoding:{type:'pkcs8',format:'pem'}});console.log(privateKey);console.log(publicKey);"
      ```
 
-3. **Ensure the public key map matches sender IDs.** The `publicKeyMap`/`public_keys` must map sender IDs to the correct public keys. A mismatch causes verification failure.
+3. **Ensure the public key map matches sender IDs.** The `publicKeyMap`/`public_keys`
+   must map sender IDs to the correct public keys. A mismatch causes verification failure.
 
-4. **Cross-SDK verification** works because all SDKs use deterministic protobuf serialization (map entries sorted by key). If you're using a custom serializer, ensure it produces deterministic output.
+4. **For Node, check strict-mode configuration.** Omitting `publicKeyMap` (or setting it
+   to `undefined`) is the sole legacy opt-out. Supplying any map enables strict verification;
+   `{}` denies every sender. Missing senders, unsigned packets, unknown keys, malformed
+   envelopes, and invalid signatures are dropped before either `startWorker` or `Agent`
+   calls a handler.
+
+5. **Cross-SDK verification** works because all SDKs use deterministic protobuf serialization
+   (map entries sorted by key). If you're using a custom serializer, ensure it produces
+   deterministic output.
 
 ---
 
@@ -116,18 +126,40 @@ invalid signature: ECDSA verify failed
 proto: cannot parse invalid wire-format data
 ModuleNotFoundError: No module named 'cap.pb.cordum.agent.v1'
 Cannot find module '../cordum/agent/v1/job.proto'
+ENOENT: no such file or directory, open '.../cordum/agent/v1/alert.proto'
 ```
 
-**Cause:** Stale or missing generated protobuf stubs.
+**Cause:** Invalid or version-mismatched wire bytes, stale generated stubs, or an old/corrupt
+SDK install.
 
 **Solution:**
 
-1. **Regenerate stubs** from the repo root:
+1. **For a released Node package, verify and refresh the install:**
+   ```bash
+   npm ls cap-sdk-node
+   npm cache verify
+   npm install cap-sdk-node@latest
+   ```
+   Released Node artifacts bundle the seven required schemas under
+   `node_modules/cap-sdk-node/dist/proto/cordum/agent/v1`. Node application consumers do not
+   need `protoc` or a full CAP clone. If the directory is absent, update an older lockfile or
+   version, or replace the corrupt install rather than copying schemas from a repository
+   checkout.
+
+2. **For Node SDK source development**, build from the full CAP checkout:
+   ```bash
+   cd sdk/node
+   npm ci
+   npm run build
+   ```
+   The build copies the canonical repository schemas into `dist`; it does not require `protoc`.
+
+3. **Regenerate Go and Python stubs** from the repo root when changing protocol sources:
    ```bash
    ./tools/make_protos.sh
    ```
 
-2. **For Python** stubs specifically:
+4. **For Python** stubs specifically:
    ```bash
    CAP_RUN_PY=1 ./tools/make_protos.sh
    ```
@@ -141,14 +173,13 @@ Cannot find module '../cordum/agent/v1/job.proto'
      ../../proto/cordum/agent/v1/*.proto
    ```
 
-3. **Check protoc version.** CAP proto files use proto3 syntax. Install `protoc` v3.19+ or use `grpc_tools.protoc` (Python) / `protobufjs` (Node).
+5. **Check the generator version for source changes.** CAP proto files use proto3 syntax.
+   Use the repository's pinned generation workflow; Python can use `grpc_tools.protoc`.
 
-4. **For Go**, stubs live at `cordum/agent/v1/` in the repo root. The import path is:
+6. **For Go**, stubs live at `cordum/agent/v1/` in the repo root. The import path is:
    ```go
    agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
    ```
-
-5. **For Node**, protobufjs loads `.proto` files at runtime from `proto/`. If the proto files are missing, ensure you cloned the full repository.
 
 ---
 
@@ -156,24 +187,46 @@ Cannot find module '../cordum/agent/v1/job.proto'
 
 **Symptoms:** Job is submitted but never picked up. No worker logs appear. The client gets no result.
 
-**Cause:** No worker is subscribed to the job's topic/subject.
+**Cause:** The publisher and worker are using different transport topologies, a required
+control-plane component is absent, or no worker is subscribed to the dispatched subject.
+`JobRequest.topic` is payload metadata; NATS does not inspect it to forward a message.
 
 **Solution:**
 
-1. **Check the topic matches.** The worker subscribes to a NATS subject (e.g., `job.echo`). The client's `JobRequest.topic` must match:
+1. **Choose one complete topology.** CAP supports both of these patterns, but they cannot be
+   mixed:
+
+   - **Direct local-development lab:** after subscribing to `sys.job.result`, the client
+     validates and publishes an encoded `BusPacket{JobRequest}` directly to `job.echo`.
+     The worker subscribes to `job.echo` and publishes its result to `sys.job.result`.
+     This deliberately bypasses Gateway, Scheduler, Safety Kernel, policy, authenticated
+     identity, durable state, and retries; do not present it as a production deployment.
+   - **Governed deployment:** an external caller enters through a Gateway or other trusted
+     ingress. The low-level Go `Client.Submit`, Python `submit_job`, and Node `submitJob`
+     helpers encode and publish Scheduler ingress at `sys.job.submit`; they do not implement
+     the Gateway or authenticate the caller. The Scheduler consumes that subject, obtains a
+     Safety decision, and dispatches to `job.<pool>` before a worker can receive the job.
+
+   Setting `JobRequest.topic` to `job.echo` does **not** reroute a packet that was already
+   published to `sys.job.submit`. Without the governed components, it remains on
+   `sys.job.submit`; for the direct lab, publish the validated packet itself to `job.echo`.
+
+2. **Check the dispatched subject matches.** The worker subscribes to a NATS subject (for
+   example, `job.echo`). The actual publish/dispatch subject and `JobRequest.topic` must
+   agree:
    ```
    Worker subject: "job.echo"
    JobRequest topic: "job.echo"   ✓
    JobRequest topic: "job.Echo"   ✗ (case-sensitive)
    ```
 
-2. **Verify the worker is connected** using NATS monitoring:
+3. **Verify the exact worker subscription** using the authoritative NATS monitoring
+   endpoint. This command exits nonzero until `job.echo` appears in the subscription
+   inventory:
    ```bash
-   # List all subscriptions
-   nats sub '>'
+   curl -fsS 'http://127.0.0.1:8222/subsz?subs=1' |
+     python -c "import json,sys; d=json.load(sys.stdin); assert any(isinstance(s,dict) and s.get('subject') == 'job.echo' for s in d.get('subscriptions_list', []))"
    ```
-
-3. **Check the submit subject.** `client.Submit` publishes to `sys.job.submit` by default. If using the low-level worker, ensure it subscribes to the correct subject (the topic, not `sys.job.submit`).
 
 4. **Check NATS queue groups.** Multiple workers on the same subject use competing consumers. If a worker is in a different queue group, it may not receive the message.
 
@@ -203,7 +256,9 @@ Cannot find module '../cordum/agent/v1/job.proto'
    nats server report connections
    ```
 
-4. **Queue group issues:** CAP workers use `cap-workers` as the default queue group. If you have a custom queue group, ensure all workers for the same subject use the same group.
+4. **Queue group issues:** Ensure workers for the same subject intentionally share a queue
+   group. In Node, `startWorker()` defaults the queue to its subject, and `Agent` uses each
+   handler topic as its queue.
 
 ---
 
@@ -325,7 +380,8 @@ python -m grpc_tools.protoc \
 2. **For the low-level SDK**, heartbeats are manual. Use the heartbeat helpers:
    - **Go:** `capsdk.HeartbeatPayload()` or `capsdk.HeartbeatPayloadWithMemory()`
    - **Python:** Heartbeats are sent automatically by `run_worker()` if `heartbeat_interval` is set.
-   - **Node:** Heartbeats are sent by `startWorker()` when configured.
+   - **Node:** High-level `Agent.start()` starts the heartbeat loop. Low-level
+     `startWorker()` does not; use `heartbeatLoop()` or `emitHeartbeat()` explicitly.
 
 3. **Monitor heartbeats:**
    ```bash
@@ -349,10 +405,15 @@ malformed packet: missing required fields
 
 1. **Don't publish raw JSON to NATS.** CAP uses binary protobuf encoding. All messages must be wrapped in a `BusPacket` envelope.
 
-2. **Use the SDK's submit/publish functions** instead of raw NATS publish:
-   - **Go:** `client.Submit()` or `worker.Worker.Start()`
-   - **Python:** `client.submit_job()` or `worker.run_worker()`
-   - **Node:** `submitJob()` or `startWorker()`
+2. **Use the encoder and publish path for your chosen topology:**
+   - For a governed deployment, use Go `Client.Submit`, Python `submit_job`, or Node
+     `submitJob`; they encode the packet and publish to `sys.job.submit` for the running
+     control plane.
+   - For the direct local-development lab, follow the canonical
+     [simple-echo examples](../examples/simple-echo/): construct and validate a
+     `BusPacket`, encode it as protobuf, and publish those bytes directly to the exact
+     worker subject. Raw NATS publish is acceptable only with a validated protobuf packet,
+     never with JSON.
 
 3. **Check proto version compatibility.** If you regenerated stubs with a different protoc version, ensure all SDKs use compatible stubs.
 

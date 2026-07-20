@@ -29,7 +29,12 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/map.h>  // IWYU pragma: export
+#include <google/protobuf/map_entry.h>
+#include <google/protobuf/map_field_inl.h>
+#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
+#include "cordum/agent/v1/job.pb.h"
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
 #define PROTOBUF_INTERNAL_EXPORT_cordum_2fagent_2fv1_2falert_2eproto
@@ -50,17 +55,77 @@ namespace v1 {
 class SystemAlert;
 struct SystemAlertDefaultTypeInternal;
 extern SystemAlertDefaultTypeInternal _SystemAlert_default_instance_;
+class SystemAlert_DetailsEntry_DoNotUse;
+struct SystemAlert_DetailsEntry_DoNotUseDefaultTypeInternal;
+extern SystemAlert_DetailsEntry_DoNotUseDefaultTypeInternal _SystemAlert_DetailsEntry_DoNotUse_default_instance_;
 }  // namespace v1
 }  // namespace agent
 }  // namespace cordum
 PROTOBUF_NAMESPACE_OPEN
 template<> ::cordum::agent::v1::SystemAlert* Arena::CreateMaybeMessage<::cordum::agent::v1::SystemAlert>(Arena*);
+template<> ::cordum::agent::v1::SystemAlert_DetailsEntry_DoNotUse* Arena::CreateMaybeMessage<::cordum::agent::v1::SystemAlert_DetailsEntry_DoNotUse>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace cordum {
 namespace agent {
 namespace v1 {
 
+enum AlertSeverity : int {
+  ALERT_SEVERITY_UNSPECIFIED = 0,
+  ALERT_SEVERITY_INFO = 1,
+  ALERT_SEVERITY_WARNING = 2,
+  ALERT_SEVERITY_ERROR = 3,
+  ALERT_SEVERITY_CRITICAL = 4,
+  AlertSeverity_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::min(),
+  AlertSeverity_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<int32_t>::max()
+};
+bool AlertSeverity_IsValid(int value);
+constexpr AlertSeverity AlertSeverity_MIN = ALERT_SEVERITY_UNSPECIFIED;
+constexpr AlertSeverity AlertSeverity_MAX = ALERT_SEVERITY_CRITICAL;
+constexpr int AlertSeverity_ARRAYSIZE = AlertSeverity_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AlertSeverity_descriptor();
+template<typename T>
+inline const std::string& AlertSeverity_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, AlertSeverity>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function AlertSeverity_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    AlertSeverity_descriptor(), enum_t_value);
+}
+inline bool AlertSeverity_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, AlertSeverity* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AlertSeverity>(
+    AlertSeverity_descriptor(), name, value);
+}
 // ===================================================================
+
+class SystemAlert_DetailsEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<SystemAlert_DetailsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<SystemAlert_DetailsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> SuperType;
+  SystemAlert_DetailsEntry_DoNotUse();
+  explicit PROTOBUF_CONSTEXPR SystemAlert_DetailsEntry_DoNotUse(
+      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit SystemAlert_DetailsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const SystemAlert_DetailsEntry_DoNotUse& other);
+  static const SystemAlert_DetailsEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const SystemAlert_DetailsEntry_DoNotUse*>(&_SystemAlert_DetailsEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cordum.agent.v1.SystemAlert.DetailsEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "cordum.agent.v1.SystemAlert.DetailsEntry.value");
+ }
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  friend struct ::TableStruct_cordum_2fagent_2fv1_2falert_2eproto;
+};
+
+// -------------------------------------------------------------------
 
 class SystemAlert final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:cordum.agent.v1.SystemAlert) */ {
@@ -110,7 +175,7 @@ class SystemAlert final :
                &_SystemAlert_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    1;
 
   friend void swap(SystemAlert& a, SystemAlert& b) {
     a.Swap(&b);
@@ -171,6 +236,8 @@ class SystemAlert final :
   protected:
   explicit SystemAlert(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
+  private:
+  static void ArenaDtor(void* object);
   public:
 
   static const ClassData _class_data_;
@@ -180,29 +247,52 @@ class SystemAlert final :
 
   // nested types ----------------------------------------------------
 
+
   // accessors -------------------------------------------------------
 
   enum : int {
+    kDetailsFieldNumber = 8,
     kLevelFieldNumber = 1,
     kMessageFieldNumber = 2,
     kComponentFieldNumber = 3,
     kCodeFieldNumber = 4,
+    kSourceComponentFieldNumber = 7,
+    kTraceIdFieldNumber = 9,
+    kSeverityFieldNumber = 5,
+    kErrorCodeEnumFieldNumber = 6,
   };
-  // string level = 1;
-  void clear_level();
-  const std::string& level() const;
+  // map<string, string> details = 8 [json_name = "details"];
+  int details_size() const;
+  private:
+  int _internal_details_size() const;
+  public:
+  void clear_details();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_details() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_details();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      details() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_details();
+
+  // string level = 1 [json_name = "level", deprecated = true];
+  PROTOBUF_DEPRECATED void clear_level();
+  PROTOBUF_DEPRECATED const std::string& level() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_level(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_level();
-  PROTOBUF_NODISCARD std::string* release_level();
-  void set_allocated_level(std::string* level);
+  PROTOBUF_DEPRECATED void set_level(ArgT0&& arg0, ArgT... args);
+  PROTOBUF_DEPRECATED std::string* mutable_level();
+  PROTOBUF_NODISCARD PROTOBUF_DEPRECATED std::string* release_level();
+  PROTOBUF_DEPRECATED void set_allocated_level(std::string* level);
   private:
   const std::string& _internal_level() const;
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_level(const std::string& value);
   std::string* _internal_mutable_level();
   public:
 
-  // string message = 2;
+  // string message = 2 [json_name = "message"];
   void clear_message();
   const std::string& message() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -216,32 +306,78 @@ class SystemAlert final :
   std::string* _internal_mutable_message();
   public:
 
-  // string component = 3;
-  void clear_component();
-  const std::string& component() const;
+  // string component = 3 [json_name = "component", deprecated = true];
+  PROTOBUF_DEPRECATED void clear_component();
+  PROTOBUF_DEPRECATED const std::string& component() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_component(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_component();
-  PROTOBUF_NODISCARD std::string* release_component();
-  void set_allocated_component(std::string* component);
+  PROTOBUF_DEPRECATED void set_component(ArgT0&& arg0, ArgT... args);
+  PROTOBUF_DEPRECATED std::string* mutable_component();
+  PROTOBUF_NODISCARD PROTOBUF_DEPRECATED std::string* release_component();
+  PROTOBUF_DEPRECATED void set_allocated_component(std::string* component);
   private:
   const std::string& _internal_component() const;
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_component(const std::string& value);
   std::string* _internal_mutable_component();
   public:
 
-  // string code = 4;
-  void clear_code();
-  const std::string& code() const;
+  // string code = 4 [json_name = "code", deprecated = true];
+  PROTOBUF_DEPRECATED void clear_code();
+  PROTOBUF_DEPRECATED const std::string& code() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_code(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_code();
-  PROTOBUF_NODISCARD std::string* release_code();
-  void set_allocated_code(std::string* code);
+  PROTOBUF_DEPRECATED void set_code(ArgT0&& arg0, ArgT... args);
+  PROTOBUF_DEPRECATED std::string* mutable_code();
+  PROTOBUF_NODISCARD PROTOBUF_DEPRECATED std::string* release_code();
+  PROTOBUF_DEPRECATED void set_allocated_code(std::string* code);
   private:
   const std::string& _internal_code() const;
   inline PROTOBUF_ALWAYS_INLINE void _internal_set_code(const std::string& value);
   std::string* _internal_mutable_code();
+  public:
+
+  // string source_component = 7 [json_name = "sourceComponent"];
+  void clear_source_component();
+  const std::string& source_component() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_source_component(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_source_component();
+  PROTOBUF_NODISCARD std::string* release_source_component();
+  void set_allocated_source_component(std::string* source_component);
+  private:
+  const std::string& _internal_source_component() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_source_component(const std::string& value);
+  std::string* _internal_mutable_source_component();
+  public:
+
+  // string trace_id = 9 [json_name = "traceId"];
+  void clear_trace_id();
+  const std::string& trace_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_trace_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_trace_id();
+  PROTOBUF_NODISCARD std::string* release_trace_id();
+  void set_allocated_trace_id(std::string* trace_id);
+  private:
+  const std::string& _internal_trace_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_trace_id(const std::string& value);
+  std::string* _internal_mutable_trace_id();
+  public:
+
+  // .cordum.agent.v1.AlertSeverity severity = 5 [json_name = "severity"];
+  void clear_severity();
+  ::cordum::agent::v1::AlertSeverity severity() const;
+  void set_severity(::cordum::agent::v1::AlertSeverity value);
+  private:
+  ::cordum::agent::v1::AlertSeverity _internal_severity() const;
+  void _internal_set_severity(::cordum::agent::v1::AlertSeverity value);
+  public:
+
+  // .cordum.agent.v1.ErrorCode error_code_enum = 6 [json_name = "errorCodeEnum"];
+  void clear_error_code_enum();
+  ::cordum::agent::v1::ErrorCode error_code_enum() const;
+  void set_error_code_enum(::cordum::agent::v1::ErrorCode value);
+  private:
+  ::cordum::agent::v1::ErrorCode _internal_error_code_enum() const;
+  void _internal_set_error_code_enum(::cordum::agent::v1::ErrorCode value);
   public:
 
   // @@protoc_insertion_point(class_scope:cordum.agent.v1.SystemAlert)
@@ -252,10 +388,19 @@ class SystemAlert final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+        SystemAlert_DetailsEntry_DoNotUse,
+        std::string, std::string,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING> details_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr level_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr message_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr component_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr code_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr source_component_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr trace_id_;
+    int severity_;
+    int error_code_enum_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -270,9 +415,11 @@ class SystemAlert final :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // SystemAlert
 
-// string level = 1;
+// string level = 1 [json_name = "level", deprecated = true];
 inline void SystemAlert::clear_level() {
   _impl_.level_.ClearToEmpty();
 }
@@ -322,7 +469,7 @@ inline void SystemAlert::set_allocated_level(std::string* level) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SystemAlert.level)
 }
 
-// string message = 2;
+// string message = 2 [json_name = "message"];
 inline void SystemAlert::clear_message() {
   _impl_.message_.ClearToEmpty();
 }
@@ -372,7 +519,7 @@ inline void SystemAlert::set_allocated_message(std::string* message) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SystemAlert.message)
 }
 
-// string component = 3;
+// string component = 3 [json_name = "component", deprecated = true];
 inline void SystemAlert::clear_component() {
   _impl_.component_.ClearToEmpty();
 }
@@ -422,7 +569,7 @@ inline void SystemAlert::set_allocated_component(std::string* component) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SystemAlert.component)
 }
 
-// string code = 4;
+// string code = 4 [json_name = "code", deprecated = true];
 inline void SystemAlert::clear_code() {
   _impl_.code_.ClearToEmpty();
 }
@@ -472,15 +619,196 @@ inline void SystemAlert::set_allocated_code(std::string* code) {
   // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SystemAlert.code)
 }
 
+// .cordum.agent.v1.AlertSeverity severity = 5 [json_name = "severity"];
+inline void SystemAlert::clear_severity() {
+  _impl_.severity_ = 0;
+}
+inline ::cordum::agent::v1::AlertSeverity SystemAlert::_internal_severity() const {
+  return static_cast< ::cordum::agent::v1::AlertSeverity >(_impl_.severity_);
+}
+inline ::cordum::agent::v1::AlertSeverity SystemAlert::severity() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.SystemAlert.severity)
+  return _internal_severity();
+}
+inline void SystemAlert::_internal_set_severity(::cordum::agent::v1::AlertSeverity value) {
+  
+  _impl_.severity_ = value;
+}
+inline void SystemAlert::set_severity(::cordum::agent::v1::AlertSeverity value) {
+  _internal_set_severity(value);
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.SystemAlert.severity)
+}
+
+// .cordum.agent.v1.ErrorCode error_code_enum = 6 [json_name = "errorCodeEnum"];
+inline void SystemAlert::clear_error_code_enum() {
+  _impl_.error_code_enum_ = 0;
+}
+inline ::cordum::agent::v1::ErrorCode SystemAlert::_internal_error_code_enum() const {
+  return static_cast< ::cordum::agent::v1::ErrorCode >(_impl_.error_code_enum_);
+}
+inline ::cordum::agent::v1::ErrorCode SystemAlert::error_code_enum() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.SystemAlert.error_code_enum)
+  return _internal_error_code_enum();
+}
+inline void SystemAlert::_internal_set_error_code_enum(::cordum::agent::v1::ErrorCode value) {
+  
+  _impl_.error_code_enum_ = value;
+}
+inline void SystemAlert::set_error_code_enum(::cordum::agent::v1::ErrorCode value) {
+  _internal_set_error_code_enum(value);
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.SystemAlert.error_code_enum)
+}
+
+// string source_component = 7 [json_name = "sourceComponent"];
+inline void SystemAlert::clear_source_component() {
+  _impl_.source_component_.ClearToEmpty();
+}
+inline const std::string& SystemAlert::source_component() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.SystemAlert.source_component)
+  return _internal_source_component();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void SystemAlert::set_source_component(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.source_component_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.SystemAlert.source_component)
+}
+inline std::string* SystemAlert::mutable_source_component() {
+  std::string* _s = _internal_mutable_source_component();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.SystemAlert.source_component)
+  return _s;
+}
+inline const std::string& SystemAlert::_internal_source_component() const {
+  return _impl_.source_component_.Get();
+}
+inline void SystemAlert::_internal_set_source_component(const std::string& value) {
+  
+  _impl_.source_component_.Set(value, GetArenaForAllocation());
+}
+inline std::string* SystemAlert::_internal_mutable_source_component() {
+  
+  return _impl_.source_component_.Mutable(GetArenaForAllocation());
+}
+inline std::string* SystemAlert::release_source_component() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.SystemAlert.source_component)
+  return _impl_.source_component_.Release();
+}
+inline void SystemAlert::set_allocated_source_component(std::string* source_component) {
+  if (source_component != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.source_component_.SetAllocated(source_component, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.source_component_.IsDefault()) {
+    _impl_.source_component_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SystemAlert.source_component)
+}
+
+// map<string, string> details = 8 [json_name = "details"];
+inline int SystemAlert::_internal_details_size() const {
+  return _impl_.details_.size();
+}
+inline int SystemAlert::details_size() const {
+  return _internal_details_size();
+}
+inline void SystemAlert::clear_details() {
+  _impl_.details_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+SystemAlert::_internal_details() const {
+  return _impl_.details_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+SystemAlert::details() const {
+  // @@protoc_insertion_point(field_map:cordum.agent.v1.SystemAlert.details)
+  return _internal_details();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+SystemAlert::_internal_mutable_details() {
+  return _impl_.details_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+SystemAlert::mutable_details() {
+  // @@protoc_insertion_point(field_mutable_map:cordum.agent.v1.SystemAlert.details)
+  return _internal_mutable_details();
+}
+
+// string trace_id = 9 [json_name = "traceId"];
+inline void SystemAlert::clear_trace_id() {
+  _impl_.trace_id_.ClearToEmpty();
+}
+inline const std::string& SystemAlert::trace_id() const {
+  // @@protoc_insertion_point(field_get:cordum.agent.v1.SystemAlert.trace_id)
+  return _internal_trace_id();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void SystemAlert::set_trace_id(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.trace_id_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:cordum.agent.v1.SystemAlert.trace_id)
+}
+inline std::string* SystemAlert::mutable_trace_id() {
+  std::string* _s = _internal_mutable_trace_id();
+  // @@protoc_insertion_point(field_mutable:cordum.agent.v1.SystemAlert.trace_id)
+  return _s;
+}
+inline const std::string& SystemAlert::_internal_trace_id() const {
+  return _impl_.trace_id_.Get();
+}
+inline void SystemAlert::_internal_set_trace_id(const std::string& value) {
+  
+  _impl_.trace_id_.Set(value, GetArenaForAllocation());
+}
+inline std::string* SystemAlert::_internal_mutable_trace_id() {
+  
+  return _impl_.trace_id_.Mutable(GetArenaForAllocation());
+}
+inline std::string* SystemAlert::release_trace_id() {
+  // @@protoc_insertion_point(field_release:cordum.agent.v1.SystemAlert.trace_id)
+  return _impl_.trace_id_.Release();
+}
+inline void SystemAlert::set_allocated_trace_id(std::string* trace_id) {
+  if (trace_id != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.trace_id_.SetAllocated(trace_id, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.trace_id_.IsDefault()) {
+    _impl_.trace_id_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:cordum.agent.v1.SystemAlert.trace_id)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 
 }  // namespace v1
 }  // namespace agent
 }  // namespace cordum
+
+PROTOBUF_NAMESPACE_OPEN
+
+template <> struct is_proto_enum< ::cordum::agent::v1::AlertSeverity> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::cordum::agent::v1::AlertSeverity>() {
+  return ::cordum::agent::v1::AlertSeverity_descriptor();
+}
+
+PROTOBUF_NAMESPACE_CLOSE
 
 // @@protoc_insertion_point(global_scope)
 

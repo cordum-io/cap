@@ -32,6 +32,8 @@ generated/
 .gomodcache/
 .gopath/
 .cache/
+.artifacts/
+.artifact-venv/
 bin/
 coverage*.out
 CODEX.md

@@ -32,16 +32,32 @@ CAP is the open wire protocol that fixes this. It gives every agent cluster jobs
 
 MCP and CAP coexist: MCP can be the tool layer inside a CAP worker. See [Why CAP](docs/WHY_CAP.md) for the full rationale.
 
-## Try It in 5 Minutes
+## Run CAP Locally
 
-Follow the [Getting Started](docs/getting-started.md) guide to go from zero to a running job.
+Start with the one-command [Docker Compose playground](playground/):
 
-Or jump straight to the examples:
+```bash
+cd playground
+docker compose up --build --abort-on-container-exit --exit-code-from submit
+```
 
-- [`examples/simple-echo/`](examples/simple-echo/) — smallest possible job round-trip (Go / Python / Node)
+The playground is a direct local-development transport lab. It starts NATS, an echo worker,
+and a submitter, then exits successfully only after the submitter validates a matching
+`JOB_STATUS_SUCCEEDED` result. It does not start the governed Cordum control plane.
+
+Next, follow [Getting Started](docs/getting-started.md) to build and run the same local job
+round-trip in Go, Python, or Node.
+
+Other examples:
+
+- [`examples/simple-echo/`](examples/simple-echo/) — direct local-development job round-trip (Go / Python / Node)
 - [`examples/workflow-repo-review/`](examples/workflow-repo-review/) — parent/child workflow with aggregation
 
 ## Install an SDK
+
+The package names below install the current public release. The first-job guide in this
+**Unreleased** tree requires the candidate artifacts it documents; use registry packages for
+that guide only after release notes explicitly include the onboarding and package repairs.
 
 **Python:**
 ```bash
@@ -82,7 +98,44 @@ async def summarize(ctx: Context, data: Input) -> Output:
 asyncio.run(agent.run())
 ```
 
-## Architecture
+The minimal local example uses the SDK's legacy/off compatibility path. It does
+not establish an authenticated worker session and must not be treated as a
+production trust configuration.
+
+## Authenticated Worker Sessions
+
+The unreleased Go, Python, and Node runtime sources implement the CAP v1 signed
+worker challenge/authenticate exchange over core NATS request/reply. A worker
+proves possession of an enrolled P-256 key, pins the scheduler signing identity,
+and receives an opaque short-lived `BusPacket.auth_token` bound to the exact
+`cordum-scheduler` audience plus its authoritative worker, agent, tenant, and
+key records. RENEW signs the current live token and never falls back to ISSUE.
+
+Proof-key enrollment, rotation, and revocation are control-plane operations:
+register only the public key, keep private material in the worker, overlap key
+pins during rotation, and revoke/supersede old records in the shared authority.
+Packets cannot self-enroll a key or choose identity/allowed-topic bindings.
+
+Runtime migration modes are:
+
+- `off`: legacy compatibility; no proof-bound session;
+- `warn`: strict exchange verification with worker-local migration availability;
+  tokenless registry input remains telemetry-only and cannot refresh dispatch
+  authority;
+- `enforce`: a live verified session is required for admission.
+
+WARN never accepts an invalid signature or result and never labels tokenless
+capability/readiness state authenticated. Public low-level builders, codecs,
+signers, verifiers, and standalone `sys.handshake` helpers exist for adapters
+and compatibility; they do not enroll keys, issue/revoke sessions, or authorize
+dispatch. See [Capability Negotiation](spec/14-capability-negotiation.md),
+[Security and Observability](spec/10-security-observability.md), and the
+[Go runtime guide](sdk/go/runtime/README_HANDSHAKE.md).
+
+## Governed Deployment Architecture
+
+Production deployments add the Gateway, Scheduler, and Safety Kernel between submission and
+worker dispatch. Those components are not part of the local playground or simple-echo lab.
 
 ```mermaid
 flowchart LR
@@ -100,7 +153,8 @@ flowchart LR
 
 | Resource | Description |
 | --- | --- |
-| [Getting Started](docs/getting-started.md) | Zero to running job in 5 minutes |
+| [Playground](playground/) | Run the direct local-development round-trip with Docker Compose |
+| [Getting Started](docs/getting-started.md) | Build a local client and worker in Go, Python, or Node |
 | [Why CAP](docs/WHY_CAP.md) | The problem CAP solves and design rationale |
 | [Spec](spec/00-index.md) | Full normative specification (17 documents) |
 | [Examples](examples/) | Job submissions, workflows, heartbeats |

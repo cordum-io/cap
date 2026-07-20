@@ -22,7 +22,7 @@ public final class Validate {
             throw new Errors.ValidationException("topic", "must not be empty");
         }
         if (req.getPriorityValue() < 0
-                || req.getPriorityValue() > JobPriority.CRITICAL_VALUE) {
+                || req.getPriorityValue() > JobPriority.JOB_PRIORITY_CRITICAL_VALUE) {
             throw new Errors.ValidationException("priority", "out of valid range");
         }
         if (req.getStepIndex() < 0) {

@@ -1,23 +1,35 @@
-import { connect, NatsConnection } from "nats";
+import {
+  connect,
+  Events,
+  NatsConnection,
+  Subscription,
+  SubscriptionOptions,
+} from "nats";
 import { createClient, RedisClientType } from "redis";
 import { z, ZodTypeAny } from "zod";
-import { encodeDeterministic, encodeUnsignedForSignature } from "./codec";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import type { Middleware } from "./middleware";
-import * as crypto from "crypto";
 import { heartbeatLoop, heartbeatPayload } from "./heartbeat";
-import { MalformedPacketError, SignatureInvalidError, SignatureMissingError, InvalidInputError } from "./errors";
+import { MalformedPacketError, InvalidInputError } from "./errors";
 import type { Logger } from "./logger";
 import type { MetricsHook } from "./metrics";
 import { noopMetrics } from "./metrics";
 import { handshakePayload, publishHandshake } from "./handshake";
+import { encodeOutboundPacket, prepareOutboundPacket } from "./packet-boundary";
+import {
+  RuntimeWorkerTrust,
+  type RuntimeTrustOptions,
+} from "./runtime-worker-trust";
 
 export type { Logger } from "./logger";
+export type { RuntimeTrustOptions } from "./runtime-worker-trust";
 
 const DEFAULT_NATS_URL = "nats://127.0.0.1:4222";
 const DEFAULT_REDIS_URL = "redis://127.0.0.1:6379/0";
 const DEFAULT_TIMEOUT_MS = 5000;
 const DEFAULT_MAX_BYTES = 2 * 1024 * 1024;
+
+class OperationTimeoutError extends Error {}
 
 /** Abstraction over payload storage (Redis, in-memory, etc.). */
 export interface BlobStore {
@@ -95,6 +107,8 @@ interface HandlerSpec {
   retries: number;
 }
 
+type AgentState = "idle" | "starting" | "running" | "closing" | "closed";
+
 /** Options for constructing an {@link Agent}. */
 export interface AgentOptions {
   natsUrl?: string;
@@ -113,6 +127,7 @@ export interface AgentOptions {
   heartbeatInterval?: number;
   pool?: string;
   maxParallel?: number;
+  workerTrust?: RuntimeTrustOptions;
 }
 
 /** Per-handler options for {@link Agent.job}. */
@@ -155,21 +170,25 @@ function withContextLogger(base: Logger, meta: { jobId: string; traceId: string;
   };
 }
 
-async function withTimeout<T>(promise: Promise<T>, ms: number | undefined, label: string): Promise<T> {
-  if (!ms || ms <= 0) {
-    return promise;
-  }
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number | undefined,
+  label: string,
+  cancellation?: Promise<never>
+): Promise<T> {
+  if (!ms || ms <= 0) return cancellation ? Promise.race([promise, cancellation]) : promise;
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error(`${label} timed out`)), ms);
-    promise
-      .then((value) => {
-        clearTimeout(timer);
-        resolve(value);
-      })
-      .catch((err) => {
-        clearTimeout(timer);
-        reject(err);
-      });
+    const timer = setTimeout(() => reject(new OperationTimeoutError(`${label} timed out`)), ms);
+    const succeed = (value: T) => {
+      clearTimeout(timer);
+      resolve(value);
+    };
+    const fail = (error: unknown) => {
+      clearTimeout(timer);
+      reject(error);
+    };
+    promise.then(succeed, fail);
+    cancellation?.then(undefined, fail);
   });
 }
 
@@ -195,6 +214,7 @@ export class Agent {
   private readonly heartbeatInterval: number;
   private readonly pool: string;
   private readonly maxParallel: number;
+  private readonly workerTrustOptions: RuntimeTrustOptions;
   private readonly handlers = new Map<string, HandlerSpec>();
   private readonly middlewares: Middleware[] = [];
   private nc?: NatsConnection;
@@ -202,8 +222,24 @@ export class Agent {
   private jobResultType?: any;
   private heartbeatHandle?: { stop: () => void };
   private activeJobCount = 0;
+  private readonly subscriptions: Subscription[] = [];
+  private readonly inFlight = new Set<Promise<void>>();
+  private state: AgentState = "idle";
+  private startPromise?: Promise<void>;
+  private closePromise?: Promise<void>;
+  private trust?: RuntimeWorkerTrust;
+  private statusWatchActive = false;
+  private statusTask?: Promise<void>;
+  private readonly startupCloseSignal: Promise<never>;
+  private signalStartupClose!: (error: Error) => void;
+  private startupCancelled = false;
+  private startupTransportInterrupted = false;
 
   constructor(options: AgentOptions = {}) {
+    this.startupCloseSignal = new Promise<never>((_, reject) => {
+      this.signalStartupClose = reject;
+    });
+    void this.startupCloseSignal.catch(() => undefined);
     this.natsUrl = options.natsUrl ?? process.env.NATS_URL ?? DEFAULT_NATS_URL;
     this.redisUrl = options.redisUrl ?? process.env.REDIS_URL ?? DEFAULT_REDIS_URL;
     this.store = options.store;
@@ -230,6 +266,7 @@ export class Agent {
     this.heartbeatInterval = options.heartbeatInterval ?? 5000;
     this.pool = options.pool ?? "";
     this.maxParallel = Math.max(1, options.maxParallel ?? 1);
+    this.workerTrustOptions = { ...(options.workerTrust ?? {}) };
   }
 
   /** Appends middleware to the agent. Middleware executes in registration order before the handler. */
@@ -285,60 +322,172 @@ export class Agent {
     if (this.handlers.size === 0) {
       throw new Error("no handlers registered");
     }
-    this.nc = await withTimeout(
-      this.connectFn({ servers: this.natsUrl, name: this.senderId }),
-      this.ioTimeoutMs,
-      "nats connect"
+    if (this.state !== "idle") {
+      throw new Error(`Agent already started or closed (state: ${this.state})`);
+    }
+    this.trust = new RuntimeWorkerTrust(
+      this.workerTrustOptions,
+      this.senderId,
+      [...this.handlers.keys()],
+      this.logger
     );
+    this.state = "starting";
+    this.startPromise = this.startInternal();
+    return this.startPromise;
+  }
+
+  async close(): Promise<void> {
+    if (!this.closePromise) {
+      this.cancelStartup();
+      this.closePromise = this.closeInternal();
+    }
+    return this.closePromise;
+  }
+
+  get sessionToken(): string | undefined {
+    return this.trust?.sessionToken;
+  }
+
+  private async startInternal(): Promise<void> {
+    try {
+      await this.initializeRuntime();
+      if (!this.nc || !this.trust) throw new Error("runtime trust is unavailable");
+      this.requireStartupContinuity();
+      this.startStatusWatcher();
+      await this.trust.authenticate(this.nc);
+      this.requireStartupContinuity();
+      this.subscribeHandlers(this.nc);
+      await this.publishStartupHandshake();
+      this.requireStartupContinuity();
+      this.startHeartbeat();
+      this.state = "running";
+      this.trust.startRenewal((error) => this.onTrustFailure(error));
+    } catch (error) {
+      try {
+        await this.closeResources();
+      } catch (cleanupError) {
+        this.logger.error("Agent start cleanup failed", {
+          error: String(cleanupError),
+        });
+      }
+      this.state = "closed";
+      throw error;
+    }
+  }
+
+  private async initializeRuntime(): Promise<void> {
+    const connection = await this.connectRuntime();
+    this.nc = connection;
     if (!this.store) {
       this.store = new RedisBlobStore(this.redisUrl);
     }
-
     const root = await loadRoot();
     this.busPacketType = root.lookupType("cordum.agent.v1.BusPacket");
     this.jobResultType = root.lookupType("cordum.agent.v1.JobResult");
+  }
 
+  private subscribeHandlers(connection: NatsConnection): void {
     for (const spec of this.handlers.values()) {
-      (this.nc as any).subscribe(
-        spec.topic,
-        { queue: spec.topic },
-        (...args: any[]) => {
-          let err: Error | null = null;
-          let msg: any;
-          if (args.length >= 2) {
-            err = args[0] as Error | null;
-            msg = args[1];
-          } else {
-            msg = args[0];
-          }
-          if (err) {
-            this.logger.error("subscribe error", { error: String(err) });
-            return;
-          }
-          if (!msg) {
-            return;
-          }
-          void this.onMessage(msg, spec);
-        }
-      );
+      this.subscriptions.push(this.subscribe(connection, spec));
     }
+  }
 
+  private async connectRuntime(): Promise<NatsConnection> {
+    const pending = this.connectFn({ servers: this.natsUrl, name: this.senderId });
+    try {
+      return await withTimeout(
+        pending,
+        this.ioTimeoutMs,
+        "nats connect",
+        this.startupCloseSignal
+      );
+    } catch (error) {
+      if (error instanceof OperationTimeoutError || this.startupCancelled) {
+        void pending.then(
+          (connection) => this.closeLateConnection(connection),
+          () => undefined
+        );
+      }
+      throw error;
+    }
+  }
+
+  private async closeLateConnection(connection: NatsConnection): Promise<void> {
+    try {
+      await connection.close();
+    } catch (error) {
+      this.logger.warn("late NATS connection cleanup failed", { error: String(error) });
+    }
+  }
+
+  private subscribe(connection: NatsConnection, spec: HandlerSpec): Subscription {
+    const options: SubscriptionOptions = {
+      queue: spec.topic,
+      callback: (error, msg) => {
+        if (error) {
+          this.logger.error("subscribe error", { error: String(error) });
+          return;
+        }
+        this.trackMessage(this.onMessage(msg, spec));
+      },
+    };
+    return connection.subscribe(spec.topic, options);
+  }
+
+  private trackMessage(work: Promise<void>): void {
+    const tracked = work
+      .catch((error: unknown) => {
+        this.logger.error("message processing failed", { error: String(error) });
+      })
+      .finally(() => this.inFlight.delete(tracked));
+    this.inFlight.add(tracked);
+  }
+
+  private async publishStartupHandshake(): Promise<void> {
+    if (!this.nc) {
+      throw new Error("NATS not initialized");
+    }
     try {
       const readyTopics = Array.from(this.handlers.keys()).sort();
+      const capability = this.trust?.capability;
+      const advertisedCapabilities = this.trust?.enabled
+        ? capability?.capabilities ?? {}
+        : Object.fromEntries(readyTopics.map((topic) => [topic, true]));
       const packet = await handshakePayload(
         this.senderId,
-        Object.fromEntries(Array.from(this.handlers.keys(), (topic) => [topic, true])),
+        advertisedCapabilities,
         this.senderId,
-        readyTopics
+        readyTopics,
+        this.senderId,
+        capability?.sdkVersion ?? "cap-node/v2",
+        this.trust?.outboundSessionToken() ?? ""
       );
       await publishHandshake(this.nc, packet, this.privateKey);
-    } catch (err) {
-      this.logger.warn("handshake publish failed", { senderId: this.senderId, error: String(err) });
+    } catch (error) {
+      if (this.trust?.enabled) throw error;
+      this.logger.warn("handshake publish failed", {
+        senderId: this.senderId,
+        error: String(error),
+      });
     }
+  }
 
+  private startHeartbeat(): void {
+    if (!this.nc) {
+      throw new Error("NATS not initialized");
+    }
     this.heartbeatHandle = heartbeatLoop(
       this.nc,
-      () => heartbeatPayload(this.senderId, this.pool, this.activeJobCount, this.maxParallel, 0),
+      () => heartbeatPayload(
+        this.senderId,
+        this.pool,
+        this.activeJobCount,
+        this.maxParallel,
+        0,
+        "",
+        this.senderId,
+        this.trust?.outboundSessionToken() ?? ""
+      ),
       {
         interval: this.heartbeatInterval,
         privateKey: this.privateKey,
@@ -348,14 +497,152 @@ export class Agent {
     );
   }
 
-  async close(): Promise<void> {
+  private startStatusWatcher(): void {
+    if (!this.nc || !this.trust?.enabled || this.statusTask) return;
+    this.statusWatchActive = true;
+    this.statusTask = this.watchConnectionStatus(this.nc).finally(() => {
+      this.statusTask = undefined;
+    });
+  }
+
+  private async watchConnectionStatus(connection: NatsConnection): Promise<void> {
+    try {
+      for await (const status of connection.status()) {
+        if (!this.statusWatchActive) return;
+        if (status.type === Events.Disconnect) {
+          if (this.state === "starting") this.startupTransportInterrupted = true;
+          this.trust?.stopAdmission();
+          this.stopHeartbeat();
+        } else if (status.type === Events.Reconnect) {
+          await this.reauthenticateAfterReconnect();
+        }
+      }
+    } catch (error) {
+      if (this.statusWatchActive) {
+        this.logger.error("NATS status watcher failed", { errorType: this.errorType(error) });
+      }
+    }
+  }
+
+  private async reauthenticateAfterReconnect(): Promise<void> {
+    if (this.state !== "running" || !this.nc || !this.trust?.enabled) return;
+    this.trust.stopAdmission();
+    this.stopHeartbeat();
+    await this.drainHandlerSubscriptions();
+    try {
+      await this.trust.reauthenticate();
+      if (this.state !== "running") return;
+      this.subscribeHandlers(this.nc);
+      await this.publishStartupHandshake();
+      this.startHeartbeat();
+      this.trust.startRenewal((error) => this.onTrustFailure(error));
+    } catch (error) {
+      if (this.trust.enforcing) await this.onTrustFailure(this.asError(error));
+      else this.logger.warn("worker trust reconnect failed", { errorType: this.errorType(error) });
+    }
+  }
+
+  private async onTrustFailure(error: Error): Promise<void> {
+    this.trust?.stopAdmission();
+    this.stopHeartbeat();
+    await this.drainHandlerSubscriptions();
+    this.logger.error("authenticated session renewal failed; admissions stopped", {
+      errorType: error.name,
+    });
+  }
+
+  private stopHeartbeat(): void {
     this.heartbeatHandle?.stop();
     this.heartbeatHandle = undefined;
-    if (this.nc) {
-      await this.nc.drain();
+  }
+
+  private async drainHandlerSubscriptions(): Promise<void> {
+    const subscriptions = this.subscriptions.splice(0);
+    await Promise.all(subscriptions.map((subscription) => this.drainSubscription(subscription)));
+  }
+
+  private asError(error: unknown): Error {
+    return error instanceof Error ? error : new Error(String(error));
+  }
+
+  private errorType(error: unknown): string {
+    return this.asError(error).name;
+  }
+
+  private async closeInternal(): Promise<void> {
+    if (this.state === "starting" && this.startPromise) {
+      this.state = "closing";
+      await this.trust?.close();
+      try {
+        await this.startPromise;
+      } catch {
+        return;
+      }
     }
-    if (this.store) {
-      await this.store.close();
+    if (this.state === "closed") {
+      return;
+    }
+    this.state = "closing";
+    try {
+      await this.closeResources();
+    } finally {
+      this.state = "closed";
+    }
+  }
+
+  private cancelStartup(): void {
+    if (this.state !== "starting" || this.startupCancelled) return;
+    this.startupCancelled = true;
+    this.signalStartupClose(new Error("Agent start cancelled by close"));
+  }
+
+  private requireStartupContinuity(): void {
+    if (this.state !== "starting") throw new Error("Agent start cancelled by close");
+    if (this.startupTransportInterrupted) {
+      throw new Error("worker trust transport interrupted during startup");
+    }
+  }
+
+  private async closeResources(): Promise<void> {
+    this.statusWatchActive = false;
+    this.stopHeartbeat();
+    await this.drainHandlerSubscriptions();
+    while (this.inFlight.size > 0) {
+      await Promise.all([...this.inFlight]);
+    }
+    await this.trust?.close();
+    const connection = this.nc;
+    try {
+      if (connection) {
+        try {
+          await withTimeout(connection.drain(), this.ioTimeoutMs, "nats drain");
+        } catch (error) {
+          this.logger.warn("connection drain failed", { error: String(error) });
+          await connection.close();
+        }
+      }
+    } finally {
+      this.nc = undefined;
+      const store = this.store;
+      this.store = undefined;
+      if (store) {
+        await store.close();
+      }
+    }
+  }
+
+  private async drainSubscription(subscription: Subscription): Promise<void> {
+    try {
+      await withTimeout(subscription.drain(), this.ioTimeoutMs, "subscription drain");
+    } catch (error) {
+      this.logger.warn("subscription drain failed", { error: String(error) });
+      try {
+        subscription.unsubscribe();
+      } catch (unsubscribeError) {
+        this.logger.warn("subscription unsubscribe failed", {
+          error: String(unsubscribeError),
+        });
+      }
     }
   }
 
@@ -383,24 +670,13 @@ export class Agent {
       return;
     }
 
-    if (this.publicKeyMap) {
-      const senderId = packet.senderId;
-      const signature = packet.signature;
-      if (!senderId || !this.publicKeyMap[senderId]) {
-        this.logger.warn("no public key for sender", { senderId });
-        return;
+    try {
+      if (!this.trust?.verifyInbound(this.busPacketType, packet, this.publicKeyMap)) {
+        throw new Error("worker trust admission rejected packet");
       }
-      if (!signature || signature.length === 0) {
-        this.logger.warn("missing signature", { senderId, error: new SignatureMissingError(`sender ${senderId}`).message });
-        return;
-      }
-      const unsignedData = encodeUnsignedForSignature(this.busPacketType, packet);
-      const verify = crypto.createVerify("sha256");
-      verify.update(unsignedData);
-      if (!verify.verify(this.publicKeyMap[senderId], signature)) {
-        this.logger.warn("invalid signature", { senderId, error: new SignatureInvalidError(`sender ${senderId}`).message });
-        return;
-      }
+    } catch (error) {
+      this.logger.warn("Agent rejected inbound packet", { error: String(error) });
+      return;
     }
 
     const req = packet.jobRequest;
@@ -551,15 +827,8 @@ export class Agent {
       createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
       jobResult: jrMsg,
     }) as any;
-
-    if (this.privateKey) {
-      const unsignedOut = encodeUnsignedForSignature(this.busPacketType, out);
-      const sign = crypto.createSign("sha256");
-      sign.update(unsignedOut);
-      out.signature = sign.sign(this.privateKey);
-    }
-
-    const data = encodeDeterministic(this.busPacketType, out);
+    prepareOutboundPacket(out, this.trust?.outboundSessionToken() ?? "");
+    const data = encodeOutboundPacket(this.busPacketType, out, this.privateKey);
     await (this.nc.publish(SUBJECT_RESULT, data) as any);
   }
 }

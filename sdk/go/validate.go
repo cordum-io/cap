@@ -28,7 +28,7 @@ var (
 // Bounds limits for repeated fields and budget integers.
 // Configurable via SetValidationLimits().
 var (
-	maxRepeatedFieldSize = 1000
+	maxRepeatedFieldSize       = 1000
 	maxBudgetTokens      int64 = 10_000_000_000 // 10 billion
 )
 
@@ -133,8 +133,8 @@ func ValidateBusPacket(pkt *agentv1.BusPacket) error {
 	if pkt.GetSenderId() == "" {
 		return &ValidationError{Field: "sender_id", Message: "must not be empty"}
 	}
-	if pkt.GetProtocolVersion() <= 0 {
-		return &ValidationError{Field: "protocol_version", Message: "must be > 0"}
+	if pkt.GetProtocolVersion() != WorkerHandshakeProtocolVersion {
+		return &ValidationError{Field: "protocol_version", Message: fmt.Sprintf("must equal %d", WorkerHandshakeProtocolVersion)}
 	}
 	if pkt.GetCreatedAt() == nil {
 		return &ValidationError{Field: "created_at", Message: "must not be nil"}
@@ -150,6 +150,24 @@ func ValidateBusPacket(pkt *agentv1.BusPacket) error {
 		}
 	case *agentv1.BusPacket_JobResult:
 		if err := ValidateJobResult(p.JobResult); err != nil {
+			return err
+		}
+		if p.JobResult.GetWorkerId() != pkt.GetSenderId() {
+			return &ValidationError{Field: "job_result.worker_id", Message: "must equal sender_id"}
+		}
+	case *agentv1.BusPacket_Heartbeat:
+		if p.Heartbeat == nil || p.Heartbeat.GetWorkerId() != pkt.GetSenderId() {
+			return &ValidationError{Field: "heartbeat.worker_id", Message: "must equal sender_id"}
+		}
+	case *agentv1.BusPacket_Handshake:
+		if p.Handshake == nil || p.Handshake.GetComponentId() != pkt.GetSenderId() {
+			return &ValidationError{Field: "handshake.component_id", Message: "must equal sender_id"}
+		}
+	case *agentv1.BusPacket_WorkerHandshakeChallengeRequest,
+		*agentv1.BusPacket_WorkerHandshakeChallenge,
+		*agentv1.BusPacket_WorkerHandshakeAuthenticate,
+		*agentv1.BusPacket_WorkerHandshakeResult:
+		if err := validateWorkerTrustPayload(pkt); err != nil {
 			return err
 		}
 	}

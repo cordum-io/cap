@@ -19,9 +19,9 @@ This approach offers several key advantages:
 
 ## Key Features of CAP
 
-*   **Transport-Agnostic:** CAP is not tied to a specific transport mechanism. It can be used with any pub/sub bus that supports subjects and queue groups, such as NATS, Kafka, or RabbitMQ.
+*   **Broker-native:** CAP runs on a message broker using subjects and queue groups. NATS is the supported transport today; Kafka, RabbitMQ, and other buses are experimental until a transport conformance suite proves the required semantics.
 *   **Payloads Off the Bus:** CAP keeps large data payloads off the main communication bus by using pointers to external memory. This improves performance and reduces the load on the bus.
-*   **First-Class Safety:** Safety and policy enforcement are built into the core of the protocol via a dedicated Safety Kernel. This allows you to enforce fine-grained policies on job execution.
+*   **Safety hook:** CAP defines a Safety Kernel hook that a control plane can use to allow, deny, route to a human, or throttle a job before dispatch. It is a hook for enforcing policy, not an automatic guarantee — conforming to CAP does not by itself make a deployment secure.
 *   **Orchestrated Workflows:** CAP supports complex, orchestrated workflows, allowing you to build sophisticated multi-agent applications.
 
 ## Who is CAP for?

@@ -2,10 +2,11 @@
 
 ## Supported Versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 2.0.x   | :white_check_mark: |
-| 1.0.x   | :x:                |
+<!-- cap-release:begin:security-lines -->
+| Version | Supported |
+| --- | --- |
+| 2.14.x | :white_check_mark: |
+<!-- cap-release:end -->
 
 ## Reporting a Vulnerability
 

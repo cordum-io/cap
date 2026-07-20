@@ -1,0 +1,81 @@
+name: Registry Verify
+
+# Post-publication / scheduled verifier. Installs the EXACT manifest-declared
+# versions from the official registries into empty directories and runs the
+# released-artifact quickstarts over a pinned real NATS. Distinguishes a registry
+# outage (UNKNOWN, retried) from a genuinely absent artifact (RED). Never
+# publishes, never tags. Not a PR gate — runs on a schedule and on demand.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      nats:
+        image: nats:2.10
+        ports:
+          - 4222:4222
+    env:
+      CAP_NATS_URL: nats://127.0.0.1:4222
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Resolve manifest-declared versions on the official registries
+        run: |
+          set -uo pipefail
+          VERSION="$(jq -r .release.version release/manifest.json)"
+          echo "manifest release version: ${VERSION}"
+          # classify: FOUND(200) | ABSENT(404/410 -> RED) | UNKNOWN(other/outage -> retry)
+          check() {
+            local name="$1" url="$2" code=""
+            for i in 1 2 3 4 5; do
+              code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$url" || true)"
+              case "$code" in
+                200) echo "${name}: FOUND"; return 0 ;;
+                404|410) echo "${name}: ABSENT (${code}) -> RED"; return 2 ;;
+                *) echo "${name}: HTTP '${code}', retry $i/5"; sleep 10 ;;
+              esac
+            done
+            echo "${name}: UNKNOWN (registry outage; not a product failure)"; return 3
+          }
+          rc=0
+          check "go v${VERSION}"        "https://proxy.golang.org/github.com/cordum-io/cap/v2/@v/v${VERSION}.info" || rc=$?
+          [ "$rc" = 2 ] && exit 2
+          check "npm cap-sdk-node"      "https://registry.npmjs.org/cap-sdk-node/${VERSION}" || rc=$?
+          [ "$rc" = 2 ] && exit 2
+          check "pypi cap-sdk-python"   "https://pypi.org/pypi/cap-sdk-python/${VERSION}/json" || rc=$?
+          [ "$rc" = 2 ] && exit 2
+          check "pypi cordum-guard"     "https://pypi.org/pypi/cordum-guard/${VERSION}/json" || rc=$?
+          [ "$rc" = 2 ] && exit 2
+          echo "registry resolution complete (UNKNOWN entries are outages, not product failures)"
+
+      - name: Go released-artifact quickstart over real NATS
+        run: |
+          set -euo pipefail
+          VERSION="$(jq -r .release.version release/manifest.json)"
+          tmp="$(mktemp -d)"; cp examples/quickstart-echo/main.go "$tmp/main.go"; cd "$tmp"
+          go mod init example.com/echo-registry
+          go get "github.com/cordum-io/cap/v2@v${VERSION}" github.com/nats-io/nats.go google.golang.org/protobuf
+          go run .
+
+      - name: Python released-artifact quickstart over real NATS
+        run: |
+          set -euo pipefail
+          VERSION="$(jq -r .release.version release/manifest.json)"
+          python -m pip install --upgrade pip
+          pip install "cap-sdk-python==${VERSION}" nats-py
+          python examples/quickstart-echo/echo.py
+      # Node quickstart pending the cap-sdk-node proto-bundling fix (see sdk/node/README.md).

@@ -2,6 +2,93 @@
 
 Node/TypeScript SDK with NATS helpers and runtime-loaded CAP protobuf definitions.
 
+## Consumer Quickstart (echo over NATS)
+
+From an empty directory, install the released package and run an echo round-trip
+against a running NATS server (`nats://127.0.0.1:4222`, or set `CAP_NATS_URL`).
+This is the **direct-pool development-lab** wiring (worker on the submit subject,
+no Scheduler/Safety Kernel); production submits through the governed
+Scheduler/Safety path (see `docs/reference.md`).
+
+```bash
+mkdir echo && cd echo && npm init -y
+npm install cap-sdk-node@2.14.0 nats
+# add echo.js below, then:
+node echo.js
+```
+
+> **Known limitation (published `cap-sdk-node@2.14.0`):** the currently-published
+> npm package does not bundle the CAP `.proto` files, and `loadRoot()` resolves
+> them relative to the installed package directory, so a bare `npm install` of
+> `@2.14.0` fails with a missing-`.proto` error (it works from a CAP repository
+> checkout). The Node packaging fix that bundles the protos has since landed in
+> source (see the Unreleased changelog) and ships in the next release; the Go and
+> Python quickstarts already run standalone against their released artifacts.
+
+<!-- cap-release:snippet:node-echo:node -->
+```js
+const {
+  connectNATS, startWorker, submitJob, loadRoot,
+  SUBJECT_SUBMIT, SUBJECT_RESULT,
+} = require("cap-sdk-node");
+
+async function main() {
+  const url = process.env.CAP_NATS_URL || "nats://127.0.0.1:4222";
+  const nc = await connectNATS({ url });
+  const jobId = "echo-1";
+
+  // Dev-lab worker: consume submitted jobs directly and echo the job id.
+  await startWorker({
+    nc,
+    subject: SUBJECT_SUBMIT,
+    senderId: "echo-worker",
+    handler: async (req) => ({
+      jobId: req.jobId,
+      status: "JOB_STATUS_SUCCEEDED",
+      resultPtr: `echo://${req.jobId}`,
+      workerId: "echo-worker",
+    }),
+  });
+
+  const root = await loadRoot();
+  const BusPacket = root.lookupType("cordum.agent.v1.BusPacket");
+  const sub = nc.subscribe(SUBJECT_RESULT);
+  await nc.flush(); // barrier: SUB registered before submit
+
+  await submitJob(nc, { jobId, topic: "job.echo" }, jobId, "echo-client");
+
+  const deadline = Date.now() + 10000;
+  for await (const msg of sub) {
+    const r = BusPacket.decode(msg.data).jobResult;
+    if (r && r.jobId === jobId) {
+      if (r.status !== "JOB_STATUS_SUCCEEDED") throw new Error(`job ${r.jobId} ended ${r.status}`);
+      console.log(`job ${r.jobId}: ${r.status} payload=${r.resultPtr}`);
+      break;
+    }
+    if (Date.now() > deadline) throw new Error("timed out waiting for JobResult (no worker?)");
+  }
+  await nc.drain();
+}
+
+main().catch((err) => {
+  console.error("echo:", err.message);
+  process.exit(1);
+});
+```
+<!-- cap-release:snippet-end -->
+
+## Quick Start
+1. Install deps:
+   ```bash
+   cd sdk/node
+   npm install
+   ```
+2. Run the sample worker:
+   ```bash
+   npm run build
+   node dist/sample-worker.js
+   ```
+
 ## Install
 
 ```bash

@@ -13,7 +13,7 @@ PROTO_INCLUDE = REPO_ROOT / "proto"
 PINNED_VERSIONS = {
     "grpcio": "1.76.0",
     "grpcio-tools": "1.76.0",
-    "protobuf": "6.31.1",
+    "protobuf": "6.33.5",
 }
 RunCommand = Callable[[Sequence[str], Path], None]
 

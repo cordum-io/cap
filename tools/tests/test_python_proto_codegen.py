@@ -13,7 +13,7 @@ class PythonProtoCodegenTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             requirements = Path(temporary) / "requirements.txt"
             requirements.write_text(
-                "grpcio==1.76.0\ngrpcio-tools==1.76.0\nprotobuf==6.31.1\n",
+                "grpcio==1.76.0\ngrpcio-tools==1.76.0\nprotobuf==6.33.5\n",
                 encoding="utf-8",
             )
             self.assertEqual(

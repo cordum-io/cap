@@ -22,6 +22,7 @@ Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 - **Wire protocol:** 1 (compatible range 1–1)
 - **Wire schema:** 1.0.0
 - **Specifications:** 20 normative documents
+- **Prepared release snapshot:** 2.15.0 (tag `v2.15.0`, channel stable); publication status is not asserted by this source state.
 <!-- cap-release:end -->
 
 - For the full versioning policy, see [17 Versioning Policy](17-versioning-policy.md).

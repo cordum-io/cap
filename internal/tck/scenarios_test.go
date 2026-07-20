@@ -259,3 +259,71 @@ func TestShippedLifecycleSuiteRunsThroughRunner(t *testing.T) {
 		t.Fatalf("a well-behaved worker adapter should be conformant; summary=%+v", rep.Summary)
 	}
 }
+
+// NON-VACUITY, EVERY SHIPPED SUITE (DoD 1). TestDuplicateAndRetrySuitesAreNonVacuous
+// covers only the two suites added last; QA correctly noted that the
+// already-delivered lifecycle / cancellation / negotiation / malformed / safety
+// scenarios had no such proof, so a suite that graded nothing would look just as
+// green as one that graded everything.
+//
+// For every suite, in both roles and both profiles, this asserts the pair:
+// a well-behaved adapter produces real passes, and a mutation adapter that
+// violates the asserted invariant produces real failures and is NOT conformant.
+// Combinations with no applicable cases (a worker adapter against
+// control-plane-only safety cases) are skipped rather than asserted on, and the
+// total number of graded combinations is checked so the loop cannot silently
+// degenerate into asserting nothing.
+func TestEveryShippedSuiteIsNonVacuous(t *testing.T) {
+	suites := []string{
+		"core-lifecycle.json", "core-cancellation.json", "core-negotiation.json",
+		"core-malformed.json", "core-safety.json", "core-duplicates.json",
+		"core-retries.json",
+	}
+	roles := []Role{RoleWorker, RoleControlPlane}
+	profiles := []string{"core", "cap-production"}
+
+	graded := 0
+	for _, suiteName := range suites {
+		suite := loadShippedSuite(t, suiteName)
+		covered := false
+		for _, role := range roles {
+			for _, profile := range profiles {
+				good := helperAdapterRole("well-behaved", role)
+				if _, err := good.Start(context.Background()); err != nil {
+					t.Fatalf("%s/%s/%s: start well-behaved: %v", suiteName, role, profile, err)
+				}
+				ok := fixedClockRunner().Run(context.Background(), good, suite, profile)
+				good.Close()
+				if ok.Summary.Pass == 0 {
+					continue // no applicable cases for this role/profile
+				}
+				covered = true
+
+				bad := helperAdapterRole("violate", role)
+				if _, err := bad.Start(context.Background()); err != nil {
+					t.Fatalf("%s/%s/%s: start violator: %v", suiteName, role, profile, err)
+				}
+				rep := fixedClockRunner().Run(context.Background(), bad, suite, profile)
+				bad.Close()
+				if rep.Summary.Fail == 0 {
+					t.Errorf("%s/%s/%s: mutation adapter produced no failures; those cases are ungraded (summary=%+v)",
+						suiteName, role, profile, rep.Summary)
+				}
+				if rep.Summary.Conformant {
+					t.Errorf("%s/%s/%s: a violating adapter must not grade as conformant (summary=%+v)",
+						suiteName, role, profile, rep.Summary)
+				}
+				graded++
+			}
+		}
+		if !covered {
+			t.Errorf("%s: no role/profile graded a single case; the suite never runs", suiteName)
+		}
+	}
+	// 7 suites, each applicable in exactly one profile and graded in at least
+	// one role; lifecycle/cancellation/duplicates/retries grade in both roles.
+	if graded < len(suites) {
+		t.Fatalf("only %d suite/role/profile combinations were graded, want >= %d", graded, len(suites))
+	}
+	t.Logf("non-vacuity proven across %d suite/role/profile combinations", graded)
+}

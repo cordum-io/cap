@@ -53,7 +53,13 @@ func runHelperAdapter(mode string) {
 	} else if mode == "bad-role" {
 		emit(AdapterMessage{Type: MsgHandshake, ProtocolVersion: ProtocolVersion, Role: "nonsense", SDK: "helper", Transport: "none"})
 	} else {
-		emit(AdapterMessage{Type: MsgHandshake, ProtocolVersion: ProtocolVersion, Role: RoleWorker, SDK: "helper", Transport: "none"})
+		// Default to worker so existing tests are unaffected; TCK_ADAPTER_ROLE
+		// lets a test drive the control-plane side of a suite.
+		role := Role(os.Getenv("TCK_ADAPTER_ROLE"))
+		if !ValidRole(role) {
+			role = RoleWorker
+		}
+		emit(AdapterMessage{Type: MsgHandshake, ProtocolVersion: ProtocolVersion, Role: role, SDK: "helper", Transport: "none"})
 	}
 	for {
 		cmd, ok := readCmd()
@@ -160,10 +166,20 @@ func blockForever() {
 }
 
 func helperAdapter(mode string) *Adapter {
+	return helperAdapterRole(mode, RoleWorker)
+}
+
+// helperAdapterRole builds the helper child declaring a specific role, so a
+// suite's control-plane cases can be graded as well as its worker cases.
+func helperAdapterRole(mode string, role Role) *Adapter {
 	a := NewAdapter(AdapterSpec{
-		Name: "helper-" + mode,
+		Name: "helper-" + mode + "-" + string(role),
 		Argv: []string{os.Args[0], "-test.run=^TestHelperAdapter$"},
-		Env:  []string{"TCK_HELPER=1", "TCK_ADAPTER_MODE=" + mode},
+		Env: []string{
+			"TCK_HELPER=1",
+			"TCK_ADAPTER_MODE=" + mode,
+			"TCK_ADAPTER_ROLE=" + string(role),
+		},
 	})
 	a.handshakeTimeout = 3 * time.Second
 	a.gracePeriod = 500 * time.Millisecond

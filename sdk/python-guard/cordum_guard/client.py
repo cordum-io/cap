@@ -157,9 +157,10 @@ class CordumClient:
         Connection/timeout errors are handled according to the ``on_error``
         setting. Auth errors and explicit DENY responses are never affected.
         """
+        production = getattr(self, "_production_profile", False)
         cache_key = make_cache_key(topic, capability, risk_tags)
 
-        if cache and self._cache is not None:
+        if not production and cache and self._cache is not None:
             cached = self._cache.get(cache_key)
             if cached is not None:
                 return cached
@@ -180,13 +181,11 @@ class CordumClient:
             resp = self._request("POST", "/api/v1/policy/evaluate", json=body)
         except (CordumConnectionError, CordumTimeoutError) as exc:
             return self._handle_error(exc)
-        production = getattr(self, "_production_profile", False)
         decision = _parse_safety_decision(resp, production=production)
 
-        # CAP-PRODUCTION: never cache a positive ALLOW without a signed cache
-        # lease -- a client cannot know the active policy snapshot on a hit.
-        cacheable = not (production and decision.decision == Decision.ALLOW)
-        if self._cache is not None and cacheable:
+        # CAP-PRODUCTION cannot safely cache any verdict without a signed lease
+        # bound to the complete input and active policy snapshot.
+        if not production and self._cache is not None:
             self._cache.put(cache_key, decision)
 
         return decision
@@ -295,21 +294,31 @@ def _parse_safety_decision(
 
     Under the CAP-PRODUCTION profile a missing, null, non-string, or unknown
     verdict FAILS CLOSED (DENY): a malformed gateway response must never be
-    read as permission. Outside production the historical permissive default
-    is preserved for backwards compatibility.
+    read as permission. Outside production, a missing or unknown string keeps
+    the historical permissive default; an explicit malformed type still
+    fails instead of authorizing work.
     """
+    missing = "decision" not in data
     raw = data.get("decision")
-    if not isinstance(raw, str):
-        # Missing verdict, or a non-string such as {"decision": null}.
+    if missing:
         if production:
             return SafetyDecision(
                 decision=Decision.DENY,
                 reason=(
-                    "CAP-PRODUCTION: missing or non-string gateway decision; "
+                    "CAP-PRODUCTION: missing gateway decision; "
                     "failing closed"
                 ),
             )
         raw = "allow"
+    elif not isinstance(raw, str):
+        if production:
+            return SafetyDecision(
+                decision=Decision.DENY,
+                reason=(
+                    "CAP-PRODUCTION: non-string gateway decision; failing closed"
+                ),
+            )
+        raise TypeError("gateway decision must be a string")
     # The gateway may return upper-case or snake_case variants.
     decision_str = raw.lower().strip()
     try:

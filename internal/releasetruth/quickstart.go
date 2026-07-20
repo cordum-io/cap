@@ -180,9 +180,17 @@ func checkPythonImports(s Snippet) []ImportProblem {
 		var mod string
 		switch {
 		case strings.HasPrefix(t, "from "):
-			mod = strings.Fields(strings.TrimPrefix(t, "from "))[0]
+			fields := strings.Fields(strings.TrimPrefix(t, "from "))
+			if len(fields) == 0 {
+				continue
+			}
+			mod = fields[0]
 		case strings.HasPrefix(t, "import "):
-			mod = strings.TrimSuffix(strings.Fields(strings.TrimPrefix(t, "import "))[0], ",")
+			fields := strings.Fields(strings.TrimPrefix(t, "import "))
+			if len(fields) == 0 {
+				continue
+			}
+			mod = strings.TrimSuffix(fields[0], ",")
 		default:
 			continue
 		}

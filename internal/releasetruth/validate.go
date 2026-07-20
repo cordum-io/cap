@@ -23,6 +23,7 @@ var (
 // deterministic PR gate.
 func Validate(m *Manifest) []Problem {
 	var ps []Problem
+	ps = append(ps, checkSchema(m)...)
 	ps = append(ps, checkRelease(m)...)
 	ps = append(ps, checkDevelopment(m)...)
 	ps = append(ps, checkWire(m)...)
@@ -33,6 +34,13 @@ func Validate(m *Manifest) []Problem {
 	ps = append(ps, checkSecurity(m)...)
 	ps = append(ps, checkLinks(m)...)
 	return ps
+}
+
+func checkSchema(m *Manifest) []Problem {
+	if !reSemver.MatchString(m.SchemaVersion) {
+		return []Problem{{"schemaVersion", "must be MAJOR.MINOR.PATCH: " + m.SchemaVersion}}
+	}
+	return nil
 }
 
 func checkRelease(m *Manifest) []Problem {

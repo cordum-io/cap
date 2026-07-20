@@ -71,6 +71,21 @@ func TestCheckLinks_FlagsMissingRepoRelativePathWithLine(t *testing.T) {
 	}
 }
 
+func TestCheckLinks_FlagsWhitespaceOnlyTargetWithoutPanicking(t *testing.T) {
+	root := t.TempDir()
+	doc := strings.Join([]string{
+		"# Doc",
+		"see [here]( ) for details",
+	}, "\n")
+	ps := CheckLinks(root, "README.md", doc, RootNormal)
+	if len(ps) != 1 {
+		t.Fatalf("CheckLinks = %d problems, want 1: %+v", len(ps), ps)
+	}
+	if ps[0].Reason != "empty link target" {
+		t.Errorf("problem reason = %q, want %q", ps[0].Reason, "empty link target")
+	}
+}
+
 func TestCheckLinks_AcceptsExistingRepoRelativePath(t *testing.T) {
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, "spec"), 0o755); err != nil {

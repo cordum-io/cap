@@ -17,6 +17,7 @@ func TestValidate_Rules(t *testing.T) {
 		mutate func(*Manifest)
 		field  string
 	}{
+		{"manifest schema not semver", func(m *Manifest) { m.SchemaVersion = "1.0" }, "schemaVersion"},
 		{"non-semver version", func(m *Manifest) { m.Release.Version = "2.14" }, "release.version"},
 		{"tag not v+version", func(m *Manifest) { m.Release.Tag = "v2.13.0" }, "release.tag"},
 		{"non-iso date", func(m *Manifest) { m.Release.Date = "June 2 2026" }, "release.date"},

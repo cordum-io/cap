@@ -75,7 +75,13 @@ func anchorSet(anchors []string) map[string]bool {
 // Line left for the caller to fill) when the link is broken.
 func checkTarget(repoRoot, file, rawTarget string, root RenderRoot, anchors map[string]bool) (LinkProblem, bool) {
 	target := strings.TrimSpace(rawTarget)
-	urlPart := strings.Fields(target)[0] // drop optional "title"
+	fields := strings.Fields(target)
+	if len(fields) == 0 {
+		// A link with an empty or whitespace-only target, e.g. [text]( ), is broken;
+		// report it rather than indexing an empty slice and panicking.
+		return LinkProblem{Target: rawTarget, Reason: "empty link target"}, true
+	}
+	urlPart := fields[0] // drop optional "title"
 	if isExternal(urlPart) {
 		return LinkProblem{}, false
 	}
@@ -112,8 +118,14 @@ func resolvePath(repoRoot, file, target, pathPart string, root RenderRoot) (Link
 	if resolved == ".." || strings.HasPrefix(resolved, "../") || path.IsAbs(pathPart) {
 		return LinkProblem{Target: target, Reason: "unsafe: link escapes the repository root"}, true
 	}
-	if _, err := os.Stat(filepath.Join(repoRoot, filepath.FromSlash(resolved))); err != nil {
+	full := filepath.Join(repoRoot, filepath.FromSlash(resolved))
+	if _, err := os.Stat(full); err != nil {
 		return LinkProblem{Target: target, Reason: "path not found: " + resolved}, true
+	}
+	// A textually-safe path can still be a symlink escaping the repo; reuse the
+	// spec-path real-path containment so links cannot point outside repoRoot.
+	if ok, err := withinRoot(repoRoot, full); err != nil || !ok {
+		return LinkProblem{Target: target, Reason: "unsafe: link resolves outside the repository root via symlink"}, true
 	}
 	return LinkProblem{}, false
 }

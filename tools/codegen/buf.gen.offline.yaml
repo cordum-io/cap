@@ -1,0 +1,57 @@
+# Offline counterpart of //buf.gen.yaml.
+#
+# WHY THIS EXISTS
+# ---------------
+# The repository grew two mutually incompatible code-generation designs:
+#   1. buf with buf.build REMOTE plugins (//buf.gen.yaml, driven by
+#      tools/proto_codegen.py) - canonical, but requires network.
+#   2. A hermetic `docker run --network=none` container (tools/codegen/) -
+#      offline, but with no generator and stale plugin pins.
+#
+# They are reconcilable: buf produces byte-identical output whether a plugin is
+# fetched remotely or resolved locally, as long as the plugin VERSION matches.
+# This template is the local-plugin mirror of //buf.gen.yaml. Every entry here
+# must stay version-locked to its remote twin; buf.gen.yaml is the source of
+# truth for the versions.
+#
+# MEASURED, NOT ASSUMED
+# ---------------------
+# Verified byte-for-byte against the tracked tree with `--network=none`
+# (protoc/plugins preinstalled in the image, CRLF-normalised comparison):
+#
+#   protoc-gen-go       v1.36.11   7/7   cordum/agent/v1/*.pb.go
+#   protoc-gen-go-grpc  v1.6.0     2/2   cordum/agent/v1/*_grpc.pb.go
+#   protoc_builtin cpp  21.12     14/14  cpp/cordum/agent/v1/*.pb.{cc,h}
+#   protoc_builtin ruby 33.2       7/7   sdk/ruby/proto/cordum/agent/v1/*_pb.rb
+#                                 -----
+#                                 30/60 tracked outputs
+#
+# Driving the C++ and Ruby built-ins through `protoc` DIRECTLY does NOT match:
+# buf populates `json_name` in the FileDescriptorProto it hands to generators,
+# and plain protoc does not, which changes both the C++ field comments and the
+# serialized Ruby descriptor. They must be invoked through buf, as below.
+#
+# STILL UNVERIFIED (the remaining 30 outputs) - do not claim these work:
+#   protoc-gen-js v3.21.4       node/cordum/agent/v1/*_pb.js        (14, with ts)
+#   protobufjs-cli pbjs/pbts    node/cap_pb.{js,d.ts}               (2)
+#   grpcio-tools 1.76.0         python/... and sdk/python/...       (14)
+# The image does not yet install node, the tools/codegen npm lockfile,
+# protobuf-javascript, or grpcio-tools, and tools/codegen/generate.sh (the
+# container ENTRYPOINT) does not exist yet.
+version: v2
+clean: true
+plugins:
+  - local: protoc-gen-go
+    out: go
+    opt: paths=source_relative
+  - local: protoc-gen-go-grpc
+    out: go
+    opt: paths=source_relative
+  - protoc_builtin: cpp
+    protoc_path: /opt/protoc-21.12/bin/protoc
+    out: cpp
+  - protoc_builtin: ruby
+    protoc_path: /opt/protoc-33.2/bin/protoc
+    out: ruby
+inputs:
+  - directory: proto

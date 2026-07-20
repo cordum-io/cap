@@ -45,3 +45,65 @@ tree (C++ is missing `handshake`+`policy`; Node/root-Python/Ruby miss `policy`)
 is the Phase 4G regeneration step — deliberately separate so a large generated
 diff is never mixed with hand-written logic, and sequenced after the in-flight
 wire-contract work so it does not churn against it.
+
+## Reconciling the two code-generation systems (in progress)
+
+The repository carries two code-generation designs that were previously
+described as mutually incompatible:
+
+1. `//buf.gen.yaml` driven by `tools/proto_codegen.py` — buf with **remote**
+   `buf.build` plugins plus a local `ts-protoc-gen`, and `tools/python_proto_codegen.py`
+   for the Python surfaces. Canonical, but requires network.
+2. `tools/codegen/` — a `docker run --network=none` container with pinned
+   protoc/plugins. Offline, but its `ENTRYPOINT` (`generate.sh`) does not exist
+   and its pins had drifted from the versions that actually produced the tree.
+
+They **are** reconcilable. buf emits byte-identical output whether a plugin is
+resolved remotely or locally, provided the plugin version matches, so the
+offline container can run the *same* generator rather than a second one.
+`buf.gen.offline.yaml` is the local-plugin mirror of `//buf.gen.yaml`.
+
+### Measured
+
+Run offline (`--network=none`, read-only source mount) against the tracked tree,
+comparing CRLF-normalised bytes:
+
+| plugin | version | outputs | result |
+|--------|---------|---------|--------|
+| `protoc-gen-go` | v1.36.11 | `cordum/agent/v1/*.pb.go` | 7/7 identical |
+| `protoc-gen-go-grpc` | v1.6.0 | `cordum/agent/v1/*_grpc.pb.go` | 2/2 identical |
+| `protoc_builtin: cpp` | protoc 21.12 | `cpp/cordum/agent/v1/*.pb.{cc,h}` | 14/14 identical |
+| `protoc_builtin: ruby` | protoc 33.2 | `sdk/ruby/proto/cordum/agent/v1/*_pb.rb` | 7/7 identical |
+
+**30 of the 60 manifest outputs are proven reproducible offline.**
+
+Two findings worth keeping:
+
+* Invoking the C++/Ruby built-ins with `protoc` **directly** does not reproduce
+  the tree. buf populates `json_name` in the `FileDescriptorProto` handed to
+  generators; plain protoc does not. That changes the C++ field comments
+  (`// string value = 2;` vs `// string value = 2 [json_name = "value"];`) and
+  the serialized Ruby descriptor. They must be driven through buf.
+* `protoc-gen-go` invoked from protoc stamps `protoc v5.28.3` into the header,
+  while the tracked files say `protoc (unknown)` because buf sends no
+  `compiler_version`. Going through buf removes that difference too.
+
+`Dockerfile.offline-probe` is the exact image used for these measurements.
+
+### Not yet done
+
+The remaining 30 outputs are **unverified** — no claim is made that they work:
+
+* `protoc-gen-js` v3.21.4 → `node/cordum/agent/v1/*_pb.js` + `ts-protoc-gen` `.d.ts` (14)
+* `protobufjs-cli` pbjs/pbts → `node/cap_pb.js`, `node/cap_pb.d.ts` (2)
+* `grpcio-tools` 1.76.0 → `python/cordum/agent/v1/*_pb2.py` and
+  `sdk/python/cap/pb/cordum/agent/v1/*_pb2.py` (14)
+
+To finish, the pinned image still needs Node plus `npm ci` over
+`tools/codegen/package-lock.json`, the `protobuf-javascript` v3.21.4 release
+binary, and `grpcio-tools==1.76.0`; then `tools/codegen/generate.sh` should
+invoke `tools/proto_codegen.py` in an offline mode that selects
+`buf.gen.offline.yaml`, so there is one generator with two plugin-resolution
+modes rather than two generators. `proto_codegen.py` already performs the
+double-generation idempotency check and the tracked-tree comparison that the
+hermetic pipeline needs, so it should be reused, not duplicated.

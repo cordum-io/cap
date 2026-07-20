@@ -1,0 +1,12 @@
+FROM golang:1.25.12-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends unzip >/dev/null
+RUN set -eux; \
+    for v in 21.12 28.3 33.2; do \
+      curl -fsSL -o /tmp/p.zip "https://github.com/protocolbuffers/protobuf/releases/download/v${v}/protoc-${v}-linux-x86_64.zip"; \
+      mkdir -p "/opt/protoc-${v}"; unzip -q /tmp/p.zip -d "/opt/protoc-${v}"; rm /tmp/p.zip; \
+    done
+RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11 && \
+    go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.0 && \
+    go install github.com/bufbuild/buf/cmd/buf@v1.71.0
+ENV PATH="/root/go/bin:${PATH}"
+WORKDIR /work

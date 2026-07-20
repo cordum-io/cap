@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/cordum-io/cap/release/manifest.schema.json",
+  "title": "CAP Release Manifest",
+  "description": "The single canonical, hand-edited source of current CAP release, wire, SDK, transport, toolchain, and security-support truth. Documentation and CI derive from this file; it must never be relabelled from changed source. Structural validation lives here; semantic validation (tag==v+version, evidence gates, safe paths, uniqueness) is enforced by cmd/cap-release check.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "release", "development", "wire", "specs", "components", "transports", "toolchains", "security", "links"],
+  "properties": {
+    "$schema": { "type": "string", "description": "Optional pointer to this schema for editor tooling." },
+    "schemaVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "Version of the manifest format itself." },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "tag", "date", "commit", "channel"],
+      "description": "The latest published artifact line. Distinct from development.",
+      "properties": {
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "SemVer of the released artifacts (no leading v)." },
+        "tag": { "type": "string", "pattern": "^v\\d+\\.\\d+\\.\\d+$", "description": "Git tag; must equal 'v'+version." },
+        "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$", "description": "Tag target commit SHA." },
+        "channel": { "type": "string", "enum": ["stable", "beta", "rc"] }
+      }
+    },
+    "development": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "describe", "released"],
+      "description": "Unreleased source state at the manifest HEAD. released must be false.",
+      "properties": {
+        "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
+        "describe": { "type": "string", "description": "git describe --tags output, e.g. v2.14.0-8-ged0d8bd." },
+        "released": { "type": "boolean", "const": false }
+      }
+    },
+    "wire": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocolVersion", "schemaVersion", "compatMin", "compatMax"],
+      "description": "Wire protocol version and accepted compatibility range; distinct from SDK release version.",
+      "properties": {
+        "protocolVersion": { "type": "integer", "minimum": 1 },
+        "schemaVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "compatMin": { "type": "integer", "minimum": 1 },
+        "compatMax": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "specs": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Exact ordered normative specifications (excludes the index).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "file", "title"],
+        "properties": {
+          "id": { "type": "string" },
+          "file": { "type": "string", "description": "Forward-slash repository-relative path; no traversal." },
+          "title": { "type": "string" }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Shipped SDKs and extensions. Stable components require package/registry/import/version and behavioral evidence; Guard must be kind=extension.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "kind", "tier", "language", "package", "registry", "import", "version", "toolchain", "publication", "evidence"],
+        "properties": {
+          "name": { "type": "string" },
+          "kind": { "type": "string", "enum": ["sdk", "extension"] },
+          "tier": { "type": "string", "enum": ["stable", "experimental", "community"] },
+          "language": { "type": "string" },
+          "package": { "type": "string", "description": "Registry package coordinate (empty allowed only for non-stable, source-only components)." },
+          "registry": { "type": "string" },
+          "import": { "type": "string", "description": "Public consumer install/import coordinate." },
+          "version": { "type": "string" },
+          "toolchain": { "type": "string" },
+          "publication": { "type": "string", "enum": ["published", "unpublished", "source-only"] },
+          "evidence": { "type": "string", "description": "Behavioral evidence; required non-empty for stable tier." }
+        }
+      }
+    },
+    "transports": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Message-bus bindings. 'supported' requires non-empty behavioral evidence; everything else is 'experimental'.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "state"],
+        "properties": {
+          "name": { "type": "string" },
+          "state": { "type": "string", "enum": ["supported", "experimental"] },
+          "profiles": { "type": "array", "items": { "type": "string" } },
+          "limitations": { "type": "string" },
+          "evidence": { "type": "string" }
+        }
+      }
+    },
+    "toolchains": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["go", "node", "python"],
+      "properties": {
+        "go": { "$ref": "#/$defs/toolReq" },
+        "node": { "$ref": "#/$defs/toolReq" },
+        "python": { "$ref": "#/$defs/toolReq" }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supportedLines", "reportingRoute"],
+      "properties": {
+        "supportedLines": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "reportingRoute": { "type": "string" }
+      }
+    },
+    "links": {
+      "type": "array",
+      "description": "Canonical named links; relative URLs must be safe repository paths.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "url"],
+        "properties": {
+          "name": { "type": "string" },
+          "url": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "toolReq": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tested", "minimum"],
+      "properties": {
+        "tested": { "type": "string" },
+        "minimum": { "type": "string" }
+      }
+    }
+  }
+}

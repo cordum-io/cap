@@ -1,0 +1,81 @@
+name: Release Truth
+
+# Fail-closed release-truth gates. Ordinary PR CI runs the unit tests, the strict
+# manifest/render/link drift checks, and the released-artifact quickstarts against
+# a pinned real NATS image. Deterministic and offline except for the dependency
+# resolution the build already requires. Never publishes or tags.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  drift-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - name: Unit tests (release-truth + cap-release)
+        run: go test -count=1 ./internal/releasetruth/... ./cmd/cap-release/...
+      - name: gofmt (release-truth Go)
+        run: |
+          out="$(gofmt -l cmd/cap-release internal/releasetruth)"
+          if [ -n "$out" ]; then echo "gofmt needed:"; echo "$out"; exit 1; fi
+      - name: Manifest check (schema, rules, specs on disk)
+        run: go run ./cmd/cap-release check --manifest release/manifest.json --repo-root .
+      - name: Docs render drift (generated blocks must match the manifest)
+        run: go run ./cmd/cap-release render --manifest release/manifest.json --repo-root . --check
+      - name: Internal links and anchors (mandatory)
+        run: go run ./cmd/cap-release links --repo-root .
+
+  released-quickstart:
+    runs-on: ubuntu-latest
+    services:
+      nats:
+        image: nats:2.10
+        ports:
+          - 4222:4222
+    env:
+      CAP_NATS_URL: nats://127.0.0.1:4222
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Go released-artifact echo quickstart (manifest-selected version)
+        run: |
+          set -euo pipefail
+          VERSION="$(jq -r .release.version release/manifest.json)"
+          echo "released Go module version: v${VERSION}"
+          tmp="$(mktemp -d)"
+          cp examples/quickstart-echo/main.go "$tmp/main.go"
+          cd "$tmp"
+          go mod init example.com/echo-released
+          go get "github.com/cordum-io/cap/v2@v${VERSION}" github.com/nats-io/nats.go google.golang.org/protobuf
+          # Resolve transitive go.sum entries (the released cordum/agent/v1 package
+          # imports google.golang.org/grpc via policy_grpc.pb.go), so a standalone
+          # consumer must tidy before building. Without this, go run fails on a
+          # missing grpc go.sum entry.
+          go mod tidy
+          go run .
+      - name: Python released-artifact echo quickstart (manifest-selected version)
+        run: |
+          set -euo pipefail
+          VERSION="$(jq -r .release.version release/manifest.json)"
+          echo "released Python package version: ${VERSION}"
+          python -m pip install --upgrade pip
+          pip install "cap-sdk-python==${VERSION}" nats-py
+          python examples/quickstart-echo/echo.py
+      # Node released-artifact quickstart is intentionally NOT run here: the
+      # published cap-sdk-node@2.14.0 does not bundle its .proto files, so a bare
+      # npm install cannot load them (see sdk/node/README.md). Re-enable this lane
+      # once the Node SDK packaging fix lands (owned by the Node SDK task).

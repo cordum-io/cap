@@ -1,6 +1,23 @@
 # CAP SDKs
 
-This folder contains production-ready SDKs for CAP. Each SDK is bus-agnostic but ships NATS helpers as a sane default.
+This folder contains SDKs for CAP.
+
+## Support Matrix
+
+<!-- cap-release:begin:sdk-table -->
+| Component | Language | Kind | Tier | Registry | Package | Version | Toolchain |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| cap-go | go | sdk | stable | proxy.golang.org | github.com/cordum-io/cap/v2 | 2.14.0 | go1.25.12 |
+| cap-node | node | sdk | stable | registry.npmjs.org | cap-sdk-node | 2.14.0 | node20 |
+| cap-python | python | sdk | stable | pypi.org | cap-sdk-python | 2.14.0 | python3.11 |
+| cordum-guard | python | extension | stable | pypi.org | cordum-guard | 2.14.0 | python3.11 |
+| cap-cpp | cpp | sdk | experimental | - | - | - | - |
+| cap-dotnet | dotnet | sdk | experimental | - | - | - | - |
+| cap-java | java | sdk | experimental | - | - | - | - |
+| cap-php | php | sdk | experimental | - | - | - | - |
+| cap-ruby | ruby | sdk | experimental | - | - | - | - |
+| cap-rust | rust | sdk | experimental | - | - | - | - |
+<!-- cap-release:end -->
 
 ## Available SDKs
 - `go/` — Go SDK (reference implementation) with NATS worker/client, heartbeat helpers, signing, runtime, middleware, metrics.
@@ -32,8 +49,8 @@ Generate language stubs from `proto/` before building:
 - Ruby: `./tools/make_protos.sh` (set `CAP_RUN_RUBY=1`).
 - Rust: Uses `prost-build` in `build.rs` — proto compilation happens automatically during `cargo build`.
 
-## Bus Choice
-The helpers default to NATS. You can swap in Kafka or another pub/sub by replacing the bus adapter while keeping the same message shapes.
+## Transport
+The helpers use NATS, the supported transport. Other buses (Kafka, RabbitMQ) are experimental and unproven; see [`docs/ecosystem.md`](../docs/ecosystem.md#transport-support) for transport status.
 
 ## Signing and Verification
 - SDK helpers sign `BusPacket` envelopes when given a private key. In Go,

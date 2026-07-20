@@ -30,6 +30,8 @@ var shippedSuiteFiles = []string{
 	"core-negotiation.json",
 	"core-malformed.json",
 	"core-safety.json",
+	"core-duplicates.json",
+	"core-retries.json",
 }
 
 func shippedScenarioIDs(t *testing.T) map[string]Scenario {
@@ -156,6 +158,83 @@ func TestCoverageIndexIsConsistent(t *testing.T) {
 	}
 	if !sawGated {
 		t.Fatal("expected coverage.json to explicitly record the gated CAP-PRODUCTION behaviors")
+	}
+}
+
+// DoD 1 remainder: the CAP-PRODUCTION DispatchIdentity{dispatch_id, attempt,
+// assigned_worker_id} model is now merged to main, so duplicate-suppression and
+// retry-attempt-fencing must be REAL shipped coverage — not gated placeholders
+// with empty cases. Every listed case must resolve to a shipped scenario.
+func TestDuplicateAndRetryCoverageIsShippedNotGated(t *testing.T) {
+	b, err := os.ReadFile(filepath.Join("..", "..", "spec", "tck", "coverage.json"))
+	if err != nil {
+		t.Fatalf("read coverage.json: %v", err)
+	}
+	var cov coverageDoc
+	if err := json.Unmarshal(b, &cov); err != nil {
+		t.Fatalf("coverage.json invalid: %v", err)
+	}
+	ids := shippedScenarioIDs(t)
+	seen := map[string]bool{
+		"exact-redelivery duplicate suppression":                                         false,
+		"retry attempt fencing (monotonic attempt, stale/future/wrong-worker rejection)": false,
+	}
+	for _, bh := range cov.Behaviors {
+		if _, tracked := seen[bh.Behavior]; !tracked {
+			continue
+		}
+		seen[bh.Behavior] = true
+		if bh.Gated != "" {
+			t.Errorf("behavior %q is still gated on %q, but the CAP-PRODUCTION model is merged", bh.Behavior, bh.Gated)
+			continue
+		}
+		if len(bh.Cases) == 0 {
+			t.Errorf("behavior %q lists no cases", bh.Behavior)
+		}
+		for _, id := range bh.Cases {
+			if _, ok := ids[id]; !ok {
+				t.Errorf("behavior %q references unknown case %q", bh.Behavior, id)
+			}
+		}
+	}
+	for behavior, found := range seen {
+		if !found {
+			t.Errorf("coverage.json no longer records behavior %q", behavior)
+		}
+	}
+}
+
+// NON-VACUITY (DoD 1): the duplicate-suppression and retry-fencing suites must
+// be genuinely graded, in BOTH directions. A mutation adapter that violates the
+// invariant must make the run non-conformant with real failures; a well-behaved
+// adapter must produce real passes. If these cases were ungraded or laundered
+// into N/A, the violating adapter would still come out conformant.
+func TestDuplicateAndRetrySuitesAreNonVacuous(t *testing.T) {
+	for _, suiteName := range []string{"core-duplicates.json", "core-retries.json"} {
+		suite := loadShippedSuite(t, suiteName)
+
+		violator := helperAdapter("violate")
+		if _, err := violator.Start(context.Background()); err != nil {
+			t.Fatalf("%s: start violator: %v", suiteName, err)
+		}
+		bad := fixedClockRunner().Run(context.Background(), violator, suite, "cap-production")
+		violator.Close()
+		if bad.Summary.Fail == 0 {
+			t.Errorf("%s: mutation adapter produced no failures; the suite is vacuous (summary=%+v)", suiteName, bad.Summary)
+		}
+		if bad.Summary.Conformant {
+			t.Errorf("%s: a mutation adapter that violates the invariant must NOT be conformant (summary=%+v)", suiteName, bad.Summary)
+		}
+
+		good := helperAdapter("well-behaved")
+		if _, err := good.Start(context.Background()); err != nil {
+			t.Fatalf("%s: start well-behaved: %v", suiteName, err)
+		}
+		ok := fixedClockRunner().Run(context.Background(), good, suite, "cap-production")
+		good.Close()
+		if ok.Summary.Pass == 0 {
+			t.Errorf("%s: well-behaved adapter graded no cases; suite never ran (summary=%+v)", suiteName, ok.Summary)
+		}
 	}
 }
 

@@ -74,6 +74,12 @@ func serveHelperCase(mode string, cmd Command, emit func(AdapterMessage)) {
 		// Exceed the runner's 64 KiB stderr cap so bounding is exercised.
 		fmt.Fprint(os.Stderr, strings.Repeat("noise ", 40000))
 		emit(AdapterMessage{Type: MsgResult, ID: cmd.ID, Status: StatusPass})
+	case "violate":
+		// Mutation adapter: deliberately breaks whichever invariant the case
+		// asserts (duplicate suppression, retry fencing, transition ordering,
+		// safety-before-dispatch, ...). Used to prove a suite is non-vacuous —
+		// a violating implementation must never grade as conformant.
+		emit(AdapterMessage{Type: MsgResult, ID: cmd.ID, Status: StatusFail, Detail: "mutation adapter: invariant deliberately violated"})
 	case "wrong-id":
 		emit(AdapterMessage{Type: MsgResult, ID: "MISMATCH", Status: StatusPass})
 	case "dup-id":

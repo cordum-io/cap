@@ -124,15 +124,23 @@
     },
     {
       "behavior": "exact-redelivery duplicate suppression",
-      "gated": "cap-production",
-      "reason": "requires the DispatchIdentity/message-id replay model from task-a13f83fa, which is on no ref",
-      "cases": []
+      "cases": [
+        "duplicates/worker-exact-redelivery-invokes-handler-once",
+        "duplicates/worker-exact-redelivery-replays-idempotent-result",
+        "duplicates/cp-duplicate-result-applies-once",
+        "duplicates/worker-distinct-dispatch-is-not-suppressed"
+      ]
     },
     {
       "behavior": "retry attempt fencing (monotonic attempt, stale/future/wrong-worker rejection)",
-      "gated": "cap-production",
-      "reason": "requires the DispatchIdentity attempt/epoch fields from task-a13f83fa, which is on no ref",
-      "cases": []
+      "cases": [
+        "retries/worker-new-attempt-invokes-once",
+        "retries/worker-rejects-stale-attempt",
+        "retries/worker-rejects-future-attempt",
+        "retries/worker-rejects-wrong-worker-attempt",
+        "retries/cp-ignores-stale-attempt-result",
+        "retries/cp-ignores-stale-attempt-progress"
+      ]
     },
     {
       "behavior": "cancel-vs-result race, exactly one winner",

@@ -1,0 +1,358 @@
+{
+  "version": 1,
+  "sources": [
+    "proto/cordum/agent/v1/alert.proto",
+    "proto/cordum/agent/v1/buspacket.proto",
+    "proto/cordum/agent/v1/handshake.proto",
+    "proto/cordum/agent/v1/heartbeat.proto",
+    "proto/cordum/agent/v1/job.proto",
+    "proto/cordum/agent/v1/policy.proto",
+    "proto/cordum/agent/v1/safety.proto"
+  ],
+  "outputs": [
+    {
+      "path": "cordum/agent/v1/alert.pb.go",
+      "sha256": "15688197d05ae2613251ba6d46d9efbb6176e10baf32a4b110de957739d1679f"
+    },
+    {
+      "path": "cordum/agent/v1/buspacket.pb.go",
+      "sha256": "c408b1a01fdcdc9029afdcdaea5160c7fadbf9283065e5e209199023539fc8f7"
+    },
+    {
+      "path": "cordum/agent/v1/handshake.pb.go",
+      "sha256": "4c427304658c9129bf28844afc518713da2a304731532be9682c5e1d06c68d07"
+    },
+    {
+      "path": "cordum/agent/v1/heartbeat.pb.go",
+      "sha256": "db3d5f767f5da09c9f5c5187fc8daee6b148a339e0c59f87bd2221b2a77c3911"
+    },
+    {
+      "path": "cordum/agent/v1/job.pb.go",
+      "sha256": "39fe1aa90395f5d23c1ef370d20aab50f41d55bea5c898a175654a8da71e2226"
+    },
+    {
+      "path": "cordum/agent/v1/policy.pb.go",
+      "sha256": "7840892c26df349b71d1cbb757cf8588c167090f3f01637ceb5c064974e539c3"
+    },
+    {
+      "path": "cordum/agent/v1/policy_grpc.pb.go",
+      "sha256": "355e65922efa6720abcb3246af3e40ae0649b531227835a383c414f6696d1cc5"
+    },
+    {
+      "path": "cordum/agent/v1/safety.pb.go",
+      "sha256": "f2216a2b9e3cd3056b0801389decfaf24061dee01776f7e7a7f5be499522e3a7"
+    },
+    {
+      "path": "cordum/agent/v1/safety_grpc.pb.go",
+      "sha256": "3c4fc71c90ee68703bae287bf55ce7bfe8866a9f6dfd53d77429f5b8b5c552fa"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/alert.pb.cc",
+      "sha256": "9a6204d72ec34b07e608046f4ba385808a90d783530ea8b03638e9b2966b9de8"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/alert.pb.h",
+      "sha256": "842675606e42ec7ac0e4ff87bb63ca6601095cde95dfef6148c36927a33bea40"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/buspacket.pb.cc",
+      "sha256": "447e87b72acf758b0b664f9d14cb27672567e9951e2b30c987a3262cfd05b173"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/buspacket.pb.h",
+      "sha256": "f9ba4da240b2109b0b9ec48af89cb4f4761b5bd9304763ba16885cb47b128f97"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/handshake.pb.cc",
+      "sha256": "31dc8cab3d9c5c6310f6042570d763d82c60712e178aa7cad8cd87251bfe8ffd"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/handshake.pb.h",
+      "sha256": "b0b6458bf40cd3f916a629b8ca8b8318ecd2c015d52ee28165fa06b59d7d2fa5"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/heartbeat.pb.cc",
+      "sha256": "6ea79c32ebbc974e2305957dfb3504dbb9f26350479aa5c1f0dbb7fe38a78b49"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/heartbeat.pb.h",
+      "sha256": "5627aa845b9c9890e3c6dbd25c5f4b500f54bccb61148d5df23a4b4ebd3633c9"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/job.pb.cc",
+      "sha256": "0e6058771687c04d2c8f16a650ac4d8933380ee31384c3a8e614e7a6dfb6828a"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/job.pb.h",
+      "sha256": "057adb8b273ae8707d3e7eb32186ca719760878e8b393a013122a50758e313d2"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/policy.pb.cc",
+      "sha256": "23fe343111a999529cb2bf57c73d6399e70e73b900c786ecf2b58ea710f08f6b"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/policy.pb.h",
+      "sha256": "487b21d17982b80d5e70dcbd5c4d681a049a35bc4782135bb3f940ed875e901d"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/safety.pb.cc",
+      "sha256": "e66de8641bb76ecc20d33a4ae374abec8bd6c98f1873f36c5232a6a69def943e"
+    },
+    {
+      "path": "cpp/cordum/agent/v1/safety.pb.h",
+      "sha256": "480e2df5cf8d30821a52af261729c5f82eeba25079ab9cfb5d52ba3c74846e81"
+    },
+    {
+      "path": "node/cap_pb.d.ts",
+      "sha256": "41a319267a18a23ec09d33f293030c2732d15488add0ba25e27fb057cd65bee5"
+    },
+    {
+      "path": "node/cap_pb.js",
+      "sha256": "d5ee2af9d2c1b39714bf2d3f92ea97bdcedda9954ecbb10d9a6ee450b466fc39"
+    },
+    {
+      "path": "node/cordum/agent/v1/alert_pb.d.ts",
+      "sha256": "dd7203da02b68bdbe70ba202ddf547ac9c4caac85685aeb70f9c7c53b74ba218"
+    },
+    {
+      "path": "node/cordum/agent/v1/alert_pb.js",
+      "sha256": "cdfde8a0f27a11ee70ce69d679dca6bddf38c871f32d6a9dbee2e81cda60d45d"
+    },
+    {
+      "path": "node/cordum/agent/v1/buspacket_pb.d.ts",
+      "sha256": "c61c4746c61acc7f172ed3771cd3afba7e297c18cbdda372198f2200c930c050"
+    },
+    {
+      "path": "node/cordum/agent/v1/buspacket_pb.js",
+      "sha256": "4ca239efae19b9154277c1a9c1c7821769f11fecd98d3f73acbf03da3e8d7185"
+    },
+    {
+      "path": "node/cordum/agent/v1/handshake_pb.d.ts",
+      "sha256": "ba09b2cb207a04f31b33c0f76d87e839ef0fefa233a405665645c8e9cc4f3a0d"
+    },
+    {
+      "path": "node/cordum/agent/v1/handshake_pb.js",
+      "sha256": "fe75b60efb2c7f54d5baf40035bf510760f56bab57b571cb47ce029367371449"
+    },
+    {
+      "path": "node/cordum/agent/v1/heartbeat_pb.d.ts",
+      "sha256": "677fdba8ff5108e32518f7a63b8adc2d28f1d8aec7c7ed4c74a814035ed4dbdb"
+    },
+    {
+      "path": "node/cordum/agent/v1/heartbeat_pb.js",
+      "sha256": "27dd2bbdb34a3c5315f280e54376b21c7aa130ecf7f1610a7ce4bc4dedcd018f"
+    },
+    {
+      "path": "node/cordum/agent/v1/job_pb.d.ts",
+      "sha256": "568fece4c9f4f1904ee6ee7fc7aa6a9754949df3c4a1c5497582ecf08bfa7c4d"
+    },
+    {
+      "path": "node/cordum/agent/v1/job_pb.js",
+      "sha256": "64980e350c81f542c77ac2e14a48b1c8cc41f8f4e62b178a557d703c72794ceb"
+    },
+    {
+      "path": "node/cordum/agent/v1/policy_pb.d.ts",
+      "sha256": "9826665b185c2553b9d3469c93e8206db58b2fd0cda44570fb22b84d5e5c5900"
+    },
+    {
+      "path": "node/cordum/agent/v1/policy_pb.js",
+      "sha256": "60e1a082f2d539f415b360c8805f5c784a2bf286f783a0780576c0de69a6be53"
+    },
+    {
+      "path": "node/cordum/agent/v1/safety_pb.d.ts",
+      "sha256": "643e2d67b6727d7acc4490a7ed974cd926452ab02023db52c1607c19ad53ab89"
+    },
+    {
+      "path": "node/cordum/agent/v1/safety_pb.js",
+      "sha256": "2756923ec84c7b6e330f60b4cd783f5ad4811725f6bbf5ea09ac8370557ca690"
+    },
+    {
+      "path": "python/cordum/agent/v1/alert_pb2.py",
+      "sha256": "ad575df0d0d184828d4acfc7b110acf7a476778acec9915da595fc83da973df7"
+    },
+    {
+      "path": "python/cordum/agent/v1/buspacket_pb2.py",
+      "sha256": "48d2daa9701695588f03e1e6eb7b2c1e8d12652093d758ad7be1a35de81e9fea"
+    },
+    {
+      "path": "python/cordum/agent/v1/handshake_pb2.py",
+      "sha256": "5371edbb709b4e00c810e3765d92c07c650db587907524c953d49162daabb9a0"
+    },
+    {
+      "path": "python/cordum/agent/v1/heartbeat_pb2.py",
+      "sha256": "c1454712ef21e5211854897cdb2f8ad896608554984b630a7c4009dc31649532"
+    },
+    {
+      "path": "python/cordum/agent/v1/job_pb2.py",
+      "sha256": "d646101ccd62251cc9c26d79c99afb8559bc6df1614430fd53a9812e449c55f8"
+    },
+    {
+      "path": "python/cordum/agent/v1/policy_pb2.py",
+      "sha256": "342ffc931af74cd61c22b5f6bd92a6031dcd7fce0ff572ae248dbda9c9d7485d"
+    },
+    {
+      "path": "python/cordum/agent/v1/safety_pb2.py",
+      "sha256": "75c74462056668d0d696bfa64a06f4fbdd0c59d891a90f587e8285db6cc3757d"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/alert_pb2.py",
+      "sha256": "ad575df0d0d184828d4acfc7b110acf7a476778acec9915da595fc83da973df7"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/buspacket_pb2.py",
+      "sha256": "48d2daa9701695588f03e1e6eb7b2c1e8d12652093d758ad7be1a35de81e9fea"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/handshake_pb2.py",
+      "sha256": "5371edbb709b4e00c810e3765d92c07c650db587907524c953d49162daabb9a0"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/heartbeat_pb2.py",
+      "sha256": "c1454712ef21e5211854897cdb2f8ad896608554984b630a7c4009dc31649532"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/job_pb2.py",
+      "sha256": "d646101ccd62251cc9c26d79c99afb8559bc6df1614430fd53a9812e449c55f8"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/policy_pb2.py",
+      "sha256": "342ffc931af74cd61c22b5f6bd92a6031dcd7fce0ff572ae248dbda9c9d7485d"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/safety_pb2.py",
+      "sha256": "75c74462056668d0d696bfa64a06f4fbdd0c59d891a90f587e8285db6cc3757d"
+    },
+    {
+      "path": "sdk/ruby/proto/cordum/agent/v1/alert_pb.rb",
+      "sha256": "ff439aef3f46cc320514de10b5b0b319853124fbfc342acab8884e9e13830eb5"
+    },
+    {
+      "path": "sdk/ruby/proto/cordum/agent/v1/buspacket_pb.rb",
+      "sha256": "12435b5fc1a96d4f0f64ad1e4a8532dfe10ca51bcaa540cfbd89ef5b2b4a247d"
+    },
+    {
+      "path": "sdk/ruby/proto/cordum/agent/v1/handshake_pb.rb",
+      "sha256": "f9b1596e4ac5b5a1a5a5c71c9f9969795e17e6af569efeffebdc36153e67f051"
+    },
+    {
+      "path": "sdk/ruby/proto/cordum/agent/v1/heartbeat_pb.rb",
+      "sha256": "0a93d43979176db0005ea9d228abb669085ebb541371059baad8150ea0c4c2be"
+    },
+    {
+      "path": "sdk/ruby/proto/cordum/agent/v1/job_pb.rb",
+      "sha256": "17ca5fcd3f2f234ee660dfa8e1760b17c5425cdfb68a3aa8922c8f568f196811"
+    },
+    {
+      "path": "sdk/ruby/proto/cordum/agent/v1/policy_pb.rb",
+      "sha256": "b7932e560ef348cb5b529e3962279ee377efcc52fdc6d0fafb64608daeed3085"
+    },
+    {
+      "path": "sdk/ruby/proto/cordum/agent/v1/safety_pb.rb",
+      "sha256": "cc73950be23569d5a24e5e2704d547868ce217f6ea57d2c519f6f735d82c0e67"
+    }
+  ],
+  "generatedGlobs": [
+    "cordum/agent/v1/*.pb.go",
+    "cpp/cordum/agent/v1/*.pb.cc",
+    "cpp/cordum/agent/v1/*.pb.h",
+    "node/*_pb.d.ts",
+    "node/*_pb.js",
+    "node/cordum/agent/v1/*_pb.d.ts",
+    "node/cordum/agent/v1/*_pb.js",
+    "python/cordum/agent/v1/*_pb2.py",
+    "sdk/python/cap/pb/cordum/agent/v1/*_pb2.py",
+    "sdk/ruby/proto/cordum/agent/v1/*_pb.rb"
+  ],
+  "generators": [
+    {
+      "id": "protoc-gen-cpp",
+      "outputs": [
+        "cpp/cordum/agent/v1/alert.pb.cc",
+        "cpp/cordum/agent/v1/alert.pb.h",
+        "cpp/cordum/agent/v1/buspacket.pb.cc",
+        "cpp/cordum/agent/v1/buspacket.pb.h",
+        "cpp/cordum/agent/v1/handshake.pb.cc",
+        "cpp/cordum/agent/v1/handshake.pb.h",
+        "cpp/cordum/agent/v1/heartbeat.pb.cc",
+        "cpp/cordum/agent/v1/heartbeat.pb.h",
+        "cpp/cordum/agent/v1/job.pb.cc",
+        "cpp/cordum/agent/v1/job.pb.h",
+        "cpp/cordum/agent/v1/policy.pb.cc",
+        "cpp/cordum/agent/v1/policy.pb.h",
+        "cpp/cordum/agent/v1/safety.pb.cc",
+        "cpp/cordum/agent/v1/safety.pb.h"
+      ]
+    },
+    {
+      "id": "protoc-gen-go",
+      "outputs": [
+        "cordum/agent/v1/alert.pb.go",
+        "cordum/agent/v1/buspacket.pb.go",
+        "cordum/agent/v1/handshake.pb.go",
+        "cordum/agent/v1/heartbeat.pb.go",
+        "cordum/agent/v1/job.pb.go",
+        "cordum/agent/v1/policy.pb.go",
+        "cordum/agent/v1/policy_grpc.pb.go",
+        "cordum/agent/v1/safety.pb.go",
+        "cordum/agent/v1/safety_grpc.pb.go"
+      ]
+    },
+    {
+      "id": "protoc-gen-js",
+      "outputs": [
+        "node/cap_pb.d.ts",
+        "node/cap_pb.js",
+        "node/cordum/agent/v1/alert_pb.d.ts",
+        "node/cordum/agent/v1/alert_pb.js",
+        "node/cordum/agent/v1/buspacket_pb.d.ts",
+        "node/cordum/agent/v1/buspacket_pb.js",
+        "node/cordum/agent/v1/handshake_pb.d.ts",
+        "node/cordum/agent/v1/handshake_pb.js",
+        "node/cordum/agent/v1/heartbeat_pb.d.ts",
+        "node/cordum/agent/v1/heartbeat_pb.js",
+        "node/cordum/agent/v1/job_pb.d.ts",
+        "node/cordum/agent/v1/job_pb.js",
+        "node/cordum/agent/v1/policy_pb.d.ts",
+        "node/cordum/agent/v1/policy_pb.js",
+        "node/cordum/agent/v1/safety_pb.d.ts",
+        "node/cordum/agent/v1/safety_pb.js"
+      ]
+    },
+    {
+      "id": "protoc-gen-python-root",
+      "outputs": [
+        "python/cordum/agent/v1/alert_pb2.py",
+        "python/cordum/agent/v1/buspacket_pb2.py",
+        "python/cordum/agent/v1/handshake_pb2.py",
+        "python/cordum/agent/v1/heartbeat_pb2.py",
+        "python/cordum/agent/v1/job_pb2.py",
+        "python/cordum/agent/v1/policy_pb2.py",
+        "python/cordum/agent/v1/safety_pb2.py"
+      ]
+    },
+    {
+      "id": "protoc-gen-python-sdk",
+      "outputs": [
+        "sdk/python/cap/pb/cordum/agent/v1/alert_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/buspacket_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/handshake_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/heartbeat_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/job_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/policy_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/safety_pb2.py"
+      ]
+    },
+    {
+      "id": "protoc-gen-ruby",
+      "outputs": [
+        "sdk/ruby/proto/cordum/agent/v1/alert_pb.rb",
+        "sdk/ruby/proto/cordum/agent/v1/buspacket_pb.rb",
+        "sdk/ruby/proto/cordum/agent/v1/handshake_pb.rb",
+        "sdk/ruby/proto/cordum/agent/v1/heartbeat_pb.rb",
+        "sdk/ruby/proto/cordum/agent/v1/job_pb.rb",
+        "sdk/ruby/proto/cordum/agent/v1/policy_pb.rb",
+        "sdk/ruby/proto/cordum/agent/v1/safety_pb.rb"
+      ]
+    }
+  ]
+}

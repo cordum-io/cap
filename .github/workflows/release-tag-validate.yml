@@ -1,0 +1,61 @@
+name: Release Tag Validate
+
+# Fires on a release tag. Validates (never publishes, never tags, never mutates
+# source) that an approved release-prep commit already synchronized the tag with
+# the manifest, source metadata, and changelog, and that the tag points at the
+# checked-out commit. Publication remains a separate, human-approved operation.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to validate (e.g. v2.14.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - name: Validate release tag (fail-closed)
+        env:
+          TAG_INPUT: ${{ github.event.inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          TAG="${TAG_INPUT:-$REF_NAME}"
+          echo "Validating release tag ${TAG}"
+
+          # tag == manifest release, source metadata == release, changelog has the entry
+          go run ./cmd/cap-release release-check --manifest release/manifest.json --repo-root . --tag "${TAG}"
+
+          # manifest is internally valid and specs are on disk
+          go run ./cmd/cap-release check --manifest release/manifest.json --repo-root .
+
+          # generated docs blocks are in sync with the manifest at the tag
+          go run ./cmd/cap-release render --manifest release/manifest.json --repo-root . --check
+
+          # tag target == checked-out SHA (the approved release-prep commit)
+          TAG_SHA="$(git rev-list -n1 "${TAG}")"
+          HEAD_SHA="$(git rev-parse HEAD)"
+          if [ "${TAG_SHA}" != "${HEAD_SHA}" ]; then
+            echo "tag ${TAG} points at ${TAG_SHA} but checkout is ${HEAD_SHA}"; exit 1
+          fi
+
+          echo "Release tag ${TAG} validated. Publication and tag creation remain human-approved."
+
+  # TCK / support-tier promotion gate is consume-when-landed: once the transport
+  # conformance suite (task-eefd838) merges, add a job here that requires its
+  # evidence before any transport may be marked supported in the manifest. Do not
+  # depend on that unmerged tooling yet.

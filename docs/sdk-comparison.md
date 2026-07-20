@@ -1,6 +1,23 @@
 # SDK Comparison Matrix
 
-CAP ships four SDKs. Three are **CAP protocol SDKs** (Go, Node, Python) that speak directly to the NATS bus. The fourth — **Guard** — is a separate product for safety policy enforcement via HTTP.
+CAP ships three protocol SDKs (Go, Node, Python) that speak directly to the NATS bus. **Guard** is a separate extension for safety policy enforcement via HTTP, not a protocol SDK.
+
+## Support Matrix
+
+<!-- cap-release:begin:sdk-table -->
+| Component | Language | Kind | Tier | Registry | Package | Version | Toolchain |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| cap-go | go | sdk | stable | proxy.golang.org | github.com/cordum-io/cap/v2 | 2.15.0 | go1.25.12 |
+| cap-node | node | sdk | stable | registry.npmjs.org | cap-sdk-node | 2.15.0 | node20 |
+| cap-python | python | sdk | stable | pypi.org | cap-sdk-python | 2.15.0 | python3.11 |
+| cordum-guard | python | extension | stable | pypi.org | cordum-guard | 2.15.0 | python3.11 |
+| cap-cpp | cpp | sdk | experimental | - | - | - | - |
+| cap-dotnet | dotnet | sdk | experimental | - | - | - | - |
+| cap-java | java | sdk | experimental | - | - | - | - |
+| cap-php | php | sdk | experimental | - | - | - | - |
+| cap-ruby | ruby | sdk | experimental | - | - | - | - |
+| cap-rust | rust | sdk | experimental | - | - | - | - |
+<!-- cap-release:end -->
 
 ## At a Glance
 

@@ -1,0 +1,58 @@
+name: Governance
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    name: Policy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Governance unit tests
+        run: go test ./internal/governance/... ./cmd/cap-governance/...
+
+      - name: Build cap-governance
+        run: go build ./cmd/cap-governance
+
+      - name: Policy / RFC / claims check
+        run: go run ./cmd/cap-governance check --root .
+
+      - name: Readiness is internally truthful (BLOCKED exits 0)
+        run: go run ./cmd/cap-governance readiness --root .
+
+      - name: READINESS.md is not stale
+        run: go run ./cmd/cap-governance render --root . --check
+
+  dco:
+    name: DCO
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: DCO sign-off check (PR range)
+        run: |
+          base='${{ github.event.pull_request.base.sha }}'
+          head='${{ github.event.pull_request.head.sha }}'
+          go run ./cmd/cap-governance dco --range "${base}..${head}"

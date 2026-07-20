@@ -59,12 +59,22 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-conduct@cordum.io or by opening a report via [GitHub Issues](https://github.com/cordum-io/cap/issues).
-All complaints will be reviewed and investigated promptly and fairly.
+reported **privately** to the maintainers responsible for enforcement at
+**conduct@cordum.io**.
 
-All community leaders are obligated to respect the privacy and security of the
-reporter of any incident.
+> **Do not open a public GitHub Issue, Discussion, or pull request to report a Code
+> of Conduct concern.** Those channels are public and cannot protect a reporter's
+> privacy or the details of an incident. Use the private email above.
+
+All complaints will be reviewed and investigated promptly and fairly. All maintainers
+are obligated to respect the privacy and security of the reporter of any incident.
+
+If a report concerns a maintainer, that maintainer is **recused** from handling it and
+from any related decision (see [COI.md](COI.md)). Because the project is currently
+stewarded by a single organization and has no independent conduct body, a reporter who
+believes a conflict cannot be managed internally may escalate by emailing
+**security@cordum.io**; this limitation is disclosed honestly rather than resolved by
+naming an independent handler that does not exist.
 
 ## Enforcement Guidelines
 

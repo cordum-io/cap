@@ -42,8 +42,9 @@ Each includes: runtime, worker, client, bus transport, signing, deterministic se
 - [ ] Create Ruby SDK (Cordum::Agent::V1, Gem, nats-pure)
 
 ## Milestone: Community + RFCs
-- [ ] Stand up `/rfcs` with template and first proposals (memory v2, agent discovery, streaming)
-- [ ] Create CAP working group (Slack/Discord) and publish meeting cadence
+- [x] Stand up `rfcs/` with template and process (see rfcs/README.md)
+- [ ] Shepherd the first substantive RFCs (memory v2, agent discovery, streaming)
+- [ ] Grow the maintainer roster toward the neutral-governance trigger (see MAINTAINERS.md); no working group or TSC exists today
 - [ ] Add CAP to relevant awesome-lists
 - [ ] Publish comparison paper MCP vs CAP
 
@@ -52,7 +53,7 @@ Each includes: runtime, worker, client, bus transport, signing, deterministic se
 - [ ] Provide OTel helpers for Go/Python/TS SDKs
 - [ ] Sample dashboards (Grafana) for job states/latency/heartbeat health
 
-## Milestone: CNCF Sandbox Prep
-- [ ] Governance doc and code of conduct
+## Milestone: Neutral-governance readiness (future; not scheduled, no foundation affiliation)
+- [x] Governance doc, maintainer ladder, DCO, COI, code of conduct
 - [ ] Security model and threat assessment
-- [ ] Public adopters list and integration references
+- [ ] Verifiable public adopters and independent implementations (tracked by governance/readiness.json; currently BLOCKED)

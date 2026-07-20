@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cordum.io/cap/sdk/support-tiers-v1.schema.json",
+  "title": "CAP SDK Support Tiers v1",
+  "description": "Machine-readable, evidence-backed SDK support classification. Verified by cap-support against real files; never trusts hand-set booleans.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "entries"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "entries": { "type": "array", "items": { "$ref": "#/$defs/entry" } }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "tier", "owner", "ownerPath", "docs", "gates"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "type": "string", "enum": ["protocol-sdk", "extension"] },
+        "tier": { "type": "string", "enum": ["stable", "community", "experimental"] },
+        "owner": { "type": "string", "minLength": 1 },
+        "ownerPath": { "type": "string", "minLength": 1 },
+        "package": { "$ref": "#/$defs/package" },
+        "docs": { "type": "string", "minLength": 1 },
+        "gates": { "type": "array", "items": { "$ref": "#/$defs/gate" } }
+      }
+    },
+    "package": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["registry", "coordinate"],
+      "properties": {
+        "registry": { "type": "string", "minLength": 1 },
+        "coordinate": { "type": "string", "minLength": 1 }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "path"],
+      "properties": {
+        "id": { "type": "string", "enum": ["publish", "install", "compat", "tck", "real-nats"] },
+        "kind": { "type": "string", "enum": ["workflow", "test", "manifest"] },
+        "path": { "type": "string", "minLength": 1 },
+        "job": { "type": "string" },
+        "pending": { "type": "boolean" },
+        "blockedBy": { "type": "string" }
+      }
+    }
+  }
+}

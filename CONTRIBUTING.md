@@ -54,6 +54,30 @@ cd sdk/python-guard && pip install -e ".[dev]" && pytest && cd ../..
 4. **CI must pass** — all SDK tests run automatically.
 5. **CODEOWNERS** will be assigned for review.
 
+## Sign your commits (DCO)
+
+CAP uses the [Developer Certificate of Origin 1.1](DCO.md). Every commit must be signed
+off, certifying that you have the right to submit it under [Apache-2.0](LICENSE). The
+DCO is **not** a CLA — it transfers no copyright and assigns no rights.
+
+```bash
+git commit -s -m "feat: add validation helpers to Go SDK"
+```
+
+`-s` appends `Signed-off-by: Your Name <you@example.com>`. Rules:
+
+- The `Signed-off-by` name and email **must match the commit author**.
+- If a commit is co-authored, **every** `Co-authored-by` person must also have a matching
+  `Signed-off-by` trailer.
+- **Effective date:** sign-off is required on commits authored **on or after
+  2026-07-19**. Older history is **not** retroactively certified and is **not** rewritten.
+- **Bot allowlist:** automated commits from `dependabot[bot]` and `github-actions[bot]`
+  are exempt from the sign-off requirement.
+
+A source-controlled check (`Governance / DCO`) verifies every non-allowlisted commit in a
+PR's range. It is advisory until a maintainer adds it to branch protection after it first
+runs green.
+
 ## Testing
 
 All three SDKs must pass before a PR can merge:

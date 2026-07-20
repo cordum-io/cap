@@ -14,6 +14,16 @@ SCRIPT = SDK_ROOT / "scripts" / "validate_release.py"
 PYPROJECT = SDK_ROOT / "pyproject.toml"
 
 
+def _default_pyproject_version() -> str:
+    if sys.version_info >= (3, 11):
+        import tomllib as _toml
+    else:
+        import tomli as _toml
+    project = _toml.loads(PYPROJECT.read_text(encoding="utf-8"))["project"]
+    assert isinstance(project, dict)
+    return str(project["version"])
+
+
 def run_validator(
     tag: Optional[str],
     pyproject: Optional[Path] = None,
@@ -55,12 +65,14 @@ def assert_failed(result: subprocess.CompletedProcess[str], message: str) -> Non
 
 
 def test_current_version_tag_succeeds_with_default_pyproject() -> None:
-    result = run_validator("v2.5.3")
+    version = _default_pyproject_version()
+    tag = f"v{version}"
+    result = run_validator(tag)
 
     assert result.returncode == 0
     assert result.stderr == ""
-    assert result.stdout == '{"tag":"v2.5.3","version":"2.5.3"}\n'
-    assert json.loads(result.stdout) == {"tag": "v2.5.3", "version": "2.5.3"}
+    assert result.stdout == f'{{"tag":"{tag}","version":"{version}"}}\n'
+    assert json.loads(result.stdout) == {"tag": tag, "version": version}
 
 
 def test_custom_pyproject_path_succeeds(tmp_path: Path) -> None:

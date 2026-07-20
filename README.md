@@ -5,32 +5,29 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/cordum-io/cap/v2.svg)](https://pkg.go.dev/github.com/cordum-io/cap/v2)
 [![Discord](https://img.shields.io/discord/cordum?label=Discord&logo=discord)](https://discord.gg/U4NpXtjP)
 
-> **MCP defines what agents say. CAP defines what agents do.**
+> CAP is the execution and governance layer for agent workloads — complementary to A2A (agent collaboration) and MCP (tools and context). See [how CAP fits](docs/ecosystem.md).
 
 AI agents are breaking out of single-model sandboxes into distributed clusters — but there's no standard for how they coordinate, stay safe, or report health. Teams end up hand-rolling job routing, liveness checks, and safety gates, then rewriting it all when they add a second orchestrator.
 
-CAP is the open wire protocol that fixes this. It gives every agent cluster jobs, heartbeats, safety hooks, and workflows over any pub/sub bus — so you ship agents instead of plumbing.
+CAP is the open wire protocol that fixes this. It gives every agent cluster jobs, heartbeats, safety hooks, and workflows over a NATS message bus — so you ship agents instead of plumbing.
 
 ## What CAP Gives You
 
 - **Cluster-native** — subjects, queue groups, heartbeats, and pools baked in.
-- **Safe by default** — Safety Kernel hook for allow / deny / human-in-the-loop / throttle before dispatch.
-- **Payload-light** — pointers (`context_ptr`, `result_ptr`) keep data off the bus; the wire stays lean and secure.
+- **Policy hook** — a Safety Kernel hook can allow / deny / route to a human / throttle before dispatch. It is a hook you wire up, not an automatic guarantee.
+- **Payload-light** — pointers (`context_ptr`, `result_ptr`) keep data off the bus.
 - **Workflow-ready** — parent/child jobs with full traceability across steps.
-- **Vendor-neutral** — any bus, any language, Apache-2.0.
+- **Open** — Apache-2.0, with stable Go, Node, and Python SDKs. NATS is the supported transport; other buses are experimental.
 
-## MCP vs CAP
+## How CAP fits with MCP and A2A
 
-| Concern | MCP | CAP |
-| --- | --- | --- |
-| Scope | Single model calling local tools | Distributed multi-agent clusters |
-| Scheduling | None | Pool routing, queue groups, retries |
-| Safety | None | Pre-dispatch policy (allow/deny/human/throttle) |
-| Liveness | None | Heartbeats with load and capacity |
-| Workflows | None | Parent/child jobs, DAG steps, compensation |
-| Transport | stdio / HTTP | Any pub/sub (NATS default, Kafka supported) |
+CAP is complementary to the other agent standards, not a competitor:
 
-MCP and CAP coexist: MCP can be the tool layer inside a CAP worker. See [Why CAP](docs/WHY_CAP.md) for the full rationale.
+- **A2A** — peer agent discovery, collaboration, and task/artifact exchange.
+- **MCP** — tools, resources, and prompts for a model or agent (an MCP client can run inside a CAP worker).
+- **CAP** — broker-native governed workload admission, dispatch, worker-pool capacity/liveness, attempt fencing/retry, and workflow execution.
+
+CAP adds the operational layer — policy-checked admission, pool routing, heartbeats, retries, and workflows — that A2A and MCP do not define. See [CAP in the agent ecosystem](docs/ecosystem.md) for the full picture and a "CAP is not" section, and [Why CAP](docs/WHY_CAP.md) for the design rationale.
 
 ## Run CAP Locally
 
@@ -149,6 +146,15 @@ flowchart LR
     Result --> Scheduler --> Client
 ```
 
+## Release Status
+
+<!-- cap-release:begin:release-status -->
+- **Current release:** 2.15.0 (tag `v2.15.0`, 2026-07-20, channel stable)
+- **Wire protocol:** 1 (compatible range 1–1)
+- **Wire schema:** 1.0.0
+- **Specifications:** 19 normative documents
+<!-- cap-release:end -->
+
 ## Learn More
 
 | Resource | Description |
@@ -156,7 +162,7 @@ flowchart LR
 | [Playground](playground/) | Run the direct local-development round-trip with Docker Compose |
 | [Getting Started](docs/getting-started.md) | Build a local client and worker in Go, Python, or Node |
 | [Why CAP](docs/WHY_CAP.md) | The problem CAP solves and design rationale |
-| [Spec](spec/00-index.md) | Full normative specification (17 documents) |
+| [Spec](spec/00-index.md) | Full normative specification |
 | [Examples](examples/) | Job submissions, workflows, heartbeats |
 | [SDK Comparison](docs/sdk-comparison.md) | Which SDK to use and when |
 | [Technical Reference](docs/reference.md) | Protocol contracts, conformance, repo map |
@@ -169,7 +175,7 @@ flowchart LR
 
 ## CAP Is for Everyone
 
-CAP is Apache-2.0 licensed. Anyone can implement the protocol, build SDKs, or launch a conformant control plane. Wire evolution is append-only — existing integrations never break.
+CAP is Apache-2.0 licensed. Anyone can implement the protocol, build SDKs, or launch a conformant control plane. Wire evolution is append-only within the supported compatibility range (see [versioning policy](spec/17-versioning-policy.md)).
 
 - [Contributing Guide](CONTRIBUTING.md)
 - [Governance](GOVERNANCE.md)

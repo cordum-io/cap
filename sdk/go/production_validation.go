@@ -22,6 +22,41 @@ func ValidateIdentityBinding(request *agentv1.JobRequest, authoritative *agentv1
 			return fmt.Errorf("%w: %s", ErrIdentityMismatch, mirror.path)
 		}
 	}
+	// A nested IdentityBinding is not a partial mirror. The skip-if-empty rule
+	// above is correct for the flat env/labels/meta strings -- a blank
+	// env["actor_id"] means "not mirrored here" -- but wrong for a sub-message,
+	// where a present binding with a blank ActorId is an affirmative claim of
+	// "no actor" rather than an omission. Comparing only the non-blank fields
+	// would admit an identity stripped of exactly the fields an attacker wants
+	// dropped. Keeps Go aligned with sdk/python production_validation's
+	// _same_identity and sdk/node production-validation's sameIdentity, which
+	// both compare all four fields unconditionally.
+	if err := strictBindingMatch("identity", request.GetIdentity(), authoritative); err != nil {
+		return err
+	}
+	if compensation := request.GetCompensation(); compensation != nil {
+		if err := strictBindingMatch(
+			"compensation.identity", compensation.GetIdentity(), authoritative,
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// strictBindingMatch compares every field of a present nested binding, blank
+// ones included. An absent binding is allowed: that is a legitimate
+// migration/compat shape, and keeping it distinguishable from a present-but-blank
+// binding is the point.
+func strictBindingMatch(prefix string, actual, expected *agentv1.IdentityBinding) error {
+	if actual == nil {
+		return nil
+	}
+	for _, mirror := range bindingIdentityMirrors(prefix, actual, expected) {
+		if mirror.actual != mirror.expected {
+			return fmt.Errorf("%w: %s", ErrIdentityMismatch, mirror.path)
+		}
+	}
 	return nil
 }
 
@@ -39,7 +74,8 @@ func productionIdentityMirrors(
 	mirrors = append(mirrors, metadataIdentityMirrors("meta", request.GetMeta(), identity)...)
 	mirrors = append(mirrors, mapIdentityMirrors("env", request.GetEnv(), identity)...)
 	mirrors = append(mirrors, mapIdentityMirrors("labels", request.GetLabels(), identity)...)
-	mirrors = append(mirrors, bindingIdentityMirrors("identity", request.GetIdentity(), identity)...)
+	// request.Identity is deliberately absent here: nested bindings are checked
+	// strictly by strictBindingMatch, not by the skip-if-empty loop.
 	if compensation := request.GetCompensation(); compensation != nil {
 		mirrors = append(mirrors, compensationIdentityMirrors(compensation, identity)...)
 	}
@@ -56,7 +92,7 @@ func compensationIdentityMirrors(
 	mirrors = append(mirrors, metadataIdentityMirrors("compensation.meta", compensation.GetMeta(), identity)...)
 	mirrors = append(mirrors, mapIdentityMirrors("compensation.env", compensation.GetEnv(), identity)...)
 	mirrors = append(mirrors, mapIdentityMirrors("compensation.labels", compensation.GetLabels(), identity)...)
-	mirrors = append(mirrors, bindingIdentityMirrors("compensation.identity", compensation.GetIdentity(), identity)...)
+	// compensation.Identity: see the note in productionIdentityMirrors.
 	return mirrors
 }
 

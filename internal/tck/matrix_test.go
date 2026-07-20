@@ -160,14 +160,16 @@ func TestMatrixDetectsDigestMismatch(t *testing.T) {
 	}
 }
 
-// Completeness is computed: with only the Go producer/consumer present, the
-// eight cross-language edges to python/node are reported missing rather than
-// silently treated as covered.
+// Completeness is computed, not listed: an engine driven with only the Go
+// in-process reference must report the other eight edges missing. The delivered
+// three-language matrix asserts the complement of this in
+// TestCrossLanguageMatrixCoversAllNineEdges, where MissingEdges must be empty.
 func TestMatrixCompletenessIsComputed(t *testing.T) {
 	edges := RunMatrix(goProduceFixtures(t, genKey(t)), []Consumer{goConsumer{}})
-	missing := MissingEdges(edges, []string{"go", "python", "node"}, []string{"go", "python", "node"})
-	if len(missing) != 8 {
-		t.Fatalf("expected 8 missing cross-language edges, got %d: %v", len(missing), missing)
+	missing := MissingEdges(edges, StableSDKs, StableSDKs)
+	if len(missing) != len(StableSDKs)*len(StableSDKs)-1 {
+		t.Fatalf("expected %d missing edges for a go-only engine run, got %d: %v",
+			len(StableSDKs)*len(StableSDKs)-1, len(missing), missing)
 	}
 	for _, m := range missing {
 		if m == "go->go" {

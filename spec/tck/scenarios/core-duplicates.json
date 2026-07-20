@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "duplicates/worker-exact-redelivery-invokes-handler-once",
+      "title": "exact redelivery of the same DispatchIdentity invokes the handler exactly once",
+      "role": "worker",
+      "profile": "cap-production",
+      "required": true,
+      "params": {
+        "dispatchId": "dsp-1",
+        "attempt": "1",
+        "assignedWorkerId": "wrk-1",
+        "deliveries": "2",
+        "expect": "one-side-effect",
+        "spec": "job.proto#DispatchIdentity"
+      }
+    },
+    {
+      "id": "duplicates/worker-exact-redelivery-replays-idempotent-result",
+      "title": "exact redelivery replays the recorded terminal result instead of re-executing",
+      "role": "worker",
+      "profile": "cap-production",
+      "required": true,
+      "params": {
+        "dispatchId": "dsp-1",
+        "attempt": "1",
+        "assignedWorkerId": "wrk-1",
+        "deliveries": "2",
+        "expect": "idempotent-replay",
+        "spec": "job.proto#DispatchIdentity"
+      }
+    },
+    {
+      "id": "duplicates/cp-duplicate-result-applies-once",
+      "title": "control plane applies a duplicate JobResult for the same dispatch and attempt once",
+      "role": "control-plane",
+      "profile": "cap-production",
+      "required": true,
+      "params": {
+        "dispatchId": "dsp-1",
+        "attempt": "1",
+        "deliveries": "2",
+        "expect": "one-side-effect",
+        "spec": "job.proto#DispatchIdentity"
+      }
+    },
+    {
+      "id": "duplicates/worker-distinct-dispatch-is-not-suppressed",
+      "title": "a different dispatch_id is a distinct delivery and must not be suppressed as a duplicate",
+      "role": "worker",
+      "profile": "cap-production",
+      "required": true,
+      "params": {
+        "dispatchId": "dsp-2",
+        "attempt": "1",
+        "assignedWorkerId": "wrk-1",
+        "deliveries": "1",
+        "expect": "invoke",
+        "spec": "job.proto#DispatchIdentity"
+      }
+    }
+  ]
+}

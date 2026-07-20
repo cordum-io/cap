@@ -1,3 +1,9 @@
+# Shell scripts run inside the pinned Linux codegen container from a bind-mounted
+# working tree. With core.autocrlf=true a Windows checkout would give them CRLF
+# and the kernel would look for the interpreter "/usr/bin/env bash\r", so the
+# container ENTRYPOINT must stay LF on every platform.
+*.sh text eol=lf
+
 # Generated exactly from pinned protobuf plugins; keep review and whitespace
 # tooling focused on authored source while retaining normal textual diffs.
 /cordum/agent/v1/*.pb.go linguist-generated=true whitespace=-trailing-space

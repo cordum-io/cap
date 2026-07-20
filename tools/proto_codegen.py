@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import re
 import shutil
@@ -16,8 +17,10 @@ from pathlib import Path
 from typing import Mapping, Sequence
 
 try:
+    from tools.codegen_toolchain import Toolchain, ToolchainError, describe, select
     from tools.python_proto_codegen import PythonCodegenError, generate_python_outputs, validate_python_pins
 except ModuleNotFoundError:  # Direct execution: python tools/proto_codegen.py
+    from codegen_toolchain import Toolchain, ToolchainError, describe, select
     from python_proto_codegen import PythonCodegenError, generate_python_outputs, validate_python_pins
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -25,7 +28,6 @@ PROTO_ROOT = REPO_ROOT / "proto" / "cordum" / "agent" / "v1"
 BUF_TEMPLATE = REPO_ROOT / "buf.gen.yaml"
 BUF_CONFIG = REPO_ROOT / "buf.yaml"
 NODE_TOOLS = REPO_ROOT / "tools" / "codegen"
-BUF_TOOL = "github.com/bufbuild/buf/cmd/buf@v1.71.0"
 TIMEOUT_SECONDS = 600
 NODE_DEPENDENCIES = {
     "@types/google-protobuf": "3.15.12",
@@ -140,11 +142,30 @@ def assert_idempotent(before: Mapping[str, Mapping[str, bytes]], after: Mapping[
     require(before == after, "protobuf generation is not idempotent across clean runs")
 
 
-def git_diff(tracked: Path, generated: Path) -> str:
-    command = ["git", "diff", "--no-index", "--ignore-cr-at-eol", "--", str(tracked), str(generated)]
-    result = subprocess.run(command, cwd=REPO_ROOT, text=True, capture_output=True, check=False)
-    require(result.returncode in (0, 1), f"git diff failed ({result.returncode}): {result.stderr[-2000:]}")
-    return (result.stdout + result.stderr)[-8000:] if result.returncode else ""
+def _normalized_lines(path: Path) -> list[str]:
+    """Line-ending-independent view of a generated file.
+
+    Windows checkouts store these with CRLF; the container generates LF. Only
+    the content difference is drift.
+    """
+    text = path.read_bytes().replace(b"\r\n", b"\n").decode("utf-8", errors="replace")
+    return text.splitlines(keepends=True)
+
+
+def diff_outputs(tracked: Path, generated: Path) -> str:
+    """Empty when the two files agree, otherwise a readable unified diff.
+
+    Deliberately does not shell out to git: this runs inside the hermetic
+    container, where /src/.git is a worktree pointer to a host path that does
+    not exist, and `git diff --no-index` aborts before comparing anything.
+    """
+    if not tracked.is_file():
+        return f"missing tracked output: {tracked}\n"
+    before, after = _normalized_lines(tracked), _normalized_lines(generated)
+    if before == after:
+        return ""
+    diff = difflib.unified_diff(before, after, fromfile=str(tracked), tofile=str(generated), n=3)
+    return "".join(diff)[:8000]
 
 
 def compare_tracked(generated: Path, expected: Mapping[str, set[Path]], tracked: Path = REPO_ROOT) -> None:
@@ -155,7 +176,7 @@ def compare_tracked(generated: Path, expected: Mapping[str, set[Path]], tracked:
         target = tracked / language.tracked_subdir
         validate_inventory(target, outputs, language, "tracked")
         for output in sorted(outputs, key=str):
-            diff = git_diff(target / output, source / output)
+            diff = diff_outputs(target / output, source / output)
             if diff:
                 drifts.append(diff)
     require(not drifts, "generated protobuf drift:\n" + "\n".join(drifts[:6]))
@@ -225,27 +246,26 @@ def _run(command: Sequence[str], cwd: Path = REPO_ROOT) -> None:
         output = (result.stdout + "\n" + result.stderr).strip()[-8000:]
         raise CodegenError(f"command failed ({result.returncode}): {' '.join(command)}\n{output}")
 
-def _buf(*arguments: str) -> list[str]:
-    return ["go", "run", BUF_TOOL, *arguments]
-
-
-def run_schema_checks() -> None:
-    _run(_buf("lint"))
-    _run(_buf("build"))
+def run_schema_checks(tools: Toolchain) -> None:
+    _run(tools.buf("lint"))
+    _run(tools.buf("build"))
+    if not tools.checks_breaking:
+        return
     _run(["git", "rev-parse", "--verify", "origin/main^{commit}"])
-    _run(_buf("breaking", "--against", ".git#branch=origin/main", "--against-config", str(BUF_CONFIG)))
+    _run(tools.buf("breaking", "--against", ".git#branch=origin/main", "--against-config", str(BUF_CONFIG)))
 
-def ensure_node_tools() -> None:
+def ensure_node_tools(tools: Toolchain) -> None:
     validate_node_pins()
-    _run(["npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund"], NODE_TOOLS)
+    if tools.installs_node_modules:
+        _run(["npm", "ci", "--ignore-scripts", "--no-audit", "--no-fund"], NODE_TOOLS)
 
 
-def run_buf_generate(destination: Path) -> None:
-    _run(_buf("generate", "--template", str(BUF_TEMPLATE), "--output", str(destination)))
+def run_buf_generate(destination: Path, tools: Toolchain) -> None:
+    _run(tools.buf("generate", "--template", str(tools.template), "--output", str(destination)))
 
 
-def run_node_bundle(destination: Path, protos: Sequence[Path]) -> None:
-    binary = NODE_TOOLS / "node_modules" / "protobufjs-cli" / "bin"
+def run_node_bundle(destination: Path, protos: Sequence[Path], tools: Toolchain) -> None:
+    binary = tools.protobufjs_bin
     output = destination / "node"
     output.mkdir(parents=True, exist_ok=True)
     roots = [str(path) for path in aggregate_roots(protos)]
@@ -253,31 +273,35 @@ def run_node_bundle(destination: Path, protos: Sequence[Path]) -> None:
     _run(["node", str(binary / "pbts"), "-o", str(output / "cap_pb.d.ts"), str(output / "cap_pb.js")])
 
 
-def generate_once(destination: Path, protos: Sequence[Path], expected: Mapping[str, set[Path]]) -> None:
+def generate_once(destination: Path, protos: Sequence[Path], expected: Mapping[str, set[Path]], tools: Toolchain) -> None:
     if destination.exists():
         shutil.rmtree(destination)
-    run_buf_generate(destination)
+    run_buf_generate(destination, tools)
     generate_python_outputs(destination, protos, _run)
-    run_node_bundle(destination, protos)
+    run_node_bundle(destination, protos, tools)
     validate_generated(destination, expected)
 
 
-def execute(mode: str) -> dict[str, object]:
+def execute(mode: str, tools: Toolchain) -> dict[str, object]:
+    # The canonical remote pins are validated on both paths: the hermetic
+    # template mirrors them, so a drifted //buf.gen.yaml must fail either way.
     validate_remote_pins(BUF_TEMPLATE)
     validate_node_pins()
     validate_python_pins()
-    run_schema_checks()
-    ensure_node_tools()
+    run_schema_checks(tools)
+    ensure_node_tools(tools)
     protos = proto_sources()
     expected = expected_outputs(protos)
     with tempfile.TemporaryDirectory(prefix="cap-codegen-") as temporary:
         destination = Path(temporary).resolve() / "generated"
-        generate_once(destination, protos, expected)
+        generate_once(destination, protos, expected, tools)
         before = snapshot_generated(destination, expected)
-        generate_once(destination, protos, expected)
+        generate_once(destination, protos, expected, tools)
         assert_idempotent(before, snapshot_generated(destination, expected))
         compare_tracked(destination, expected) if mode == "check" else write_tracked(destination, expected)
-    return {"mode": mode, "languages": sorted(expected), "outputs": sum(map(len, expected.values())), "buf": BUF_TOOL}
+    report = {"mode": mode, "languages": sorted(expected), "outputs": sum(map(len, expected.values()))}
+    report.update(describe(tools))
+    return report
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -285,10 +309,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     modes = parser.add_mutually_exclusive_group(required=True)
     modes.add_argument("--check", action="store_const", const="check", dest="mode")
     modes.add_argument("--write", action="store_const", const="write", dest="mode")
+    parser.add_argument(
+        "--offline",
+        action="store_true",
+        help="use the hermetic toolchain (local buf plugins, preinstalled Node modules)",
+    )
     arguments = parser.parse_args(argv)
     try:
-        report = execute(arguments.mode)
-    except (CodegenError, PythonCodegenError, json.JSONDecodeError, UnicodeError) as exc:
+        report = execute(arguments.mode, select(arguments.offline))
+    except (CodegenError, PythonCodegenError, ToolchainError, json.JSONDecodeError, UnicodeError) as exc:
         print(f"CAP proto codegen failed: {exc}", file=sys.stderr)
         return 1
     print(json.dumps(report, indent=2, sort_keys=True))

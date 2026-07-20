@@ -1,0 +1,92 @@
+{
+  "version": "matrix-corpus-v1",
+  "description": "Shared cross-language fixture corpus. Every stable SDK builds each case into a CAP-PRODUCTION BusPacket using only its own public API, signs it, and every other stable SDK decodes, validates, and verifies the result. Cases deliberately cover the CAP-PRODUCTION identity/attempt/resource surface, not just decoding.",
+  "audience": "cap-tck-matrix",
+  "tenantId": "tenant-tck",
+  "senderId": "sender-tck",
+  "cases": [
+    {
+      "name": "job-request",
+      "traceId": "trace-matrix-1",
+      "messageId": "AAECAwQFBgcICQoLDA0ODw==",
+      "identity": {
+        "tenantId": "tenant-tck",
+        "principalId": "principal-1",
+        "actorId": "actor-1",
+        "delegationId": "delegation-1"
+      },
+      "payload": {
+        "kind": "jobRequest",
+        "jobId": "job-matrix-1",
+        "topic": "job.chat.simple",
+        "tenantId": "tenant-tck",
+        "principalId": "principal-1"
+      }
+    },
+    {
+      "name": "job-result-dispatch",
+      "traceId": "trace-matrix-2",
+      "messageId": "EBESExQVFhcYGRobHB0eHw==",
+      "identity": {
+        "tenantId": "tenant-tck",
+        "principalId": "principal-2",
+        "actorId": "actor-2",
+        "delegationId": "delegation-2"
+      },
+      "payload": {
+        "kind": "jobResult",
+        "jobId": "job-matrix-1",
+        "status": 3,
+        "workerId": "sender-tck",
+        "executionMs": 1234,
+        "dispatch": {
+          "dispatchId": "dispatch-1",
+          "attempt": 2,
+          "assignedWorkerId": "sender-tck"
+        }
+      }
+    },
+    {
+      "name": "job-progress-attempt",
+      "traceId": "trace-matrix-3",
+      "messageId": "ICEiIyQlJicoKSorLC0uLw==",
+      "identity": {
+        "tenantId": "tenant-tck",
+        "principalId": "principal-3",
+        "actorId": "actor-3",
+        "delegationId": "delegation-3"
+      },
+      "payload": {
+        "kind": "jobProgress",
+        "jobId": "job-matrix-1",
+        "stepId": "step-1",
+        "percent": 42,
+        "message": "halfway",
+        "dispatch": {
+          "dispatchId": "dispatch-1",
+          "attempt": 2,
+          "assignedWorkerId": "sender-tck"
+        }
+      }
+    },
+    {
+      "name": "heartbeat",
+      "traceId": "trace-matrix-4",
+      "messageId": "MDEyMzQ1Njc4OTo7PD0+Pw==",
+      "identity": {
+        "tenantId": "tenant-tck",
+        "principalId": "principal-4",
+        "actorId": "actor-4",
+        "delegationId": "delegation-4"
+      },
+      "payload": {
+        "kind": "heartbeat",
+        "workerId": "sender-tck",
+        "region": "eu-west-1",
+        "type": "cpu",
+        "activeJobs": 3,
+        "pool": "default"
+      }
+    }
+  ]
+}

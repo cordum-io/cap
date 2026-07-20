@@ -171,56 +171,112 @@
       "sha256": "ad575df0d0d184828d4acfc7b110acf7a476778acec9915da595fc83da973df7"
     },
     {
+      "path": "python/cordum/agent/v1/alert_pb2_grpc.py",
+      "sha256": "c166fe8d3de247c92176a23f2d3bb1250006811e78eba67d933838d41a0acb92"
+    },
+    {
       "path": "python/cordum/agent/v1/buspacket_pb2.py",
       "sha256": "c89b6d5de4689b6c71c72453cedd5a306d59e8e32646dfa9249726a7eab20568"
+    },
+    {
+      "path": "python/cordum/agent/v1/buspacket_pb2_grpc.py",
+      "sha256": "d4ebb91bdb1498233fd5bda5b89adb389f618aea46c45b6bf70af627e611d9e4"
     },
     {
       "path": "python/cordum/agent/v1/handshake_pb2.py",
       "sha256": "5371edbb709b4e00c810e3765d92c07c650db587907524c953d49162daabb9a0"
     },
     {
+      "path": "python/cordum/agent/v1/handshake_pb2_grpc.py",
+      "sha256": "e0daa0936155a439a69261c7842259519185dbfccb30c4fd9cd35d28490ec4bd"
+    },
+    {
       "path": "python/cordum/agent/v1/heartbeat_pb2.py",
       "sha256": "c1454712ef21e5211854897cdb2f8ad896608554984b630a7c4009dc31649532"
+    },
+    {
+      "path": "python/cordum/agent/v1/heartbeat_pb2_grpc.py",
+      "sha256": "1c9dbf8b43ed603823c92580c0ce3a728f6af5f3dbada91b15706c01b07c55f1"
     },
     {
       "path": "python/cordum/agent/v1/job_pb2.py",
       "sha256": "74d328100bf0c640ca70c0935d5ef837f2d453236fe399da49f325d40f792f02"
     },
     {
+      "path": "python/cordum/agent/v1/job_pb2_grpc.py",
+      "sha256": "0c20bd0f560e1c0b86fd44b9cb475f26fe377c6d7ce5f5eb35c87c87fb2d68ba"
+    },
+    {
       "path": "python/cordum/agent/v1/policy_pb2.py",
       "sha256": "342ffc931af74cd61c22b5f6bd92a6031dcd7fce0ff572ae248dbda9c9d7485d"
+    },
+    {
+      "path": "python/cordum/agent/v1/policy_pb2_grpc.py",
+      "sha256": "5a538663d2b4ed5eb871b21dbec5718ba6537ffbe5089f2dd906945332bad378"
     },
     {
       "path": "python/cordum/agent/v1/safety_pb2.py",
       "sha256": "87f34d62ecaf10af81786472b4e684fbd72e6b9eeb35c897c6ecceb65994c77e"
     },
     {
+      "path": "python/cordum/agent/v1/safety_pb2_grpc.py",
+      "sha256": "12c79b952472d1c8f01087c1244a8d0180acddeeab0d70fa003d3ff91fc00718"
+    },
+    {
       "path": "sdk/python/cap/pb/cordum/agent/v1/alert_pb2.py",
       "sha256": "ad575df0d0d184828d4acfc7b110acf7a476778acec9915da595fc83da973df7"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/alert_pb2_grpc.py",
+      "sha256": "c166fe8d3de247c92176a23f2d3bb1250006811e78eba67d933838d41a0acb92"
     },
     {
       "path": "sdk/python/cap/pb/cordum/agent/v1/buspacket_pb2.py",
       "sha256": "c89b6d5de4689b6c71c72453cedd5a306d59e8e32646dfa9249726a7eab20568"
     },
     {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/buspacket_pb2_grpc.py",
+      "sha256": "d4ebb91bdb1498233fd5bda5b89adb389f618aea46c45b6bf70af627e611d9e4"
+    },
+    {
       "path": "sdk/python/cap/pb/cordum/agent/v1/handshake_pb2.py",
       "sha256": "5371edbb709b4e00c810e3765d92c07c650db587907524c953d49162daabb9a0"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/handshake_pb2_grpc.py",
+      "sha256": "e0daa0936155a439a69261c7842259519185dbfccb30c4fd9cd35d28490ec4bd"
     },
     {
       "path": "sdk/python/cap/pb/cordum/agent/v1/heartbeat_pb2.py",
       "sha256": "c1454712ef21e5211854897cdb2f8ad896608554984b630a7c4009dc31649532"
     },
     {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/heartbeat_pb2_grpc.py",
+      "sha256": "1c9dbf8b43ed603823c92580c0ce3a728f6af5f3dbada91b15706c01b07c55f1"
+    },
+    {
       "path": "sdk/python/cap/pb/cordum/agent/v1/job_pb2.py",
       "sha256": "74d328100bf0c640ca70c0935d5ef837f2d453236fe399da49f325d40f792f02"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/job_pb2_grpc.py",
+      "sha256": "0c20bd0f560e1c0b86fd44b9cb475f26fe377c6d7ce5f5eb35c87c87fb2d68ba"
     },
     {
       "path": "sdk/python/cap/pb/cordum/agent/v1/policy_pb2.py",
       "sha256": "342ffc931af74cd61c22b5f6bd92a6031dcd7fce0ff572ae248dbda9c9d7485d"
     },
     {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/policy_pb2_grpc.py",
+      "sha256": "5a538663d2b4ed5eb871b21dbec5718ba6537ffbe5089f2dd906945332bad378"
+    },
+    {
       "path": "sdk/python/cap/pb/cordum/agent/v1/safety_pb2.py",
       "sha256": "87f34d62ecaf10af81786472b4e684fbd72e6b9eeb35c897c6ecceb65994c77e"
+    },
+    {
+      "path": "sdk/python/cap/pb/cordum/agent/v1/safety_pb2_grpc.py",
+      "sha256": "12c79b952472d1c8f01087c1244a8d0180acddeeab0d70fa003d3ff91fc00718"
     },
     {
       "path": "sdk/ruby/proto/cordum/agent/v1/alert_pb.rb",
@@ -260,7 +316,9 @@
     "node/cordum/agent/v1/*_pb.d.ts",
     "node/cordum/agent/v1/*_pb.js",
     "python/cordum/agent/v1/*_pb2.py",
+    "python/cordum/agent/v1/*_pb2_grpc.py",
     "sdk/python/cap/pb/cordum/agent/v1/*_pb2.py",
+    "sdk/python/cap/pb/cordum/agent/v1/*_pb2_grpc.py",
     "sdk/ruby/proto/cordum/agent/v1/*_pb.rb"
   ],
   "generators": [
@@ -322,24 +380,38 @@
       "id": "protoc-gen-python-root",
       "outputs": [
         "python/cordum/agent/v1/alert_pb2.py",
+        "python/cordum/agent/v1/alert_pb2_grpc.py",
         "python/cordum/agent/v1/buspacket_pb2.py",
+        "python/cordum/agent/v1/buspacket_pb2_grpc.py",
         "python/cordum/agent/v1/handshake_pb2.py",
+        "python/cordum/agent/v1/handshake_pb2_grpc.py",
         "python/cordum/agent/v1/heartbeat_pb2.py",
+        "python/cordum/agent/v1/heartbeat_pb2_grpc.py",
         "python/cordum/agent/v1/job_pb2.py",
+        "python/cordum/agent/v1/job_pb2_grpc.py",
         "python/cordum/agent/v1/policy_pb2.py",
-        "python/cordum/agent/v1/safety_pb2.py"
+        "python/cordum/agent/v1/policy_pb2_grpc.py",
+        "python/cordum/agent/v1/safety_pb2.py",
+        "python/cordum/agent/v1/safety_pb2_grpc.py"
       ]
     },
     {
       "id": "protoc-gen-python-sdk",
       "outputs": [
         "sdk/python/cap/pb/cordum/agent/v1/alert_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/alert_pb2_grpc.py",
         "sdk/python/cap/pb/cordum/agent/v1/buspacket_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/buspacket_pb2_grpc.py",
         "sdk/python/cap/pb/cordum/agent/v1/handshake_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/handshake_pb2_grpc.py",
         "sdk/python/cap/pb/cordum/agent/v1/heartbeat_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/heartbeat_pb2_grpc.py",
         "sdk/python/cap/pb/cordum/agent/v1/job_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/job_pb2_grpc.py",
         "sdk/python/cap/pb/cordum/agent/v1/policy_pb2.py",
-        "sdk/python/cap/pb/cordum/agent/v1/safety_pb2.py"
+        "sdk/python/cap/pb/cordum/agent/v1/policy_pb2_grpc.py",
+        "sdk/python/cap/pb/cordum/agent/v1/safety_pb2.py",
+        "sdk/python/cap/pb/cordum/agent/v1/safety_pb2_grpc.py"
       ]
     },
     {

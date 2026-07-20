@@ -20,6 +20,26 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 - **Node SDK (non-wire bugfix):** the published npm artifact now bundles all runtime protobuf schemas; corrected NATS callback dispatch and shutdown/reconnect handling; configured inbound signature verification fails closed before handlers run.
 - **Python SDK:** corrected the P0 low-level worker and high-level Agent failure paths (one generic `JOB_STATUS_FAILED` result without leaking exception text, bounded failure context, worker stays available); declared and verified CPython 3.9–3.14 support and added pinned codegen-drift, typing, real-NATS, clean wheel/sdist, metadata, and tag-to-version release gates.
 - **Onboarding (no wire change):** reworked the local playground and simple-echo docs to distinguish direct dev-only `job.echo` publishing from governed `sys.job.submit` routing, with deterministic readiness/deadlines/exit-codes/cleanup and opaque `demo://` pointers.
+- **Behavioral TCK, hermetic codegen, and honest SDK tiers (no wire change):** the TCK now
+  ships 45 scenarios / 46 graded cases over 13 behaviors, adding exact-redelivery duplicate
+  suppression and retry attempt-fencing (monotonic attempt; stale, future and wrong-worker
+  rejection) on top of the merged CAP-PRODUCTION `DispatchIdentity` model. Coverage is
+  machine-checked: a gated behavior must state a reason and list no cases, and the five that
+  remain gated say why. Non-vacuity is tested rather than assumed — every suite is run in
+  both roles and both profiles against a mutation adapter that must fail, so a suite that
+  graded nothing can no longer look green. The cross-language fixture/signature matrix now
+  covers all **nine** producer→consumer edges (Go, Python, Node) from installed artifacts —
+  a wheel, a packed tarball and a module proxy — comparing normalized-semantic and
+  unsigned-preimage digests, verifying signatures bidirectionally, and requiring every
+  consumer to reject bit-flips and wrong keys; completeness is computed, so a new stable SDK
+  fails the matrix until its driver exists. Code generation runs in a pinned,
+  network-disabled container that reproduces all **74** tracked artifacts across six
+  languages, with a mutation probe proving the output derives from the `.proto` sources and
+  a manifest that now covers the 14 gRPC stubs it previously missed. SDK tiers are
+  machine-readable and gate-enforced (Go/Python/Node stable; C++ and Python Guard community;
+  Java/.NET/Rust/PHP/Ruby experimental). The TCK issues no certification: the bundled
+  reference adapter tests the harness, not an independent implementation, and its reports
+  are local/CI evidence rather than an interoperability claim.
 
 ## v2.14.0 — 2026-06-02
 

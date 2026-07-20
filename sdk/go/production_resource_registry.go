@@ -57,10 +57,25 @@ type ResourceResolveResult struct {
 }
 
 // ResolvedResource contains bytes that passed expiry, type, size, and digest
-// checks. Content is owned by the caller.
+// checks. Its representation is opaque so only Resolve can create a populated
+// value; accessors return caller-owned data.
 type ResolvedResource struct {
-	Content   []byte
-	MediaType string
+	content   []byte
+	mediaType string
+}
+
+// Content returns a defensive copy of the verified resource bytes.
+func (resource ResolvedResource) Content() []byte {
+	return append([]byte(nil), resource.content...)
+}
+
+// MediaType returns the exact verified media type.
+func (resource ResolvedResource) MediaType() string {
+	return resource.mediaType
+}
+
+func newResolvedResource(content []byte, mediaType string) ResolvedResource {
+	return ResolvedResource{content: append([]byte(nil), content...), mediaType: mediaType}
 }
 
 // ResourceExternalizeRequest contains bounded content and trusted local
@@ -82,7 +97,8 @@ type ResourceResolverBackend interface {
 }
 
 // ResourceExternalizerBackend stores bounded content and returns a complete
-// ResourceRef. The registry independently validates every returned field.
+// ResourceRef. It must honor ctx. The registry independently validates every
+// returned field.
 type ResourceExternalizerBackend interface {
 	Externalize(context.Context, ResourceExternalizeRequest) (*agentv1.ResourceRef, error)
 }

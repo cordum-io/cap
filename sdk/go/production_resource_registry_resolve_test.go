@@ -80,8 +80,13 @@ func TestResourceRegistryResolveUsesTrustedContextAndClonesBytes(t *testing.T) {
 		t.Fatalf("backend request = %#v", got)
 	}
 	backendContent[0] = 'X'
-	if string(resolved.Content) != string(content) || resolved.MediaType != "application/json" {
+	resolvedContent := resolved.Content()
+	if string(resolvedContent) != string(content) || resolved.MediaType() != "application/json" {
 		t.Fatalf("Resolve() = %#v", resolved)
+	}
+	resolvedContent[0] = 'X'
+	if string(resolved.Content()) != string(content) {
+		t.Fatalf("Content() returned an alias: %q", resolved.Content())
 	}
 }
 

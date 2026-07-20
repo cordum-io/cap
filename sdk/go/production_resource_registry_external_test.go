@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"io"
+	"reflect"
 	"sync"
 	"testing"
 	"time"
@@ -95,4 +96,24 @@ func trustedContext() capsdk.TrustedResourceContext {
 
 func fixedClock(now time.Time) func() time.Time {
 	return func() time.Time { return now }
+}
+
+func TestResolvedResourceAPIIsOpaque(t *testing.T) {
+	resourceType := reflect.TypeOf(capsdk.ResolvedResource{})
+	for index := 0; index < resourceType.NumField(); index++ {
+		field := resourceType.Field(index)
+		if field.IsExported() {
+			t.Fatalf("ResolvedResource field %q is externally forgeable", field.Name)
+		}
+	}
+}
+
+func TestResolvedResourceZeroValueExposesNoVerifiedData(t *testing.T) {
+	var resource capsdk.ResolvedResource
+	if content := resource.Content(); content != nil {
+		t.Fatalf("zero-value Content() = %q", content)
+	}
+	if mediaType := resource.MediaType(); mediaType != "" {
+		t.Fatalf("zero-value MediaType() = %q", mediaType)
+	}
 }

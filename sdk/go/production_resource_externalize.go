@@ -33,6 +33,9 @@ func (registry *ResourceRegistry) Externalize(
 	if err != nil {
 		return nil, err
 	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	if len(content) == 0 {
 		return nil, ErrResourceSizeMismatch
 	}

@@ -38,6 +38,7 @@ func (registry *ResourceRegistry) Resolve(
 	}
 	result, err := backend.resolver.Resolve(ctx, resolveRequest(snapshot, trusted))
 	if err != nil {
+		closeResourceBody(result.Body)
 		return ResolvedResource{}, collapseBackendError(ctx)
 	}
 	content, err := readAndCloseBounded(ctx, result.Body, snapshot.GetSizeBytes())
@@ -53,7 +54,7 @@ func (registry *ResourceRegistry) Resolve(
 	if err := verifyResolvedContent(snapshot, result.MediaType, content); err != nil {
 		return ResolvedResource{}, err
 	}
-	return ResolvedResource{Content: append([]byte(nil), content...), MediaType: result.MediaType}, nil
+	return newResolvedResource(content, result.MediaType), nil
 }
 
 func (registry *ResourceRegistry) resolveSnapshot(
@@ -133,6 +134,9 @@ func readBounded(ctx context.Context, reader io.Reader, limit uint64) ([]byte, e
 			chunk = chunk[:remaining]
 		}
 		count, err := reader.Read(chunk)
+		if contextErr := ctx.Err(); contextErr != nil {
+			return nil, contextErr
+		}
 		if count < 0 || count > len(chunk) {
 			return nil, ErrResourceBackendUnavailable
 		}
@@ -171,6 +175,12 @@ func collapseBackendError(ctx context.Context) error {
 		return err
 	}
 	return ErrResourceBackendUnavailable
+}
+
+func closeResourceBody(body io.ReadCloser) {
+	if !readCloserIsNil(body) {
+		_ = body.Close()
+	}
 }
 
 func readerIsNil(reader io.Reader) bool {

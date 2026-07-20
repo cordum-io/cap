@@ -146,6 +146,22 @@ func TestResourceRegistryExternalizeRejectsCancellationAndExpiry(t *testing.T) {
 	}
 }
 
+func TestResourceRegistryExternalizeRejectsCancellationAtEndOfRead(t *testing.T) {
+	now := time.Date(2026, 7, 20, 12, 0, 0, 0, time.UTC)
+	called := false
+	backend := &backendHarness{externalize: func(capsdk.ResourceExternalizeRequest) (*agentv1.ResourceRef, error) {
+		called = true
+		return nil, nil
+	}}
+	registry := newRegistry(t, fixedClock(now), backend, 64)
+	ctx, cancel := context.WithCancel(context.Background())
+	reader := &cancelOnReadCloser{Reader: bytes.NewReader([]byte("payload")), cancel: cancel}
+	_, err := registry.Externalize(ctx, "memory", reader, "application/json", "job-input", now.Add(time.Hour), trustedContext())
+	if !errors.Is(err, context.Canceled) || called {
+		t.Fatalf("Externalize() error=%v backend-called=%v", err, called)
+	}
+}
+
 func TestResourceRegistryExternalizeRejectsExpiryDuringBackendCall(t *testing.T) {
 	base := time.Date(2026, 7, 20, 12, 0, 0, 0, time.UTC)
 	times := []time.Time{base, base.Add(2 * time.Second)}

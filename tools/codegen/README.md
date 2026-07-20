@@ -8,10 +8,33 @@ the checked-in generated tree can never silently drift from its `.proto` sources
 
 | file | role |
 |------|------|
-| `Dockerfile` | pinned generation image: protoc + every plugin locked by version/checksum; base locked by digest in CI |
-| `codegen.sh` / `codegen.ps1` | run generation with `--network=none`, read-only source mount, and fixed `SOURCE_DATE_EPOCH`/`TZ`/`LC_ALL` |
+| `Dockerfile` | pinned generation image: buf, protoc, and every plugin locked by version; base locked by digest in CI |
+| `generate.sh` | the container `ENTRYPOINT`; runs the canonical generator in `--offline` mode |
+| `buf.gen.offline.yaml` | local-plugin mirror of `//buf.gen.yaml`, version-locked to it |
+| `codegen.sh` / `codegen.ps1` | run generation with `--network=none` and fixed `SOURCE_DATE_EPOCH`/`TZ`/`LC_ALL` |
+| `mutation_check.sh` / `mutation_probe.sh` | non-vacuity: change a proto, require every language to change |
 | `manifest.json` | the sources, generated globs, per-generator ownership, and the sha256 of every expected output |
 | `../../cmd/cap-codegen` | `check` holds the tree to the manifest; `snapshot` rebuilds the manifest after a legitimate regeneration |
+
+## One generator, two plugin-resolution modes
+
+The repository previously carried two code-generation designs described as
+mutually incompatible:
+
+1. `//buf.gen.yaml` driven by `tools/proto_codegen.py` — buf with **remote**
+   `buf.build` plugins plus a local `ts-protoc-gen`, and
+   `tools/python_proto_codegen.py` for the Python surfaces. Canonical, but
+   requires network.
+2. `tools/codegen/` — a `docker run --network=none` container with pinned
+   protoc/plugins. Offline, but its `ENTRYPOINT` did not exist and its pins had
+   drifted from the versions that actually produced the tree.
+
+They **are** reconcilable. buf emits byte-identical output whether a plugin is
+resolved remotely or locally, provided the plugin version matches, so the
+hermetic container runs the *same* generator rather than a second one.
+`tools/codegen_toolchain.py` selects between the two modes;
+`buf.gen.offline.yaml` is the local-plugin mirror of `//buf.gen.yaml`, and
+`TestOfflineTemplateMirrorsRemoteTemplate` fails if their versions drift apart.
 
 ## Everyday check (no Docker needed)
 
@@ -23,11 +46,16 @@ Fails on any changed, missing, stale, empty, or unmanifested generated file. The
 manifest pins **LF-normalized** content, so the check is identical on a Windows
 (autocrlf CRLF) and a Linux (LF) checkout.
 
-## Regenerating (Docker)
+This checks the *tree*, not the *pipeline*: it re-hashes files and stays green
+even if the generator is broken or absent. The container run below is what
+proves the artifacts are reproducible.
+
+## Regenerating and verifying (Docker)
 
 ```
-tools/codegen/codegen.sh          # regenerate, then verify
-tools/codegen/codegen.sh --check  # build image + verify only
+tools/codegen/codegen.sh          # regenerate the tree, then verify the manifest
+tools/codegen/codegen.sh --check  # prove a fresh hermetic run reproduces the tree
+tools/codegen/mutation_check.sh   # prove generation derives from the protos
 ```
 
 After a deliberate regeneration, refresh the manifest and review the diff:
@@ -36,48 +64,29 @@ After a deliberate regeneration, refresh the manifest and review the diff:
 go run ./cmd/cap-codegen snapshot
 ```
 
-## Status
+CI runs `codegen.sh --check` and `mutation_check.sh` in the `hermetic-codegen`
+job of `.github/workflows/sdk-gates.yml`.
 
-The drift **checker** (`manifest.json` + `cap-codegen check`) is live and wired
-into CI. The generation **container** is authored and pinned here; building it,
-locking the base-image digest, and running it to reconcile the currently drifted
-tree (C++ is missing `handshake`+`policy`; Node/root-Python/Ruby miss `policy`)
-is the Phase 4G regeneration step — deliberately separate so a large generated
-diff is never mixed with hand-written logic, and sequenced after the in-flight
-wire-contract work so it does not churn against it.
+## Status: all 74 tracked outputs reproduce offline
 
-## Reconciling the two code-generation systems (in progress)
-
-The repository carries two code-generation designs that were previously
-described as mutually incompatible:
-
-1. `//buf.gen.yaml` driven by `tools/proto_codegen.py` — buf with **remote**
-   `buf.build` plugins plus a local `ts-protoc-gen`, and `tools/python_proto_codegen.py`
-   for the Python surfaces. Canonical, but requires network.
-2. `tools/codegen/` — a `docker run --network=none` container with pinned
-   protoc/plugins. Offline, but its `ENTRYPOINT` (`generate.sh`) does not exist
-   and its pins had drifted from the versions that actually produced the tree.
-
-They **are** reconcilable. buf emits byte-identical output whether a plugin is
-resolved remotely or locally, provided the plugin version matches, so the
-offline container can run the *same* generator rather than a second one.
-`buf.gen.offline.yaml` is the local-plugin mirror of `//buf.gen.yaml`.
-
-### Measured
-
-Run offline (`--network=none`, read-only source mount) against the tracked tree,
-comparing CRLF-normalised bytes:
+Measured with `--network=none` and a read-only source mount, comparing
+CRLF-normalised bytes against the tracked tree:
 
 | plugin | version | outputs | result |
 |--------|---------|---------|--------|
 | `protoc-gen-go` | v1.36.11 | `cordum/agent/v1/*.pb.go` | 7/7 identical |
 | `protoc-gen-go-grpc` | v1.6.0 | `cordum/agent/v1/*_grpc.pb.go` | 2/2 identical |
 | `protoc_builtin: cpp` | protoc 21.12 | `cpp/cordum/agent/v1/*.pb.{cc,h}` | 14/14 identical |
+| `protoc-gen-js` | v3.21.4 | `node/cordum/agent/v1/*_pb.js` | 7/7 identical |
+| `ts-protoc-gen` | 0.15.0 | `node/cordum/agent/v1/*_pb.d.ts` | 7/7 identical |
+| `protobufjs-cli` | 1.3.3 | `node/cap_pb.{js,d.ts}` | 2/2 identical |
+| `grpcio-tools` | 1.76.0 | `python/…` and `sdk/python/…` `*_pb2.py`, `*_pb2_grpc.py` | 28/28 identical |
 | `protoc_builtin: ruby` | protoc 33.2 | `sdk/ruby/proto/cordum/agent/v1/*_pb.rb` | 7/7 identical |
 
-**30 of the 60 manifest outputs are proven reproducible offline.**
+The generator runs twice per invocation and requires a zero-byte second diff, so
+non-determinism fails just as loudly as drift.
 
-Two findings worth keeping:
+### Findings worth keeping
 
 * Invoking the C++/Ruby built-ins with `protoc` **directly** does not reproduce
   the tree. buf populates `json_name` in the `FileDescriptorProto` handed to
@@ -87,23 +96,23 @@ Two findings worth keeping:
 * `protoc-gen-go` invoked from protoc stamps `protoc v5.28.3` into the header,
   while the tracked files say `protoc (unknown)` because buf sends no
   `compiler_version`. Going through buf removes that difference too.
+* The npm `google-protobuf` package ships only the JS **runtime**. The
+  `protoc-gen-js` binary comes from the separate `protobuf-javascript` release.
+* Installing `grpcio-tools==1.76.0` alone is not enough: its `grpcio>=1.76.0`
+  dependency resolves to a newer grpcio and the pin check fails closed. The
+  image installs `sdk/python/requirements-codegen.txt` directly.
+* The drift comparison must not shell out to `git`. Inside the container
+  `/src/.git` is a worktree pointer to a host path that does not exist, and
+  `git diff --no-index` aborts before comparing anything.
+* Shell scripts are `eol=lf` in `.gitattributes`. With `core.autocrlf=true` a
+  Windows checkout gives the `ENTRYPOINT` a CRLF shebang and the container looks
+  for `/usr/bin/env bash\r`.
 
-`Dockerfile.offline-probe` is the exact image used for these measurements.
+## What the manifest covers
 
-### Not yet done
-
-The remaining 30 outputs are **unverified** — no claim is made that they work:
-
-* `protoc-gen-js` v3.21.4 → `node/cordum/agent/v1/*_pb.js` + `ts-protoc-gen` `.d.ts` (14)
-* `protobufjs-cli` pbjs/pbts → `node/cap_pb.js`, `node/cap_pb.d.ts` (2)
-* `grpcio-tools` 1.76.0 → `python/cordum/agent/v1/*_pb2.py` and
-  `sdk/python/cap/pb/cordum/agent/v1/*_pb2.py` (14)
-
-To finish, the pinned image still needs Node plus `npm ci` over
-`tools/codegen/package-lock.json`, the `protobuf-javascript` v3.21.4 release
-binary, and `grpcio-tools==1.76.0`; then `tools/codegen/generate.sh` should
-invoke `tools/proto_codegen.py` in an offline mode that selects
-`buf.gen.offline.yaml`, so there is one generator with two plugin-resolution
-modes rather than two generators. `proto_codegen.py` already performs the
-double-generation idempotency check and the tracked-tree comparison that the
-hermetic pipeline needs, so it should be reused, not duplicated.
+All 74 checked-in generated files. `path.Match("*_pb2.py")` does **not** match
+`*_pb2_grpc.py`, so the 14 gRPC stub modules were originally generated but
+unmanifested — invisible to `cap-codegen check`.
+`TestManifestDeclaresEveryGeneratedFileInTree` walks the generated surfaces and
+fails on any file the manifest omits, so manifest coverage stays tied to the
+tree rather than to a hand-maintained glob list.

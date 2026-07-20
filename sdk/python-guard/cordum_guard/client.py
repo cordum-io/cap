@@ -57,7 +57,14 @@ class CordumClient:
         cache_ttl: float = 0,
         cache_max_size: int = 1000,
         on_error: OnErrorMode = "closed",
+        production_profile: bool = False,
     ) -> None:
+        if production_profile and on_error != "closed":
+            raise ValueError(
+                "CAP-PRODUCTION requires the guard to fail closed: on_error "
+                f'must be "closed" (got {on_error!r})'
+            )
+        self._production_profile = production_profile
         self.base_url = _base_url(gateway_url)
         self._http = httpx.Client(
             base_url=self.base_url,
@@ -173,9 +180,13 @@ class CordumClient:
             resp = self._request("POST", "/api/v1/policy/evaluate", json=body)
         except (CordumConnectionError, CordumTimeoutError) as exc:
             return self._handle_error(exc)
-        decision = _parse_safety_decision(resp)
+        production = getattr(self, "_production_profile", False)
+        decision = _parse_safety_decision(resp, production=production)
 
-        if self._cache is not None:
+        # CAP-PRODUCTION: never cache a positive ALLOW without a signed cache
+        # lease -- a client cannot know the active policy snapshot on a hit.
+        cacheable = not (production and decision.decision == Decision.ALLOW)
+        if self._cache is not None and cacheable:
             self._cache.put(cache_key, decision)
 
         return decision
@@ -277,14 +288,41 @@ class CordumClient:
         return resp.json()
 
 
-def _parse_safety_decision(data: dict[str, Any]) -> SafetyDecision:
-    """Parse a policy evaluation response into a SafetyDecision."""
-    decision_str = data.get("decision", "allow")
+def _parse_safety_decision(
+    data: dict[str, Any], production: bool = False
+) -> SafetyDecision:
+    """Parse a policy evaluation response into a SafetyDecision.
+
+    Under the CAP-PRODUCTION profile a missing, null, non-string, or unknown
+    verdict FAILS CLOSED (DENY): a malformed gateway response must never be
+    read as permission. Outside production the historical permissive default
+    is preserved for backwards compatibility.
+    """
+    raw = data.get("decision")
+    if not isinstance(raw, str):
+        # Missing verdict, or a non-string such as {"decision": null}.
+        if production:
+            return SafetyDecision(
+                decision=Decision.DENY,
+                reason=(
+                    "CAP-PRODUCTION: missing or non-string gateway decision; "
+                    "failing closed"
+                ),
+            )
+        raw = "allow"
     # The gateway may return upper-case or snake_case variants.
-    decision_str = decision_str.lower().strip()
+    decision_str = raw.lower().strip()
     try:
         decision = Decision(decision_str)
     except ValueError:
+        if production:
+            return SafetyDecision(
+                decision=Decision.DENY,
+                reason=(
+                    f"CAP-PRODUCTION: unknown gateway decision {decision_str!r}; "
+                    "failing closed"
+                ),
+            )
         decision = Decision.ALLOW
 
     return SafetyDecision(

@@ -20,7 +20,7 @@ Concise, factual notes per topic. No confidential security or Code of Conduct de
 ## Decisions
 
 Meetings do not make binding decisions. For each item that reached consensus, link the
-corresponding entry in [../../DECISIONS.md](../../DECISIONS.md) (create it separately
+corresponding entry in [../DECISIONS.md](../DECISIONS.md) (create it separately
 under the quorum rules). If no decision record exists yet, mark the item **"pending
 decision record"** rather than treating the meeting note as the decision.
 

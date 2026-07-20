@@ -418,7 +418,7 @@ class Agent:
         self._heartbeat_cancel_event: Optional[asyncio.Event] = None
         self._heartbeat_task: Optional[asyncio.Task[Any]] = None
         self._subscriptions: list[Any] = []
-        self._handler_slots = asyncio.BoundedSemaphore(self._max_parallel)
+        self._handler_slots: Optional[asyncio.BoundedSemaphore] = None
         self._dispatch_waiters: set[asyncio.Task[Any]] = set()
         self._dispatch_closed = False
         self._handler_tasks: set[asyncio.Task[Any]] = set()
@@ -429,7 +429,17 @@ class Agent:
         self._capability: Optional[handshake_pb2.Handshake] = None
         self._trust_admitting = False
         self._trust_startup_interrupted = False
-        self._trust_reconnect_lock = asyncio.Lock()
+        self._trust_reconnect_lock: Optional[asyncio.Lock] = None
+
+    def _reconnect_lock(self) -> asyncio.Lock:
+        """Lazily create the reconnect lock inside the running loop.
+
+        Python 3.9 binds asyncio primitives to the event loop at
+        construction, so building this in __init__ raises RuntimeError.
+        """
+        if self._trust_reconnect_lock is None:
+            self._trust_reconnect_lock = asyncio.Lock()
+        return self._trust_reconnect_lock
 
     def use(self, *middlewares) -> None:
         """Append middleware to the agent. Middleware executes in registration order before the handler."""
@@ -632,7 +642,7 @@ class Agent:
         )
 
     async def _on_nats_reconnected(self) -> None:
-        async with self._trust_reconnect_lock:
+        async with self._reconnect_lock():
             await self._reauthenticate_after_reconnect()
 
     async def _on_nats_disconnected(self) -> None:
@@ -683,6 +693,10 @@ class Agent:
             self._dispatch_waiters.add(waiter)
         acquired = False
         try:
+            if self._handler_slots is None:
+                # Python 3.9 binds asyncio primitives to the loop at
+                # construction; build the semaphore in the running loop.
+                self._handler_slots = asyncio.BoundedSemaphore(self._max_parallel)
             await self._handler_slots.acquire()
             acquired = True
             task = asyncio.create_task(factory())
@@ -916,13 +930,13 @@ class Agent:
             raise primary
 
     async def _close_worker_trust(self) -> None:
-        async with self._trust_reconnect_lock:
+        async with self._reconnect_lock():
             lifecycle = self._worker_trust
             if lifecycle is not None:
                 await lifecycle.close()
 
     async def _stop_worker_trust_renewal(self) -> None:
-        async with self._trust_reconnect_lock:
+        async with self._reconnect_lock():
             lifecycle = self._worker_trust
             if lifecycle is not None:
                 await lifecycle.stop_renewal()

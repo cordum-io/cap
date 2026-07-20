@@ -9,8 +9,8 @@
     "channel": "stable"
   },
   "development": {
-    "commit": "d8ba96231959a1cea86a13ced4d289e020c7e2db",
-    "describe": "v2.14.0-14-gd8ba962",
+    "commit": "7709def",
+    "describe": "v2.14.0-18-g7709def",
     "released": false
   },
   "wire": {
@@ -38,7 +38,8 @@
     { "id": "15", "file": "spec/15-conformance-levels.md", "title": "Conformance Levels" },
     { "id": "16", "file": "spec/16-protocol-errors.md", "title": "Protocol Errors" },
     { "id": "17", "file": "spec/17-versioning-policy.md", "title": "Versioning Policy" },
-    { "id": "18", "file": "spec/18-policy-shapes.md", "title": "Policy Shapes" }
+    { "id": "18", "file": "spec/18-policy-shapes.md", "title": "Policy Shapes" },
+    { "id": "19", "file": "spec/19-cap-production-profile.md", "title": "CAP-PRODUCTION Profile" }
   ],
   "components": [
     {

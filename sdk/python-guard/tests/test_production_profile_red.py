@@ -47,6 +47,9 @@ def test_production_does_not_cache_positive_allow_without_signed_lease() -> None
         cache_ttl=60,
         production_profile=True,
     )
+    # _http must be mocked: a real httpx.Client exposes a bound method whose
+    # return_value cannot be set (matches the sibling test's approach).
+    client._http = MagicMock()
     client._http.request.return_value = _response({"decision": "allow"})
 
     client.evaluate_policy(topic="job.production", capability="read")

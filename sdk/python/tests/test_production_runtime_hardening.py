@@ -1,3 +1,4 @@
+from typing import Optional
 """Fail-closed runtime configuration and replay logging regressions."""
 
 import unittest
@@ -22,7 +23,7 @@ from tests.production_admission_support import (
 
 
 class _FailingReplayStore:
-    def __init__(self, result=None, error: Exception | None = None) -> None:
+    def __init__(self, result=None, error: Optional[Exception] = None) -> None:
         self._result = result
         self._error = error
 

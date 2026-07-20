@@ -5,7 +5,7 @@ Allows testing handlers without running NATS or Redis.
 
 import asyncio
 import json
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import Optional, Any, Awaitable, Callable, Dict, List, Optional, Tuple, Type, Union
 
 from cap.constants import DEFAULT_PROTOCOL_VERSION
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
@@ -17,7 +17,14 @@ class MockNATS:
 
     def __init__(self) -> None:
         self.subscriptions: Dict[str, Any] = {}
-        self.published: "asyncio.Queue[Tuple[str, bytes]]" = asyncio.Queue()
+        self._published: 'Optional["asyncio.Queue[Tuple[str, bytes]]"]' = None
+
+    @property
+    def published(self) -> "asyncio.Queue[Tuple[str, bytes]]":
+        """Lazily create the queue inside the running loop (py3.9)."""
+        if self._published is None:
+            self._published = asyncio.Queue()
+        return self._published
 
     async def publish(self, subject: str, data: bytes) -> None:
         await self.published.put((subject, data))

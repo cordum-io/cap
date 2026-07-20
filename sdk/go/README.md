@@ -244,6 +244,53 @@ operational request unavailability; malformed, unpinned, tampered, mismatched,
 or rejected trust responses stop admission. Privileged results require a live
 session in both trust modes, while tokenless warn telemetry remains observable.
 
+CAP-PRODUCTION is a separate explicit opt-in and requires enforce-mode worker
+trust, mutually authenticated NATS TLS, a P-256 outbound signing key, a local
+scheduler-key trust store, a canonical resource-resolver allowlist, and a
+durable replay store:
+
+```go
+mgr, err := worker.NewManagedWorker(worker.ManagedConfig{
+    // WorkerID, Subjects, NatsURL, and complete WorkerTrust are also required.
+    WorkerTrustMode: capsdk.WorkerTrustModeEnforce,
+    WorkerTrust:     workerTrust,
+    PrivateKey:      workerSigningKey,
+    Production: worker.ManagedProductionConfig{
+        Enabled: true,
+        KeyID:   "worker-key-2026-07",
+        Replay:  durableReplayStore,
+        Stream:  "CAP_PRODUCTION_JOBS",
+        ResourceResolvers: []string{"s3", "vault"},
+        Trust: capsdk.ProductionTrustStore{
+            PublicKeys: pinnedSchedulerKeys,
+        },
+    },
+})
+```
+
+Inbound signatures bind to the actual delivered NATS subject; callers must
+leave `Production.Trust.Audience` empty. The managed result path automatically
+echoes the admitted `IdentityBinding` and `DispatchIdentity`. During a handler,
+`worker.PublishManagedProgress(ctx, progress)` uses the same immutable admitted
+authority. `sys.job.cancel` remains a scheduler-to-worker command and has no
+managed worker publisher. Conflicting handler-supplied identity, dispatch, or
+job IDs fail closed rather than being rewritten.
+
+Standalone raw boundaries should use `capsdk.VerifyTrustedProductionPacket`.
+It returns an opaque `VerifiedProductionPacket` carrying the verified packet,
+actual subject, authenticated tenant/sender, signature-covered session token,
+message ID, and exact signed-body digest. Its state is private, its accessors
+return copies, and the externally constructible zero value carries no trust.
+
+`ManagedReplayStore` is a lease-and-outcome contract, not a process-local
+duplicate cache. It must durably claim, renew, complete, and abort work. A
+completed logical result is replayed with a fresh session token and production
+signature until the configured JetStream input can be acknowledged. Production
+subscriptions use explicit acknowledgements and renew both the broker delivery
+and store lease while a handler runs. Handlers must still make their own
+external side effects idempotent because no SDK store can atomically commit an
+arbitrary external side effect with the replay outcome.
+
 ### TLS Helpers
 CAP Go SDK provides helpers to build `*tls.Config` from standard environment variables. These are used by `ManagedWorker` and the `runtime.Agent` by default.
 

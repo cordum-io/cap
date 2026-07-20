@@ -62,6 +62,14 @@ from .production_resource import (
     validate_resource_ref,
     validate_resource_ref_compatibility,
 )
+from .production_events import (
+    ProductionEventAuthority,
+    ProductionEventConflictError,
+    admit_production_event,
+    bind_production_event,
+    freeze_production_authority,
+    seal_production_event,
+)
 from .validate import (
     ValidationError,
     validate_alert,
@@ -107,6 +115,12 @@ from .subjects import (
 )
 
 __all__ = [
+    "ProductionEventAuthority",
+    "ProductionEventConflictError",
+    "admit_production_event",
+    "bind_production_event",
+    "freeze_production_authority",
+    "seal_production_event",
     "submit_job",
     "run_worker",
     "connect_nats",

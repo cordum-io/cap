@@ -1,8 +1,227 @@
 {
-  "preimage_digest_hex": "fb95efe952150b9681905c3044e3f18ba2836269f42403fac0f9996b8b8d4006",
+  "preimage_digest_hex": "72b694f31022384599804b56b8e3b1f29878b8a5c08b2344a471e4a03b80a2a8",
   "producer": "go",
-  "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEaxfR8uEsQkf4vOblY6RA8ncDfYEt\n6zOg9KE5RdiYwpZP40Li/hp/m47n60p8D54WK84zV2sxXs7LtkBoN79R9Q==\n-----END PUBLIC KEY-----\n",
-  "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvcoIBFQoKam9iLXZlY3RvchIHZml4dHVyZXJIMEYCIQDacqAAi7AGv3yBkRglVeggBvEm7r7gwmYW2NyW9OT7zQIhALLUSn7zwNf+xY8A/T/8FAGERGqKwOxGysfTHJOM8Vde",
-  "signature_base64": "MEYCIQDacqAAi7AGv3yBkRglVeggBvEm7r7gwmYW2NyW9OT7zQIhALLUSn7zwNf+xY8A/T/8FAGERGqKwOxGysfTHJOM8Vde",
-  "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvcoIBFQoKam9iLXZlY3RvchIHZml4dHVyZQ=="
+  "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvWKYNd79XLD1Rwt8jjQUeyuqby/b\nYc5XjycckhufSPeKYRzMSnYujLW/QLneio12+A1Fprm3G3V+YDTCq+WbIw==\n-----END PUBLIC KEY-----\n",
+  "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIVCgpqb2ItdmVjdG9yEgdmaXh0dXJlckcwRQIgLDOuT9TSXeAsi0Y1Ys9iYC9g9WKpwpwa66rzOoFv/QgCIQD+zbuE4oZq30E913+rJAZ0vXSXpaHcp10/4iL9Kn3DAw==",
+  "signature_base64": "MEUCICwzrk/U0l3gLItGNWLPYmAvYPViqcKcGuuq8zqBb/0IAiEA/s27hOKGat9BPdd/qyQGdL10l6Wh3KddP+Ii/Sp9wwM=",
+  "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIVCgpqb2ItdmVjdG9yEgdmaXh0dXJl",
+  "schema_version": 2,
+  "generator": "tools/conformance/prodsigning",
+  "profile_version": "cap-production-v1",
+  "algorithm": "ECDSA-P256-SHA256",
+  "domain_base64": "Q0FQLVBST0RVQ1RJT04tU0lHTkFUVVJFLVYxAA==",
+  "verify_at_rfc3339": "2098-12-31T23:58:00Z",
+  "trust": {
+    "audience": "sys.job.vector",
+    "tenant": "tenant-vector",
+    "sender": "worker-vector",
+    "public_keys": {
+      "vector-key": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEvWKYNd79XLD1Rwt8jjQUeyuqby/b\nYc5XjycckhufSPeKYRzMSnYujLW/QLneio12+A1Fprm3G3V+YDTCq+WbIw==\n-----END PUBLIC KEY-----\n",
+      "vector-key-next": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEtaEEtsqt+hWm+56zk5I3KE1ATp2U\nhrcGQRRXoW8S6EoYu+vZflJYZwdUQr1TDqTSnuethzqCpi6AS+PAjjTJ1g==\n-----END PUBLIC KEY-----\n"
+    }
+  },
+  "vectors": [
+    {
+      "name": "accept/baseline",
+      "description": "Canonical CAP-PRODUCTION packet: message id, audience, expiry and key id all bound into the signed preimage.",
+      "expect": "accept",
+      "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIVCgpqb2ItdmVjdG9yEgdmaXh0dXJlckcwRQIgLDOuT9TSXeAsi0Y1Ys9iYC9g9WKpwpwa66rzOoFv/QgCIQD+zbuE4oZq30E913+rJAZ0vXSXpaHcp10/4iL9Kn3DAw==",
+      "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIVCgpqb2ItdmVjdG9yEgdmaXh0dXJl",
+      "signature_base64": "MEUCICwzrk/U0l3gLItGNWLPYmAvYPViqcKcGuuq8zqBb/0IAiEA/s27hOKGat9BPdd/qyQGdL10l6Wh3KddP+Ii/Sp9wwM=",
+      "preimage_digest_hex": "72b694f31022384599804b56b8e3b1f29878b8a5c08b2344a471e4a03b80a2a8",
+      "body_digest_hex": "bed8b40f0357c974884d1068aca889480870895d3074f84399a9cc3470720b84",
+      "message_id_hex": "30313233343536373839616263646566",
+      "audience": "sys.job.vector",
+      "key_id": "vector-key",
+      "expires_at_rfc3339": "2099-01-01T00:00:00Z"
+    },
+    {
+      "name": "accept/rotation-overlap-next-key",
+      "description": "Signed by the incoming key during a rotation overlap window; accepted because both key ids are installed.",
+      "expect": "accept",
+      "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASphChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEGZlZGNiYTk4NzY1NDMyMTAiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yD3ZlY3Rvci1rZXktbmV4dDIhCg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9yUh0KEmpvYi12ZWN0b3Itcm90YXRlZBIHZml4dHVyZXJHMEUCIAbVGRqDIdCleM7XxQxnRbN4LfdPLiBpEd876qbdideuAiEAnJdfBxTvk0YhBjTwO3znyjDveIsLRoDP80yqHVdHbe4=",
+      "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASphChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEGZlZGNiYTk4NzY1NDMyMTAiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yD3ZlY3Rvci1rZXktbmV4dDIhCg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9yUh0KEmpvYi12ZWN0b3Itcm90YXRlZBIHZml4dHVyZQ==",
+      "signature_base64": "MEUCIAbVGRqDIdCleM7XxQxnRbN4LfdPLiBpEd876qbdideuAiEAnJdfBxTvk0YhBjTwO3znyjDveIsLRoDP80yqHVdHbe4=",
+      "preimage_digest_hex": "e8e208a8cfe44aac8d420105292641ddd991f878dd23564e350c51e91eff5001",
+      "body_digest_hex": "d3c74a36f639f2c593d72d1e0366af0eb3d256091c3a00e5b9363dd9d4d65ef4",
+      "message_id_hex": "66656463626139383736353433323130",
+      "audience": "sys.job.vector",
+      "key_id": "vector-key-next",
+      "expires_at_rfc3339": "2099-01-01T00:00:00Z"
+    },
+    {
+      "name": "accept/replay-conflict-body",
+      "description": "Valid signature reusing accept/baseline's message id over a DIFFERENT body. Verifies standalone; drives the replay conflict sequence.",
+      "expect": "accept",
+      "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIeChNqb2ItdmVjdG9yLWNvbmZsaWN0EgdmaXh0dXJlckgwRgIhAKmnbWqAFZmNVpQ/6OIPXxAYVmK9Ew0qyeMgcbbdLe37AiEAg+U11uAp0eon+H0y4Q0nFbtoN9AbtgvP7Vff3IS9ZQI=",
+      "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIeChNqb2ItdmVjdG9yLWNvbmZsaWN0EgdmaXh0dXJl",
+      "signature_base64": "MEYCIQCpp21qgBWZjVaUP+jiD18QGFZivRMNKsnjIHG23S3t+wIhAIPlNdbgKdHqJ/h9MuENJxW7aDfQG7YLz+1X39yEvWUC",
+      "preimage_digest_hex": "8c292196e3d45944044df73f59697f0854c2316c6a2c22de10470e5d08f5a736",
+      "body_digest_hex": "06632ac7998384adc6c35b26e548c8e5989ff2146f7099b1b15c9af2c66a5be4",
+      "message_id_hex": "30313233343536373839616263646566",
+      "audience": "sys.job.vector",
+      "key_id": "vector-key",
+      "expires_at_rfc3339": "2099-01-01T00:00:00Z"
+    },
+    {
+      "name": "reject/wrong-audience",
+      "description": "Correctly signed, but the audience bound at signing is not the subject it was received on.",
+      "expect": "reject",
+      "reject_reason": "audience_mismatch",
+      "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpbChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEGZlZGNiYTk4NzY1NDMyMTAiDXN5cy5qb2Iub3RoZXIqBgiAx5SVDzIKdmVjdG9yLWtleTIhCg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9yUhUKCmpvYi12ZWN0b3ISB2ZpeHR1cmVySDBGAiEAy5CMABnOFQQWSZv4S+ZGUFhjhjizjiraZnaTwmq3VH8CIQCyXvPOhOIChQ8RdoMN5Bhg4aEXqnpDh06CVK/Y4pGw7A==",
+      "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpbChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEGZlZGNiYTk4NzY1NDMyMTAiDXN5cy5qb2Iub3RoZXIqBgiAx5SVDzIKdmVjdG9yLWtleTIhCg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9yUhUKCmpvYi12ZWN0b3ISB2ZpeHR1cmU=",
+      "signature_base64": "MEYCIQDLkIwAGc4VBBZJm/hL5kZQWGOGOLOOKtpmdpPCardUfwIhALJe886E4gKFDxF2gw3kGGDhoReqekOHToJUr9jikbDs",
+      "preimage_digest_hex": "b5eb176da25017704467a82324677a0ae5a11e20cbd2cfda59bc1b5a870d4697",
+      "body_digest_hex": "f54224ac5e849b48a7ef6cc88614a86f312bdd069526991306ec4eb66c617db1",
+      "message_id_hex": "66656463626139383736353433323130",
+      "audience": "sys.job.other",
+      "key_id": "vector-key",
+      "expires_at_rfc3339": "2099-01-01T00:00:00Z"
+    },
+    {
+      "name": "reject/expired",
+      "description": "Correctly signed but the bound expiry precedes verify_at, so the packet is outside its lifetime.",
+      "expect": "reject",
+      "reject_reason": "signature_expired",
+      "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEGZlZGNiYTk4NzY1NDMyMTAiDnN5cy5qb2IudmVjdG9yKgYIzMWUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIVCgpqb2ItdmVjdG9yEgdmaXh0dXJlckcwRQIhAKmj7bR3DN4a5MTN2H0u/OFegSboxFOHClyI2X0WI1AXAiBSt7NOSwqCvASeCqvTe9BK+EDmVF5YPAvoIu9YQ/uQ9Q==",
+      "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEGZlZGNiYTk4NzY1NDMyMTAiDnN5cy5qb2IudmVjdG9yKgYIzMWUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIVCgpqb2ItdmVjdG9yEgdmaXh0dXJl",
+      "signature_base64": "MEUCIQCpo+20dwzeGuTEzdh9LvzhXoEm6MRThwpciNl9FiNQFwIgUrezTksKgrwEngqr03vQSvhA5lReWDwL6CLvWEP7kPU=",
+      "preimage_digest_hex": "dfd713149d19676542ff9cfd3a2e993e7ab59cf5865a0d193e7218f7380339fb",
+      "body_digest_hex": "5d557575e576def5f854e82e9ff7317f84bac087b9257534ecfef0a882a06417",
+      "message_id_hex": "66656463626139383736353433323130",
+      "audience": "sys.job.vector",
+      "key_id": "vector-key",
+      "expires_at_rfc3339": "2098-12-31T23:57:00Z"
+    },
+    {
+      "name": "reject/unknown-key-id",
+      "description": "Correctly signed by the primary key but names a key id absent from the trust store.",
+      "expect": "reject",
+      "reject_reason": "unknown_key_id",
+      "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpkChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEGZlZGNiYTk4NzY1NDMyMTAiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yEnZlY3Rvci1rZXktbWlzc2luZzIhCg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9yUhUKCmpvYi12ZWN0b3ISB2ZpeHR1cmVyRzBFAiAGXe0BujRtxvUhORKDyfX7eKKen+TVtUIVppimhBv7GgIhAPrjutJWGYfO3M6OznjYECE2zhh2L3RQv4LVHFLTvSAL",
+      "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpkChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEGZlZGNiYTk4NzY1NDMyMTAiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yEnZlY3Rvci1rZXktbWlzc2luZzIhCg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9yUhUKCmpvYi12ZWN0b3ISB2ZpeHR1cmU=",
+      "signature_base64": "MEUCIAZd7QG6NG3G9SE5EoPJ9ft4op6f5NW1QhWmmKaEG/saAiEA+uO60lYZh87czo7OeNgQITbOGHYvdFC/gtUcUtO9IAs=",
+      "preimage_digest_hex": "b748f1a7d171971a5111e6880b32062e9b3db3216c571e4231fb32492a9cd7f7",
+      "body_digest_hex": "bbb164789535181e40d86d78fdbe2285c81f59b79b8b78e0f0ba0479cb1fd810",
+      "message_id_hex": "66656463626139383736353433323130",
+      "audience": "sys.job.vector",
+      "key_id": "vector-key-missing",
+      "expires_at_rfc3339": "2099-01-01T00:00:00Z"
+    },
+    {
+      "name": "reject/tenant-mismatch",
+      "description": "Correctly signed, but the envelope tenant is not the authenticated tenant. Go collapses this into unknown-key-id so the error cannot be used as an oracle; Python and Node report a tenant mismatch.",
+      "expect": "reject",
+      "reject_reason": "identity_mismatch",
+      "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEGZlZGNiYTk4NzY1NDMyMTAiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIAoMdGVuYW50LW90aGVyEhBwcmluY2lwYWwtdmVjdG9yUhUKCmpvYi12ZWN0b3ISB2ZpeHR1cmVySDBGAiEAvLSXIEgPojvIhVUshbjEKkFVQe2jdE5orQvQKesMck4CIQD3d8awaR6oxreym6I4kt8r7+r/N1eE74JW/+paaLYvYQ==",
+      "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEGZlZGNiYTk4NzY1NDMyMTAiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIAoMdGVuYW50LW90aGVyEhBwcmluY2lwYWwtdmVjdG9yUhUKCmpvYi12ZWN0b3ISB2ZpeHR1cmU=",
+      "signature_base64": "MEYCIQC8tJcgSA+iO8iFVSyFuMQqQVVB7aN0TmitC9Ap6wxyTgIhAPd3xrBpHqjGt7KbojiS3yvv6v83V4Tvglb/6lpoti9h",
+      "preimage_digest_hex": "2edd181885ff257a6d693e269ff9ffb5751f15a1bdbbd9a8b9d26d24754ccf00",
+      "body_digest_hex": "79403b2995c3cae692f06965e172216cb7ae1255933700427fbbad7920168142",
+      "message_id_hex": "66656463626139383736353433323130",
+      "audience": "sys.job.vector",
+      "key_id": "vector-key",
+      "expires_at_rfc3339": "2099-01-01T00:00:00Z"
+    },
+    {
+      "name": "reject/tampered-body",
+      "description": "One byte of the job id flipped after signing. The wire still parses, so this must fail at signature verification rather than at decode.",
+      "expect": "reject",
+      "reject_reason": "invalid_signature",
+      "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIVCgpKb2ItdmVjdG9yEgdmaXh0dXJlckcwRQIgLDOuT9TSXeAsi0Y1Ys9iYC9g9WKpwpwa66rzOoFv/QgCIQD+zbuE4oZq30E913+rJAZ0vXSXpaHcp10/4iL9Kn3DAw==",
+      "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIVCgpKb2ItdmVjdG9yEgdmaXh0dXJl",
+      "signature_base64": "MEUCICwzrk/U0l3gLItGNWLPYmAvYPViqcKcGuuq8zqBb/0IAiEA/s27hOKGat9BPdd/qyQGdL10l6Wh3KddP+Ii/Sp9wwM=",
+      "preimage_digest_hex": "c39462e4c24b6b70ff9d3ba8d64ad3817a5829eb9d6d570239632868731cb092",
+      "body_digest_hex": "8739b05291e83bd9e96865d30c349699a9015658a94e8fc2f25a8671980556a0",
+      "message_id_hex": "30313233343536373839616263646566",
+      "audience": "sys.job.vector",
+      "key_id": "vector-key",
+      "expires_at_rfc3339": "2099-01-01T00:00:00Z"
+    },
+    {
+      "name": "reject/rotation-retired-key",
+      "description": "The baseline bytes after its signing key id was retired; only the incoming key remains installed.",
+      "expect": "reject",
+      "reject_reason": "unknown_key_id",
+      "trust_key_ids": [
+        "vector-key-next"
+      ],
+      "raw_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIVCgpqb2ItdmVjdG9yEgdmaXh0dXJlckcwRQIgLDOuT9TSXeAsi0Y1Ys9iYC9g9WKpwpwa66rzOoFv/QgCIQD+zbuE4oZq30E913+rJAZ0vXSXpaHcp10/4iL9Kn3DAw==",
+      "unsigned_base64": "Cgx2ZWN0b3ItZ28tdjESDXdvcmtlci12ZWN0b3IgASpcChFjYXAtcHJvZHVjdGlvbi12MRIRRUNEU0EtUDI1Ni1TSEEyNTYaEDAxMjM0NTY3ODlhYmNkZWYiDnN5cy5qb2IudmVjdG9yKgYIgMeUlQ8yCnZlY3Rvci1rZXkyIQoNdGVuYW50LXZlY3RvchIQcHJpbmNpcGFsLXZlY3RvclIVCgpqb2ItdmVjdG9yEgdmaXh0dXJl",
+      "signature_base64": "MEUCICwzrk/U0l3gLItGNWLPYmAvYPViqcKcGuuq8zqBb/0IAiEA/s27hOKGat9BPdd/qyQGdL10l6Wh3KddP+Ii/Sp9wwM=",
+      "preimage_digest_hex": "72b694f31022384599804b56b8e3b1f29878b8a5c08b2344a471e4a03b80a2a8",
+      "body_digest_hex": "bed8b40f0357c974884d1068aca889480870895d3074f84399a9cc3470720b84",
+      "message_id_hex": "30313233343536373839616263646566",
+      "audience": "sys.job.vector",
+      "key_id": "vector-key",
+      "expires_at_rfc3339": "2099-01-01T00:00:00Z"
+    }
+  ],
+  "replay_vectors": [
+    {
+      "name": "replay/idempotent-redelivery",
+      "description": "At-least-once redelivery of identical wire bytes is a duplicate, not a conflict: the digest matches, so the second copy is acknowledged without a second side effect.",
+      "sequence": [
+        {
+          "vector": "accept/baseline",
+          "expect": "first"
+        },
+        {
+          "vector": "accept/baseline",
+          "expect": "duplicate"
+        }
+      ]
+    },
+    {
+      "name": "replay/conflict-different-digest",
+      "description": "Same message id over a different signed body MUST fail closed rather than be treated as a redelivery.",
+      "sequence": [
+        {
+          "vector": "accept/baseline",
+          "expect": "first"
+        },
+        {
+          "vector": "accept/replay-conflict-body",
+          "expect": "conflict"
+        }
+      ]
+    },
+    {
+      "name": "replay/distinct-messages-both-admitted",
+      "description": "Control: distinct message ids are both first-seen. Fails an implementation that conflicts or dedupes unconditionally.",
+      "sequence": [
+        {
+          "vector": "accept/baseline",
+          "expect": "first"
+        },
+        {
+          "vector": "accept/rotation-overlap-next-key",
+          "expect": "first"
+        }
+      ]
+    }
+  ],
+  "identity_binding_vectors": [
+    {
+      "name": "identity/full-match",
+      "description": "Nested binding mirrors every authoritative field exactly.",
+      "expect": "accept",
+      "job_request_base64": "Cgpqb2ItdmVjdG9yag10ZW5hbnQtdmVjdG9ychBwcmluY2lwYWwtdmVjdG9ykgEvCg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9yGgxhY3Rvci12ZWN0b3I=",
+      "authoritative_base64": "Cg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9yGgxhY3Rvci12ZWN0b3I="
+    },
+    {
+      "name": "identity/present-blank-actor",
+      "description": "Present nested binding with the actor_id stripped. MUST reject: a present sub-message is a full claim, not a partial mirror.",
+      "expect": "reject",
+      "job_request_base64": "Cgpqb2ItdmVjdG9yag10ZW5hbnQtdmVjdG9ychBwcmluY2lwYWwtdmVjdG9ykgEhCg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9y",
+      "authoritative_base64": "Cg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9yGgxhY3Rvci12ZWN0b3I="
+    },
+    {
+      "name": "identity/absent-binding",
+      "description": "No nested binding at all. Accepted: a legitimate compat/migration shape that must stay distinguishable from present-but-blank.",
+      "expect": "accept",
+      "job_request_base64": "Cgpqb2ItdmVjdG9yag10ZW5hbnQtdmVjdG9ychBwcmluY2lwYWwtdmVjdG9y",
+      "authoritative_base64": "Cg10ZW5hbnQtdmVjdG9yEhBwcmluY2lwYWwtdmVjdG9yGgxhY3Rvci12ZWN0b3I="
+    }
+  ]
 }

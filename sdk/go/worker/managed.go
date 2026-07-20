@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -61,6 +60,9 @@ type ManagedConfig struct {
 	WorkerTrust *capsdk.WorkerTrustConfig
 	// WorkerTrustTimeout bounds each challenge and authenticate request.
 	WorkerTrustTimeout time.Duration
+	// Production opts into fail-closed CAP-PRODUCTION raw admission and
+	// subject-bound outbound signing. The zero value preserves compatibility.
+	Production ManagedProductionConfig
 }
 
 // ManagedWorker is a batteries-included CAP worker that handles NATS
@@ -101,6 +103,7 @@ func NewManagedWorker(cfg ManagedConfig) (*ManagedWorker, error) {
 		cfg.WorkerTrustMode = capsdk.WorkerTrustModeOff
 	}
 	cfg = cloneManagedTrustConfig(cfg)
+	cfg = cloneManagedProductionConfig(cfg)
 	resolved, err := resolveManagedConfig(cfg)
 	if err != nil {
 		return nil, err
@@ -135,19 +138,9 @@ func (w *ManagedWorker) Run(ctx context.Context, handler func(context.Context, *
 		return err
 	}
 
-	for _, subject := range w.admitted {
-		queue := w.queue
-		if queue == "" {
-			queue = subject
-		}
-		sub, err := w.conn.QueueSubscribe(subject, queue, func(msg *nats.Msg) {
-			w.dispatch(ctx, msg, handler)
-		})
-		if err != nil {
-			w.unsubscribeAll()
-			return fmt.Errorf("subscribe %s: %w", subject, err)
-		}
-		w.subsAppend(sub)
+	if err := w.subscribeManagedSubjects(ctx, handler); err != nil {
+		w.unsubscribeAll()
+		return err
 	}
 
 	w.publishHandshake()

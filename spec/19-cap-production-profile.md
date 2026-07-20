@@ -52,14 +52,46 @@ normalize different wire bytes. Only a local trust store may resolve `key_id`;
 packet-provided keys MUST NOT be trusted. Lookup MUST bind authenticated tenant
 and sender.
 
+`test/fixtures/production-signing-v1.json` is the normative cross-language
+vector set for this section. Every stable SDK MUST reach the recorded verdict
+for each vector. It pins the preimage, both digests defined below, accepted and
+rejected packets covering tampered body, audience mismatch, expiry, unknown
+`key_id`, both halves of a key-rotation overlap window, and the replay outcomes
+in the next section. A conforming implementation MUST NOT be validated only
+against locally generated packets: a signature is reproducible across runtimes
+but its bytes are not, so agreement has to be asserted on verdicts over shared
+wire bytes.
+
 ## Replay and at-least-once delivery
 
 Replay storage MUST atomically key entries by authoritative tenant, actual
 audience, authenticated sender, and message ID until expiry plus clock skew,
-and retain the signed-body digest. First-seen input is admitted. An identical
-redelivery is acknowledged without a second side effect. The same ID with a
-different digest is rejected and audited. Store unavailability is rejection.
-This permits JetStream at-least-once delivery without mutable replay identity.
+and MUST retain the signed-body digest. Retaining the entry only until expiry
+is insufficient: verification tolerates the skew, so a shorter retention leaves
+a window in which the packet still verifies but no replay record survives.
+
+The signed-body digest is:
+
+```
+SHA-256(exact_unsigned_packet_wire)
+```
+
+with **no** domain prefix. It is deliberately a different value from the
+signature preimage of the previous section over those same bytes, and the two
+MUST NOT be interchanged. The digest exists so that an identical redelivery
+stays idempotent even though its signature bytes may differ — ECDSA is
+randomized, so the signature cannot serve as a body identity. Implementations
+that substitute the domain-separated preimage still function in isolation but
+compute a different digest from every conforming peer, so a shared replay store
+reports a spurious conflict and rejects a valid redelivery. Both digests are
+pinned per vector in the conformance fixture as `body_digest_hex` and
+`preimage_digest_hex`.
+
+First-seen input MUST be admitted. An identical redelivery — same key tuple and
+same digest — MUST be acknowledged without a second side effect. The same ID
+with a different digest MUST be rejected and audited. Store unavailability MUST
+be treated as rejection, never as first-seen. This permits JetStream
+at-least-once delivery without mutable replay identity.
 
 ## Identity binding
 
@@ -117,6 +149,14 @@ mismatch, and expiry before or during fetch. Unknown resolvers have no generic
 HTTP, file, or network fallback.
 
 ## Compatibility and migration
+
+Schema evolution for this profile is append-only. `SignatureMetadata`,
+`IdentityBinding`, `DispatchIdentity`, and structured `ResourceRef` were added
+as new fields and messages; no existing field number changed meaning and none
+were removed. Future production fields MUST likewise be appended, and any
+retired number MUST be reserved rather than reused; `BusPacket` already
+reserves 23-27 to keep concurrent protocol work from colliding with the frozen
+worker-handshake payloads at 19-22.
 
 Compatibility mode MAY accept legacy unsigned packets, string pointers,
 missing identity, or warn-only validation only behind explicit operator

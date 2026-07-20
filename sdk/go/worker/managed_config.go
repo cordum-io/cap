@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"log"
@@ -33,6 +34,9 @@ func resolveManagedConfig(config ManagedConfig) (resolvedManagedConfig, error) {
 	}
 	workerID := resolveWorkerID(config.WorkerID, config.Type)
 	if err := validateManagedTrustConfig(config, workerID); err != nil {
+		return resolvedManagedConfig{}, err
+	}
+	if err := validateManagedProductionConfig(config); err != nil {
 		return resolvedManagedConfig{}, err
 	}
 	resolved := resolvedManagedConfig{
@@ -72,8 +76,16 @@ func connectManagedNATS(config ManagedConfig, resolved resolvedManagedConfig) (*
 			return nil, fmt.Errorf("nats tls config: %w", err)
 		}
 	}
+	if config.Production.Enabled && !managedNATSTransportAuthenticated(tlsConfig) {
+		return nil, errors.New("managed production: verified TLS client certificate required")
+	}
 	if tlsConfig != nil {
 		options = append(options, nats.Secure(tlsConfig))
 	}
 	return nats.Connect(resolved.natsURL, options...)
+}
+
+func managedNATSTransportAuthenticated(config *tls.Config) bool {
+	return config != nil && !config.InsecureSkipVerify &&
+		(len(config.Certificates) > 0 || config.GetClientCertificate != nil)
 }

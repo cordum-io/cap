@@ -1,9 +1,48 @@
 package tck
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
+
+// The cross-language environment builds ~84 MB of installed artifacts into a
+// temp dir shared by every test in this binary, so it can only be dropped once
+// all tests have finished. Without this the directory outlived every run and
+// accumulated silently (6 orphans / ~506 MB were found on the dev host).
+func TestMain(m *testing.M) {
+	code := m.Run()
+	CleanupCrossLangEnv()
+	os.Exit(code)
+}
+
+// removeMatrixWorkDir is handed a path derived from a struct that also holds
+// the repository root, so its prefix guard is load-bearing: if it ever accepted
+// an arbitrary path, a mixed-up field would delete the working tree.
+func TestRemoveMatrixWorkDirRefusesNonMatrixPaths(t *testing.T) {
+	parent := t.TempDir()
+
+	keep := filepath.Join(parent, "repo-root-lookalike")
+	if err := os.MkdirAll(keep, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	removeMatrixWorkDir(keep)
+	if _, err := os.Stat(keep); err != nil {
+		t.Fatalf("a path without the matrix prefix must survive, got %v", err)
+	}
+
+	victim := filepath.Join(parent, matrixWorkDirPrefix+"123")
+	if err := os.MkdirAll(filepath.Join(victim, "nested"), 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	removeMatrixWorkDir(victim)
+	if _, err := os.Stat(victim); !os.IsNotExist(err) {
+		t.Fatalf("a matrix work dir must be removed, got %v", err)
+	}
+
+	removeMatrixWorkDir("") // must not panic or touch the cwd
+}
 
 // The cross-language matrix is the DoD-2 gate: every stable SDK must PRODUCE
 // fixtures that every other stable SDK independently DECODES, VALIDATES, and

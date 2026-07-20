@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -21,6 +22,7 @@ import (
 // every test in the package.
 type CrossLangEnv struct {
 	root      string
+	workDir   string
 	corpus    corpusFile
 	corpusRaw []byte
 	drivers   map[string]driverSpec
@@ -69,16 +71,26 @@ func buildCrossLangEnv() (*CrossLangEnv, error) {
 	if err != nil {
 		return nil, err
 	}
-	workDir, err := os.MkdirTemp("", "cap-tck-matrix-")
+	workDir, err := os.MkdirTemp("", matrixWorkDirPrefix)
 	if err != nil {
 		return nil, err
 	}
+	// The artifact tree is ~84 MB (wheel venv, packed tarball, module proxy).
+	// Every failure path below must drop it, or a broken toolchain silently
+	// fills the disk one run at a time.
+	built := false
+	defer func() {
+		if !built {
+			removeMatrixWorkDir(workDir)
+		}
+	}()
+
 	drivers, err := buildArtifacts(root, workDir)
 	if err != nil {
 		return nil, err
 	}
 	env := &CrossLangEnv{
-		root: root, corpus: corpus, corpusRaw: raw,
+		root: root, workDir: workDir, corpus: corpus, corpusRaw: raw,
 		drivers: drivers, keys: map[string]keyPair{},
 	}
 	for _, sdk := range StableSDKs {
@@ -92,7 +104,31 @@ func buildCrossLangEnv() (*CrossLangEnv, error) {
 	if env.wrongKey, err = newKeyPair(); err != nil {
 		return nil, err
 	}
+	built = true
 	return env, nil
+}
+
+// matrixWorkDirPrefix names the shared artifact directory.
+const matrixWorkDirPrefix = "cap-tck-matrix-"
+
+// removeMatrixWorkDir deletes a matrix artifact directory. It refuses any path
+// whose base name lacks the prefix: CrossLangEnv also carries the repository
+// root, and a future refactor that passes the wrong field here must not be able
+// to delete the working tree.
+func removeMatrixWorkDir(dir string) {
+	if dir == "" || !strings.HasPrefix(filepath.Base(dir), matrixWorkDirPrefix) {
+		return
+	}
+	_ = os.RemoveAll(dir)
+}
+
+// CleanupCrossLangEnv drops the shared artifact tree. Callable when no
+// environment was ever built (the matrix gate is off), in which case it is a
+// no-op.
+func CleanupCrossLangEnv() {
+	if sharedEnv != nil {
+		removeMatrixWorkDir(sharedEnv.workDir)
+	}
 }
 
 // buildArtifacts shells out to the packaging builder, which owns every

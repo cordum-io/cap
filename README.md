@@ -153,6 +153,7 @@ flowchart LR
 - **Wire protocol:** 1 (compatible range 1–1)
 - **Wire schema:** 1.0.0
 - **Specifications:** 20 normative documents
+- **Release candidate (not published):** 2.15.0 (tag `v2.15.0`, channel stable)
 <!-- cap-release:end -->
 
 ## Learn More

@@ -8,9 +8,14 @@
     "commit": "e65a0a8392f552a8e14969a4efb4fe8d4b11a901",
     "channel": "stable"
   },
+  "candidate": {
+    "version": "2.15.0",
+    "tag": "v2.15.0",
+    "channel": "stable"
+  },
   "development": {
-    "commit": "7709def",
-    "describe": "v2.14.0-18-g7709def",
+    "commit": "54333b3",
+    "describe": "v2.14.0-20-g54333b3",
     "released": false
   },
   "wire": {

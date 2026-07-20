@@ -1,6 +1,11 @@
 package releasetruth
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
 
 func TestPromotionCheck_RequiresTagTargetCommit(t *testing.T) {
 	m := validManifest()
@@ -76,5 +81,21 @@ func TestValidate_PublishedReleaseClaimsFailClosed(t *testing.T) {
 				t.Fatalf("Validate() = %v, want %s", ps, tt.field)
 			}
 		})
+	}
+}
+
+func setChangelogDate(t *testing.T, root, oldDate, newDate string) {
+	t.Helper()
+	path := filepath.Join(root, "CHANGELOG.md")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	updated := strings.Replace(string(data), oldDate, newDate, 1)
+	if updated == string(data) {
+		t.Fatalf("CHANGELOG.md has no date %s", oldDate)
+	}
+	if err := os.WriteFile(path, []byte(updated), 0o644); err != nil {
+		t.Fatal(err)
 	}
 }

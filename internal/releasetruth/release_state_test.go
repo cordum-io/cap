@@ -186,6 +186,8 @@ func TestReleaseSnapshot_IsTaggableWithoutClaimingPublication(t *testing.T) {
 func TestPostPublicationPromotion_RestoresDevelopmentState(t *testing.T) {
 	m := validSnapshotManifest()
 	m.Release.Version, m.Release.Tag = "2.15.0", "v2.15.0"
+	m.Release.Date = "2026-07-20"
+	m.Release.Commit = strings.Repeat("b", 40)
 	m.Snapshot = nil
 	m.Security.SupportedLines = []string{"2.15.x"}
 	for i := range m.Components {
@@ -194,6 +196,7 @@ func TestPostPublicationPromotion_RestoresDevelopmentState(t *testing.T) {
 		}
 	}
 	root := writeReleaseTree(t, "2.16.0-dev.0", "v2.15.0")
+	setChangelogDate(t, root, "2026-06-02", m.Release.Date)
 	if ps := Validate(m); len(ps) != 0 {
 		t.Fatalf("Validate(promoted release) = %v", ps)
 	}

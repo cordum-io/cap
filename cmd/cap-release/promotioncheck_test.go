@@ -17,7 +17,11 @@ func TestResolveLocalTagCommit_RequiresAncestorOfHead(t *testing.T) {
 	first := gitForTest(t, repo, "rev-parse", "HEAD")
 	writeGitFixture(t, repo, "two")
 	second := gitForTest(t, repo, "rev-parse", "HEAD")
-	gitForTest(t, repo, "tag", "v2.15.0")
+	gitForTest(t, repo, "tag", "-a", "v2.15.0", "-m", "release fixture")
+	tagObject := gitForTest(t, repo, "rev-parse", "refs/tags/v2.15.0")
+	if tagObject == second {
+		t.Fatal("fixture tag is not annotated")
+	}
 
 	got, err := resolveLocalTagCommit(repo, "v2.15.0")
 	if err != nil || got != second {

@@ -49,7 +49,7 @@ class InMemoryReplayStore:
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self._entries: Dict[str, _Entry] = {}
+        self._entries: Dict[tuple[str, str, str, bytes], _Entry] = {}
 
     def admit(
         self,
@@ -65,8 +65,11 @@ class InMemoryReplayStore:
         now = datetime.now(timezone.utc)
         if expires_at <= now:
             raise ReplayStoreUnavailableError("expires_at must be in the future")
-        key = "\x00".join([tenant, audience, sender, message_id.hex()])
+        key = (tenant, audience, sender, bytes(message_id))
         with self._lock:
+            expired = [key for key, entry in self._entries.items() if entry.expires_at <= now]
+            for expired_key in expired:
+                del self._entries[expired_key]
             existing = self._entries.get(key)
             if existing is not None and existing.expires_at > now:
                 if existing.digest == digest:

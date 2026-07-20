@@ -36,7 +36,7 @@ func admissionTestPacket(t *testing.T, key *ecdsa.PrivateKey, msgID string) []by
 			Algorithm:      capsdk.ProductionAlgorithm,
 			MessageId:      []byte(msgID),
 			Audience:       "worker-pool-a",
-			ExpiresAt:      timestamppb.New(time.Now().Add(time.Hour)),
+			ExpiresAt:      timestamppb.New(time.Now().Add(2 * time.Minute)),
 			KeyId:          "k1",
 		},
 		Payload: &agentv1.BusPacket_JobRequest{JobRequest: &agentv1.JobRequest{
@@ -56,7 +56,7 @@ func newProductionTestAgent(key *ecdsa.PrivateKey) *Agent {
 		Production: ProductionAdmission{
 			Enabled: true,
 			Trust: capsdk.ProductionTrustStore{
-				Audience:   "worker-pool-a",
+				Audience: "worker-pool-a", Tenant: "tenant-a", Sender: "scheduler-1",
 				PublicKeys: map[string]*ecdsa.PublicKey{"k1": &key.PublicKey},
 			},
 			Replay: capsdk.NewInMemoryReplayStore(),
@@ -113,8 +113,12 @@ func TestAdmitProductionPacket_RejectsReplayConflict(t *testing.T) {
 		t.Fatalf("first admit: %v", err)
 	}
 	// Identical redelivery (exact same bytes) must be harmless (idempotent).
-	if _, err := a.admitProductionPacket(first); err != nil {
+	duplicate, err := a.admitProductionPacket(first)
+	if err != nil {
 		t.Fatalf("identical redelivery rejected: %v", err)
+	}
+	if duplicate != nil {
+		t.Fatal("identical redelivery must be ACKed/dropped before handler side effects")
 	}
 }
 

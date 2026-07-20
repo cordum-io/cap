@@ -2,6 +2,7 @@ package capsdk
 
 import (
 	"bytes"
+	"encoding/binary"
 	"errors"
 	"sync"
 	"time"
@@ -46,13 +47,19 @@ func NewInMemoryReplayStore() *InMemoryReplayStore {
 }
 
 func (s *InMemoryReplayStore) Admit(tenant, audience, sender string, messageID, digest []byte, expires time.Time) (ReplayOutcome, error) {
-	if s == nil || tenant == "" || audience == "" || sender == "" || len(messageID) != 16 || len(digest) == 0 || !expires.After(time.Now()) {
+	now := time.Now()
+	if s == nil || tenant == "" || audience == "" || sender == "" || len(messageID) != 16 || len(digest) == 0 || !expires.After(now) {
 		return 0, ErrReplayStoreUnavailable
 	}
-	key := tenant + "\x00" + audience + "\x00" + sender + "\x00" + string(messageID)
+	key := replayTupleKey([]byte(tenant), []byte(audience), []byte(sender), messageID)
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if existing, ok := s.entries[key]; ok && existing.expires.After(time.Now()) {
+	for candidate, entry := range s.entries {
+		if !entry.expires.After(now) {
+			delete(s.entries, candidate)
+		}
+	}
+	if existing, ok := s.entries[key]; ok {
 		if bytes.Equal(existing.digest, digest) {
 			return ReplayOutcomeDuplicate, nil
 		}
@@ -60,4 +67,19 @@ func (s *InMemoryReplayStore) Admit(tenant, audience, sender string, messageID, 
 	}
 	s.entries[key] = replayEntry{digest: append([]byte(nil), digest...), expires: expires}
 	return ReplayOutcomeFirst, nil
+}
+
+func replayTupleKey(parts ...[]byte) string {
+	size := 0
+	for _, part := range parts {
+		size += 4 + len(part)
+	}
+	key := make([]byte, 0, size)
+	var length [4]byte
+	for _, part := range parts {
+		binary.BigEndian.PutUint32(length[:], uint32(len(part)))
+		key = append(key, length[:]...)
+		key = append(key, part...)
+	}
+	return string(key)
 }

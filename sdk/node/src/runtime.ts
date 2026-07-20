@@ -16,9 +16,10 @@ import type { MetricsHook } from "./metrics";
 import { noopMetrics } from "./metrics";
 import { handshakePayload, publishHandshake } from "./handshake";
 import { encodeOutboundPacket, prepareOutboundPacket } from "./packet-boundary";
-import { verifyProductionPacket, ProductionTrustStore, ProductionWireError } from "./production-signing";
-import { ReplayStore, ReplayConflictError, ReplayStoreUnavailableError } from "./production-replay";
+import { DecodedProductionPacket, extractProductionSignature, verifyProductionPacket, ProductionTrustStore, ProductionWireError } from "./production-signing";
+import { ReplayStore, ReplayOutcome, ReplayConflictError, ReplayStoreUnavailableError } from "./production-replay";
 import { validateIdentityBinding, IdentityMismatchError } from "./production-validation";
+import { validateBusPacket } from "./validate";
 import * as crypto from "crypto";
 import {
   RuntimeWorkerTrust,
@@ -32,6 +33,28 @@ const DEFAULT_NATS_URL = "nats://127.0.0.1:4222";
 const DEFAULT_REDIS_URL = "redis://127.0.0.1:6379/0";
 const DEFAULT_TIMEOUT_MS = 5000;
 const DEFAULT_MAX_BYTES = 2 * 1024 * 1024;
+
+function snapshotProductionTrust(
+  trust: ProductionTrustStore | undefined,
+): ProductionTrustStore | undefined {
+  if (!trust) return undefined;
+  const publicKeys = Object.assign(
+    Object.create(null) as Record<string, string>,
+    trust.publicKeys,
+  );
+  return Object.freeze({
+    ...trust,
+    publicKeys: Object.freeze(publicKeys),
+  });
+}
+
+function replayErrorCategory(error: unknown): string {
+  if (error instanceof ReplayConflictError) return "replay conflict";
+  if (error instanceof ReplayStoreUnavailableError) {
+    return "replay store unavailable";
+  }
+  return "replay store unavailable";
+}
 
 class OperationTimeoutError extends Error {}
 
@@ -278,7 +301,10 @@ export class Agent {
     this.pool = options.pool ?? "";
     this.maxParallel = Math.max(1, options.maxParallel ?? 1);
     this.workerTrustOptions = { ...(options.workerTrust ?? {}) };
-    this.productionTrust = options.productionTrust;
+    if ((options.productionTrust === undefined) !== (options.replayStore === undefined)) {
+      throw new Error("productionTrust and replayStore must be configured together");
+    }
+    this.productionTrust = snapshotProductionTrust(options.productionTrust);
     this.replayStore = options.replayStore;
   }
 
@@ -287,32 +313,33 @@ export class Agent {
   }
 
   /** Raw-wire CAP-PRODUCTION admission: verify the exact received bytes
-   * (never a re-serialized object), then atomic replay admission, then
-   * authoritative identity — all BEFORE any handler runs. Returns null (and
+   * (never a re-serialized object), then authoritative identity, then atomic
+   * replay admission — all BEFORE any handler runs. Returns null (and
    * logs without raw signature/payload bytes) on any rejection. */
-  private decodeProductionPacket(raw: Uint8Array): any | null {
-    let packet: any;
+  private async decodeProductionPacket(
+    raw: Uint8Array,
+    audience?: string,
+  ): Promise<DecodedProductionPacket | null> {
+    let packet: DecodedProductionPacket;
+    let unsigned: Uint8Array;
+    let trust: ProductionTrustStore;
     try {
-      packet = verifyProductionPacket(raw, this.busPacketType!, this.productionTrust!);
+      unsigned = extractProductionSignature(raw).unsigned;
+      trust = this.productionTrustForAudience(
+        audience ?? this.productionTrust!.audience,
+      );
+      packet = verifyProductionPacket(
+        raw,
+        this.busPacketType!,
+        trust,
+      );
     } catch (err) {
       this.logger.warn("production admission rejected packet", { error: err instanceof ProductionWireError ? err.message : String(err) });
       return null;
     }
-    const metadata = packet.signatureMetadata;
-    const digest = crypto.createHash("sha256").update(Buffer.from(raw)).digest();
-    const expiresAtMs = (() => {
-      const ts = metadata.expiresAt;
-      const seconds = typeof ts.seconds === "object" ? Number(ts.seconds.toString()) : Number(ts.seconds ?? 0);
-      return seconds * 1000 + Math.floor(Number(ts.nanos ?? 0) / 1e6);
-    })();
-    try {
-      this.replayStore!.admit(packet.identity?.tenantId ?? "", metadata.audience, packet.senderId, metadata.messageId, digest, expiresAtMs);
-    } catch (err) {
-      if (err instanceof ReplayConflictError || err instanceof ReplayStoreUnavailableError) {
-        this.logger.warn("production admission rejected packet", { error: err.message });
-        return null;
-      }
-      throw err;
+    if (validateBusPacket(packet).length > 0) {
+      this.logger.warn("production admission rejected packet", { error: "invalid envelope" });
+      return null;
     }
     if (packet.jobRequest && packet.identity) {
       try {
@@ -325,7 +352,36 @@ export class Agent {
         throw err;
       }
     }
+    if (!await this.admitProductionReplay(packet, unsigned, trust)) return null;
     return packet;
+  }
+
+  private async admitProductionReplay(
+    packet: DecodedProductionPacket,
+    unsigned: Uint8Array,
+    trust: ProductionTrustStore,
+  ): Promise<boolean> {
+    const metadata = packet.signatureMetadata;
+    const digest = crypto.createHash("sha256")
+      .update(Buffer.from(unsigned)).digest();
+    const ts = metadata.expiresAt;
+    const seconds = typeof ts.seconds === "object" && ts.seconds !== null
+      ? Number(String(ts.seconds)) : Number(ts.seconds ?? 0);
+    const expiresAtMs = seconds * 1000
+      + Math.floor(Number(ts.nanos ?? 0) / 1e6)
+      + (trust.clockSkewMs ?? 0);
+    try {
+      const outcome = await this.replayStore!.admit(packet.identity?.tenantId ?? "", metadata.audience, packet.senderId, metadata.messageId, digest, expiresAtMs);
+      if (outcome === ReplayOutcome.Duplicate) return false;
+      if (outcome !== ReplayOutcome.First) {
+        this.logger.warn("production admission rejected packet", { error: "invalid outcome" });
+        return false;
+      }
+    } catch (err) {
+      this.logger.warn("production admission rejected packet", { error: replayErrorCategory(err) });
+      return false;
+    }
+    return true;
   }
 
   /** Appends middleware to the agent. Middleware executes in registration order before the handler. */
@@ -390,9 +446,36 @@ export class Agent {
       [...this.handlers.keys()],
       this.logger
     );
+    this.validateProductionStartup();
     this.state = "starting";
     this.startPromise = this.startInternal();
     return this.startPromise;
+  }
+
+  private validateProductionStartup(): void {
+    if (!this.productionEnabled()) return;
+    if (!this.trust?.enforcing || !this.trust.settings.config) {
+      throw new Error("CAP-PRODUCTION requires worker trust ENFORCE");
+    }
+    this.productionTrustForAudience(this.productionTrust!.audience);
+  }
+
+  private productionTrustForAudience(audience: string): ProductionTrustStore {
+    const trust = { ...this.productionTrust!, audience };
+    const authority = this.trust?.settings.config;
+    if (!authority) return trust;
+    const trustAuthorities = [trust.audience, trust.tenant, trust.sender];
+    if (trustAuthorities.some((value) =>
+      typeof value !== "string" || !value.trim() || value !== value.trim())) {
+      throw new ProductionWireError("production trust authority required");
+    }
+    if (trust.tenant !== authority.tenantId) {
+      throw new ProductionWireError("production tenant conflicts with session");
+    }
+    if (trust.sender !== authority.expectedSchedulerId) {
+      throw new ProductionWireError("production sender conflicts with session");
+    }
+    return { ...trust, tenant: authority.tenantId, sender: authority.expectedSchedulerId };
   }
 
   async close(): Promise<void> {
@@ -723,10 +806,14 @@ export class Agent {
 
     let packet: any;
     if (this.productionEnabled()) {
+      if (!this.trust?.productionSessionActive) {
+        this.logger.warn("production admission rejected packet", { error: "authenticated session is not active" });
+        return;
+      }
       // CAP-PRODUCTION: verify the exact received wire bytes (never a
       // re-serialized object) and admit atomically for replay BEFORE any
       // handler runs. A rejection here never reaches decode-based dispatch.
-      packet = this.decodeProductionPacket(msg.data);
+      packet = await this.decodeProductionPacket(msg.data, msg.subject);
       if (!packet) return;
     } else {
       try {

@@ -17,7 +17,7 @@ export interface ReplayStore {
     messageId: Uint8Array,
     digest: Uint8Array,
     expiresAtMs: number,
-  ): ReplayOutcome;
+  ): ReplayOutcome | Promise<ReplayOutcome>;
 }
 
 interface Entry {
@@ -53,7 +53,12 @@ export class InMemoryReplayStore implements ReplayStore {
     if (expiresAtMs <= now) {
       throw new ReplayStoreUnavailableError("expiresAtMs must be in the future");
     }
-    const key = `${tenant}\0${audience}\0${sender}\0${Buffer.from(messageId).toString("hex")}`;
+    const key = JSON.stringify([
+      tenant, audience, sender, Buffer.from(messageId).toString("hex"),
+    ]);
+    for (const [candidate, entry] of this.entries) {
+      if (entry.expiresAtMs <= now) this.entries.delete(candidate);
+    }
     const existing = this.entries.get(key);
     if (existing && existing.expiresAtMs > now) {
       if (bytesEqual(existing.digest, digest)) {
@@ -61,7 +66,7 @@ export class InMemoryReplayStore implements ReplayStore {
       }
       throw new ReplayConflictError(`replay digest conflict for message_id=${Buffer.from(messageId).toString("hex")}`);
     }
-    this.entries.set(key, { digest, expiresAtMs });
+    this.entries.set(key, { digest: new Uint8Array(digest), expiresAtMs });
     return ReplayOutcome.First;
   }
 }

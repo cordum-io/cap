@@ -47,7 +47,9 @@ export function validateIdentityBinding(request: JobRequestView, authoritative?:
   };
   for (const [name, actual] of Object.entries(mirrors)) {
     if (!actual) continue;
-    const expected = name.includes("principal") || name.includes("actor") ? authoritative.principalId : authoritative.tenantId;
+    let expected: string | undefined = authoritative.tenantId;
+    if (name.includes("actor")) expected = authoritative.actorId;
+    else if (name.includes("principal")) expected = authoritative.principalId;
     if (actual !== expected) {
       throw new IdentityMismatchError(`${name} mismatch`);
     }

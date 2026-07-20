@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"os"
 	"testing"
+	"time"
 )
 
 type productionVector struct {
@@ -46,13 +47,18 @@ func TestProductionSigningVectorVerifiesExactGoWire(t *testing.T) {
 		t.Fatal(err)
 	}
 	key := parsed.(*ecdsa.PublicKey)
-	if _, err := VerifyProductionPacket(raw, ProductionTrustStore{Audience: "sys.job.vector", PublicKeys: map[string]*ecdsa.PublicKey{"vector-key": key}}); err != nil {
+	vectorNow := time.Date(2098, 12, 31, 23, 58, 0, 0, time.UTC)
+	trust := ProductionTrustStore{
+		Audience: "sys.job.vector", Tenant: "tenant-vector", Sender: "worker-vector",
+		Now: func() time.Time { return vectorNow }, PublicKeys: map[string]*ecdsa.PublicKey{"vector-key": key},
+	}
+	if _, err := VerifyProductionPacket(raw, trust); err != nil {
 		t.Fatalf("verify vector: %v", err)
 	}
 
 	tampered := append([]byte(nil), raw...)
 	tampered[1] ^= 1
-	if _, err := VerifyProductionPacket(tampered, ProductionTrustStore{Audience: "sys.job.vector", PublicKeys: map[string]*ecdsa.PublicKey{"vector-key": key}}); err == nil {
+	if _, err := VerifyProductionPacket(tampered, trust); err == nil {
 		t.Fatal("tampered raw packet was accepted")
 	}
 }

@@ -42,7 +42,7 @@ func TestProductionVerify_RejectsMissingSignatureMetadata(t *testing.T) {
 	if err != nil {
 		t.Fatalf("marshal: %v", err)
 	}
-	_, err = VerifyProductionPacket(raw, ProductionTrustStore{PublicKeys: map[string]*ecdsa.PublicKey{"k1": &key.PublicKey}})
+	_, err = VerifyProductionPacket(raw, strictProductionTrust(key, "tenant-a"))
 	if !errors.Is(err, ErrMissingSignatureMetadata) {
 		t.Fatalf("VerifyProductionPacket error = %v, want ErrMissingSignatureMetadata", err)
 	}
@@ -66,18 +66,34 @@ func TestProductionVerify_RejectsExpiredAudienceUnknownKey(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			packet := productionPacketSignedForTest(t, key, "tenant-a")
 			tc.mutate(packet.SignatureMetadata)
-			raw, err := SignProductionPacket(packet, key)
-			if err != nil {
-				t.Fatalf("SignProductionPacket: %v", err)
+			var raw []byte
+			if tc.name == "expired" {
+				unsigned, err := proto.Marshal(packet)
+				if err != nil {
+					t.Fatalf("proto.Marshal: %v", err)
+				}
+				raw = signProductionWireForTest(t, unsigned, key)
+			} else {
+				var err error
+				raw, err = SignProductionPacket(packet, key)
+				if err != nil {
+					t.Fatalf("SignProductionPacket: %v", err)
+				}
 			}
-			_, err = VerifyProductionPacket(raw, ProductionTrustStore{
-				Audience:   "tenant-a",
-				PublicKeys: map[string]*ecdsa.PublicKey{"k1": &key.PublicKey},
-			})
+			_, err := VerifyProductionPacket(raw, strictProductionTrust(key, "tenant-a"))
 			if !errors.Is(err, tc.wantErr) {
 				t.Fatalf("VerifyProductionPacket error = %v, want %v", err, tc.wantErr)
 			}
 		})
+	}
+}
+
+func TestProductionSignerRejectsExpiredMetadata(t *testing.T) {
+	key := testPrivateSigningKey()
+	packet := productionPacketSignedForTest(t, key, "tenant-a")
+	packet.SignatureMetadata.ExpiresAt = pastTimestamp()
+	if _, err := SignProductionPacket(packet, key); !errors.Is(err, ErrSignatureExpired) {
+		t.Fatalf("SignProductionPacket error=%v, want ErrSignatureExpired", err)
 	}
 }
 
@@ -91,10 +107,7 @@ func TestProductionVerify_RejectsDuplicateOrMalformedSignatureField(t *testing.T
 		t.Fatalf("SignProductionPacket: %v", err)
 	}
 	tampered := appendDuplicateSignatureField(raw, []byte("bogus"))
-	_, err = VerifyProductionPacket(tampered, ProductionTrustStore{
-		Audience:   "tenant-a",
-		PublicKeys: map[string]*ecdsa.PublicKey{"k1": &key.PublicKey},
-	})
+	_, err = VerifyProductionPacket(tampered, strictProductionTrust(key, "tenant-a"))
 	if !errors.Is(err, ErrDuplicateSignatureField) {
 		t.Fatalf("VerifyProductionPacket error = %v, want ErrDuplicateSignatureField", err)
 	}
@@ -212,6 +225,9 @@ func TestResourceRef_RejectsUnsafeReferences(t *testing.T) {
 func productionPacketSignedForTest(t *testing.T, key *ecdsa.PrivateKey, audience string) *agentv1.BusPacket {
 	t.Helper()
 	packet := authTokenPayloadPacket()
+	packet.Identity = &agentv1.IdentityBinding{
+		TenantId: "tenant-a", PrincipalId: "principal-a", ActorId: "actor-a",
+	}
 	packet.SignatureMetadata = &agentv1.SignatureMetadata{
 		ProfileVersion: "cap-production-v1",
 		Algorithm:      "ECDSA-P256-SHA256",
@@ -223,12 +239,23 @@ func productionPacketSignedForTest(t *testing.T, key *ecdsa.PrivateKey, audience
 	return packet
 }
 
+func strictProductionTrust(key *ecdsa.PrivateKey, audience string) ProductionTrustStore {
+	return ProductionTrustStore{
+		Audience: audience, Tenant: "tenant-a", Sender: "worker-1",
+		PublicKeys: map[string]*ecdsa.PublicKey{"k1": &key.PublicKey},
+	}
+}
+
 func pastTimestamp() *timestamppb.Timestamp {
 	return timestamppb.New(time.Now().Add(-time.Hour))
 }
 
 func futureTimestamp() *timestamppb.Timestamp {
-	return timestamppb.New(time.Now().Add(time.Hour))
+	return futureTimestampAfter(2 * time.Minute)
+}
+
+func futureTimestampAfter(duration time.Duration) *timestamppb.Timestamp {
+	return timestamppb.New(time.Now().Add(duration))
 }
 
 func valid32Bytes() []byte {

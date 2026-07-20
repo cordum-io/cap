@@ -29,7 +29,12 @@ def validate_identity_binding(request: JobRequest, authoritative: IdentityBindin
     for name, actual in mirrors.items():
         if not actual:
             continue
-        expected = authoritative.principal_id if "principal" in name or "actor" in name else authoritative.tenant_id
+        if "actor" in name:
+            expected = authoritative.actor_id
+        elif "principal" in name:
+            expected = authoritative.principal_id
+        else:
+            expected = authoritative.tenant_id
         if actual != expected:
             raise IdentityMismatchError(f"{name} mismatch")
     if request.HasField("identity") and not _same_identity(request.identity, authoritative):

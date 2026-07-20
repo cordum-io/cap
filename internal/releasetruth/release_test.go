@@ -1,6 +1,7 @@
 package releasetruth
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -21,10 +22,37 @@ func writeReleaseTree(t *testing.T, version, tag string) string {
 		}
 	}
 	mk("sdk/node/package.json", `{"name":"cap-sdk-node","version":"`+version+`"}`)
+	writeNodePackageLock(t, root, version, version)
 	mk("sdk/python/pyproject.toml", "[project]\nname = \"cap-sdk-python\"\nversion = \""+version+"\"\n")
 	mk("sdk/python-guard/pyproject.toml", "[project]\nname = \"cordum-guard\"\nversion = \""+version+"\"\n")
 	mk("CHANGELOG.md", "# Changelog\n\n## "+tag+" — 2026-06-02\n\n- release\n")
 	return root
+}
+
+func writeNodePackageLock(t *testing.T, root, topLevelVersion, rootPackageVersion string) {
+	t.Helper()
+	type packageEntry struct {
+		Version string `json:"version"`
+	}
+	lock := struct {
+		Name     string                  `json:"name"`
+		Version  string                  `json:"version"`
+		Packages map[string]packageEntry `json:"packages"`
+	}{
+		Name:    "cap-sdk-node",
+		Version: topLevelVersion,
+		Packages: map[string]packageEntry{
+			"": {Version: rootPackageVersion},
+		},
+	}
+	data, err := json.Marshal(lock)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(root, "sdk", "node", "package-lock.json")
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func releaseManifest(version, tag string) *Manifest {

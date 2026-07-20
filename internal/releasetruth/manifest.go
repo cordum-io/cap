@@ -1,6 +1,6 @@
 // Package releasetruth defines the canonical machine-readable release manifest
 // for CAP and a strict, network-free parser and validator. The manifest is the
-// single hand-edited source of current release, future candidate, wire, SDK, transport,
+// single hand-edited source of published release, candidate, snapshot, wire, SDK, transport,
 // toolchain, and security-support truth; docs and CI derive from it rather than
 // maintaining parallel matrices that drift.
 package releasetruth
@@ -18,6 +18,7 @@ type Manifest struct {
 	SchemaVersion string      `json:"schemaVersion"`
 	Release       Release     `json:"release"`
 	Candidate     *Candidate  `json:"candidate,omitempty"`
+	Snapshot      *Snapshot   `json:"snapshot,omitempty"`
 	Development   Development `json:"development"`
 	Wire          Wire        `json:"wire"`
 	Specs         []Spec      `json:"specs"`
@@ -37,10 +38,19 @@ type Release struct {
 	Channel string `json:"channel"`
 }
 
-// Candidate identifies source prepared for a future release without
-// relabelling it as the latest published artifact. Its immutable target SHA is
-// bound by the tag workflow after the candidate commit reaches main.
+// Candidate identifies mutable source prepared for a future release without
+// relabelling it as the latest published artifact. It cannot pass the tag gate;
+// exact source must first be frozen into Snapshot.
 type Candidate struct {
+	Version string `json:"version"`
+	Tag     string `json:"tag"`
+	Channel string `json:"channel"`
+}
+
+// Snapshot identifies the exact source state intended for an immutable tag.
+// Presence does not assert that the tag or any registry artifact exists. The
+// containing commit SHA, together with Tag, is the human approval boundary.
+type Snapshot struct {
 	Version string `json:"version"`
 	Tag     string `json:"tag"`
 	Channel string `json:"channel"`

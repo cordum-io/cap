@@ -2,35 +2,57 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/cordum-io/cap/release/manifest.schema.json",
   "title": "CAP Release Manifest",
-  "description": "The single canonical, hand-edited source of current CAP release, future candidate, wire, SDK, transport, toolchain, and security-support truth. Documentation and CI derive from this file; changed source must never relabel the latest published release. Structural validation lives here; semantic validation (tag==v+version, evidence gates, safe paths, uniqueness) is enforced by cmd/cap-release check.",
+  "description": "The single canonical, hand-edited source of the latest verified published CAP release, future candidate or prepared release snapshot, wire, SDK, transport, toolchain, and security-support truth. Documentation and CI derive from this file; changed source must never relabel the latest verified published release. Structural validation lives here; semantic validation (tag==v+version, evidence gates, safe paths, uniqueness) is enforced by cmd/cap-release check.",
   "type": "object",
   "additionalProperties": false,
   "required": ["schemaVersion", "release", "development", "wire", "specs", "components", "transports", "toolchains", "security", "links"],
+  "allOf": [
+    { "not": { "required": ["candidate", "snapshot"] } },
+    {
+      "if": { "required": ["candidate"] },
+      "then": { "properties": { "schemaVersion": { "enum": ["1.1.0", "1.2.0"] } } }
+    },
+    {
+      "if": { "required": ["snapshot"] },
+      "then": { "properties": { "schemaVersion": { "const": "1.2.0" } } }
+    }
+  ],
   "properties": {
     "$schema": { "type": "string", "description": "Optional pointer to this schema for editor tooling." },
-    "schemaVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "Version of the manifest format itself." },
+    "schemaVersion": { "type": "string", "enum": ["1.0.0", "1.1.0", "1.2.0"], "description": "Supported version of the manifest format itself." },
     "release": {
       "type": "object",
       "additionalProperties": false,
       "required": ["version", "tag", "date", "commit", "channel"],
-      "description": "The latest published artifact line. Distinct from development.",
+      "description": "The latest independently verified, fully published artifact line. Distinct from development and prepared snapshot state.",
       "properties": {
-        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "SemVer of the released artifacts (no leading v)." },
-        "tag": { "type": "string", "pattern": "^v\\d+\\.\\d+\\.\\d+$", "description": "Git tag; must equal 'v'+version." },
+        "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", "description": "Canonical stable SemVer of the released artifacts (no leading v or leading zero identifiers)." },
+        "tag": { "type": "string", "pattern": "^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", "description": "Stable Git tag; must equal 'v'+version." },
         "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
         "commit": { "type": "string", "pattern": "^[0-9a-f]{7,40}$", "description": "Tag target commit SHA." },
-        "channel": { "type": "string", "enum": ["stable", "beta", "rc"] }
+        "channel": { "type": "string", "const": "stable" }
       }
     },
     "candidate": {
       "type": "object",
       "additionalProperties": false,
       "required": ["version", "tag", "channel"],
-      "description": "Source prepared for a future release. This is not the latest published artifact; the tag workflow binds its immutable target SHA after merge.",
+      "description": "Mutable source prepared for a future release. This is not the latest published artifact and cannot pass the tag gate; freeze it as a snapshot first.",
       "properties": {
-        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$", "description": "Stable SemVer prepared in source metadata (no leading v)." },
-        "tag": { "type": "string", "pattern": "^v\\d+\\.\\d+\\.\\d+$", "description": "Future Git tag; must equal 'v'+version." },
-        "channel": { "type": "string", "enum": ["stable", "beta", "rc"] }
+        "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", "description": "Canonical stable SemVer prepared in source metadata (no leading v or leading zero identifiers)." },
+        "tag": { "type": "string", "pattern": "^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", "description": "Future stable Git tag; must equal 'v'+version." },
+        "channel": { "type": "string", "const": "stable" }
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "tag", "channel"],
+      "description": "Source frozen for exact tag and containing-commit-SHA approval. Presence makes no claim that the tag or registry artifacts exist; promotion to release happens only after publication is independently verified.",
+      "properties": {
+        "version": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", "description": "Canonical stable SemVer frozen in source metadata." },
+        "tag": { "type": "string", "pattern": "^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", "description": "Approved future stable Git tag; must equal 'v'+version." },
+        "channel": { "type": "string", "const": "stable" }
       }
     },
     "development": {

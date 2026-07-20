@@ -6,13 +6,12 @@ import (
 )
 
 var (
-	reSemver = regexp.MustCompile(`^\d+\.\d+\.\d+$`)
+	reSemver = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$`)
 	reDate   = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
 	reHexSHA = regexp.MustCompile(`^[0-9a-f]{7,40}$`)
 )
 
 var (
-	validChannels  = map[string]bool{"stable": true, "beta": true, "rc": true}
 	validKinds     = map[string]bool{"sdk": true, "extension": true}
 	validTiers     = map[string]bool{"stable": true, "experimental": true, "community": true}
 	validTransport = map[string]bool{"supported": true, "experimental": true}
@@ -24,12 +23,15 @@ var (
 func Validate(m *Manifest) []Problem {
 	var ps []Problem
 	ps = append(ps, checkSchema(m)...)
+	ps = append(ps, checkReleaseState(m)...)
 	ps = append(ps, checkRelease(m)...)
 	ps = append(ps, checkCandidate(m)...)
+	ps = append(ps, checkSnapshot(m)...)
 	ps = append(ps, checkDevelopment(m)...)
 	ps = append(ps, checkWire(m)...)
 	ps = append(ps, checkSpecs(m)...)
 	ps = append(ps, checkComponents(m)...)
+	ps = append(ps, checkPublishedComponentVersions(m)...)
 	ps = append(ps, checkTransports(m)...)
 	ps = append(ps, checkToolchains(m)...)
 	ps = append(ps, checkSecurity(m)...)
@@ -38,10 +40,12 @@ func Validate(m *Manifest) []Problem {
 }
 
 func checkSchema(m *Manifest) []Problem {
-	if !reSemver.MatchString(m.SchemaVersion) {
-		return []Problem{{"schemaVersion", "must be MAJOR.MINOR.PATCH: " + m.SchemaVersion}}
+	switch m.SchemaVersion {
+	case "1.0.0", "1.1.0", "1.2.0":
+		return nil
+	default:
+		return []Problem{{"schemaVersion", "unsupported manifest schema: " + m.SchemaVersion}}
 	}
-	return nil
 }
 
 func checkRelease(m *Manifest) []Problem {
@@ -59,52 +63,10 @@ func checkRelease(m *Manifest) []Problem {
 	if !reHexSHA.MatchString(r.Commit) {
 		ps = append(ps, Problem{"release.commit", "must be a 7-40 char hex sha: " + r.Commit})
 	}
-	if !validChannels[r.Channel] {
-		ps = append(ps, Problem{"release.channel", "unknown channel: " + r.Channel})
+	if r.Channel != "stable" {
+		ps = append(ps, Problem{"release.channel", "stable version/tag require channel stable, got " + r.Channel})
 	}
 	return ps
-}
-
-func checkCandidate(m *Manifest) []Problem {
-	if m.Candidate == nil {
-		return nil
-	}
-	c := *m.Candidate
-	var ps []Problem
-	if !reSemver.MatchString(c.Version) {
-		ps = append(ps, Problem{"candidate.version", "must be MAJOR.MINOR.PATCH: " + c.Version})
-	} else if reSemver.MatchString(m.Release.Version) && !semverGreater(c.Version, m.Release.Version) {
-		ps = append(ps, Problem{"candidate.version", "must be newer than published release " + m.Release.Version})
-	}
-	if c.Tag != "v"+c.Version {
-		ps = append(ps, Problem{"candidate.tag", "tag must equal v" + c.Version + ", got " + c.Tag})
-	}
-	if !validChannels[c.Channel] {
-		ps = append(ps, Problem{"candidate.channel", "unknown channel: " + c.Channel})
-	}
-	return ps
-}
-
-func semverGreater(candidate, published string) bool {
-	candidateParts := strings.Split(candidate, ".")
-	publishedParts := strings.Split(published, ".")
-	for i := 0; i < 3; i++ {
-		candidatePart := strings.TrimLeft(candidateParts[i], "0")
-		publishedPart := strings.TrimLeft(publishedParts[i], "0")
-		if candidatePart == "" {
-			candidatePart = "0"
-		}
-		if publishedPart == "" {
-			publishedPart = "0"
-		}
-		if len(candidatePart) != len(publishedPart) {
-			return len(candidatePart) > len(publishedPart)
-		}
-		if candidatePart != publishedPart {
-			return candidatePart > publishedPart
-		}
-	}
-	return false
 }
 
 func checkDevelopment(m *Manifest) []Problem {

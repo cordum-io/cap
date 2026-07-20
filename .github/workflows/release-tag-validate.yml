@@ -37,8 +37,9 @@ jobs:
           TAG="${TAG_INPUT:-$REF_NAME}"
           echo "Validating release tag ${TAG}"
 
-          # tag == prepared candidate when present (otherwise published release),
-          # source metadata == selected target, changelog has the entry
+          # tag == prepared immutable snapshot when present (otherwise an
+          # already-published release), source metadata == selected target,
+          # changelog has the entry. A mutable candidate cannot pass this gate.
           go run ./cmd/cap-release release-check --manifest release/manifest.json --repo-root . --tag "${TAG}"
 
           # manifest is internally valid and specs are on disk

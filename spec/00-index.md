@@ -18,7 +18,7 @@ Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 - Repository/SDK releases track implementation and are pinned by tag for reproducibility.
 
 <!-- cap-release:begin:release-status -->
-- **Current release:** 2.14.0 (tag `v2.14.0`, 2026-06-02, channel stable)
+- **Current verified published release:** 2.14.0 (tag `v2.14.0`, 2026-06-02, channel stable)
 - **Wire protocol:** 1 (compatible range 1–1)
 - **Wire schema:** 1.0.0
 - **Specifications:** 20 normative documents

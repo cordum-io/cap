@@ -11,7 +11,7 @@ import (
 // release truth at origin/main@ed0d8bd (v2.14.0).
 func validManifest() *Manifest {
 	return &Manifest{
-		SchemaVersion: "1.1.0",
+		SchemaVersion: "1.2.0",
 		Release: Release{
 			Version: "2.14.0",
 			Tag:     "v2.14.0",

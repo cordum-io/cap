@@ -56,6 +56,12 @@ from .progress import (
     emit_progress,
     emit_cancel,
 )
+from .production_resource import (
+    ResourceRefValidationError,
+    canonical_legacy_redis_key,
+    validate_resource_ref,
+    validate_resource_ref_compatibility,
+)
 from .validate import (
     ValidationError,
     validate_alert,
@@ -151,6 +157,10 @@ __all__ = [
     "cancel_payload",
     "emit_progress",
     "emit_cancel",
+    "ResourceRefValidationError",
+    "canonical_legacy_redis_key",
+    "validate_resource_ref",
+    "validate_resource_ref_compatibility",
     "ValidationError",
     "validate_alert",
     "validate_job_request",

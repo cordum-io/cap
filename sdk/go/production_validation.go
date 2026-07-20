@@ -3,10 +3,7 @@ package capsdk
 import (
 	"errors"
 	"fmt"
-	"net/url"
-	"path"
 	"strings"
-	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 )
@@ -71,27 +68,6 @@ func ValidateCompensationMonotonicity(parent *agentv1.JobRequest, compensation *
 	return nil
 }
 
-func ValidateResourceRef(ref *agentv1.ResourceRef, allowedResolvers []string) error {
-	if ref == nil || ref.GetResolverId() == "" || len(ref.GetSha256()) != 32 || ref.GetMediaType() == "" || ref.GetSizeBytes() == 0 {
-		return errors.New("capsdk: incomplete resource reference")
-	}
-	if !contains(allowedResolvers, ref.GetResolverId()) {
-		return errors.New("capsdk: unknown resource resolver")
-	}
-	parsed, err := url.Parse(ref.GetUri())
-	if err != nil || parsed.Scheme == "" || parsed.User != nil || parsed.Fragment != "" || parsed.RawQuery != "" {
-		return errors.New("capsdk: unsafe resource URI")
-	}
-	decoded, err := url.PathUnescape(parsed.EscapedPath())
-	if err != nil || strings.ContainsRune(decoded, '\x00') || hasTraversal(decoded) {
-		return errors.New("capsdk: unsafe resource path")
-	}
-	if expiry := ref.GetExpiresAt(); expiry != nil && !expiry.AsTime().After(time.Now()) {
-		return errors.New("capsdk: expired resource reference")
-	}
-	return nil
-}
-
 func sameIdentity(a, b *agentv1.IdentityBinding) bool {
 	return a != nil && b != nil && a.GetTenantId() == b.GetTenantId() && a.GetPrincipalId() == b.GetPrincipalId() &&
 		a.GetActorId() == b.GetActorId() && a.GetDelegationId() == b.GetDelegationId()
@@ -115,9 +91,4 @@ func contains(values []string, want string) bool {
 		}
 	}
 	return false
-}
-
-func hasTraversal(value string) bool {
-	clean := path.Clean("/" + strings.ReplaceAll(value, "\\", "/"))
-	return strings.Contains(value, "..") || strings.Contains(clean, "/../")
 }

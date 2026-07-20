@@ -16,4 +16,5 @@ export * from "./trust-signing";
 export * from "./production-signing";
 export * from "./production-signing-producer";
 export * from "./production-replay";
+export * from "./production-resource";
 export * from "./worker-trust";

@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from tools import proto_codegen
+from tools import codegen_toolchain, proto_codegen
 
 
 class ProtoCodegenTest(unittest.TestCase):
@@ -110,10 +110,13 @@ class ProtoCodegenTest(unittest.TestCase):
                 proto_codegen.snapshot_generated(self.root / "generated", expected),
             )
 
-    @mock.patch("tools.proto_codegen.git_diff")
-    def test_compare_tracked_uses_git_diff_for_each_output(
-        self, git_diff: mock.Mock
-    ) -> None:
+    def test_compare_tracked_detects_drift_per_output(self) -> None:
+        # compare_tracked used to shell out to `git diff --no-index`, which fails
+        # inside the hermetic container (/src/.git is a worktree pointer to a
+        # host path that does not exist there), so it now compares content
+        # directly. Exercise the real comparison rather than mocking it: a
+        # mocked-out differ would keep passing even if the comparison were
+        # dropped entirely.
         expected = {"go": {Path("base.pb.go")}}
         tracked = self.root / "cordum" / "agent" / "v1"
         generated = self.root / "temp" / "go" / "cordum" / "agent" / "v1"
@@ -121,15 +124,23 @@ class ProtoCodegenTest(unittest.TestCase):
         generated.mkdir(parents=True)
         (tracked / "base.pb.go").write_text("same", encoding="utf-8")
         (generated / "base.pb.go").write_text("same", encoding="utf-8")
-        git_diff.return_value = ""
 
+        # Identical content: no drift.
         proto_codegen.compare_tracked(self.root / "temp", expected, self.root)
 
-        git_diff.assert_called_once_with(
-            tracked / "base.pb.go", generated / "base.pb.go"
-        )
-        git_diff.return_value = "diff --git tracked generated"
+        # Any difference in a declared output must be reported as drift.
+        (generated / "base.pb.go").write_text("different", encoding="utf-8")
         with self.assertRaisesRegex(proto_codegen.CodegenError, "generated protobuf drift"):
+            proto_codegen.compare_tracked(self.root / "temp", expected, self.root)
+
+    def test_compare_tracked_reports_a_missing_tracked_output(self) -> None:
+        expected = {"go": {Path("base.pb.go")}}
+        generated = self.root / "temp" / "go" / "cordum" / "agent" / "v1"
+        generated.mkdir(parents=True)
+        (generated / "base.pb.go").write_text("emitted", encoding="utf-8")
+
+        # The tracked file does not exist at all; that is drift, not a crash.
+        with self.assertRaises(proto_codegen.CodegenError):
             proto_codegen.compare_tracked(self.root / "temp", expected, self.root)
 
     def test_generator_config_requires_exact_remote_revisions(self) -> None:
@@ -208,7 +219,9 @@ class ProtoCodegenTest(unittest.TestCase):
 
     @mock.patch("tools.proto_codegen._run")
     def test_schema_checks_include_origin_main_breaking(self, run: mock.Mock) -> None:
-        proto_codegen.run_schema_checks()
+        # run_schema_checks now takes the toolchain, because which invariants are
+        # checkable depends on the plugin-resolution mode.
+        proto_codegen.run_schema_checks(codegen_toolchain.networked())
 
         commands = [call.args[0] for call in run.call_args_list]
         self.assertTrue(any("lint" in command for command in commands))
@@ -216,6 +229,19 @@ class ProtoCodegenTest(unittest.TestCase):
         self.assertTrue(
             any("breaking" in command and ".git#branch=origin/main" in command for command in commands)
         )
+
+    @mock.patch("tools.proto_codegen._run")
+    def test_schema_checks_skip_breaking_on_the_hermetic_path(self, run: mock.Mock) -> None:
+        # `buf breaking --against origin/main` needs remote git history that a
+        # --network=none container does not have. The hermetic path must still
+        # lint and build, and must skip only the breaking check -- pin that so
+        # the skip cannot silently widen to the other two.
+        proto_codegen.run_schema_checks(codegen_toolchain.hermetic())
+
+        commands = [call.args[0] for call in run.call_args_list]
+        self.assertTrue(any("lint" in command for command in commands))
+        self.assertTrue(any("build" in command for command in commands))
+        self.assertFalse(any("breaking" in command for command in commands))
 
     def test_write_reconciles_only_generated_artifacts(self) -> None:
         expected = {"go": {Path("base.pb.go")}}

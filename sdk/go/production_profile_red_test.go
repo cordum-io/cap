@@ -18,6 +18,16 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+type alwaysUnavailableReplayStore struct{}
+
+func (*alwaysUnavailableReplayStore) Admit(string, string, string, []byte, []byte, time.Time) (ReplayOutcome, error) {
+	return 0, ErrReplayStoreUnavailable
+}
+
+func appendDuplicateSignatureField(raw, signature []byte) []byte {
+	return appendSignatureField(raw, signature)
+}
+
 // --- Threat 1: missing signature metadata is rejected in production ---
 
 func TestProductionVerify_RejectsMissingSignatureMetadata(t *testing.T) {

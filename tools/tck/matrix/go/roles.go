@@ -25,7 +25,7 @@ func produce(req produceRequest) (produceResponse, error) {
 	}
 	resp := produceResponse{SDK: "go"}
 	for _, c := range req.Corpus.Cases {
-		pkt, err := buildPacket(c, req.Corpus, req.KeyID, req.ExpiresAtUnix)
+		pkt, err := buildPacket(c, req.Corpus, req.KeyID, req.CreatedAtUnix, req.ExpiresAtUnix)
 		if err != nil {
 			return produceResponse{}, err
 		}

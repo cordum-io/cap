@@ -11,7 +11,7 @@ import (
 // buildPacket turns one language-neutral corpus case into a BusPacket using
 // only the SDK's generated types. Each driver implements this independently;
 // agreement between them is exactly what the matrix measures.
-func buildPacket(c corpusCase, cor corpus, keyID string, expiresAtUnix int64) (*agentv1.BusPacket, error) {
+func buildPacket(c corpusCase, cor corpus, keyID string, createdAtUnix, expiresAtUnix int64) (*agentv1.BusPacket, error) {
 	messageID, err := base64.StdEncoding.DecodeString(c.MessageID)
 	if err != nil {
 		return nil, fmt.Errorf("case %s: decode messageId: %w", c.Name, err)
@@ -19,6 +19,7 @@ func buildPacket(c corpusCase, cor corpus, keyID string, expiresAtUnix int64) (*
 	pkt := &agentv1.BusPacket{
 		TraceId:         c.TraceID,
 		SenderId:        cor.SenderID,
+		CreatedAt:       timestamppb.New(unixSecond(createdAtUnix)),
 		ProtocolVersion: 1,
 		SignatureMetadata: &agentv1.SignatureMetadata{
 			ProfileVersion: "cap-production-v1",

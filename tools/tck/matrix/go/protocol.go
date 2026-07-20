@@ -32,6 +32,7 @@ type produceRequest struct {
 	Corpus        corpus `json:"corpus"`
 	KeyID         string `json:"keyId"`
 	PrivateKeyPEM string `json:"privateKeyPem"` // PKCS#8, P-256
+	CreatedAtUnix int64  `json:"createdAtUnix"`
 	ExpiresAtUnix int64  `json:"expiresAtUnix"`
 }
 

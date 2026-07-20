@@ -82,34 +82,58 @@ func SignProductionPacket(packet *agentv1.BusPacket, key *ecdsa.PrivateKey) ([]b
 }
 
 func VerifyProductionPacket(raw []byte, trust ProductionTrustStore) (*agentv1.BusPacket, error) {
-	if err := validateProductionTrust(trust); err != nil {
+	verified, err := VerifyTrustedProductionPacket(raw, trust)
+	if err != nil {
 		return nil, err
+	}
+	return verified.Packet(), nil
+}
+
+// VerifyTrustedProductionPacket verifies exact wire bytes and returns an
+// opaque proof that preserves the verified subject, session, replay ID, and
+// signed-body digest. Use this at trust boundaries that must not accept a
+// caller-constructed BusPacket as equivalent to verified transport input.
+func VerifyTrustedProductionPacket(
+	raw []byte, trust ProductionTrustStore,
+) (VerifiedProductionPacket, error) {
+	packet, digest, err := verifyProductionPacket(raw, trust)
+	if err != nil {
+		return VerifiedProductionPacket{}, err
+	}
+	return newVerifiedProductionPacket(packet, trust, digest), nil
+}
+
+func verifyProductionPacket(
+	raw []byte, trust ProductionTrustStore,
+) (*agentv1.BusPacket, [32]byte, error) {
+	if err := validateProductionTrust(trust); err != nil {
+		return nil, [32]byte{}, err
 	}
 	unsigned, signature, err := extractSignatureField(raw)
 	if err != nil {
-		return nil, err
+		return nil, [32]byte{}, err
 	}
 	packet := &agentv1.BusPacket{}
 	if err := proto.Unmarshal(unsigned, packet); err != nil {
-		return nil, fmt.Errorf("%w: %v", ErrMalformedProductionWire, err)
+		return nil, [32]byte{}, fmt.Errorf("%w: %v", ErrMalformedProductionWire, err)
 	}
 	if err := validateNoProductionUnknowns(packet.ProtoReflect()); err != nil {
-		return nil, err
+		return nil, [32]byte{}, err
 	}
 	metadata := packet.GetSignatureMetadata()
 	if err := validateMetadata(metadata, trust); err != nil {
-		return nil, err
+		return nil, [32]byte{}, err
 	}
 	key, err := resolveProductionKey(packet, metadata.GetKeyId(), trust)
 	if err != nil {
-		return nil, err
+		return nil, [32]byte{}, err
 	}
-	digest := productionDigest(unsigned)
-	if !ecdsa.VerifyASN1(key, digest[:], signature) {
-		return nil, ErrInvalidSignature
+	signatureDigest := productionDigest(unsigned)
+	if !ecdsa.VerifyASN1(key, signatureDigest[:], signature) {
+		return nil, [32]byte{}, ErrInvalidSignature
 	}
 	packet.Signature = append([]byte(nil), signature...)
-	return packet, nil
+	return packet, sha256.Sum256(unsigned), nil
 }
 
 func validateProductionTrust(trust ProductionTrustStore) error {

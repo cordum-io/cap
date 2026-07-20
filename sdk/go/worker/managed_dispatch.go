@@ -32,27 +32,48 @@ func (w *ManagedWorker) dispatch(ctx context.Context, message *nats.Msg, handler
 }
 
 func (w *ManagedWorker) handleManagedMessage(ctx context.Context, message *nats.Msg, handler Handler) {
+	if message == nil {
+		return
+	}
 	packet, request, err := w.decodeManagedRequest(message.Data, message.Subject)
 	if err != nil {
-		if errors.Is(err, errManagedProductionDuplicate) {
+		if w.cfg.Production.Enabled {
+			w.settleManagedProductionRejection(message, err)
 			return
 		}
 		w.logger.Printf("worker: packet rejected: %v", err)
 		return
 	}
+	if w.cfg.Production.Enabled {
+		w.handleManagedProductionMessage(ctx, message, packet, request, handler)
+		return
+	}
+	w.handleManagedCompatibilityMessage(ctx, packet, request, handler)
+}
+
+func (w *ManagedWorker) handleManagedCompatibilityMessage(
+	ctx context.Context, packet *agentv1.BusPacket, request *agentv1.JobRequest, handler Handler,
+) {
 	if w.metrics != nil {
 		w.metrics.OnJobReceived(request.GetJobId(), request.GetTopic())
 	}
+	handlerCtx, result, execution := w.executeManagedHandler(ctx, packet, request, handler)
+	w.recordManagedMetric(result, execution)
+	if err := w.publishManagedResultForContext(handlerCtx, result); err != nil {
+		w.logger.Printf("worker: publish result failed: %v", err)
+	}
+}
+
+func (w *ManagedWorker) executeManagedHandler(
+	ctx context.Context, packet *agentv1.BusPacket, request *agentv1.JobRequest, handler Handler,
+) (context.Context, *agentv1.JobResult, int64) {
 	started := time.Now()
 	handlerCtx := withManagedEventPublisher(ctx, w, packet.GetTraceId(), request)
 	result, handlerErr, panicked := w.callManagedHandler(handlerCtx, handler, request)
 	execution := time.Since(started).Milliseconds()
 	result = managedHandlerResult(request, result, handlerErr, panicked)
 	normalizeResult(result, request.GetJobId(), w.workerID, execution)
-	w.recordManagedMetric(result, execution)
-	if err := w.publishManagedResultForContext(handlerCtx, result); err != nil {
-		w.logger.Printf("worker: publish result failed: %v", err)
-	}
+	return handlerCtx, result, execution
 }
 
 func (w *ManagedWorker) decodeManagedRequest(data []byte, audience string) (*agentv1.BusPacket, *agentv1.JobRequest, error) {

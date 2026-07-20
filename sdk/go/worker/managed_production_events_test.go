@@ -17,7 +17,7 @@ import (
 func TestManagedProductionEventsEchoAuthorityAndUseFreshSubjectBoundSignatures(t *testing.T) {
 	_, natsURL := startTestNATS(t)
 	observer := testNATSConn(t, natsURL)
-	messages := make(chan *nats.Msg, 3)
+	messages := make(chan *nats.Msg, 2)
 	sub, err := observer.ChanSubscribe("sys.job.*", messages)
 	if err != nil {
 		t.Fatalf("subscribe production events: %v", err)
@@ -40,9 +40,6 @@ func TestManagedProductionEventsEchoAuthorityAndUseFreshSubjectBoundSignatures(t
 		if err := PublishManagedProgress(ctx, &agentv1.JobProgress{Percent: 25, Message: "working"}); err != nil {
 			return nil, err
 		}
-		if err := PublishManagedCancel(ctx, &agentv1.JobCancel{Reason: "worker shutdown"}); err != nil {
-			return nil, err
-		}
 		return &agentv1.JobResult{Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED}, nil
 	})
 	if err := worker.conn.Flush(); err != nil {
@@ -50,7 +47,7 @@ func TestManagedProductionEventsEchoAuthorityAndUseFreshSubjectBoundSignatures(t
 	}
 
 	seenIDs := map[string]struct{}{}
-	for range 3 {
+	for range 2 {
 		message := awaitProductionEvent(t, messages)
 		packet := verifyManagedProductionEvent(t, message, workerKey)
 		assertManagedProductionEcho(t, packet, expected)
@@ -60,8 +57,8 @@ func TestManagedProductionEventsEchoAuthorityAndUseFreshSubjectBoundSignatures(t
 		}
 		seenIDs[id] = struct{}{}
 	}
-	if len(seenIDs) != 3 {
-		t.Fatalf("unique message IDs=%d, want 3", len(seenIDs))
+	if len(seenIDs) != 2 {
+		t.Fatalf("unique message IDs=%d, want 2", len(seenIDs))
 	}
 }
 
@@ -186,8 +183,6 @@ func assertManagedProductionEcho(t *testing.T, packet *agentv1.BusPacket, reques
 		identity, dispatch = packet.GetJobResult().GetIdentity(), packet.GetJobResult().GetDispatch()
 	case packet.GetJobProgress() != nil:
 		identity, dispatch = packet.GetJobProgress().GetIdentity(), packet.GetJobProgress().GetDispatch()
-	case packet.GetJobCancel() != nil:
-		identity, dispatch = packet.GetJobCancel().GetIdentity(), packet.GetJobCancel().GetDispatch()
 	default:
 		t.Fatalf("unexpected production payload %T", packet.GetPayload())
 	}

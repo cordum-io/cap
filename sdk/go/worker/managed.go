@@ -5,7 +5,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/tls"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -139,19 +138,9 @@ func (w *ManagedWorker) Run(ctx context.Context, handler func(context.Context, *
 		return err
 	}
 
-	for _, subject := range w.admitted {
-		queue := w.queue
-		if queue == "" {
-			queue = subject
-		}
-		sub, err := w.conn.QueueSubscribe(subject, queue, func(msg *nats.Msg) {
-			w.dispatch(ctx, msg, handler)
-		})
-		if err != nil {
-			w.unsubscribeAll()
-			return fmt.Errorf("subscribe %s: %w", subject, err)
-		}
-		w.subsAppend(sub)
+	if err := w.subscribeManagedSubjects(ctx, handler); err != nil {
+		w.unsubscribeAll()
+		return err
 	}
 
 	w.publishHandshake()

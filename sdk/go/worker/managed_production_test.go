@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/tls"
 	"errors"
@@ -22,8 +23,10 @@ func TestManagedProductionRejectsUnsafeConfigBeforeConnect(t *testing.T) {
 		WorkerID: "worker-production", Subjects: []string{"job.production"}, NatsURL: "nats://127.0.0.1:1",
 		WorkerTrustMode: capsdk.WorkerTrustModeEnforce, WorkerTrust: trust, PrivateKey: workerKey,
 		Production: ManagedProductionConfig{
-			Enabled: true, KeyID: "worker-key", Replay: capsdk.NewInMemoryReplayStore(),
-			Trust: capsdk.ProductionTrustStore{PublicKeys: trust.SchedulerPublicKeys},
+			Enabled: true, KeyID: "worker-key", Replay: newManagedReplayTestStore(),
+			Stream:            "CAP_PRODUCTION",
+			ResourceResolvers: []string{"redis"},
+			Trust:             capsdk.ProductionTrustStore{PublicKeys: trust.SchedulerPublicKeys},
 		},
 	}
 	tests := map[string]func(*ManagedConfig){
@@ -36,6 +39,7 @@ func TestManagedProductionRejectsUnsafeConfigBeforeConnect(t *testing.T) {
 		},
 		"missing key id": func(c *ManagedConfig) { c.Production.KeyID = "" },
 		"missing replay": func(c *ManagedConfig) { c.Production.Replay = nil },
+		"missing stream": func(c *ManagedConfig) { c.Production.Stream = "" },
 		"negative lifetime": func(c *ManagedConfig) {
 			c.Production.MessageLifetime = -time.Second
 		},
@@ -69,7 +73,7 @@ func TestManagedProductionRejectsPlaintextNATS(t *testing.T) {
 		ManagedConfig{Production: ManagedProductionConfig{Enabled: true}},
 		resolvedManagedConfig{workerID: "worker-production", natsURL: "nats://127.0.0.1:1"},
 	)
-	if err == nil || !strings.Contains(err.Error(), "NATS TLS required") {
+	if err == nil || !strings.Contains(err.Error(), "client certificate") {
 		t.Fatalf("plaintext production NATS error=%v, want TLS rejection", err)
 	}
 	_, err = connectManagedNATS(
@@ -79,24 +83,38 @@ func TestManagedProductionRejectsPlaintextNATS(t *testing.T) {
 		},
 		resolvedManagedConfig{workerID: "worker-production", natsURL: "nats://127.0.0.1:1"},
 	)
-	if err == nil || !strings.Contains(err.Error(), "TLS verification required") {
+	if err == nil || !strings.Contains(err.Error(), "client certificate") {
 		t.Fatalf("unverified production TLS error=%v, want verification rejection", err)
 	}
 }
 
-func TestManagedProductionRecognizesOnlyTLSNATSEndpoints(t *testing.T) {
-	tests := map[string]bool{
-		"tls://nats.example:4222":                        true,
-		"wss://nats.example:443":                         true,
-		"tls://one.example:4222,tls://two.example:4222":  true,
-		"nats://nats.example:4222":                       false,
-		"tls://one.example:4222,nats://two.example:4222": false,
-		"": false,
+func TestManagedProductionRequiresVerifiedClientIdentity(t *testing.T) {
+	tests := map[string]struct {
+		config *tls.Config
+		want   bool
+	}{
+		"missing":                    {},
+		"server authentication only": {config: &tls.Config{MinVersion: tls.VersionTLS12}},
+		"unverified client cert": {
+			config: &tls.Config{
+				MinVersion: tls.VersionTLS12, InsecureSkipVerify: true, //nolint:gosec // rejection fixture
+				Certificates: []tls.Certificate{{Certificate: [][]byte{{1}}}},
+			},
+		},
+		"verified client cert": {
+			config: &tls.Config{
+				MinVersion:   tls.VersionTLS12,
+				Certificates: []tls.Certificate{{Certificate: [][]byte{{1}}}},
+			},
+			want: true,
+		},
 	}
-	for endpoint, want := range tests {
-		if got := managedNATSTransportSecure(endpoint); got != want {
-			t.Errorf("managedNATSTransportSecure(%q)=%v, want %v", endpoint, got, want)
-		}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			if got := managedNATSTransportAuthenticated(test.config); got != test.want {
+				t.Errorf("managedNATSTransportAuthenticated()=%v, want %v", got, test.want)
+			}
+		})
 	}
 }
 
@@ -131,15 +149,31 @@ func TestManagedProductionRawAdmissionRejectsTamperAndActualAudienceMismatch(t *
 	}
 }
 
-func TestManagedProductionDuplicateIsDroppedBeforeDispatch(t *testing.T) {
+func TestManagedProductionReplayWaitsForDurableCompletion(t *testing.T) {
 	schedulerKey := managedP256Key(t)
 	worker := managedProductionWorkerForTest(t, schedulerKey)
 	raw := managedProductionRequestWire(t, schedulerKey, "job.production.real", "message-id-00002")
-	if _, _, err := worker.decodeManagedRequest(raw, "job.production.real"); err != nil {
-		t.Fatalf("first admission: %v", err)
+	packet, _, err := worker.decodeManagedRequest(raw, "job.production.real")
+	if err != nil {
+		t.Fatalf("verify request: %v", err)
 	}
-	if _, _, err := worker.decodeManagedRequest(raw, "job.production.real"); !errors.Is(err, errManagedProductionDuplicate) {
-		t.Fatalf("redelivery error=%v, want duplicate drop", err)
+	first, err := worker.beginManagedReplay(context.Background(), raw, packet, "job.production.real")
+	if err != nil || first.claim.State != ManagedReplayProcess {
+		t.Fatalf("first claim=(%v,%v), want process", first.claim.State, err)
+	}
+	second, err := worker.beginManagedReplay(context.Background(), raw, packet, "job.production.real")
+	if err != nil || second.claim.State != ManagedReplayPending {
+		t.Fatalf("second claim=(%v,%v), want pending", second.claim.State, err)
+	}
+	if err := worker.cfg.Production.Replay.Complete(
+		context.Background(), first.entry, first.claim.LeaseID,
+		ManagedReplayOutcome{TraceID: "trace-production", Result: []byte{1}},
+	); err != nil {
+		t.Fatal(err)
+	}
+	completed, err := worker.beginManagedReplay(context.Background(), raw, packet, "job.production.real")
+	if err != nil || completed.claim.State != ManagedReplayCompleted {
+		t.Fatalf("completed claim=(%v,%v), want completed", completed.claim.State, err)
 	}
 }
 
@@ -152,8 +186,10 @@ func managedProductionWorkerForTest(t *testing.T, schedulerKey *ecdsa.PrivateKey
 		cfg: ManagedConfig{
 			WorkerTrustMode: capsdk.WorkerTrustModeEnforce, WorkerTrust: trust, PrivateKey: managedP256Key(t),
 			Production: ManagedProductionConfig{
-				Enabled: true, KeyID: "worker-key", Replay: capsdk.NewInMemoryReplayStore(),
-				Trust: capsdk.ProductionTrustStore{PublicKeys: trust.SchedulerPublicKeys},
+				Enabled: true, KeyID: "worker-key", Replay: newManagedReplayTestStore(),
+				Stream:            "CAP_PRODUCTION",
+				ResourceResolvers: []string{"redis"},
+				Trust:             capsdk.ProductionTrustStore{PublicKeys: trust.SchedulerPublicKeys},
 			},
 		},
 		trust: newManagedTrustState(ManagedConfig{WorkerTrustMode: capsdk.WorkerTrustModeEnforce, WorkerTrust: trust}),

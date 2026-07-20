@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
@@ -48,31 +49,23 @@ func PublishManagedProgress(ctx context.Context, progress *agentv1.JobProgress) 
 	if err := bindManagedProgress(event, publisher.authority); err != nil {
 		return err
 	}
+	if publisher.worker.cfg.Production.Enabled {
+		if err := validateManagedProductionProgressResources(
+			event, publisher.worker.cfg.Production.ResourceResolvers, time.Now(),
+		); err != nil {
+			return err
+		}
+	}
 	packet := publisher.worker.managedProgressPacket(publisher.traceID, event, publisher.authority.identity)
 	return publisher.worker.publishManagedPacket(capsdk.SubjectProgress, packet)
-}
-
-// PublishManagedCancel publishes a worker cancellation for the currently
-// executing managed job. In production mode it uses admitted authority.
-func PublishManagedCancel(ctx context.Context, cancel *agentv1.JobCancel) error {
-	publisher, err := managedPublisherFromContext(ctx)
-	if err != nil {
-		return err
-	}
-	if cancel == nil {
-		return errors.New("managed cancel required")
-	}
-	event := proto.Clone(cancel).(*agentv1.JobCancel)
-	if err := bindManagedCancel(event, publisher.authority); err != nil {
-		return err
-	}
-	packet := publisher.worker.managedCancelPacket(publisher.traceID, event, publisher.authority.identity)
-	return publisher.worker.publishManagedPacket(capsdk.SubjectCancel, packet)
 }
 
 func managedPublisherFromContext(ctx context.Context) (*managedEventPublisher, error) {
 	if ctx == nil {
 		return nil, errors.New("managed event context required")
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, err
 	}
 	publisher, ok := ctx.Value(managedEventContextKey{}).(*managedEventPublisher)
 	if !ok || publisher == nil || publisher.worker == nil {
@@ -135,21 +128,6 @@ func bindManagedProgress(progress *agentv1.JobProgress, authority managedEventAu
 	return nil
 }
 
-func bindManagedCancel(cancel *agentv1.JobCancel, authority managedEventAuthority) error {
-	if err := bindManagedJobID(&cancel.JobId, authority.jobID); err != nil {
-		return err
-	}
-	if authority.identity == nil {
-		return nil
-	}
-	if err := validateManagedEcho(cancel.GetIdentity(), cancel.GetDispatch(), authority); err != nil {
-		return err
-	}
-	cancel.Identity = cloneManagedIdentity(authority.identity)
-	cancel.Dispatch = cloneManagedDispatch(authority.dispatch)
-	return nil
-}
-
 func bindManagedJobID(target *string, authoritative string) error {
 	if *target != "" && *target != authoritative {
 		return errors.New("managed event job id conflicts with admitted request")
@@ -191,16 +169,6 @@ func (w *ManagedWorker) managedProgressPacket(
 		TraceId: traceID, SenderId: w.workerID, ProtocolVersion: capsdk.DefaultProtocolVersion,
 		CreatedAt: timestamppb.Now(), Identity: cloneManagedIdentity(identity),
 		Payload: &agentv1.BusPacket_JobProgress{JobProgress: progress},
-	}
-}
-
-func (w *ManagedWorker) managedCancelPacket(
-	traceID string, cancel *agentv1.JobCancel, identity *agentv1.IdentityBinding,
-) *agentv1.BusPacket {
-	return &agentv1.BusPacket{
-		TraceId: traceID, SenderId: w.workerID, ProtocolVersion: capsdk.DefaultProtocolVersion,
-		CreatedAt: timestamppb.Now(), Identity: cloneManagedIdentity(identity),
-		Payload: &agentv1.BusPacket_JobCancel{JobCancel: cancel},
 	}
 }
 

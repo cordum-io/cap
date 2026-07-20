@@ -3,7 +3,6 @@ package capsdk
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 )
@@ -18,26 +17,88 @@ func ValidateIdentityBinding(request *agentv1.JobRequest, authoritative *agentv1
 	if request == nil || authoritative == nil || authoritative.GetTenantId() == "" {
 		return ErrIdentityMismatch
 	}
-	wants := map[string]string{
-		"tenant": request.GetTenantId(), "principal": request.GetPrincipalId(),
-		"meta.tenant": request.GetMeta().GetTenantId(), "meta.actor": request.GetMeta().GetActorId(),
-		"env.tenant": request.GetEnv()["tenant_id"], "env.principal": request.GetEnv()["principal_id"],
-	}
-	for name, actual := range wants {
-		expected := authoritative.GetTenantId()
-		if strings.Contains(name, "principal") {
-			expected = authoritative.GetPrincipalId()
-		} else if strings.Contains(name, "actor") {
-			expected = authoritative.GetActorId()
+	for _, mirror := range productionIdentityMirrors(request, authoritative) {
+		if mirror.actual != "" && mirror.actual != mirror.expected {
+			return fmt.Errorf("%w: %s", ErrIdentityMismatch, mirror.path)
 		}
-		if actual != "" && actual != expected {
-			return fmt.Errorf("%w: %s", ErrIdentityMismatch, name)
-		}
-	}
-	if request.GetIdentity() != nil && !sameIdentity(request.GetIdentity(), authoritative) {
-		return ErrIdentityMismatch
 	}
 	return nil
+}
+
+type identityMirror struct {
+	path, actual, expected string
+}
+
+func productionIdentityMirrors(
+	request *agentv1.JobRequest, identity *agentv1.IdentityBinding,
+) []identityMirror {
+	mirrors := []identityMirror{
+		{"tenant", request.GetTenantId(), identity.GetTenantId()},
+		{"principal", request.GetPrincipalId(), identity.GetPrincipalId()},
+	}
+	mirrors = append(mirrors, metadataIdentityMirrors("meta", request.GetMeta(), identity)...)
+	mirrors = append(mirrors, mapIdentityMirrors("env", request.GetEnv(), identity)...)
+	mirrors = append(mirrors, mapIdentityMirrors("labels", request.GetLabels(), identity)...)
+	mirrors = append(mirrors, bindingIdentityMirrors("identity", request.GetIdentity(), identity)...)
+	if compensation := request.GetCompensation(); compensation != nil {
+		mirrors = append(mirrors, compensationIdentityMirrors(compensation, identity)...)
+	}
+	return mirrors
+}
+
+func compensationIdentityMirrors(
+	compensation *agentv1.Compensation, identity *agentv1.IdentityBinding,
+) []identityMirror {
+	mirrors := []identityMirror{
+		{"compensation.tenant", compensation.GetTenantId(), identity.GetTenantId()},
+		{"compensation.principal", compensation.GetPrincipalId(), identity.GetPrincipalId()},
+	}
+	mirrors = append(mirrors, metadataIdentityMirrors("compensation.meta", compensation.GetMeta(), identity)...)
+	mirrors = append(mirrors, mapIdentityMirrors("compensation.env", compensation.GetEnv(), identity)...)
+	mirrors = append(mirrors, mapIdentityMirrors("compensation.labels", compensation.GetLabels(), identity)...)
+	mirrors = append(mirrors, bindingIdentityMirrors("compensation.identity", compensation.GetIdentity(), identity)...)
+	return mirrors
+}
+
+func metadataIdentityMirrors(
+	prefix string, metadata *agentv1.JobMetadata, identity *agentv1.IdentityBinding,
+) []identityMirror {
+	if metadata == nil {
+		return nil
+	}
+	mirrors := []identityMirror{
+		{prefix + ".tenant", metadata.GetTenantId(), identity.GetTenantId()},
+		{prefix + ".actor", metadata.GetActorId(), identity.GetActorId()},
+	}
+	return append(mirrors, mapIdentityMirrors(prefix+".labels", metadata.GetLabels(), identity)...)
+}
+
+func mapIdentityMirrors(
+	prefix string, values map[string]string, identity *agentv1.IdentityBinding,
+) []identityMirror {
+	if values == nil {
+		return nil
+	}
+	return []identityMirror{
+		{prefix + ".tenant_id", values["tenant_id"], identity.GetTenantId()},
+		{prefix + ".principal_id", values["principal_id"], identity.GetPrincipalId()},
+		{prefix + ".actor_id", values["actor_id"], identity.GetActorId()},
+		{prefix + ".delegation_id", values["delegation_id"], identity.GetDelegationId()},
+	}
+}
+
+func bindingIdentityMirrors(
+	prefix string, actual, expected *agentv1.IdentityBinding,
+) []identityMirror {
+	if actual == nil {
+		return nil
+	}
+	return []identityMirror{
+		{prefix + ".tenant_id", actual.GetTenantId(), expected.GetTenantId()},
+		{prefix + ".principal_id", actual.GetPrincipalId(), expected.GetPrincipalId()},
+		{prefix + ".actor_id", actual.GetActorId(), expected.GetActorId()},
+		{prefix + ".delegation_id", actual.GetDelegationId(), expected.GetDelegationId()},
+	}
 }
 
 func ValidateDispatchFencing(current, event *agentv1.DispatchIdentity) error {

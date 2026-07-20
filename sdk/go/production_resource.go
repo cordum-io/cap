@@ -35,6 +35,22 @@ func ValidateResourceRef(ref *agentv1.ResourceRef, installedResolvers []string) 
 	return ValidateResourceRefAt(ref, installedResolvers, time.Now().UTC())
 }
 
+// ValidateResourceResolvers rejects an empty, duplicate, or noncanonical
+// production resolver allowlist.
+func ValidateResourceResolvers(installedResolvers []string) error {
+	if !validInstalledResolvers(installedResolvers) {
+		return resourceError("resolver configuration is empty or noncanonical")
+	}
+	seen := make(map[string]struct{}, len(installedResolvers))
+	for _, resolverID := range installedResolvers {
+		if _, exists := seen[resolverID]; exists {
+			return resourceError("resolver configuration contains duplicates")
+		}
+		seen[resolverID] = struct{}{}
+	}
+	return nil
+}
+
 // ValidateResourceRefAt validates all generic CAP-PRODUCTION reference bounds.
 // Resolver-specific scheme, authority, tenant, media, and size allowlists remain
 // mandatory at the operator-installed resolver boundary.
@@ -42,8 +58,8 @@ func ValidateResourceRefAt(ref *agentv1.ResourceRef, installedResolvers []string
 	if ref == nil {
 		return resourceError("missing reference")
 	}
-	if !validInstalledResolvers(installedResolvers) {
-		return resourceError("resolver configuration is empty or noncanonical")
+	if err := ValidateResourceResolvers(installedResolvers); err != nil {
+		return err
 	}
 	if err := validateResourceIdentifiers(ref, installedResolvers); err != nil {
 		return err

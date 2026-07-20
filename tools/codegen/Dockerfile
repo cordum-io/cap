@@ -4,7 +4,7 @@
 # --------
 # This image contains every generator the tracked tree needs, at the exact
 # version that produced it, so that `docker run --network=none` can regenerate
-# all 60 manifest outputs and prove they are byte-identical to what is checked
+# all 74 manifest outputs and prove they are byte-identical to what is checked
 # in. Generation runs the canonical generator (tools/proto_codegen.py) in its
 # --offline mode, which swaps //buf.gen.yaml's buf.build REMOTE plugins for the
 # version-matched LOCAL plugins installed below. buf emits identical bytes for a
@@ -12,8 +12,8 @@
 # mirror of the online one rather than a competing second generator.
 #
 # Every version here is locked to //buf.gen.yaml, //tools/codegen/package.json
-# and //sdk/python/requirements-codegen.txt. tools/codegen/manifest_test.go
-# (TestOfflineTemplateMatchesRemotePins) fails the build if they drift apart.
+# and //sdk/python/requirements-codegen.txt. tools/codegen/template_test.go
+# (TestOfflineTemplateMirrorsRemoteTemplate) fails if they drift apart.
 #
 # NOTE ON THE BASE DIGEST: CI resolves and pins it via
 #   docker buildx build --pull && docker image inspect --format '{{index .RepoDigests 0}}'
@@ -29,9 +29,6 @@ ARG BUF_VERSION=v1.71.0
 ARG PROTOC_GEN_GO_VERSION=v1.36.11
 ARG PROTOC_GEN_GO_GRPC_VERSION=v1.6.0
 ARG NODE_MAJOR=20
-# Locked to //sdk/python/requirements-codegen.txt.
-ARG GRPCIO_TOOLS_VERSION=1.76.0
-ARG PROTOBUF_VERSION=6.33.5
 
 ENV TZ=UTC \
     LC_ALL=C.UTF-8 \
@@ -100,11 +97,13 @@ RUN set -eux; \
     rm /tmp/js.zip; \
     install -m 0755 /opt/protobuf-javascript/bin/protoc-gen-js /usr/local/bin/protoc-gen-js
 
-# Python generator, pinned to the same versions the tracked _pb2.py headers
-# ("Protobuf Python Version: 6.31.1") were produced with.
-RUN pip3 install --no-cache-dir --break-system-packages \
-      "grpcio-tools==${GRPCIO_TOOLS_VERSION}" \
-      "protobuf==${PROTOBUF_VERSION}"
+# Python generator. Installed from the canonical requirements file rather than
+# a copy of the pins, so the image cannot drift from what
+# tools/python_proto_codegen.py enforces at run time. Installing
+# `grpcio-tools==1.76.0` alone is NOT enough: its `grpcio>=1.76.0` dependency
+# resolves to a newer grpcio and validate_python_pins fails closed on it.
+COPY sdk/python/requirements-codegen.txt /opt/codegen-python/requirements.txt
+RUN pip3 install --no-cache-dir --break-system-packages -r /opt/codegen-python/requirements.txt
 
 ENV PATH="/root/go/bin:${PATH}" \
     CAP_CODEGEN_NODE_MODULES=/opt/codegen-node/node_modules \

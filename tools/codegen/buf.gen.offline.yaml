@@ -10,34 +10,37 @@
 #
 # They are reconcilable: buf produces byte-identical output whether a plugin is
 # fetched remotely or resolved locally, as long as the plugin VERSION matches.
-# This template is the local-plugin mirror of //buf.gen.yaml. Every entry here
-# must stay version-locked to its remote twin; buf.gen.yaml is the source of
-# truth for the versions.
+# This template is the local-plugin mirror of //buf.gen.yaml, so the hermetic
+# container runs the CANONICAL generator rather than a competing second one.
+# Every entry here stays version-locked to its remote twin; //buf.gen.yaml is
+# the source of truth for versions and
+# tools/codegen/manifest_test.go:TestOfflineTemplateMirrorsRemoteTemplate fails
+# if the two drift apart.
 #
 # MEASURED, NOT ASSUMED
 # ---------------------
 # Verified byte-for-byte against the tracked tree with `--network=none`
-# (protoc/plugins preinstalled in the image, CRLF-normalised comparison):
+# (generators preinstalled in tools/codegen/Dockerfile, CRLF-normalised
+# comparison). All 74 manifest outputs reproduce:
 #
-#   protoc-gen-go       v1.36.11   7/7   cordum/agent/v1/*.pb.go
-#   protoc-gen-go-grpc  v1.6.0     2/2   cordum/agent/v1/*_grpc.pb.go
-#   protoc_builtin cpp  21.12     14/14  cpp/cordum/agent/v1/*.pb.{cc,h}
-#   protoc_builtin ruby 33.2       7/7   sdk/ruby/proto/cordum/agent/v1/*_pb.rb
-#                                 -----
-#                                 30/60 tracked outputs
+#   protoc-gen-go       v1.36.11   7   cordum/agent/v1/*.pb.go
+#   protoc-gen-go-grpc  v1.6.0     2   cordum/agent/v1/*_grpc.pb.go
+#   protoc_builtin cpp  21.12     14   cpp/cordum/agent/v1/*.pb.{cc,h}
+#   protoc-gen-js       v3.21.4    7   node/cordum/agent/v1/*_pb.js
+#   ts-protoc-gen       0.15.0     7   node/cordum/agent/v1/*_pb.d.ts
+#   protoc_builtin ruby 33.2       7   sdk/ruby/proto/cordum/agent/v1/*_pb.rb
+#   protobufjs-cli      1.3.3      2   node/cap_pb.{js,d.ts}      (not via buf)
+#   grpcio-tools        1.76.0    28   python/... and sdk/python/...
+#                                 ---
+#                                  74 tracked outputs
 #
 # Driving the C++ and Ruby built-ins through `protoc` DIRECTLY does NOT match:
 # buf populates `json_name` in the FileDescriptorProto it hands to generators,
 # and plain protoc does not, which changes both the C++ field comments and the
 # serialized Ruby descriptor. They must be invoked through buf, as below.
-#
-# STILL UNVERIFIED (the remaining 30 outputs) - do not claim these work:
-#   protoc-gen-js v3.21.4       node/cordum/agent/v1/*_pb.js        (14, with ts)
-#   protobufjs-cli pbjs/pbts    node/cap_pb.{js,d.ts}               (2)
-#   grpcio-tools 1.76.0         python/... and sdk/python/...       (14)
-# The image does not yet install node, the tools/codegen npm lockfile,
-# protobuf-javascript, or grpcio-tools, and tools/codegen/generate.sh (the
-# container ENTRYPOINT) does not exist yet.
+# Likewise `protoc-gen-go` invoked from protoc stamps a `protoc v5.x` version
+# into the header; buf sends no compiler_version, which is what the tracked
+# files record ("protoc (unknown)").
 version: v2
 clean: true
 plugins:
@@ -50,6 +53,15 @@ plugins:
   - protoc_builtin: cpp
     protoc_path: /opt/protoc-21.12/bin/protoc
     out: cpp
+  # protobuf-javascript 3.21.4. The npm `google-protobuf` package ships only the
+  # runtime; the generator binary comes from the separate release archive.
+  - local: protoc-gen-js
+    out: node
+    opt: import_style=commonjs,binary
+  - local:
+      - node
+      - /opt/codegen-node/node_modules/ts-protoc-gen/bin/protoc-gen-ts
+    out: node
   - protoc_builtin: ruby
     protoc_path: /opt/protoc-33.2/bin/protoc
     out: ruby

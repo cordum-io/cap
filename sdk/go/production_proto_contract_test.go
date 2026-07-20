@@ -46,6 +46,6 @@ func TestLegacyJobRequestWireStillParses(t *testing.T) {
 		t.Fatalf("parse legacy JobRequest: %v", err)
 	}
 	if request.JobId != "legacy-job" || request.Topic != "job.legacy" || request.TenantId != "t1" {
-		t.Fatalf("legacy request changed: %+v", request)
+		t.Fatalf("legacy request changed: %+v", &request)
 	}
 }

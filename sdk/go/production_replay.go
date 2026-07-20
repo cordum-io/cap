@@ -14,6 +14,18 @@ const (
 	ReplayOutcomeDuplicate
 )
 
+// ReplayStore admits a message-id exactly once per (tenant, audience, sender)
+// scope until expires. Implementations MUST fail closed: any error (including
+// backend unavailability) must be surfaced as an error, never treated as a
+// silent first-seen admission. Redis- or other durable-backed implementations
+// (e.g. Cordum's production boundary) satisfy this interface alongside
+// InMemoryReplayStore.
+type ReplayStore interface {
+	Admit(tenant, audience, sender string, messageID, digest []byte, expires time.Time) (ReplayOutcome, error)
+}
+
+var _ ReplayStore = (*InMemoryReplayStore)(nil)
+
 var (
 	ErrReplayConflict         = errors.New("capsdk: replay digest conflict")
 	ErrReplayStoreUnavailable = errors.New("capsdk: replay store unavailable")

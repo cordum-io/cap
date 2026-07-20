@@ -175,6 +175,12 @@ type Agent struct {
 	// keys used by warn and enforce modes. It is intentionally distinct from
 	// the generic packet PrivateKey/PublicKeys configuration above.
 	WorkerTrust capsdk.WorkerTrustConfig
+	// Production opts into the CAP-PRODUCTION raw-packet admission layer
+	// (exact-wire signature verification + atomic replay defense) ahead of
+	// the legacy handshake-mode/object-signature path. Zero-valued (Enabled
+	// false) preserves pre-existing behavior exactly — production is never
+	// inferred, only explicitly configured. See production_admission.go.
+	Production ProductionAdmission
 
 	handlers    map[string]handlerSpec
 	middlewares []Middleware
@@ -338,17 +344,31 @@ func (a *Agent) Close() error {
 
 func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 	start := time.Now()
-	var packet agentv1.BusPacket
-	if err := proto.Unmarshal(msg.Data, &packet); err != nil {
-		a.Logger.Error("decode failed", "error", capsdk.NewMalformedPacketError(err.Error()))
-		return
+	var packet *agentv1.BusPacket
+	if a.productionAdmissionEnabled() {
+		// CAP-PRODUCTION: verify the exact received wire bytes (never a
+		// re-serialized object) and admit atomically for replay BEFORE any
+		// protobuf handler runs. A rejection here never reaches Unmarshal-
+		// based dispatch below.
+		verified, err := a.admitProductionPacket(msg.Data)
+		if err != nil {
+			a.Logger.Warn("production admission rejected packet", "error", err)
+			return
+		}
+		packet = verified
+	} else {
+		packet = &agentv1.BusPacket{}
+		if err := proto.Unmarshal(msg.Data, packet); err != nil {
+			a.Logger.Error("decode failed", "error", capsdk.NewMalformedPacketError(err.Error()))
+			return
+		}
+		if err := a.validateInboundPacket(packet); err != nil {
+			a.Logger.Warn("invalid packet", "error", err)
+			return
+		}
 	}
 	if packet.GetProtocolVersion() != capsdk.DefaultProtocolVersion {
 		a.Logger.Warn("invalid packet", "error", "unsupported protocol_version")
-		return
-	}
-	if err := a.validateInboundPacket(&packet); err != nil {
-		a.Logger.Warn("invalid packet", "error", err)
 		return
 	}
 
@@ -364,7 +384,7 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 		"trace_id", packet.GetTraceId(),
 		"topic", req.GetTopic(),
 	)
-	ctx := Context{Job: req, Packet: &packet, Logger: ctxLogger}
+	ctx := Context{Job: req, Packet: packet, Logger: ctxLogger}
 
 	payload, err := a.fetchContext(req.GetContextPtr())
 	if err != nil {

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "negotiation/selects-highest-common-version",
+      "title": "scheduler selects the highest wire version common to both peers",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"spec": "14-capability-negotiation.md#L76"}
+    },
+    {
+      "id": "negotiation/rejects-when-no-common-version",
+      "title": "no common version rejects dispatch with PROTOCOL_VERSION_MISMATCH",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "reject", "err": "ERROR_CODE_PROTOCOL_VERSION_MISMATCH", "spec": "14-capability-negotiation.md#L76"}
+    },
+    {
+      "id": "negotiation/required-capability-filters-dispatch",
+      "title": "a job requiring a capability is not routed to a worker lacking it",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "reject", "spec": "14-capability-negotiation.md#L10"}
+    },
+    {
+      "id": "negotiation/ready-topics-filters-dispatch",
+      "title": "dispatch is restricted to a worker's advertised ready_topics",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"spec": "14-capability-negotiation.md#L64"}
+    },
+    {
+      "id": "negotiation/missing-ready-topics-is-unspecified-not-error",
+      "title": "an omitted ready_topics is treated as unspecified, not an error",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"spec": "14-capability-negotiation.md#L66"}
+    }
+  ]
+}

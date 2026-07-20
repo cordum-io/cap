@@ -9,6 +9,8 @@ sdk/go/ @yaront1111
 sdk/node/ @yaront1111
 sdk/python/ @yaront1111
 sdk/python-guard/ @yaront1111
+# C++ is a community-tier SDK; explicit ownership is required for that tier.
+sdk/cpp/ @yaront1111
 
 # CI/CD
 .github/ @yaront1111

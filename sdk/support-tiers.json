@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "id": "go",
+      "kind": "protocol-sdk",
+      "tier": "stable",
+      "owner": "@yaront1111",
+      "ownerPath": "sdk/go/",
+      "package": {"registry": "go", "coordinate": "github.com/cordum-io/cap/v2"},
+      "docs": "docs/sdk-support.md",
+      "gates": [
+        {"id": "publish", "kind": "workflow", "path": ".github/workflows/publish-go.yml"},
+        {"id": "install", "kind": "manifest", "path": "go.mod"},
+        {"id": "compat", "kind": "test", "path": "sdk/go/conformance_test.go"},
+        {"id": "tck", "kind": "test", "path": "internal/tck/matrix_test.go"},
+        {"id": "real-nats", "kind": "test", "path": "internal/tck/nats_transport_test.go"}
+      ]
+    },
+    {
+      "id": "python",
+      "kind": "protocol-sdk",
+      "tier": "stable",
+      "owner": "@yaront1111",
+      "ownerPath": "sdk/python/",
+      "package": {"registry": "pypi", "coordinate": "cap-sdk-python"},
+      "docs": "docs/sdk-support.md",
+      "gates": [
+        {"id": "publish", "kind": "workflow", "path": ".github/workflows/publish-python.yml"},
+        {"id": "install", "kind": "manifest", "path": "sdk/python/pyproject.toml"},
+        {"id": "compat", "kind": "test", "path": "sdk/python/tests/test_conformance.py", "pending": true, "blockedBy": "task-83785a91"},
+        {"id": "tck", "kind": "test", "path": "sdk/python/tests/test_conformance.py"},
+        {"id": "real-nats", "kind": "test", "path": "sdk/python/tests/test_progress.py", "pending": true, "blockedBy": "task-83785a91"}
+      ]
+    },
+    {
+      "id": "node",
+      "kind": "protocol-sdk",
+      "tier": "stable",
+      "owner": "@yaront1111",
+      "ownerPath": "sdk/node/",
+      "package": {"registry": "npm", "coordinate": "cap-sdk-node"},
+      "docs": "docs/sdk-support.md",
+      "gates": [
+        {"id": "publish", "kind": "workflow", "path": ".github/workflows/publish-node.yml"},
+        {"id": "install", "kind": "manifest", "path": "sdk/node/package.json"},
+        {"id": "compat", "kind": "test", "path": "sdk/node/test/conformance.test.ts", "pending": true, "blockedBy": "task-de2ef8fb"},
+        {"id": "tck", "kind": "test", "path": "sdk/node/test/conformance.test.ts"},
+        {"id": "real-nats", "kind": "test", "path": "sdk/node/test/progress.test.ts", "pending": true, "blockedBy": "task-de2ef8fb"}
+      ]
+    },
+    {
+      "id": "python-guard",
+      "kind": "extension",
+      "tier": "community",
+      "owner": "@yaront1111",
+      "ownerPath": "sdk/python-guard/",
+      "package": {"registry": "pypi", "coordinate": "cordum-guard"},
+      "docs": "docs/sdk-support.md",
+      "gates": [
+        {"id": "publish", "kind": "workflow", "path": ".github/workflows/publish-python-guard.yml"}
+      ]
+    },
+    {
+      "id": "cpp",
+      "kind": "protocol-sdk",
+      "tier": "community",
+      "owner": "@yaront1111",
+      "ownerPath": "sdk/cpp/",
+      "docs": "docs/sdk-support.md",
+      "gates": [
+        {"id": "install", "kind": "manifest", "path": "sdk/cpp/CMakeLists.txt"}
+      ]
+    },
+    {
+      "id": "java",
+      "kind": "protocol-sdk",
+      "tier": "experimental",
+      "owner": "@yaront1111",
+      "ownerPath": "sdk/java/",
+      "docs": "docs/sdk-support.md",
+      "gates": []
+    },
+    {
+      "id": "dotnet",
+      "kind": "protocol-sdk",
+      "tier": "experimental",
+      "owner": "@yaront1111",
+      "ownerPath": "sdk/dotnet/",
+      "docs": "docs/sdk-support.md",
+      "gates": []
+    },
+    {
+      "id": "rust",
+      "kind": "protocol-sdk",
+      "tier": "experimental",
+      "owner": "@yaront1111",
+      "ownerPath": "sdk/rust/",
+      "docs": "docs/sdk-support.md",
+      "gates": []
+    },
+    {
+      "id": "php",
+      "kind": "protocol-sdk",
+      "tier": "experimental",
+      "owner": "@yaront1111",
+      "ownerPath": "sdk/php/",
+      "docs": "docs/sdk-support.md",
+      "gates": []
+    },
+    {
+      "id": "ruby",
+      "kind": "protocol-sdk",
+      "tier": "experimental",
+      "owner": "@yaront1111",
+      "ownerPath": "sdk/ruby/",
+      "docs": "docs/sdk-support.md",
+      "gates": []
+    }
+  ]
+}

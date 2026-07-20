@@ -166,6 +166,50 @@ func TestManagedProductionCompletedJetStreamDeliveryIsAcked(t *testing.T) {
 	}
 }
 
+func TestManagedProductionWrongWorkerDeliveryIsRetried(t *testing.T) {
+	ns, natsURL := startManagedJetStream(t)
+	defer ns.Shutdown()
+	nc := testNATSConn(t, natsURL)
+	js, err := nc.JetStream()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := js.AddStream(&nats.StreamConfig{
+		Name: "MANAGED_PRODUCTION_JOBS", Subjects: []string{"job.production.real"}, Storage: nats.MemoryStorage,
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	schedulerKey := managedP256Key(t)
+	worker := managedProductionWorkerForTest(t, schedulerKey)
+	worker.conn, worker.logger = nc, log.New(io.Discard, "", 0)
+	worker.admitted, worker.queue = []string{"job.production.real"}, "production-workers"
+	worker.cfg.Production.Stream = "MANAGED_PRODUCTION_JOBS"
+	worker.sem = make(chan struct{}, 1)
+	var handlers atomic.Int32
+	if err := worker.subscribeManagedSubjects(context.Background(), func(
+		context.Context, *agentv1.JobRequest,
+	) (*agentv1.JobResult, error) {
+		handlers.Add(1)
+		return &agentv1.JobResult{}, nil
+	}); err != nil {
+		t.Fatalf("subscribe managed production: %v", err)
+	}
+	t.Cleanup(worker.unsubscribeAll)
+
+	raw := managedProductionRequestWire(t, schedulerKey, "job.production.real", "wrong-worker-id1")
+	raw = mutateManagedProductionRequestWire(t, raw, schedulerKey, func(packet *agentv1.BusPacket) {
+		packet.GetJobRequest().Dispatch.AssignedWorkerId = "worker-other"
+	})
+	if _, err := js.Publish("job.production.real", raw); err != nil {
+		t.Fatal(err)
+	}
+	waitForManagedRedelivery(t, js, worker)
+	if got := handlers.Load(); got != 0 {
+		t.Fatalf("wrong-worker delivery reached handler: calls=%d", got)
+	}
+}
+
 func waitForManagedConsumerAck(t *testing.T, js nats.JetStreamContext, worker *ManagedWorker) {
 	t.Helper()
 	durable := managedProductionDurableName(worker.queue, "job.production.real")
@@ -178,6 +222,20 @@ func waitForManagedConsumerAck(t *testing.T, js nats.JetStreamContext, worker *M
 		time.Sleep(10 * time.Millisecond)
 	}
 	t.Fatalf("JetStream consumer %s did not settle", durable)
+}
+
+func waitForManagedRedelivery(t *testing.T, js nats.JetStreamContext, worker *ManagedWorker) {
+	t.Helper()
+	durable := managedProductionDurableName(worker.queue, "job.production.real")
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		info, err := js.ConsumerInfo(worker.cfg.Production.Stream, durable)
+		if err == nil && info.NumRedelivered > 0 {
+			return
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatalf("wrong-worker delivery was terminated instead of retried")
 }
 
 func managedReplayMessage(raw []byte) *nats.Msg {

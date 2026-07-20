@@ -154,6 +154,7 @@ func (w *ManagedWorker) terminateManagedMessage(message *nats.Msg) {
 func (w *ManagedWorker) settleManagedProductionRejection(message *nats.Msg, err error) {
 	w.logManagedProductionError("packet admission", err)
 	if errors.Is(err, errManagedProductionSessionUnavailable) ||
+		errors.Is(err, errManagedProductionWrongWorker) ||
 		errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 		w.retryManagedMessage(message)
 		return

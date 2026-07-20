@@ -184,8 +184,10 @@ def admit_production_event(
     """
     packet = verify_production_packet(raw, trust)
 
-    request = packet.job_request if packet.HasField("job_request") else None
-    if request is not None and packet.HasField("identity"):
+    if not packet.HasField("job_request"):
+        raise ProductionEventConflictError("production admission requires a job request")
+    request = packet.job_request
+    if packet.HasField("identity"):
         # Envelope identity is authoritative; a payload mirror that disagrees is
         # refused rather than reconciled.
         validate_identity_binding(request, packet.identity)

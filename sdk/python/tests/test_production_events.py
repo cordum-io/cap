@@ -294,6 +294,33 @@ def test_identical_redelivery_is_dropped_before_the_handler() -> None:
     assert calls == ["invoked"], "redelivery must not reach the handler a second time"
 
 
+def test_non_job_packet_is_rejected_before_replay_admission() -> None:
+    class RecordingStore:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def admit(self, *_args, **_kwargs):
+            self.calls += 1
+            return ReplayOutcome.FIRST
+
+    key = _key()
+    raw = _seal(_packet(job_result=JobResult(job_id=JOB)), key, audience="sys.job.submit")
+    trust = ProductionTrust(
+        audience="sys.job.submit",
+        public_keys={KEY_ID: key.public_key()},
+        tenant=TENANT,
+        sender=WORKER,
+    )
+    store = RecordingStore()
+    calls: list[str] = []
+
+    with pytest.raises(ProductionEventConflictError, match="job request"):
+        admit_production_event(raw, trust=trust, replay=store, handler=lambda _r: calls.append("x"))
+
+    assert store.calls == 0
+    assert calls == []
+
+
 def test_replay_conflict_fails_closed_without_invoking_the_handler() -> None:
     class ConflictingStore:
         def admit(self, *_args, **_kwargs):

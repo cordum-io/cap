@@ -17,7 +17,10 @@ import (
 
 const defaultManagedProductionLifetime = time.Minute
 
-var errManagedProductionSessionUnavailable = errors.New("managed production: authenticated session unavailable")
+var (
+	errManagedProductionSessionUnavailable = errors.New("managed production: authenticated session unavailable")
+	errManagedProductionWrongWorker        = errors.New("managed production: delivery assigned to another worker")
+)
 
 // ManagedProductionConfig enables the fail-closed CAP-PRODUCTION boundary for
 // ManagedWorker. The actual delivered NATS subject is always the signature
@@ -233,9 +236,11 @@ func (w *ManagedWorker) validateManagedProductionRequest(packet *agentv1.BusPack
 		return err
 	}
 	dispatch := request.GetDispatch()
-	if dispatch == nil || dispatch.GetDispatchId() == "" || dispatch.GetAttempt() == 0 ||
-		dispatch.GetAssignedWorkerId() != w.workerID {
+	if dispatch == nil || dispatch.GetDispatchId() == "" || dispatch.GetAttempt() == 0 {
 		return capsdk.ErrStaleDispatchEvent
+	}
+	if dispatch.GetAssignedWorkerId() != w.workerID {
+		return errors.Join(capsdk.ErrStaleDispatchEvent, errManagedProductionWrongWorker)
 	}
 	return nil
 }

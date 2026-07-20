@@ -40,6 +40,24 @@ jobs:
       - name: Codegen drift check
         run: go run ./cmd/cap-codegen check
 
+  # Proves the pinned container actually reproduces every tracked generated
+  # artifact with the network disabled, and that generation derives from the
+  # protos rather than echoing the checked-in files. `cap-codegen check` above
+  # only re-hashes the tree, so it stays green even with a broken or absent
+  # generator; these two steps are what close that hole. Asserted to exist by
+  # TestHermeticCodegenIsEnforcedInCI.
+  hermetic-codegen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - name: Hermetic regeneration reproduces the tracked tree (network disabled)
+        run: tools/codegen/codegen.sh --check
+      - name: Mutation check - every language follows a proto change
+        run: tools/codegen/mutation_check.sh
+
   go-stable:
     runs-on: ubuntu-latest
     steps:

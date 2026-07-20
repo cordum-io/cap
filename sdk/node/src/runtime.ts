@@ -16,6 +16,10 @@ import type { MetricsHook } from "./metrics";
 import { noopMetrics } from "./metrics";
 import { handshakePayload, publishHandshake } from "./handshake";
 import { encodeOutboundPacket, prepareOutboundPacket } from "./packet-boundary";
+import { verifyProductionPacket, ProductionTrustStore, ProductionWireError } from "./production-signing";
+import { ReplayStore, ReplayConflictError, ReplayStoreUnavailableError } from "./production-replay";
+import { validateIdentityBinding, IdentityMismatchError } from "./production-validation";
+import * as crypto from "crypto";
 import {
   RuntimeWorkerTrust,
   type RuntimeTrustOptions,
@@ -128,6 +132,11 @@ export interface AgentOptions {
   pool?: string;
   maxParallel?: number;
   workerTrust?: RuntimeTrustOptions;
+  /** CAP-PRODUCTION raw-packet admission (task-a13f83fa step-7). Both
+   * productionTrust and replayStore must be set to enable; omitting either
+   * preserves existing legacy/handshake-mode behavior unchanged. */
+  productionTrust?: ProductionTrustStore;
+  replayStore?: ReplayStore;
 }
 
 /** Per-handler options for {@link Agent.job}. */
@@ -215,6 +224,8 @@ export class Agent {
   private readonly pool: string;
   private readonly maxParallel: number;
   private readonly workerTrustOptions: RuntimeTrustOptions;
+  private readonly productionTrust?: ProductionTrustStore;
+  private readonly replayStore?: ReplayStore;
   private readonly handlers = new Map<string, HandlerSpec>();
   private readonly middlewares: Middleware[] = [];
   private nc?: NatsConnection;
@@ -267,6 +278,54 @@ export class Agent {
     this.pool = options.pool ?? "";
     this.maxParallel = Math.max(1, options.maxParallel ?? 1);
     this.workerTrustOptions = { ...(options.workerTrust ?? {}) };
+    this.productionTrust = options.productionTrust;
+    this.replayStore = options.replayStore;
+  }
+
+  private productionEnabled(): boolean {
+    return this.productionTrust !== undefined && this.replayStore !== undefined;
+  }
+
+  /** Raw-wire CAP-PRODUCTION admission: verify the exact received bytes
+   * (never a re-serialized object), then atomic replay admission, then
+   * authoritative identity — all BEFORE any handler runs. Returns null (and
+   * logs without raw signature/payload bytes) on any rejection. */
+  private decodeProductionPacket(raw: Uint8Array): any | null {
+    let packet: any;
+    try {
+      packet = verifyProductionPacket(raw, this.busPacketType!, this.productionTrust!);
+    } catch (err) {
+      this.logger.warn("production admission rejected packet", { error: err instanceof ProductionWireError ? err.message : String(err) });
+      return null;
+    }
+    const metadata = packet.signatureMetadata;
+    const digest = crypto.createHash("sha256").update(Buffer.from(raw)).digest();
+    const expiresAtMs = (() => {
+      const ts = metadata.expiresAt;
+      const seconds = typeof ts.seconds === "object" ? Number(ts.seconds.toString()) : Number(ts.seconds ?? 0);
+      return seconds * 1000 + Math.floor(Number(ts.nanos ?? 0) / 1e6);
+    })();
+    try {
+      this.replayStore!.admit(packet.identity?.tenantId ?? "", metadata.audience, packet.senderId, metadata.messageId, digest, expiresAtMs);
+    } catch (err) {
+      if (err instanceof ReplayConflictError || err instanceof ReplayStoreUnavailableError) {
+        this.logger.warn("production admission rejected packet", { error: err.message });
+        return null;
+      }
+      throw err;
+    }
+    if (packet.jobRequest && packet.identity) {
+      try {
+        validateIdentityBinding(packet.jobRequest, packet.identity);
+      } catch (err) {
+        if (err instanceof IdentityMismatchError) {
+          this.logger.warn("production admission rejected packet", { error: err.message });
+          return null;
+        }
+        throw err;
+      }
+    }
+    return packet;
   }
 
   /** Appends middleware to the agent. Middleware executes in registration order before the handler. */
@@ -663,20 +722,28 @@ export class Agent {
     }
 
     let packet: any;
-    try {
-      packet = this.busPacketType.decode(msg.data);
-    } catch (err) {
-      this.logger.error("decode failed", { error: String(new MalformedPacketError(err instanceof Error ? err.message : String(err))) });
-      return;
-    }
-
-    try {
-      if (!this.trust?.verifyInbound(this.busPacketType, packet, this.publicKeyMap)) {
-        throw new Error("worker trust admission rejected packet");
+    if (this.productionEnabled()) {
+      // CAP-PRODUCTION: verify the exact received wire bytes (never a
+      // re-serialized object) and admit atomically for replay BEFORE any
+      // handler runs. A rejection here never reaches decode-based dispatch.
+      packet = this.decodeProductionPacket(msg.data);
+      if (!packet) return;
+    } else {
+      try {
+        packet = this.busPacketType.decode(msg.data);
+      } catch (err) {
+        this.logger.error("decode failed", { error: String(new MalformedPacketError(err instanceof Error ? err.message : String(err))) });
+        return;
       }
-    } catch (error) {
-      this.logger.warn("Agent rejected inbound packet", { error: String(error) });
-      return;
+
+      try {
+        if (!this.trust?.verifyInbound(this.busPacketType, packet, this.publicKeyMap)) {
+          throw new Error("worker trust admission rejected packet");
+        }
+      } catch (error) {
+        this.logger.warn("Agent rejected inbound packet", { error: String(error) });
+        return;
+      }
     }
 
     const req = packet.jobRequest;

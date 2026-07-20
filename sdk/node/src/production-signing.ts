@@ -63,6 +63,79 @@ export function verifyProductionSignature(raw: Uint8Array, publicKeyPem: string)
   return extracted.unsigned;
 }
 
+export const PRODUCTION_PROFILE_VERSION = "cap-production-v1";
+export const PRODUCTION_ALGORITHM = "ECDSA-P256-SHA256";
+
+/** Trust configuration for {@link verifyProductionPacket}. Keys are keyed by
+ * signature_metadata.key_id (never trusted from the packet itself). */
+export interface ProductionTrustStore {
+  audience: string;
+  publicKeys: Record<string, string>;
+  tenant?: string;
+  sender?: string;
+}
+
+function timestampMillis(value: any): number {
+  if (!value) return 0;
+  const seconds = typeof value.seconds === "object" ? Number(value.seconds.toString()) : Number(value.seconds ?? 0);
+  const nanos = Number(value.nanos ?? 0);
+  return seconds * 1000 + Math.floor(nanos / 1e6);
+}
+
+function validateMetadataShape(metadata: any): void {
+  if (!metadata) {
+    throw new ProductionWireError("missing signature metadata");
+  }
+  const messageId: Uint8Array = metadata.messageId ?? new Uint8Array(0);
+  if (
+    metadata.profileVersion !== PRODUCTION_PROFILE_VERSION ||
+    metadata.algorithm !== PRODUCTION_ALGORITHM ||
+    messageId.length !== 16 ||
+    !metadata.audience ||
+    !metadata.keyId ||
+    !metadata.expiresAt
+  ) {
+    throw new ProductionWireError("invalid signature metadata");
+  }
+}
+
+/**
+ * Verify exact received wire bytes (never a re-serialized object) and
+ * return the decoded, verified BusPacket. busPacketType is the protobufjs
+ * Type used to decode the (already-extracted) unsigned bytes, matching
+ * this runtime's existing reflection-based decode convention.
+ */
+export function verifyProductionPacket(raw: Uint8Array, busPacketType: { decode: (buf: Uint8Array) => any }, trust: ProductionTrustStore): any {
+  const extracted = extractProductionSignature(raw);
+  const packet = busPacketType.decode(extracted.unsigned);
+  const metadata = packet.signatureMetadata;
+  validateMetadataShape(metadata);
+  if (trust.audience && metadata.audience !== trust.audience) {
+    throw new ProductionWireError("audience mismatch");
+  }
+  if (timestampMillis(metadata.expiresAt) <= Date.now()) {
+    throw new ProductionWireError("signature expired");
+  }
+  if (trust.tenant && packet.identity?.tenantId !== trust.tenant) {
+    throw new ProductionWireError("tenant mismatch");
+  }
+  if (trust.sender && packet.senderId !== trust.sender) {
+    throw new ProductionWireError("sender mismatch");
+  }
+  const publicKeyPem = trust.publicKeys[metadata.keyId];
+  if (!publicKeyPem) {
+    throw new ProductionWireError("unknown key id");
+  }
+  const verifier = crypto.createVerify("sha256");
+  verifier.update(PRODUCTION_SIGNATURE_DOMAIN);
+  verifier.update(Buffer.from(extracted.unsigned));
+  verifier.end();
+  if (!verifier.verify(publicKeyPem, Buffer.from(extracted.signature))) {
+    throw new ProductionWireError("invalid signature");
+  }
+  return packet;
+}
+
 interface VarintResult {
   value: bigint;
   end: number;

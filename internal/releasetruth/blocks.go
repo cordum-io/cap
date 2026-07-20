@@ -68,6 +68,10 @@ func renderReleaseStatus(m *Manifest) string {
 		fmt.Sprintf("- **Wire schema:** %s", w.SchemaVersion),
 		fmt.Sprintf("- **Specifications:** %d normative documents", len(m.Specs)),
 	}
+	if m.Candidate != nil {
+		lines = append(lines, fmt.Sprintf("- **Release candidate (not published):** %s (tag `%s`, channel %s)",
+			m.Candidate.Version, m.Candidate.Tag, m.Candidate.Channel))
+	}
 	return strings.Join(lines, "\n")
 }
 
@@ -99,6 +103,10 @@ func renderVersionPolicy(m *Manifest) string {
 		fmt.Sprintf("- **Wire protocol version:** %d. Wire evolution is append-only within the compatible range %d–%d.", w.ProtocolVersion, w.CompatMin, w.CompatMax),
 		fmt.Sprintf("- **Current published release:** %s (tag `%s`). SDK and repository releases track implementation and are pinned by tag.", r.Version, r.Tag),
 		"- **Source versus release:** development source may carry an in-progress version distinct from the latest published artifact; the release manifest is the authority on what is published.",
+	}
+	if m.Candidate != nil {
+		lines = append(lines, fmt.Sprintf("- **Release candidate (not published):** %s (tag `%s`, channel %s).",
+			m.Candidate.Version, m.Candidate.Tag, m.Candidate.Channel))
 	}
 	return strings.Join(lines, "\n")
 }

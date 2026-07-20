@@ -50,6 +50,7 @@ func runCheck(args []string) int {
 	}
 	problems := releasetruth.Validate(m)
 	problems = append(problems, releasetruth.CheckSpecsOnDisk(m, *repoRoot)...)
+	problems = append(problems, releasetruth.CheckSourceMetadata(m, *repoRoot)...)
 	if len(problems) > 0 {
 		fmt.Fprintf(os.Stderr, "release-truth check FAILED: %d problem(s)\n", len(problems))
 		for _, p := range problems {

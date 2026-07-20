@@ -37,7 +37,8 @@ jobs:
           TAG="${TAG_INPUT:-$REF_NAME}"
           echo "Validating release tag ${TAG}"
 
-          # tag == manifest release, source metadata == release, changelog has the entry
+          # tag == prepared candidate when present (otherwise published release),
+          # source metadata == selected target, changelog has the entry
           go run ./cmd/cap-release release-check --manifest release/manifest.json --repo-root . --tag "${TAG}"
 
           # manifest is internally valid and specs are on disk

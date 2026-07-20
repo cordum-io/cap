@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "cancellation/cp-cancel-from-pending",
+      "title": "control plane may cancel from PENDING (non-terminal)",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "PENDING", "to": "CANCELLED", "spec": "07-state-machine.md#L50"}
+    },
+    {
+      "id": "cancellation/cp-cancel-from-running",
+      "title": "control plane may cancel from RUNNING (non-terminal)",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "RUNNING", "to": "CANCELLED", "spec": "07-state-machine.md#L50"}
+    },
+    {
+      "id": "cancellation/cp-rejects-cancel-after-terminal",
+      "title": "cancellation of an already-terminal job is rejected",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "SUCCEEDED", "to": "CANCELLED", "expect": "reject", "spec": "07-state-machine.md#L50"}
+    },
+    {
+      "id": "cancellation/worker-honors-cancel",
+      "title": "a worker that receives a JobCancel stops the active attempt",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "RUNNING", "to": "CANCELLED", "spec": "buspacket.proto#JobCancel"}
+    }
+  ]
+}

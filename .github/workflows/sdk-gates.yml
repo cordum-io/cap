@@ -1,0 +1,70 @@
+# Evidence-backed SDK tier gates. Verifies the support/codegen manifests against
+# the real tree, then runs the Go stable-tier gates (build, vet, tests including
+# mandatory embedded real-NATS, the TCK, and the fixture matrix). Per-language
+# installed-artifact jobs (npm pack, wheel venv, C++ find_package consumer) are
+# added as each SDK's packaging predecessor lands; support-tiers.json already
+# marks those gates pending with the blocking task.
+name: sdk-gates
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.tiers.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - name: Emit tier matrix
+        id: tiers
+        run: echo "matrix=$(go run ./cmd/cap-support matrix)" >> "$GITHUB_OUTPUT"
+
+  verify-manifests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - name: SDK support tiers verify + doc freshness
+        run: go run ./cmd/cap-support check
+      - name: Codegen drift check
+        run: go run ./cmd/cap-codegen check
+
+  go-stable:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - name: Build
+        run: go build ./...
+      - name: Vet
+        run: go vet ./...
+      - name: Tests (includes mandatory embedded real-NATS, TCK, and matrix)
+        run: go test -count=1 ./...
+      - name: TCK smoke over the shipped lifecycle suite
+        run: |
+          go build -o /tmp/cap-tck ./cmd/cap-tck
+          /tmp/cap-tck run --suite spec/tck/scenarios/core-lifecycle.json \
+            --adapter "ref=/tmp/cap-tck|__adapter|--role|worker"
+
+  support-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+      - name: Support + codegen tooling tests
+        run: go test ./tools/sdk-support/... ./tools/codegen/... ./cmd/cap-support/... ./cmd/cap-codegen/...

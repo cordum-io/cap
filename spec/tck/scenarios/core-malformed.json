@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "malformed/truncated-wire",
+      "title": "a truncated BusPacket is dropped without invoking the handler",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "drop", "err": "ERROR_CODE_PROTOCOL_MALFORMED_PACKET", "spec": "job.proto#ERROR_CODE_PROTOCOL_MALFORMED_PACKET"}
+    },
+    {
+      "id": "malformed/overlong-wire",
+      "title": "a BusPacket exceeding the size bound is dropped",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "drop", "bound": "size", "spec": "job.proto#ERROR_CODE_PROTOCOL_MALFORMED_PACKET"}
+    },
+    {
+      "id": "malformed/non-minimal-encoding",
+      "title": "a non-minimal protobuf encoding is rejected",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "drop", "spec": "job.proto#ERROR_CODE_PROTOCOL_MALFORMED_PACKET"}
+    },
+    {
+      "id": "malformed/duplicate-oneof",
+      "title": "a packet with two payload oneof fields is rejected",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "drop", "spec": "job.proto#ERROR_CODE_PROTOCOL_MALFORMED_PACKET"}
+    },
+    {
+      "id": "malformed/empty-envelope",
+      "title": "an empty envelope with no payload is dropped",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "drop", "spec": "job.proto#ERROR_CODE_PROTOCOL_MALFORMED_PACKET"}
+    },
+    {
+      "id": "malformed/unsupported-protocol-version",
+      "title": "a packet with an unsupported protocol_version is dropped",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "drop", "err": "ERROR_CODE_PROTOCOL_VERSION_MISMATCH", "spec": "job.proto#ERROR_CODE_PROTOCOL_VERSION_MISMATCH"}
+    },
+    {
+      "id": "malformed/unknown-payload",
+      "title": "a packet with an unknown payload type is dropped",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "drop", "err": "ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD", "spec": "job.proto#ERROR_CODE_PROTOCOL_UNKNOWN_PAYLOAD"}
+    },
+    {
+      "id": "malformed/oversize-string",
+      "title": "an over-bound string field is rejected",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "drop", "bound": "string", "spec": "job.proto#ERROR_CODE_PROTOCOL_MALFORMED_PACKET"}
+    },
+    {
+      "id": "malformed/oversize-map",
+      "title": "an over-bound map field is rejected",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "drop", "bound": "map", "spec": "job.proto#ERROR_CODE_PROTOCOL_MALFORMED_PACKET"}
+    },
+    {
+      "id": "malformed/oversize-repeated",
+      "title": "an over-bound repeated field is rejected",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"expect": "drop", "bound": "repeated", "spec": "job.proto#ERROR_CODE_PROTOCOL_MALFORMED_PACKET"}
+    }
+  ]
+}

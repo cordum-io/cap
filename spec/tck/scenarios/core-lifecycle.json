@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "lifecycle/worker-running-to-succeeded",
+      "title": "worker moves RUNNING -> SUCCEEDED",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "RUNNING", "to": "SUCCEEDED", "spec": "07-state-machine.md#L25"}
+    },
+    {
+      "id": "lifecycle/worker-running-to-failed",
+      "title": "worker moves RUNNING -> FAILED",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "RUNNING", "to": "FAILED", "spec": "07-state-machine.md#L26"}
+    },
+    {
+      "id": "lifecycle/worker-running-to-failed-retryable",
+      "title": "worker moves RUNNING -> FAILED_RETRYABLE (non-terminal)",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "RUNNING", "to": "FAILED_RETRYABLE", "spec": "07-state-machine.md#L27"}
+    },
+    {
+      "id": "lifecycle/worker-running-to-failed-fatal",
+      "title": "worker moves RUNNING -> FAILED_FATAL",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "RUNNING", "to": "FAILED_FATAL", "spec": "07-state-machine.md#L28"}
+    },
+    {
+      "id": "lifecycle/worker-same-state-idempotent",
+      "title": "repeating the current state is accepted (idempotency)",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "RUNNING", "to": "RUNNING", "spec": "07-state-machine.md#L47"}
+    },
+    {
+      "id": "lifecycle/worker-rejects-backwards-transition",
+      "title": "a backwards transition SUCCEEDED -> RUNNING is rejected",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "SUCCEEDED", "to": "RUNNING", "expect": "reject", "spec": "07-state-machine.md#L48"}
+    },
+    {
+      "id": "lifecycle/worker-rejects-second-terminal",
+      "title": "a second, conflicting terminal after SUCCEEDED is ignored",
+      "role": "worker",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "SUCCEEDED", "to": "FAILED", "expect": "ignore", "spec": "07-state-machine.md#L49"}
+    },
+    {
+      "id": "lifecycle/cp-pending-to-scheduled",
+      "title": "scheduler moves PENDING -> SCHEDULED",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "PENDING", "to": "SCHEDULED", "spec": "07-state-machine.md#L22"}
+    },
+    {
+      "id": "lifecycle/cp-scheduled-to-dispatched",
+      "title": "scheduler moves SCHEDULED -> DISPATCHED after safety",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "SCHEDULED", "to": "DISPATCHED", "spec": "07-state-machine.md#L23"}
+    },
+    {
+      "id": "lifecycle/cp-scheduled-to-denied",
+      "title": "safety rejection moves SCHEDULED -> DENIED",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "SCHEDULED", "to": "DENIED", "spec": "07-state-machine.md#L31"}
+    },
+    {
+      "id": "lifecycle/cp-dispatched-to-timeout",
+      "title": "a worker that never starts moves DISPATCHED -> TIMEOUT",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "DISPATCHED", "to": "TIMEOUT", "spec": "07-state-machine.md#L30"}
+    },
+    {
+      "id": "lifecycle/cp-rejects-backwards-transition",
+      "title": "a backwards transition DISPATCHED -> SCHEDULED is rejected",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"from": "DISPATCHED", "to": "SCHEDULED", "expect": "reject", "spec": "07-state-machine.md#L48"}
+    }
+  ]
+}

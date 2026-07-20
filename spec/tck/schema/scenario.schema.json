@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cordum.io/cap/tck/scenario-v1.schema.json",
+  "title": "CAP TCK Scenario Suite v1",
+  "description": "A declarative suite of conformance scenarios executed by cap-tck.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "scenarios"],
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Suite schema version."
+    },
+    "scenarios": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/scenario" }
+    }
+  },
+  "$defs": {
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "profile"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Stable, unique case identifier, e.g. lifecycle/happy-path."
+        },
+        "title": { "type": "string" },
+        "role": {
+          "type": "string",
+          "enum": ["worker", "control-plane"],
+          "description": "Component boundary that owns the behavior under test."
+        },
+        "profile": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Conformance profile, e.g. core or cap-production."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Whether an applicable adapter must PASS this case."
+        },
+        "params": {
+          "type": "object",
+          "description": "Bounded string parameters passed to the adapter.",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    }
+  }
+}

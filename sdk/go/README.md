@@ -2,7 +2,100 @@
 
 Go SDK with NATS helpers for workers and clients. Uses generated protobuf stubs from `proto/`.
 
-## Quick Start
+## Consumer Quickstart (echo over NATS)
+
+From an empty directory, install the released module and run an echo round-trip
+against a running NATS server (`nats://127.0.0.1:4222` by default, or set
+`CAP_NATS_URL`). This uses the **direct-pool development-lab** wiring (worker on
+the submit subject, no Scheduler/Safety Kernel); production deployments submit
+through the governed Scheduler/Safety path (see `docs/reference.md`).
+
+```bash
+mkdir echo && cd echo && go mod init example.com/echo
+go get github.com/cordum-io/cap/v2@v2.14.0
+# add main.go below, then:
+go run .
+```
+
+<!-- cap-release:snippet:go-echo:go -->
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"time"
+
+	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+	capsdk "github.com/cordum-io/cap/v2/sdk/go"
+	"github.com/cordum-io/cap/v2/sdk/go/client"
+	"github.com/cordum-io/cap/v2/sdk/go/worker"
+	"github.com/nats-io/nats.go"
+	"google.golang.org/protobuf/proto"
+)
+
+func main() {
+	url := os.Getenv("CAP_NATS_URL")
+	if url == "" {
+		url = nats.DefaultURL
+	}
+	nc, err := nats.Connect(url, nats.Timeout(5*time.Second))
+	if err != nil {
+		fail(err)
+	}
+	defer nc.Close()
+
+	w := &worker.Worker{NATS: nc, Subject: capsdk.SubjectSubmit, SenderID: "echo-worker",
+		Handler: func(_ context.Context, req *agentv1.JobRequest) (*agentv1.JobResult, error) {
+			return &agentv1.JobResult{JobId: req.JobId, Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED,
+				ResultPtr: "echo://" + req.JobId, WorkerId: "echo-worker"}, nil
+		}}
+	if err := w.Start(); err != nil {
+		fail(err)
+	}
+
+	const jobID = "echo-1"
+	results := make(chan *agentv1.JobResult, 1)
+	if _, err := nc.Subscribe(capsdk.SubjectResult, func(m *nats.Msg) {
+		var pkt agentv1.BusPacket
+		if proto.Unmarshal(m.Data, &pkt) == nil {
+			if r := pkt.GetJobResult(); r != nil && r.JobId == jobID {
+				results <- r
+			}
+		}
+	}); err != nil {
+		fail(err)
+	}
+	if err := nc.Flush(); err != nil { // barrier: SUB registered before submit
+		fail(err)
+	}
+	if err := client.Submit(context.Background(), nc,
+		&agentv1.JobRequest{JobId: jobID, Topic: "job.echo"}, jobID, "echo-client", nil); err != nil {
+		fail(err)
+	}
+
+	select {
+	case r := <-results:
+		if r.Status != agentv1.JobStatus_JOB_STATUS_SUCCEEDED {
+			fail(fmt.Errorf("job %s ended %s", r.JobId, r.Status))
+		}
+		fmt.Printf("job %s: %s payload=%s\n", r.JobId, r.Status, r.ResultPtr)
+	case <-time.After(10 * time.Second):
+		fail(fmt.Errorf("timed out waiting for JobResult (no worker?)"))
+	}
+}
+
+func fail(err error) {
+	fmt.Fprintln(os.Stderr, "echo:", err)
+	os.Exit(1)
+}
+```
+<!-- cap-release:snippet-end -->
+
+A runnable copy lives at [`examples/quickstart-echo`](../../examples/quickstart-echo).
+
+## Quick Start (SDK development)
 1. Generate protobuf stubs (once per change):
    ```bash
    ./tools/make_protos.sh

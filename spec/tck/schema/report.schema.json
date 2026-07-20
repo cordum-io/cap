@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cordum.io/cap/tck/report-v1.schema.json",
+  "title": "CAP TCK Report v1",
+  "description": "Deterministic result of running one adapter against one profile. Local/CI evidence, not certification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["adapter", "profile", "summary", "cases"],
+  "properties": {
+    "adapter": { "type": "string" },
+    "sdk": { "type": "string" },
+    "role": { "type": "string", "enum": ["worker", "control-plane", ""] },
+    "profile": { "type": "string" },
+    "transport": { "type": "string" },
+    "toolVersion": { "type": "string" },
+    "summary": { "$ref": "#/$defs/summary" },
+    "cases": { "type": "array", "items": { "$ref": "#/$defs/case" } }
+  },
+  "$defs": {
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total", "pass", "fail", "error", "unsupported", "na", "conformant"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "pass": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 },
+        "error": { "type": "integer", "minimum": 0 },
+        "unsupported": { "type": "integer", "minimum": 0 },
+        "na": { "type": "integer", "minimum": 0 },
+        "conformant": { "type": "boolean" }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "profile", "role", "required", "applicable", "status", "durationMs"],
+      "properties": {
+        "id": { "type": "string" },
+        "profile": { "type": "string" },
+        "role": { "type": "string", "enum": ["worker", "control-plane"] },
+        "required": { "type": "boolean" },
+        "applicable": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["PASS", "FAIL", "ERROR", "UNSUPPORTED", "N/A"] },
+        "detail": { "type": "string" },
+        "durationMs": { "type": "integer", "minimum": 0 },
+        "evidence": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    }
+  }
+}

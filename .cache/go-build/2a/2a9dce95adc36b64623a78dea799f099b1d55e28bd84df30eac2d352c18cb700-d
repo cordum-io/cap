@@ -1,8 +1,0 @@
-./crc16.go
-./creds_utils.go
-./errors.go
-./keypair.go
-./nkeys.go
-./public.go
-./strkey.go
-./xkeys.go

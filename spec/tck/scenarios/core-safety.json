@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "safety/allow-precedes-dispatch",
+      "title": "a recorded ALLOW decision precedes publishing into a pool subject",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"decision": "ALLOW", "spec": "06-safety.md#L22"}
+    },
+    {
+      "id": "safety/deny-blocks-dispatch",
+      "title": "DENY sets DENIED and produces zero dispatch",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"decision": "DENY", "expect": "no-dispatch", "err": "ERROR_CODE_SAFETY_DENIED", "spec": "06-safety.md#L23"}
+    },
+    {
+      "id": "safety/require-human-pauses-dispatch",
+      "title": "REQUIRE_HUMAN pauses dispatch pending out-of-band approval",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"decision": "REQUIRE_HUMAN", "expect": "no-dispatch", "spec": "06-safety.md#L24"}
+    },
+    {
+      "id": "safety/throttle-blocks-immediate-dispatch",
+      "title": "THROTTLE prevents immediate dispatch into a pool subject",
+      "role": "control-plane",
+      "profile": "core",
+      "required": true,
+      "params": {"decision": "THROTTLE", "expect": "no-dispatch", "spec": "06-safety.md#L6"}
+    }
+  ]
+}

@@ -17,7 +17,19 @@ import pytest
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "verify_artifacts.py"
 SDK_ROOT = SCRIPT.parents[1]
-PROJECT_VERSION = "2.5.3"
+def _project_version() -> str:
+    if sys.version_info >= (3, 11):
+        import tomllib as _toml
+    else:
+        import tomli as _toml
+    project = _toml.loads((SDK_ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    assert isinstance(project, dict)
+    return str(project["version"])
+
+
+PROJECT_VERSION = _project_version()
+
+
 def _load_verifier() -> ModuleType:
     spec = importlib.util.spec_from_file_location("cap_artifact_verifier", SCRIPT)
     assert spec is not None and spec.loader is not None

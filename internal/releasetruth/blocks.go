@@ -63,10 +63,17 @@ func renderSpecTOC(m *Manifest) string {
 func renderReleaseStatus(m *Manifest) string {
 	r, w := m.Release, m.Wire
 	lines := []string{
-		fmt.Sprintf("- **Current release:** %s (tag `%s`, %s, channel %s)", r.Version, r.Tag, r.Date, r.Channel),
+		fmt.Sprintf("- **Current verified published release:** %s (tag `%s`, %s, channel %s)", r.Version, r.Tag, r.Date, r.Channel),
 		fmt.Sprintf("- **Wire protocol:** %d (compatible range %d–%d)", w.ProtocolVersion, w.CompatMin, w.CompatMax),
 		fmt.Sprintf("- **Wire schema:** %s", w.SchemaVersion),
 		fmt.Sprintf("- **Specifications:** %d normative documents", len(m.Specs)),
+	}
+	if m.Candidate != nil {
+		lines = append(lines, fmt.Sprintf("- **Release candidate (not published):** %s (tag `%s`, channel %s)",
+			m.Candidate.Version, m.Candidate.Tag, m.Candidate.Channel))
+	}
+	if m.Snapshot != nil {
+		lines = append(lines, renderSnapshotStatus(m.Snapshot))
 	}
 	return strings.Join(lines, "\n")
 }
@@ -100,7 +107,19 @@ func renderVersionPolicy(m *Manifest) string {
 		fmt.Sprintf("- **Current published release:** %s (tag `%s`). SDK and repository releases track implementation and are pinned by tag.", r.Version, r.Tag),
 		"- **Source versus release:** development source may carry an in-progress version distinct from the latest published artifact; the release manifest is the authority on what is published.",
 	}
+	if m.Candidate != nil {
+		lines = append(lines, fmt.Sprintf("- **Release candidate (not published):** %s (tag `%s`, channel %s).",
+			m.Candidate.Version, m.Candidate.Tag, m.Candidate.Channel))
+	}
+	if m.Snapshot != nil {
+		lines = append(lines, renderSnapshotStatus(m.Snapshot))
+	}
 	return strings.Join(lines, "\n")
+}
+
+func renderSnapshotStatus(snapshot *Snapshot) string {
+	return fmt.Sprintf("- **Prepared release snapshot:** %s (tag `%s`, channel %s); publication status is not asserted by this source state.",
+		snapshot.Version, snapshot.Tag, snapshot.Channel)
 }
 
 func renderSecurityLines(m *Manifest) string {

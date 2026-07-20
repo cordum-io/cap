@@ -18,7 +18,7 @@ func main() {
 
 func run(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: cap-release <check|render|links> [flags]")
+		fmt.Fprintln(os.Stderr, "usage: cap-release <check|render|links|release-check|promotion-check> [flags]")
 		return 2
 	}
 	switch args[0] {
@@ -30,8 +30,10 @@ func run(args []string) int {
 		return runLinks(args[1:])
 	case "release-check":
 		return runReleaseCheck(args[1:])
+	case "promotion-check":
+		return runPromotionCheck(args[1:])
 	default:
-		fmt.Fprintf(os.Stderr, "unknown subcommand %q (supported: check, render, links, release-check)\n", args[0])
+		fmt.Fprintf(os.Stderr, "unknown subcommand %q (supported: check, render, links, release-check, promotion-check)\n", args[0])
 		return 2
 	}
 }
@@ -50,6 +52,7 @@ func runCheck(args []string) int {
 	}
 	problems := releasetruth.Validate(m)
 	problems = append(problems, releasetruth.CheckSpecsOnDisk(m, *repoRoot)...)
+	problems = append(problems, releasetruth.CheckSourceMetadata(m, *repoRoot)...)
 	if len(problems) > 0 {
 		fmt.Fprintf(os.Stderr, "release-truth check FAILED: %d problem(s)\n", len(problems))
 		for _, p := range problems {

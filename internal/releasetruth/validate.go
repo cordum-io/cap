@@ -6,13 +6,13 @@ import (
 )
 
 var (
-	reSemver = regexp.MustCompile(`^\d+\.\d+\.\d+$`)
-	reDate   = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
-	reHexSHA = regexp.MustCompile(`^[0-9a-f]{7,40}$`)
+	reSemver  = regexp.MustCompile(`^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$`)
+	reDate    = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
+	reHexSHA  = regexp.MustCompile(`^[0-9a-f]{7,40}$`)
+	reFullSHA = regexp.MustCompile(`^[0-9a-f]{40}$`)
 )
 
 var (
-	validChannels  = map[string]bool{"stable": true, "beta": true, "rc": true}
 	validKinds     = map[string]bool{"sdk": true, "extension": true}
 	validTiers     = map[string]bool{"stable": true, "experimental": true, "community": true}
 	validTransport = map[string]bool{"supported": true, "experimental": true}
@@ -24,11 +24,15 @@ var (
 func Validate(m *Manifest) []Problem {
 	var ps []Problem
 	ps = append(ps, checkSchema(m)...)
+	ps = append(ps, checkReleaseState(m)...)
 	ps = append(ps, checkRelease(m)...)
+	ps = append(ps, checkCandidate(m)...)
+	ps = append(ps, checkSnapshot(m)...)
 	ps = append(ps, checkDevelopment(m)...)
 	ps = append(ps, checkWire(m)...)
 	ps = append(ps, checkSpecs(m)...)
 	ps = append(ps, checkComponents(m)...)
+	ps = append(ps, checkPublishedComponentClaims(m)...)
 	ps = append(ps, checkTransports(m)...)
 	ps = append(ps, checkToolchains(m)...)
 	ps = append(ps, checkSecurity(m)...)
@@ -37,10 +41,12 @@ func Validate(m *Manifest) []Problem {
 }
 
 func checkSchema(m *Manifest) []Problem {
-	if !reSemver.MatchString(m.SchemaVersion) {
-		return []Problem{{"schemaVersion", "must be MAJOR.MINOR.PATCH: " + m.SchemaVersion}}
+	switch m.SchemaVersion {
+	case "1.0.0", "1.1.0", "1.2.0":
+		return nil
+	default:
+		return []Problem{{"schemaVersion", "unsupported manifest schema: " + m.SchemaVersion}}
 	}
-	return nil
 }
 
 func checkRelease(m *Manifest) []Problem {
@@ -55,11 +61,11 @@ func checkRelease(m *Manifest) []Problem {
 	if !reDate.MatchString(r.Date) {
 		ps = append(ps, Problem{"release.date", "must be YYYY-MM-DD: " + r.Date})
 	}
-	if !reHexSHA.MatchString(r.Commit) {
-		ps = append(ps, Problem{"release.commit", "must be a 7-40 char hex sha: " + r.Commit})
+	if !reFullSHA.MatchString(r.Commit) {
+		ps = append(ps, Problem{"release.commit", "must be the full 40-char tag target sha: " + r.Commit})
 	}
-	if !validChannels[r.Channel] {
-		ps = append(ps, Problem{"release.channel", "unknown channel: " + r.Channel})
+	if r.Channel != "stable" {
+		ps = append(ps, Problem{"release.channel", "stable version/tag require channel stable, got " + r.Channel})
 	}
 	return ps
 }
@@ -209,10 +215,30 @@ func checkSecurity(m *Manifest) []Problem {
 	if len(m.Security.SupportedLines) == 0 {
 		ps = append(ps, Problem{"security.supportedLines", "at least one supported release line is required"})
 	}
+	if current, ok := currentReleaseLine(m.Release.Version); ok && !contains(m.Security.SupportedLines, current) {
+		ps = append(ps, Problem{"security.supportedLines.current", "supported lines must include current release line " + current})
+	}
 	if strings.TrimSpace(m.Security.ReportingRoute) == "" {
 		ps = append(ps, Problem{"security.reportingRoute", "a vulnerability reporting route is required"})
 	}
 	return ps
+}
+
+func currentReleaseLine(version string) (string, bool) {
+	if !reSemver.MatchString(version) {
+		return "", false
+	}
+	parts := strings.Split(version, ".")
+	return parts[0] + "." + parts[1] + ".x", true
+}
+
+func contains(values []string, want string) bool {
+	for _, value := range values {
+		if value == want {
+			return true
+		}
+	}
+	return false
 }
 
 func checkLinks(m *Manifest) []Problem {

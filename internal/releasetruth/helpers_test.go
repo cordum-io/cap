@@ -11,7 +11,7 @@ import (
 // release truth at origin/main@ed0d8bd (v2.14.0).
 func validManifest() *Manifest {
 	return &Manifest{
-		SchemaVersion: "1.0.0",
+		SchemaVersion: "1.2.0",
 		Release: Release{
 			Version: "2.14.0",
 			Tag:     "v2.14.0",
@@ -74,7 +74,12 @@ func guardComponent() Component {
 // exercise the real strict parser rather than a hand-maintained literal.
 func validManifestJSON(t *testing.T) []byte {
 	t.Helper()
-	b, err := json.Marshal(validManifest())
+	return mustMarshalManifest(t, validManifest())
+}
+
+func mustMarshalManifest(t *testing.T, m *Manifest) []byte {
+	t.Helper()
+	b, err := json.Marshal(m)
 	if err != nil {
 		t.Fatalf("marshal baseline manifest: %v", err)
 	}

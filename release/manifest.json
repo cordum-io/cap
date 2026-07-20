@@ -1,6 +1,6 @@
 {
   "$schema": "./manifest.schema.json",
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.2.0",
   "release": {
     "version": "2.14.0",
     "tag": "v2.14.0",
@@ -53,7 +53,7 @@
       "version": "2.14.0",
       "toolchain": "go1.25.12",
       "publication": "published",
-      "evidence": "sdk/go conformance_test.go + CI NATS e2e; released at tag v2.14.0"
+      "evidence": "sdk/go conformance_test.go plus CI real-NATS end-to-end and immutable-tag publication verification"
     },
     {
       "name": "cap-node",
@@ -66,7 +66,7 @@
       "version": "2.14.0",
       "toolchain": "node20",
       "publication": "published",
-      "evidence": "CI build+test; released at tag v2.14.0"
+      "evidence": "CI build, source tests, package verification, and immutable-tag npm publication verification"
     },
     {
       "name": "cap-python",
@@ -79,7 +79,7 @@
       "version": "2.14.0",
       "toolchain": "python3.11",
       "publication": "published",
-      "evidence": "CI pytest; released at tag v2.14.0"
+      "evidence": "CI pytest, clean wheel and sdist verification, and immutable-tag PyPI publication verification"
     },
     {
       "name": "cordum-guard",
@@ -92,7 +92,7 @@
       "version": "2.14.0",
       "toolchain": "python3.11",
       "publication": "published",
-      "evidence": "unit tests; published on PyPI on the release train (latest 2.14.0). Source pyproject carries an in-development 2.15.0.dev0 prerelease that must not be treated as the published artifact."
+      "evidence": "unit tests plus immutable-tag PyPI publication verification for the manifest-declared release"
     },
     { "name": "cap-cpp", "kind": "sdk", "tier": "experimental", "language": "cpp", "package": "", "registry": "", "import": "", "version": "", "toolchain": "", "publication": "source-only", "evidence": "" },
     { "name": "cap-dotnet", "kind": "sdk", "tier": "experimental", "language": "dotnet", "package": "", "registry": "", "import": "", "version": "", "toolchain": "", "publication": "source-only", "evidence": "" },

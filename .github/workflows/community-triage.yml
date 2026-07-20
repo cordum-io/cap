@@ -1,0 +1,38 @@
+name: Community Triage
+
+# Scheduled, read-only visibility check for the first-human-triage SLA. It reports
+# overdue needs-triage items and fails visibly, but is NOT a PR-required check.
+
+on:
+  schedule:
+    - cron: '17 8 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  triage:
+    name: Triage SLA audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Collect open needs-triage items
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue list --state open --label needs-triage --limit 500 \
+            --json number,createdAt,title,url,labels \
+            --jq '[.[] | {number, createdAt, title, url, labels: [.labels[].name]}]' \
+            > triage-items.json
+          cat triage-items.json
+
+      - name: Audit triage SLA (7 days)
+        run: go run ./cmd/cap-governance triage --input triage-items.json --sla-days 7

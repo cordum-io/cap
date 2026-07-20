@@ -10,5 +10,5 @@
 8) Market: AI infra, agent frameworks, MLOps, ops automation.
 9) Traction/plan: v1 spec, examples, early adopters, ecosystem integrations (LangChain, GitHub Actions, K8s ops).
 10) Business: Cordum Cloud as managed CAP control plane; support/certification.
-11) Roadmap: SDKs, RFCs (v2: streaming, vector pointers, enclaves), CNCF Sandbox target.
-12) Call to action: adopt spec, build workers, join working group.
+11) Roadmap: SDKs, RFCs (v2: streaming, vector pointers, enclaves). Neutral, multi-org governance is a future goal with a defined trigger (see GOVERNANCE.md), not a current status; no foundation affiliation is claimed.
+12) Call to action: adopt spec, build workers, join the discussion (GitHub Discussions) and the RFC process.

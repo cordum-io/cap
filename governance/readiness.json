@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "readiness-v1",
+  "implementations": [],
+  "adopters": [],
+  "maintainers": [],
+  "onboardingSurfaces": [
+    {
+      "id": "root",
+      "status": "unknown",
+      "skipped": true,
+      "commit": "ed0d8bd",
+      "evidence": "no fresh onboarding gate on this governance branch; pending integration of the onboarding predecessor (task-bb81b75b) and a real gate run at the integrated commit"
+    },
+    {
+      "id": "go",
+      "status": "unknown",
+      "skipped": true,
+      "commit": "ed0d8bd",
+      "evidence": "pending predecessor integration and a fresh non-skipped Go installed-artifact gate"
+    },
+    {
+      "id": "python",
+      "status": "unknown",
+      "skipped": true,
+      "commit": "ed0d8bd",
+      "evidence": "pending predecessor integration and a fresh non-skipped Python installed-artifact gate"
+    },
+    {
+      "id": "node",
+      "status": "unknown",
+      "skipped": true,
+      "commit": "ed0d8bd",
+      "evidence": "pending predecessor integration and a fresh non-skipped Node installed-artifact gate"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 name: Bug report
 about: Report a bug in CAP protocol, SDKs, or tooling
 title: ''
-labels: bug
+labels: bug, needs-triage
 assignees: ''
 
 ---

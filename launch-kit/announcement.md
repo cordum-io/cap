@@ -23,5 +23,5 @@ CAP standardizes how gateways, schedulers, workers, orchestrators, and safety se
 
 ## Call to Action
 - Build your first CAP worker today.
-- Join the CAP working group (Slack/Discord placeholder).
-- File issues and proposals under `/rfcs` (coming soon).
+- Join the discussion on [GitHub Discussions](https://github.com/cordum-io/cap/discussions) and Discord (see [CONTRIBUTING.md](../CONTRIBUTING.md)).
+- Propose changes through the RFC process in [`rfcs/`](../rfcs/README.md); see [GOVERNANCE.md](../GOVERNANCE.md) for how decisions are made.

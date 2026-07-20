@@ -31,7 +31,7 @@ NODE_DEPENDENCIES = {
     "@types/google-protobuf": "3.15.12",
     "google-protobuf": "3.21.4",
     "protobufjs": "7.6.3",
-    "protobufjs-cli": "1.1.3",
+    "protobufjs-cli": "1.3.3",
     "ts-protoc-gen": "0.15.0",
     "typescript": "5.9.3",
 }

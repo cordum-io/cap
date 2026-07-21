@@ -140,8 +140,8 @@ func buildArtifacts(root, workDir string) (map[string]driverSpec, error) {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, pythonExe(), script, "--root", root, "--out", workDir)
 	cmd.Dir = root
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
+	stderr := newBoundedBuffer(maxDriverStderr)
+	cmd.Stderr = stderr
 	if err := cmd.Run(); err != nil {
 		return nil, fmt.Errorf("build_artifacts.py: %w\n%s", err, stderr.String())
 	}
@@ -213,6 +213,10 @@ func (e *CrossLangEnv) exchange() error {
 }
 
 func (e *CrossLangEnv) produceAll(now time.Time) ([]Fixture, error) {
+	wantCases := map[string]int{}
+	for _, c := range e.corpus.Cases {
+		wantCases[c.Name]++
+	}
 	var out []Fixture
 	for _, sdk := range StableSDKs {
 		request := produceRequest{
@@ -225,9 +229,14 @@ func (e *CrossLangEnv) produceAll(now time.Time) ([]Fixture, error) {
 		if err := e.invoke(sdk, "produce", request, &response); err != nil {
 			return nil, err
 		}
-		if len(response.Fixtures) != len(e.corpus.Cases) {
-			return nil, fmt.Errorf("producer %s emitted %d fixtures, want %d",
-				sdk, len(response.Fixtures), len(e.corpus.Cases))
+		// Exact case-set equality, not just count: a producer that emits one case
+		// twice and drops another preserves the length but breaks the matrix.
+		gotCases := map[string]int{}
+		for _, f := range response.Fixtures {
+			gotCases[f.Case]++
+		}
+		if !sameCaseCounts(wantCases, gotCases) {
+			return nil, fmt.Errorf("producer %s emitted case set %v, want %v", sdk, gotCases, wantCases)
 		}
 		for _, f := range response.Fixtures {
 			wire, err := base64.StdEncoding.DecodeString(f.Wire)
@@ -260,19 +269,56 @@ func (e *CrossLangEnv) invoke(sdk, mode string, request, response any) error {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, spec.Argv[0], append(append([]string{}, spec.Argv[1:]...), mode)...)
 	cmd.Stdin = bytes.NewReader(payload)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &stdout, &stderr
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("%s driver %s: %w\n%s", sdk, mode, err, stderr.String())
+	out, errText, err := runBoundedProcess(cmd, maxDriverStdout, maxDriverStderr)
+	if err != nil {
+		return fmt.Errorf("%s driver %s: %w\n%s", sdk, mode, err, errText)
 	}
-	if err := json.Unmarshal(stdout.Bytes(), response); err != nil {
+	if err := json.Unmarshal(out, response); err != nil {
 		return fmt.Errorf("%s driver %s: parse response: %w", sdk, mode, err)
 	}
 	return nil
+}
+
+const (
+	// maxDriverStdout bounds a driver's JSON response. Fixtures are a few KB per
+	// case, so 32 MiB is far above any legitimate corpus while still bounding a
+	// runaway or hostile child rather than buffering unbounded into memory.
+	maxDriverStdout = 32 << 20
+	// maxDriverStderr keeps a truncated diagnostic tail without letting a noisy
+	// or crash-looping child exhaust memory.
+	maxDriverStderr = 64 << 10
+)
+
+// runBoundedProcess runs cmd with both stdout and stderr captured into bounded
+// buffers, so a driver that emits a huge, noisy, or crash-looping stream cannot
+// exhaust the harness's memory. stdout is returned for parsing; if it overflowed
+// the cap the call fails closed - a truncated JSON body must never be parsed as
+// a valid response. stderr is returned truncated, for diagnostics only.
+func runBoundedProcess(cmd *exec.Cmd, maxOut, maxErr int) (stdout []byte, stderr string, err error) {
+	out := newBoundedBuffer(maxOut)
+	errBuf := newBoundedBuffer(maxErr)
+	cmd.Stdout, cmd.Stderr = out, errBuf
+	runErr := cmd.Run()
+	if runErr == nil && out.Dropped() > 0 {
+		runErr = fmt.Errorf("stdout exceeded %d bytes (dropped %d more)", maxOut, out.Dropped())
+	}
+	return []byte(out.String()), errBuf.String(), runErr
 }
 
 func wireKey(wire, publicKey []byte) string {
 	sum := sha256.Sum256(wire)
 	key := sha256.Sum256(publicKey)
 	return hex.EncodeToString(sum[:]) + "|" + hex.EncodeToString(key[:])
+}
+
+func sameCaseCounts(a, b map[string]int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for k, v := range a {
+		if b[k] != v {
+			return false
+		}
+	}
+	return true
 }

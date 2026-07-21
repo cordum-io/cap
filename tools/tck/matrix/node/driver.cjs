@@ -56,6 +56,7 @@ function attachPayload(packet, payload) {
         topic: payload.topic ?? "",
         tenantId: payload.tenantId ?? "",
         principalId: payload.principalId ?? "",
+        ...(payload.contextRef ? { contextRef: resourceRef(payload.contextRef) } : {}),
       };
       return;
     case "jobResult":
@@ -65,6 +66,10 @@ function attachPayload(packet, payload) {
         workerId: payload.workerId ?? "",
         executionMs: payload.executionMs ?? 0,
         ...dispatchField(payload),
+        ...(payload.resultRef ? { resultRef: resourceRef(payload.resultRef) } : {}),
+        ...(payload.artifactRefs
+          ? { artifactRefs: payload.artifactRefs.map(resourceRef) }
+          : {}),
       };
       return;
     case "jobProgress":
@@ -99,6 +104,22 @@ function dispatchField(payload) {
       assignedWorkerId: payload.dispatch.assignedWorkerId ?? "",
     },
   };
+}
+
+// resourceRef maps a neutral corpus resource object to a ResourceRef. As with
+// the packet root, zero-valued proto3 scalars (and an unset nanos on expiresAt)
+// are omitted so the encoded bytes stay canonical and identical across SDKs.
+function resourceRef(raw) {
+  const ref = {
+    resolverId: raw.resolverId ?? "",
+    uri: raw.uri ?? "",
+    sha256: Buffer.from(raw.sha256 ?? "", "base64"),
+    mediaType: raw.mediaType ?? "",
+    sizeBytes: raw.sizeBytes ?? 0,
+    purpose: raw.purpose ?? "",
+  };
+  if (raw.expiresAtUnix) ref.expiresAt = { seconds: raw.expiresAtUnix };
+  return ref;
 }
 
 function sha256Hex(bytes) {

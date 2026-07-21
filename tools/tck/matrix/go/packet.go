@@ -51,14 +51,17 @@ func attachPayload(pkt *agentv1.BusPacket, c corpusCase) error {
 			Topic:       str(p, "topic"),
 			TenantId:    str(p, "tenantId"),
 			PrincipalId: str(p, "principalId"),
+			ContextRef:  resourceRef(mapField(p, "contextRef")),
 		}}
 	case "jobResult":
 		pkt.Payload = &agentv1.BusPacket_JobResult{JobResult: &agentv1.JobResult{
-			JobId:       str(p, "jobId"),
-			Status:      agentv1.JobStatus(num(p, "status")),
-			WorkerId:    str(p, "workerId"),
-			ExecutionMs: int64(num(p, "executionMs")),
-			Dispatch:    dispatch(p),
+			JobId:        str(p, "jobId"),
+			Status:       agentv1.JobStatus(num(p, "status")),
+			WorkerId:     str(p, "workerId"),
+			ExecutionMs:  int64(num(p, "executionMs")),
+			Dispatch:     dispatch(p),
+			ResultRef:    resourceRef(mapField(p, "resultRef")),
+			ArtifactRefs: resourceRefs(p, "artifactRefs"),
 		}}
 	case "jobProgress":
 		pkt.Payload = &agentv1.BusPacket_JobProgress{JobProgress: &agentv1.JobProgress{
@@ -92,6 +95,48 @@ func dispatch(p map[string]any) *agentv1.DispatchIdentity {
 		Attempt:          uint64(num(raw, "attempt")),
 		AssignedWorkerId: str(raw, "assignedWorkerId"),
 	}
+}
+
+// resourceRef builds a structured ResourceRef (CAP-PRODUCTION content resolved
+// only through an operator-installed resolver) from a corpus resource object.
+// The sha256 is carried as base64 in the neutral corpus so no language smuggles
+// its own byte encoding; every driver decodes it to the same 32 bytes.
+func resourceRef(raw map[string]any) *agentv1.ResourceRef {
+	if raw == nil {
+		return nil
+	}
+	sha, _ := base64.StdEncoding.DecodeString(str(raw, "sha256"))
+	ref := &agentv1.ResourceRef{
+		ResolverId: str(raw, "resolverId"),
+		Uri:        str(raw, "uri"),
+		Sha256:     sha,
+		MediaType:  str(raw, "mediaType"),
+		SizeBytes:  uint64(num(raw, "sizeBytes")),
+		Purpose:    str(raw, "purpose"),
+	}
+	if exp := num(raw, "expiresAtUnix"); exp != 0 {
+		ref.ExpiresAt = timestamppb.New(unixSecond(int64(exp)))
+	}
+	return ref
+}
+
+func resourceRefs(p map[string]any, key string) []*agentv1.ResourceRef {
+	list, ok := p[key].([]any)
+	if !ok {
+		return nil
+	}
+	out := make([]*agentv1.ResourceRef, 0, len(list))
+	for _, item := range list {
+		if raw, ok := item.(map[string]any); ok {
+			out = append(out, resourceRef(raw))
+		}
+	}
+	return out
+}
+
+func mapField(m map[string]any, key string) map[string]any {
+	v, _ := m[key].(map[string]any)
+	return v
 }
 
 func str(m map[string]any, key string) string {

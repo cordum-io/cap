@@ -52,12 +52,28 @@ func TestCrossLanguageCorpusCoversProductionSurface(t *testing.T) {
 	if len(corpus.Cases) < 4 {
 		t.Errorf("corpus declares %d cases, want >=4", len(corpus.Cases))
 	}
-	// DispatchIdentity is the CAP-PRODUCTION attempt-fencing surface; a corpus
-	// of bare heartbeats would prove decoding but not production interop.
-	for _, want := range []string{"dispatchId", "attempt", "assignedWorkerId", "identity"} {
+	// DispatchIdentity is the CAP-PRODUCTION attempt-fencing surface, and the
+	// structured ResourceRef surface (context_ref / result_ref / artifact_refs,
+	// each with an operator-resolver id and a sha256) is the CAP-PRODUCTION
+	// content-resolution surface; a corpus of bare heartbeats or one carrying no
+	// resource refs would prove decoding but not production interop.
+	for _, want := range []string{
+		"dispatchId", "attempt", "assignedWorkerId", "identity",
+		"contextRef", "resultRef", "artifactRefs", "resolverId", "sha256",
+	} {
 		if !strings.Contains(string(raw), want) {
 			t.Errorf("corpus must exercise %q", want)
 		}
+	}
+	// Every case name must be distinct: the matrix keys producer output by case
+	// name, so a duplicated name would let a count-preserving corpus hide a
+	// dropped case.
+	seen := map[string]bool{}
+	for _, c := range corpus.Cases {
+		if seen[c.Name] {
+			t.Errorf("corpus case name %q is duplicated", c.Name)
+		}
+		seen[c.Name] = true
 	}
 }
 

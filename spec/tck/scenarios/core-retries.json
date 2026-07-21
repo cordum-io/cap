@@ -9,6 +9,7 @@
       "required": true,
       "params": {
         "dispatchId": "dsp-1",
+        "event": "dispatch",
         "attempt": "2",
         "activeAttempt": "1",
         "assignedWorkerId": "wrk-1",
@@ -24,6 +25,7 @@
       "required": true,
       "params": {
         "dispatchId": "dsp-1",
+        "event": "dispatch",
         "attempt": "1",
         "activeAttempt": "2",
         "assignedWorkerId": "wrk-1",
@@ -39,6 +41,7 @@
       "required": true,
       "params": {
         "dispatchId": "dsp-1",
+        "event": "dispatch",
         "attempt": "9",
         "activeAttempt": "2",
         "assignedWorkerId": "wrk-1",
@@ -48,17 +51,66 @@
     },
     {
       "id": "retries/worker-rejects-wrong-worker-attempt",
-      "title": "an attempt addressed to a different assigned_worker_id is rejected",
+      "title": "a dispatch addressed to a different assigned_worker_id is rejected even when its attempt is otherwise valid",
       "role": "worker",
       "profile": "cap-production",
       "required": true,
       "params": {
         "dispatchId": "dsp-1",
-        "attempt": "2",
+        "event": "dispatch",
+        "attempt": "3",
         "activeAttempt": "2",
         "assignedWorkerId": "wrk-other",
         "expect": "reject",
         "spec": "job.proto#DispatchIdentity"
+      }
+    },
+    {
+      "id": "retries/worker-honors-active-cancel",
+      "title": "a JobCancel targeting the active attempt stops that attempt",
+      "role": "worker",
+      "profile": "cap-production",
+      "required": true,
+      "params": {
+        "dispatchId": "dsp-1",
+        "event": "cancel",
+        "attempt": "2",
+        "activeAttempt": "2",
+        "assignedWorkerId": "wrk-1",
+        "expect": "cancel",
+        "spec": "buspacket.proto#JobCancel"
+      }
+    },
+    {
+      "id": "retries/worker-rejects-stale-cancel",
+      "title": "a JobCancel carrying a stale attempt must not tear down the active attempt",
+      "role": "worker",
+      "profile": "cap-production",
+      "required": true,
+      "params": {
+        "dispatchId": "dsp-1",
+        "event": "cancel",
+        "attempt": "1",
+        "activeAttempt": "2",
+        "assignedWorkerId": "wrk-1",
+        "expect": "reject",
+        "spec": "buspacket.proto#JobCancel"
+      }
+    },
+    {
+      "id": "retries/worker-rejects-wrong-worker-cancel",
+      "title": "a JobCancel addressed to a different assigned_worker_id must not cancel our attempt",
+      "role": "worker",
+      "profile": "cap-production",
+      "required": true,
+      "params": {
+        "dispatchId": "dsp-1",
+        "event": "cancel",
+        "attempt": "2",
+        "activeAttempt": "2",
+        "assignedWorkerId": "wrk-other",
+        "expect": "reject",
+        "spec": "buspacket.proto#JobCancel"
       }
     },
     {
@@ -69,6 +121,7 @@
       "required": true,
       "params": {
         "dispatchId": "dsp-1",
+        "event": "result",
         "attempt": "1",
         "activeAttempt": "2",
         "expect": "ignore",
@@ -83,10 +136,26 @@
       "required": true,
       "params": {
         "dispatchId": "dsp-1",
+        "event": "progress",
         "attempt": "1",
         "activeAttempt": "2",
         "expect": "ignore",
         "spec": "job.proto#DispatchIdentity"
+      }
+    },
+    {
+      "id": "retries/cp-ignores-stale-attempt-cancel",
+      "title": "control plane ignores a JobCancel carrying a stale attempt",
+      "role": "control-plane",
+      "profile": "cap-production",
+      "required": true,
+      "params": {
+        "dispatchId": "dsp-1",
+        "event": "cancel",
+        "attempt": "1",
+        "activeAttempt": "2",
+        "expect": "ignore",
+        "spec": "buspacket.proto#JobCancel"
       }
     }
   ]

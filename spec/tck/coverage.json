@@ -143,6 +143,15 @@
       ]
     },
     {
+      "behavior": "cancellation attempt/identity fencing (stale or wrong-worker JobCancel must not mutate the active attempt)",
+      "cases": [
+        "retries/worker-honors-active-cancel",
+        "retries/worker-rejects-stale-cancel",
+        "retries/worker-rejects-wrong-worker-cancel",
+        "retries/cp-ignores-stale-attempt-cancel"
+      ]
+    },
+    {
       "behavior": "cancel-vs-result race, exactly one winner",
       "gated": "cap-production",
       "reason": "deterministic cancellation is covered ungated above (cancellation from any non-terminal state; cancellation after terminal rejected); the concurrent cancel-vs-result race needs a scheduler-level interleaving harness beyond this TCK's request/response adapter contract",

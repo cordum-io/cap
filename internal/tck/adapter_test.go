@@ -71,6 +71,22 @@ func runHelperAdapter(mode string) {
 }
 
 func serveHelperCase(mode string, cmd Command, emit func(AdapterMessage)) {
+	// The reference conformance model and its single-check mutations grade a case
+	// from its semantic params (see refadapter_test.go), unlike the blind
+	// pass/fail helper modes below which exist only to exercise the protocol.
+	if mode == "reference" || strings.HasPrefix(mode, "mut:") {
+		mut := "" // "reference" disables no check
+		if strings.HasPrefix(mode, "mut:") {
+			mut = strings.TrimPrefix(mode, "mut:")
+		}
+		pass, detail := gradeReference(mut, cmd.Scenario, cmd.Params)
+		status := StatusFail
+		if pass {
+			status = StatusPass
+		}
+		emit(AdapterMessage{Type: MsgResult, ID: cmd.ID, Status: status, Detail: detail})
+		return
+	}
 	switch mode {
 	case "hang-run":
 		blockForever()

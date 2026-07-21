@@ -204,36 +204,57 @@ func TestDuplicateAndRetryCoverageIsShippedNotGated(t *testing.T) {
 	}
 }
 
-// NON-VACUITY (DoD 1): the duplicate-suppression and retry-fencing suites must
-// be genuinely graded, in BOTH directions. A mutation adapter that violates the
-// invariant must make the run non-conformant with real failures; a well-behaved
-// adapter must produce real passes. If these cases were ungraded or laundered
-// into N/A, the violating adapter would still come out conformant.
+// NON-VACUITY (DoD 1), duplicate-suppression + retry/cancel fencing, driven
+// end-to-end through the real adapter protocol and runner. The reference model
+// (refadapter_test.go) must grade the suites conformant; a mutation that disables
+// the specific invariant must make the suite non-conformant with real failures.
+// Because the reference computes each outcome from the scenario's INPUT params,
+// a case whose semantic params were gutted can no longer pass — so this cannot be
+// satisfied by an adapter that blindly passes or blindly fails.
 func TestDuplicateAndRetrySuitesAreNonVacuous(t *testing.T) {
 	for _, suiteName := range []string{"core-duplicates.json", "core-retries.json"} {
 		suite := loadShippedSuite(t, suiteName)
-
-		violator := helperAdapter("violate")
-		if _, err := violator.Start(context.Background()); err != nil {
-			t.Fatalf("%s: start violator: %v", suiteName, err)
+		passes := 0
+		for _, role := range []Role{RoleWorker, RoleControlPlane} {
+			ref := helperAdapterRole("reference", role)
+			if _, err := ref.Start(context.Background()); err != nil {
+				t.Fatalf("%s: start reference: %v", suiteName, err)
+			}
+			rep := fixedClockRunner().Run(context.Background(), ref, suite, "cap-production")
+			ref.Close()
+			if !rep.Summary.Conformant {
+				t.Errorf("%s/%s: reference model must be conformant (summary=%+v)", suiteName, role, rep.Summary)
+			}
+			passes += rep.Summary.Pass
 		}
-		bad := fixedClockRunner().Run(context.Background(), violator, suite, "cap-production")
-		violator.Close()
-		if bad.Summary.Fail == 0 {
-			t.Errorf("%s: mutation adapter produced no failures; the suite is vacuous (summary=%+v)", suiteName, bad.Summary)
+		if passes == 0 {
+			t.Errorf("%s: reference graded no cases", suiteName)
 		}
-		if bad.Summary.Conformant {
-			t.Errorf("%s: a mutation adapter that violates the invariant must NOT be conformant (summary=%+v)", suiteName, bad.Summary)
-		}
-
-		good := helperAdapter("well-behaved")
-		if _, err := good.Start(context.Background()); err != nil {
-			t.Fatalf("%s: start well-behaved: %v", suiteName, err)
-		}
-		ok := fixedClockRunner().Run(context.Background(), good, suite, "cap-production")
-		good.Close()
-		if ok.Summary.Pass == 0 {
-			t.Errorf("%s: well-behaved adapter graded no cases; suite never ran (summary=%+v)", suiteName, ok.Summary)
+	}
+	// Each invariant, when disabled, must surface as real failures.
+	checks := map[string][]string{
+		"core-duplicates.json": {"dedup"},
+		"core-retries.json":    {"fence", "worker", "cancel"},
+	}
+	for suiteName, muts := range checks {
+		suite := loadShippedSuite(t, suiteName)
+		for _, mut := range muts {
+			nonConformant, fails := false, 0
+			for _, role := range []Role{RoleWorker, RoleControlPlane} {
+				bad := helperAdapterRole("mut:"+mut, role)
+				if _, err := bad.Start(context.Background()); err != nil {
+					t.Fatalf("%s/%s: start mutation: %v", suiteName, mut, err)
+				}
+				rep := fixedClockRunner().Run(context.Background(), bad, suite, "cap-production")
+				bad.Close()
+				if !rep.Summary.Conformant {
+					nonConformant = true
+				}
+				fails += rep.Summary.Fail
+			}
+			if !nonConformant || fails == 0 {
+				t.Errorf("%s: mutation %q produced no failures; the suite is vacuous", suiteName, mut)
+			}
 		}
 	}
 }
@@ -260,70 +281,96 @@ func TestShippedLifecycleSuiteRunsThroughRunner(t *testing.T) {
 	}
 }
 
-// NON-VACUITY, EVERY SHIPPED SUITE (DoD 1). TestDuplicateAndRetrySuitesAreNonVacuous
-// covers only the two suites added last; QA correctly noted that the
-// already-delivered lifecycle / cancellation / negotiation / malformed / safety
-// scenarios had no such proof, so a suite that graded nothing would look just as
-// green as one that graded everything.
-//
-// For every suite, in both roles and both profiles, this asserts the pair:
-// a well-behaved adapter produces real passes, and a mutation adapter that
-// violates the asserted invariant produces real failures and is NOT conformant.
-// Combinations with no applicable cases (a worker adapter against
-// control-plane-only safety cases) are skipped rather than asserted on, and the
-// total number of graded combinations is checked so the loop cannot silently
-// degenerate into asserting nothing.
-func TestEveryShippedSuiteIsNonVacuous(t *testing.T) {
-	suites := []string{
-		"core-lifecycle.json", "core-cancellation.json", "core-negotiation.json",
-		"core-malformed.json", "core-safety.json", "core-duplicates.json",
-		"core-retries.json",
-	}
-	roles := []Role{RoleWorker, RoleControlPlane}
-	profiles := []string{"core", "cap-production"}
-
-	graded := 0
-	for _, suiteName := range suites {
-		suite := loadShippedSuite(t, suiteName)
-		covered := false
-		for _, role := range roles {
-			for _, profile := range profiles {
-				good := helperAdapterRole("well-behaved", role)
-				if _, err := good.Start(context.Background()); err != nil {
-					t.Fatalf("%s/%s/%s: start well-behaved: %v", suiteName, role, profile, err)
+// runReferenceModeOverAllSuites drives one reference-adapter mode across every
+// shipped suite in both roles and returns each applicable case's verdict. Role
+// mismatches (N/A) are skipped, so the map holds exactly the graded verdicts. A
+// case ID is expected to be non-N/A under exactly one role (its own scenario
+// role); if that assumption is ever broken, a conflicting verdict fails loudly
+// here instead of one role's result silently winning.
+func runReferenceModeOverAllSuites(t *testing.T, mode string) map[string]Status {
+	t.Helper()
+	verdict := map[string]Status{}
+	for _, role := range []Role{RoleWorker, RoleControlPlane} {
+		a := helperAdapterRole(mode, role)
+		if _, err := a.Start(context.Background()); err != nil {
+			t.Fatalf("start %s adapter as %s: %v", mode, role, err)
+		}
+		for _, suiteName := range shippedSuiteFiles {
+			suite := loadShippedSuite(t, suiteName)
+			for _, profile := range suite.Profiles() {
+				rep := fixedClockRunner().Run(context.Background(), a, suite, profile)
+				for _, c := range rep.Cases {
+					if c.Status == StatusNA {
+						continue
+					}
+					if prev, ok := verdict[c.ID]; ok && prev != c.Status {
+						t.Fatalf("case %q graded inconsistently across roles: %s vs %s", c.ID, prev, c.Status)
+					}
+					verdict[c.ID] = c.Status
 				}
-				ok := fixedClockRunner().Run(context.Background(), good, suite, profile)
-				good.Close()
-				if ok.Summary.Pass == 0 {
-					continue // no applicable cases for this role/profile
-				}
-				covered = true
-
-				bad := helperAdapterRole("violate", role)
-				if _, err := bad.Start(context.Background()); err != nil {
-					t.Fatalf("%s/%s/%s: start violator: %v", suiteName, role, profile, err)
-				}
-				rep := fixedClockRunner().Run(context.Background(), bad, suite, profile)
-				bad.Close()
-				if rep.Summary.Fail == 0 {
-					t.Errorf("%s/%s/%s: mutation adapter produced no failures; those cases are ungraded (summary=%+v)",
-						suiteName, role, profile, rep.Summary)
-				}
-				if rep.Summary.Conformant {
-					t.Errorf("%s/%s/%s: a violating adapter must not grade as conformant (summary=%+v)",
-						suiteName, role, profile, rep.Summary)
-				}
-				graded++
 			}
 		}
-		if !covered {
-			t.Errorf("%s: no role/profile graded a single case; the suite never runs", suiteName)
+		a.Close()
+	}
+	return verdict
+}
+
+// NON-VACUITY, EVERY SHIPPED SUITE (DoD 1). The already-delivered lifecycle /
+// cancellation / negotiation / malformed / safety scenarios had no non-vacuity
+// proof, so a suite that graded nothing would look as green as one that graded
+// everything. This drives the reference model and every single-check mutation
+// end-to-end through the real adapter protocol and runner, and asserts:
+//   - the reference PASSes every shipped case (nothing is ungraded or N/A-laundered);
+//   - each mutation breaks exactly the cases that depend on its check and leaves
+//     every other case green (selectivity — proving the checks are real and distinct).
+func TestEveryShippedSuiteIsNonVacuous(t *testing.T) {
+	all := shippedScenarioIDs(t)
+
+	ref := runReferenceModeOverAllSuites(t, "reference")
+	graded := 0
+	for id := range all {
+		st, ok := ref[id]
+		if !ok {
+			t.Errorf("reference adapter never graded shipped case %q", id)
+			continue
+		}
+		graded++
+		if st != StatusPass {
+			t.Errorf("reference adapter did not PASS %q end-to-end: got %s", id, st)
 		}
 	}
-	// 7 suites, each applicable in exactly one profile and graded in at least
-	// one role; lifecycle/cancellation/duplicates/retries grade in both roles.
-	if graded < len(suites) {
-		t.Fatalf("only %d suite/role/profile combinations were graded, want >= %d", graded, len(suites))
+	if graded != len(all) {
+		t.Errorf("reference graded %d cases, want %d", graded, len(all))
 	}
-	t.Logf("non-vacuity proven across %d suite/role/profile combinations", graded)
+
+	for mut, redden := range mutationReddens {
+		reddenSet := map[string]bool{}
+		for _, id := range redden {
+			reddenSet[id] = true
+		}
+		verdict := runReferenceModeOverAllSuites(t, "mut:"+mut)
+		broke := 0
+		for id := range all {
+			st, ok := verdict[id]
+			if !ok {
+				t.Errorf("mutation %q never graded %q", mut, id)
+				continue
+			}
+			switch {
+			case reddenSet[id]:
+				if st == StatusPass {
+					t.Errorf("mutation %q must break %q end-to-end but it PASSED", mut, id)
+				} else {
+					broke++
+				}
+			case st != StatusPass:
+				t.Errorf("mutation %q wrongly broke unrelated case %q: %s", mut, id, st)
+			}
+		}
+		if broke != len(reddenSet) {
+			t.Errorf("mutation %q broke %d cases end-to-end, want %d", mut, broke, len(reddenSet))
+		}
+	}
+	t.Logf("non-vacuity proven: reference PASSes %d cases; %d mutations each break their invariant selectively",
+		graded, len(mutationReddens))
 }

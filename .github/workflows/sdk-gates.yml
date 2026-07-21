@@ -58,6 +58,29 @@ jobs:
       - name: Mutation check - every language follows a proto change
         run: tools/codegen/mutation_check.sh
 
+  # The PowerShell wrappers are the supported codegen path on Windows, where MSYS
+  # rewrites the bash wrappers' container/context paths. This job exercises them
+  # on windows-latest by parsing each with the PowerShell engine, so a syntax
+  # regression in the Windows path is caught in CI. A full container run is
+  # impractical on the Linux-container-less Windows runners, so the hermetic and
+  # mutation runs above (ubuntu) remain the functional gate. Asserted to exist by
+  # TestWindowsCodegenWrappersExercisedInCI.
+  windows-codegen-wrappers:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse the PowerShell codegen wrappers
+        shell: pwsh
+        run: |
+          $failed = $false
+          foreach ($f in @('tools/codegen/codegen.ps1', 'tools/codegen/mutation_check.ps1')) {
+            $errs = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $f).Path, [ref]$null, [ref]$errs) | Out-Null
+            if ($errs -and $errs.Count -gt 0) { $failed = $true; Write-Error "$f : $($errs.Message)" }
+            else { Write-Host "$f : parse OK" }
+          }
+          if ($failed) { exit 1 }
+
   go-stable:
     runs-on: ubuntu-latest
     steps:

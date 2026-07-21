@@ -20,7 +20,16 @@
         "jobId": "job-matrix-1",
         "topic": "job.chat.simple",
         "tenantId": "tenant-tck",
-        "principalId": "principal-1"
+        "principalId": "principal-1",
+        "contextRef": {
+          "resolverId": "operator-blob-store",
+          "uri": "cap-resource://tenant-tck/context/ctx-1",
+          "sha256": "yDaijgwK48XfqfftWP/MXIkIA7Ml/fiXSa1KEU0Gw9c=",
+          "mediaType": "application/json",
+          "sizeBytes": 4096,
+          "expiresAtUnix": 4102444800,
+          "purpose": "job-context"
+        }
       }
     },
     {
@@ -43,7 +52,36 @@
           "dispatchId": "dispatch-1",
           "attempt": 2,
           "assignedWorkerId": "sender-tck"
-        }
+        },
+        "resultRef": {
+          "resolverId": "operator-blob-store",
+          "uri": "cap-resource://tenant-tck/result/res-1",
+          "sha256": "Vdwij0U49jfD7cFyQSjgvNt/mYKvrYtTiaxI0FZmkA8=",
+          "mediaType": "application/octet-stream",
+          "sizeBytes": 8192,
+          "expiresAtUnix": 4102444800,
+          "purpose": "job-result"
+        },
+        "artifactRefs": [
+          {
+            "resolverId": "operator-blob-store",
+            "uri": "cap-resource://tenant-tck/artifact/a",
+            "sha256": "bZJTX3tdsO6JyPSllYh4/Le84vV/dNg23+rarGJG74U=",
+            "mediaType": "text/plain",
+            "sizeBytes": 128,
+            "expiresAtUnix": 4102444800,
+            "purpose": "artifact-log"
+          },
+          {
+            "resolverId": "operator-blob-store",
+            "uri": "cap-resource://tenant-tck/artifact/b",
+            "sha256": "UQ4rxVvNSh8VOBIrUSxK+SPjytg0jDhu9inH+XjUDzo=",
+            "mediaType": "application/pdf",
+            "sizeBytes": 2048,
+            "expiresAtUnix": 4102444800,
+            "purpose": "artifact-report"
+          }
+        ]
       }
     },
     {

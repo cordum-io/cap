@@ -13,6 +13,18 @@
 #   tools/codegen/mutation_check.sh
 set -euo pipefail
 
+# On Windows/MSYS this POSIX wrapper cannot work: without MSYS_NO_PATHCONV the
+# container --entrypoint /src/... is rewritten to a host path, and with it Docker
+# Desktop rejects the /d/... build context. Redirect to the PowerShell wrapper
+# rather than fail obscurely.
+case "$(uname -s)" in
+  MINGW* | MSYS* | CYGWIN*)
+    echo "On Windows, run the PowerShell wrapper instead:" >&2
+    echo "  pwsh tools/codegen/mutation_check.ps1" >&2
+    exit 2
+    ;;
+esac
+
 repo_root="$(cd "$(dirname "$0")/../.." && pwd)"
 image="cap-codegen:local"
 

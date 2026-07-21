@@ -61,6 +61,8 @@ def _attach_payload(packet: BusPacket, payload: Dict[str, Any]) -> None:
         request.topic = payload.get("topic", "")
         request.tenant_id = payload.get("tenantId", "")
         request.principal_id = payload.get("principalId", "")
+        if payload.get("contextRef"):
+            _attach_resource(request.context_ref, payload["contextRef"])
     elif kind == "jobResult":
         result = packet.job_result
         result.job_id = payload.get("jobId", "")
@@ -68,6 +70,10 @@ def _attach_payload(packet: BusPacket, payload: Dict[str, Any]) -> None:
         result.worker_id = payload.get("workerId", "")
         result.execution_ms = payload.get("executionMs", 0)
         _attach_dispatch(result.dispatch, payload)
+        if payload.get("resultRef"):
+            _attach_resource(result.result_ref, payload["resultRef"])
+        for artifact in payload.get("artifactRefs", []):
+            _attach_resource(result.artifact_refs.add(), artifact)
     elif kind == "jobProgress":
         progress = packet.job_progress
         progress.job_id = payload.get("jobId", "")
@@ -93,6 +99,19 @@ def _attach_dispatch(target: Any, payload: Dict[str, Any]) -> None:
     target.dispatch_id = dispatch.get("dispatchId", "")
     target.attempt = dispatch.get("attempt", 0)
     target.assigned_worker_id = dispatch.get("assignedWorkerId", "")
+
+
+def _attach_resource(target: Any, raw: Dict[str, Any]) -> None:
+    """Populate a ResourceRef from a neutral corpus resource object."""
+    target.resolver_id = raw.get("resolverId", "")
+    target.uri = raw.get("uri", "")
+    if raw.get("sha256"):
+        target.sha256 = base64.b64decode(raw["sha256"])
+    target.media_type = raw.get("mediaType", "")
+    target.size_bytes = raw.get("sizeBytes", 0)
+    if raw.get("expiresAtUnix"):
+        target.expires_at.seconds = raw["expiresAtUnix"]
+    target.purpose = raw.get("purpose", "")
 
 
 def digests(raw: bytes, packet: BusPacket) -> Dict[str, str]:

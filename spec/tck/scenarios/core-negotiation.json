@@ -7,7 +7,12 @@
       "role": "control-plane",
       "profile": "core",
       "required": true,
-      "params": {"spec": "14-capability-negotiation.md#L76"}
+      "params": {
+        "cpVersions": "1,2,3",
+        "workerVersions": "2,3",
+        "expect": "3",
+        "spec": "14-capability-negotiation.md#L76"
+      }
     },
     {
       "id": "negotiation/rejects-when-no-common-version",
@@ -15,7 +20,13 @@
       "role": "control-plane",
       "profile": "core",
       "required": true,
-      "params": {"expect": "reject", "err": "ERROR_CODE_PROTOCOL_VERSION_MISMATCH", "spec": "14-capability-negotiation.md#L76"}
+      "params": {
+        "cpVersions": "3",
+        "workerVersions": "1,2",
+        "expect": "reject",
+        "err": "ERROR_CODE_PROTOCOL_VERSION_MISMATCH",
+        "spec": "14-capability-negotiation.md#L76"
+      }
     },
     {
       "id": "negotiation/required-capability-filters-dispatch",
@@ -23,7 +34,12 @@
       "role": "control-plane",
       "profile": "core",
       "required": true,
-      "params": {"expect": "reject", "spec": "14-capability-negotiation.md#L10"}
+      "params": {
+        "requiredCapability": "vision",
+        "workerCapabilities": "text,audio",
+        "expect": "reject",
+        "spec": "14-capability-negotiation.md#L10"
+      }
     },
     {
       "id": "negotiation/ready-topics-filters-dispatch",
@@ -31,7 +47,12 @@
       "role": "control-plane",
       "profile": "core",
       "required": true,
-      "params": {"spec": "14-capability-negotiation.md#L64"}
+      "params": {
+        "jobTopic": "pool.z",
+        "readyTopics": "pool.a,pool.b",
+        "expect": "reject",
+        "spec": "14-capability-negotiation.md#L64"
+      }
     },
     {
       "id": "negotiation/missing-ready-topics-is-unspecified-not-error",
@@ -39,7 +60,11 @@
       "role": "control-plane",
       "profile": "core",
       "required": true,
-      "params": {"spec": "14-capability-negotiation.md#L66"}
+      "params": {
+        "jobTopic": "pool.a",
+        "expect": "dispatch",
+        "spec": "14-capability-negotiation.md#L66"
+      }
     }
   ]
 }

@@ -4,6 +4,11 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
+## Unreleased
+
+- **TCK non-vacuity, cancel fencing, and resource-matrix hardening (no wire change):** the behavioral TCK's non-vacuity is now proven against a real reference model (`internal/tck/refadapter_test.go`) that computes each outcome from a scenario's input params rather than self-reporting; per-invariant mutation adapters break exactly the cases that depend on each check, and removing any load-bearing param fails its case — so a gutted scenario can no longer show green. Added JobCancel attempt/identity fencing (stale and wrong-worker cancels must not tear down the active attempt), and the cross-language fixture matrix corpus now exercises the structured `ResourceRef` surface (`context_ref`, `result_ref`, `artifact_refs`) across all nine producer→consumer edges. Matrix driver child stdout/stderr are bounded so a huge or crash-looping child cannot exhaust the harness.
+- **Hermetic codegen image fully pinned (supply-chain):** the base image is pinned by an immutable `@sha256` digest and every direct `protoc`/`protobuf-javascript`/`node` download by a committed per-arch sha256 (replacing the mutable `setup_20.x | bash` Node install); `tools/codegen/pins_test.go` fails in CI (`ci.yml`, `sdk-gates.yml`) if a pin or checksum is dropped. Added a Windows `mutation_check.ps1` wrapper (`mutation_check.sh` redirects to it on MSYS) and a windows-latest CI check. Docs in `docs/code-generation.md` and `docs/conformance-tck.md` reconciled to reality — the image is digest-pinned and the generated tree is reconciled (74 outputs across six targets).
+
 ## v2.15.0 — 2026-07-20
 
 - **[WIRE] CAP-PRODUCTION profile:** added the normative profile (`spec/19-cap-production-profile.md`) and append-only production wire identities (`SignatureMetadata`, `IdentityBinding`, `DispatchIdentity`, structured `ResourceRef`). Go enforces raw-wire signing and replay contracts, and raw-packet admission is wired into the Go, Python, and Node `Agent` runtimes with exact-wire conformance vectors.

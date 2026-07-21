@@ -36,6 +36,15 @@ func (e *CrossLangEnv) decodeFixture(f Fixture) (*agentv1.BusPacket, error) {
 	return capsdk.VerifyProductionPacket(f.Wire, trust)
 }
 
+// validResourceRef reports whether ref carries the minimum CAP-PRODUCTION
+// content-resolution surface: a non-empty resolver id and a 32-byte sha256.
+// Every decoded ResourceRef - context_ref, result_ref, and each artifact_ref -
+// is held to this same bar so a producer cannot satisfy the matrix by emitting
+// empty or resolver-id-less refs padded out to the right count.
+func validResourceRef(ref *agentv1.ResourceRef) bool {
+	return ref != nil && ref.GetResolverId() != "" && len(ref.GetSha256()) == 32
+}
+
 // TestCrossLanguageResourceSurface proves the structured ResourceRef surface
 // (context_ref / result_ref / artifact_refs) actually round-trips: for every
 // producer, the fixture bytes emitted by its installed artifact are decoded and
@@ -61,7 +70,7 @@ func TestCrossLanguageResourceSurface(t *testing.T) {
 			t.Fatalf("%s job-request decode: %v", sdk, err)
 		}
 		ctxRef := reqPkt.GetJobRequest().GetContextRef()
-		if ctxRef == nil || ctxRef.GetResolverId() == "" || len(ctxRef.GetSha256()) != 32 {
+		if !validResourceRef(ctxRef) {
 			t.Errorf("%s job-request context_ref surface missing or malformed: %+v", sdk, ctxRef)
 		}
 
@@ -74,11 +83,17 @@ func TestCrossLanguageResourceSurface(t *testing.T) {
 			t.Fatalf("%s job-result decode: %v", sdk, err)
 		}
 		result := resPkt.GetJobResult()
-		if rr := result.GetResultRef(); rr == nil || len(rr.GetSha256()) != 32 {
+		if rr := result.GetResultRef(); !validResourceRef(rr) {
 			t.Errorf("%s job-result result_ref surface missing or malformed: %+v", sdk, rr)
 		}
-		if arts := result.GetArtifactRefs(); len(arts) < 2 {
+		arts := result.GetArtifactRefs()
+		if len(arts) < 2 {
 			t.Errorf("%s job-result carries %d artifact_refs, want >=2", sdk, len(arts))
+		}
+		for i, art := range arts {
+			if !validResourceRef(art) {
+				t.Errorf("%s job-result artifact_refs[%d] surface missing or malformed: %+v", sdk, i, art)
+			}
 		}
 	}
 }

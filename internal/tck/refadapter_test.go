@@ -177,9 +177,16 @@ func refRetries(mut, id string, p map[string]string) (bool, string) {
 	if err1 != nil || err2 != nil {
 		return false, "retries: missing/invalid attempt/activeAttempt"
 	}
+	// event has no safe default: every retries/* category includes both
+	// dispatch-fencing and cancel-fencing cases whose declared "expect" is
+	// "reject"/"ignore", so silently assuming "dispatch" here would let a
+	// corpus edit that erases or typos the cancel-fencing cases' event field
+	// keep grading correctly by coincidence (the exact gap QA found). Treat a
+	// missing event as ungradeable instead, so removing it always fails the
+	// case regardless of what it wants.
 	event := p["event"]
 	if event == "" {
-		event = "dispatch"
+		return false, "retries: missing event"
 	}
 	want := p["expect"]
 	if want == "" {
@@ -514,9 +521,9 @@ func requiredInputParams(id string) []string {
 	case strings.HasPrefix(id, "duplicates/"):
 		return []string{"dispatchId", "attempt", "deliveries"}
 	case strings.HasPrefix(id, "retries/cp-"):
-		return []string{"attempt", "activeAttempt"}
+		return []string{"attempt", "activeAttempt", "event"}
 	case strings.HasPrefix(id, "retries/"):
-		return []string{"attempt", "activeAttempt", "assignedWorkerId"}
+		return []string{"attempt", "activeAttempt", "assignedWorkerId", "event"}
 	default:
 		return nil
 	}

@@ -283,7 +283,10 @@ func TestShippedLifecycleSuiteRunsThroughRunner(t *testing.T) {
 
 // runReferenceModeOverAllSuites drives one reference-adapter mode across every
 // shipped suite in both roles and returns each applicable case's verdict. Role
-// mismatches (N/A) are skipped, so the map holds exactly the graded verdicts.
+// mismatches (N/A) are skipped, so the map holds exactly the graded verdicts. A
+// case ID is expected to be non-N/A under exactly one role (its own scenario
+// role); if that assumption is ever broken, a conflicting verdict fails loudly
+// here instead of one role's result silently winning.
 func runReferenceModeOverAllSuites(t *testing.T, mode string) map[string]Status {
 	t.Helper()
 	verdict := map[string]Status{}
@@ -297,9 +300,13 @@ func runReferenceModeOverAllSuites(t *testing.T, mode string) map[string]Status 
 			for _, profile := range suite.Profiles() {
 				rep := fixedClockRunner().Run(context.Background(), a, suite, profile)
 				for _, c := range rep.Cases {
-					if c.Status != StatusNA {
-						verdict[c.ID] = c.Status
+					if c.Status == StatusNA {
+						continue
 					}
+					if prev, ok := verdict[c.ID]; ok && prev != c.Status {
+						t.Fatalf("case %q graded inconsistently across roles: %s vs %s", c.ID, prev, c.Status)
+					}
+					verdict[c.ID] = c.Status
 				}
 			}
 		}

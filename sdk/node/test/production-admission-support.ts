@@ -39,6 +39,9 @@ export interface SignedPacketOptions {
   expiresSeconds?: number;
   expiresNanos?: number;
   contextPtr?: string;
+  dispatchId?: string;
+  dispatchAttempt?: number;
+  assignedWorkerId?: string;
 }
 
 export async function signedRawPacket(opts: SignedPacketOptions = {}): Promise<Buffer> {
@@ -69,6 +72,11 @@ export async function signedRawPacket(opts: SignedPacketOptions = {}): Promise<B
       meta: opts.metaActorId ? { actorId: opts.metaActorId } : undefined,
       env: opts.envTenantId ? { tenant_id: opts.envTenantId } : undefined,
       identity: { tenantId: opts.tenantId ?? "tenant-a", principalId: "principal-a", actorId: opts.actorId },
+      dispatch: opts.dispatchId ? {
+        dispatchId: opts.dispatchId,
+        attempt: opts.dispatchAttempt ?? 0,
+        assignedWorkerId: opts.assignedWorkerId ?? "",
+      } : undefined,
     },
   });
   const unsigned = type.encode(packet).finish();

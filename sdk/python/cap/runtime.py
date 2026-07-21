@@ -38,6 +38,13 @@ from cap.production_signing import (
     verify_production_packet,
 )
 from cap.production_replay import ReplayConflictError, ReplayOutcome, ReplayStore, ReplayStoreUnavailableError
+from cap.production_events import (
+    ProductionEventAuthority,
+    ProductionEventConflictError,
+    bind_production_event,
+    freeze_production_authority,
+    seal_production_event,
+)
 from cap.production_validation import IdentityMismatchError, validate_identity_binding
 from cap.validate import validate_bus_packet
 from cap.worker_trust import WorkerTrustConfig, WorkerTrustMode
@@ -1151,6 +1158,9 @@ class Agent:
         req = packet.job_request
         if not req.job_id:
             return
+        authority = (
+            freeze_production_authority(req) if self._production_enabled() else None
+        )
 
         self._active_jobs.add(req.job_id)
         try:
@@ -1183,19 +1193,33 @@ class Agent:
                 if self._max_context_bytes is not None and len(payload) > self._max_context_bytes:
                     raise ValueError("context exceeds max size")
             except Exception as exc:
-                await self._publish_failure(ctx, req, str(exc), execution_ms=0)
+                await self._publish_failure(
+                    ctx, req, str(exc), execution_ms=0, authority=authority
+                )
                 return
 
             try:
                 raw = json.loads(payload.decode("utf-8"))
             except Exception as exc:
-                await self._publish_failure(ctx, req, f"context decode failed: {exc}", execution_ms=0)
+                await self._publish_failure(
+                    ctx,
+                    req,
+                    f"context decode failed: {exc}",
+                    execution_ms=0,
+                    authority=authority,
+                )
                 return
 
             try:
                 input_data = self._validate_input(spec, raw)
             except Exception as exc:
-                await self._publish_failure(ctx, req, f"input validation failed: {exc}", execution_ms=0)
+                await self._publish_failure(
+                    ctx,
+                    req,
+                    f"input validation failed: {exc}",
+                    execution_ms=0,
+                    authority=authority,
+                )
                 return
 
             # Build middleware chain: outermost first, terminal calls handler.
@@ -1234,7 +1258,9 @@ class Agent:
 
             elapsed_ms = int((time.monotonic() - start_time) * 1000)
             if error is not None:
-                await self._publish_failure(ctx, req, error, execution_ms=elapsed_ms)
+                await self._publish_failure(
+                    ctx, req, error, execution_ms=elapsed_ms, authority=authority
+                )
                 return
 
             try:
@@ -1245,7 +1271,13 @@ class Agent:
                 await self._with_timeout(store.set(result_key, result_payload), "result write")
                 result_ptr = pointer_for_key(result_key)
             except Exception as exc:
-                await self._publish_failure(ctx, req, f"result write failed: {exc}", execution_ms=elapsed_ms)
+                await self._publish_failure(
+                    ctx,
+                    req,
+                    f"result write failed: {exc}",
+                    execution_ms=elapsed_ms,
+                    authority=authority,
+                )
                 return
 
             result = job_pb2.JobResult(
@@ -1255,7 +1287,7 @@ class Agent:
                 worker_id=self._sender_id,
                 execution_ms=elapsed_ms,
             )
-            await self._publish_result(ctx, result)
+            await self._publish_result(ctx, result, authority)
             safe_metrics_call(
                 self._logger,
                 lambda: self._metrics.on_job_completed(
@@ -1294,6 +1326,7 @@ class Agent:
         req: job_pb2.JobRequest,
         error: str,
         execution_ms: int,
+        authority: Optional[ProductionEventAuthority] = None,
     ) -> None:
         result = job_pb2.JobResult(
             job_id=req.job_id,
@@ -1302,16 +1335,30 @@ class Agent:
             worker_id=self._sender_id,
             execution_ms=execution_ms,
         )
-        await self._publish_result(ctx, result)
+        await self._publish_result(ctx, result, authority)
         safe_metrics_call(
             self._logger,
             lambda: self._metrics.on_job_failed(req.job_id, error),
         )
 
-    async def _publish_result(self, ctx: Context, result: job_pb2.JobResult) -> None:
+    async def _publish_result(
+        self,
+        ctx: Context,
+        result: job_pb2.JobResult,
+        authority: Optional[ProductionEventAuthority] = None,
+    ) -> None:
         if self._nc is None:
             ctx.logger.error("NATS not initialized")
             return
+        if self._production_enabled() and authority is None:
+            raise ProductionEventConflictError(
+                "production result requires admitted request authority"
+            )
+
+        bound_result = job_pb2.JobResult()
+        bound_result.CopyFrom(result)
+        if authority is not None:
+            bind_production_event(bound_result, authority)
         packet = buspacket_pb2.BusPacket()
         packet.trace_id = ctx.packet.trace_id
         packet.sender_id = self._sender_id
@@ -1319,17 +1366,32 @@ class Agent:
         ts = timestamp_pb2.Timestamp()
         ts.GetCurrentTime()
         packet.created_at.CopyFrom(ts)
-        packet.job_result.CopyFrom(result)
-        outgoing = finalize_packet(
-            packet,
-            self._private_key,
-            session_token=self._outbound_session_token(),
-        )
+        packet.job_result.CopyFrom(bound_result)
+        if authority is not None:
+            packet.identity.CopyFrom(authority.identity)
+            packet.auth_token = self._outbound_session_token()
+            settings = self._trust_settings
+            config = settings.config if settings is not None else None
+            if config is None:
+                raise ProductionEventConflictError(
+                    "production result signing key is unavailable"
+                )
+            raw = seal_production_event(
+                packet,
+                key=config.proof_private_key,
+                key_id=config.proof_key_id,
+                audience=SUBJECT_RESULT,
+            )
+        else:
+            outgoing = finalize_packet(
+                packet,
+                self._private_key,
+                session_token=self._outbound_session_token(),
+            )
+            raw = outgoing.SerializeToString(deterministic=True)
 
         await self._with_timeout(
-            self._nc.publish(
-                SUBJECT_RESULT, outgoing.SerializeToString(deterministic=True)
-            ),
+            self._nc.publish(SUBJECT_RESULT, raw),
             "result publish",
         )
 

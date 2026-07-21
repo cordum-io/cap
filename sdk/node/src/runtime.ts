@@ -19,6 +19,12 @@ import { encodeOutboundPacket, prepareOutboundPacket } from "./packet-boundary";
 import { DecodedProductionPacket, extractProductionSignature, verifyProductionPacket, ProductionTrustStore, ProductionWireError } from "./production-signing";
 import { ReplayStore, ReplayOutcome, ReplayConflictError, ReplayStoreUnavailableError } from "./production-replay";
 import { validateIdentityBinding, IdentityMismatchError } from "./production-validation";
+import {
+  bindProductionEvent,
+  freezeProductionAuthority,
+  sealProductionEvent,
+  type ProductionEventAuthority,
+} from "./production-events";
 import { validateBusPacket } from "./validate";
 import * as crypto from "crypto";
 import {
@@ -837,6 +843,9 @@ export class Agent {
     if (!req || !req.jobId) {
       return;
     }
+    const authority = this.productionEnabled()
+      ? freezeProductionAuthority(req)
+      : undefined;
 
     this.activeJobCount += 1;
     try {
@@ -861,7 +870,7 @@ export class Agent {
           throw new Error("context exceeds max size");
         }
       } catch (err) {
-        await this.publishFailure(ctx, req, err instanceof Error ? err.message : String(err), 0);
+        await this.publishFailure(ctx, req, err instanceof Error ? err.message : String(err), 0, authority);
         return;
       }
 
@@ -869,7 +878,7 @@ export class Agent {
       try {
         raw = JSON.parse(payload.toString("utf-8"));
       } catch (err) {
-        await this.publishFailure(ctx, req, `context decode failed: ${err}`, 0);
+        await this.publishFailure(ctx, req, `context decode failed: ${err}`, 0, authority);
         return;
       }
 
@@ -877,7 +886,7 @@ export class Agent {
       try {
         inputData = spec.inputSchema ? spec.inputSchema.parse(raw) : raw;
       } catch (err) {
-        await this.publishFailure(ctx, req, `input validation failed: ${err}`, 0);
+        await this.publishFailure(ctx, req, `input validation failed: ${err}`, 0, authority);
         return;
       }
 
@@ -907,7 +916,7 @@ export class Agent {
 
       const elapsedMs = Date.now() - start;
       if (error) {
-        await this.publishFailure(ctx, req, error, elapsedMs);
+        await this.publishFailure(ctx, req, error, elapsedMs, authority);
         return;
       }
 
@@ -922,9 +931,9 @@ export class Agent {
         const resultPtr = pointerForKey(resultKey);
 
         this.metrics.onJobCompleted(req.jobId, elapsedMs, "SUCCEEDED");
-        await this.publishResult(ctx, req, resultPtr, elapsedMs);
+        await this.publishResult(ctx, req, resultPtr, elapsedMs, {}, authority);
       } catch (err) {
-        await this.publishFailure(ctx, req, `result write failed: ${err}`, elapsedMs);
+        await this.publishFailure(ctx, req, `result write failed: ${err}`, elapsedMs, authority);
       }
     } finally {
       this.activeJobCount = Math.max(0, this.activeJobCount - 1);
@@ -941,12 +950,18 @@ export class Agent {
     return Buffer.from(JSON.stringify(data), "utf-8");
   }
 
-  private async publishFailure(ctx: Context, req: any, error: string, executionMs: number): Promise<void> {
+  private async publishFailure(
+    ctx: Context,
+    req: any,
+    error: string,
+    executionMs: number,
+    authority?: ProductionEventAuthority,
+  ): Promise<void> {
     this.metrics.onJobFailed(req.jobId, error);
     await this.publishResult(ctx, req, "", executionMs, {
       status: "JOB_STATUS_FAILED",
       errorMessage: error,
-    });
+    }, authority);
   }
 
   private async publishResult(
@@ -954,7 +969,8 @@ export class Agent {
     req: any,
     resultPtr: string,
     executionMs: number,
-    overrides: Record<string, any> = {}
+    overrides: Record<string, any> = {},
+    authority?: ProductionEventAuthority,
   ): Promise<void> {
     if (!this.nc) {
       ctx.log.error("NATS not initialized");
@@ -963,6 +979,9 @@ export class Agent {
     if (!this.busPacketType || !this.jobResultType) {
       ctx.log.error("protobuf types not initialized");
       return;
+    }
+    if (this.productionEnabled() && !authority) {
+      throw new Error("production result requires admitted request authority");
     }
 
     const jrMsg = this.jobResultType.fromObject({
@@ -973,6 +992,7 @@ export class Agent {
       executionMs,
       ...overrides,
     });
+    if (authority) bindProductionEvent(jrMsg, authority);
 
     const out = this.busPacketType.fromObject({
       traceId: ctx.packet.traceId,
@@ -980,9 +1000,21 @@ export class Agent {
       protocolVersion: DEFAULT_PROTOCOL_VERSION,
       createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
       jobResult: jrMsg,
+      identity: authority?.identity,
     }) as any;
     prepareOutboundPacket(out, this.trust?.outboundSessionToken() ?? "");
-    const data = encodeOutboundPacket(this.busPacketType, out, this.privateKey);
+    let data: Uint8Array;
+    if (authority) {
+      const config = this.trust?.settings.config;
+      if (!config) throw new Error("production result signing key is unavailable");
+      data = sealProductionEvent(out, this.busPacketType, {
+        privateKey: config.proofPrivateKey,
+        keyId: config.proofKeyId,
+        audience: SUBJECT_RESULT,
+      });
+    } else {
+      data = encodeOutboundPacket(this.busPacketType, out, this.privateKey);
+    }
     await (this.nc.publish(SUBJECT_RESULT, data) as any);
   }
 }

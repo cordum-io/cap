@@ -8,7 +8,7 @@ the checked-in generated tree can never silently drift from its `.proto` sources
 
 | file | role |
 |------|------|
-| `Dockerfile` | pinned generation image: buf, protoc, and every plugin locked by version; base locked by digest in CI |
+| `Dockerfile` | pinned generation image: base image locked by immutable `@sha256` digest, every `protoc`/`protobuf-javascript`/`node` download by committed per-arch sha256, buf and plugins by version; `pins_test.go` fails in CI if a pin is dropped |
 | `generate.sh` | the container `ENTRYPOINT`; runs the canonical generator in `--offline` mode |
 | `buf.gen.offline.yaml` | local-plugin mirror of `//buf.gen.yaml`, version-locked to it |
 | `codegen.sh` / `codegen.ps1` | run generation with `--network=none` and fixed `SOURCE_DATE_EPOCH`/`TZ`/`LC_ALL` |

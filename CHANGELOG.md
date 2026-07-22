@@ -4,6 +4,15 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
+## Development
+
+- **Go SDK ResourceRef registry:** added an immutable registry of operator-installed
+  resolver/externalizer backends. Resolution and externalization require authenticated
+  tenant/job context, enforce per-backend streaming size bounds, independently verify media
+  type, size, SHA-256, purpose, and expiry, and expose no generic URL/file fallback or
+  embedded-credential path. Resolved bytes are opaque and clone-returning; cancellation and
+  backend failures fail closed with bounded typed errors.
+
 ## v2.16.1 — 2026-07-22
 
 - **CI (no source change):** fixed two publish-workflow bugs that had been dormant since v2.14.0 (neither `publish-go.yml` nor `publish-python.yml` runs outside an actual GitHub Release, and none had been created since). `publish-python.yml`'s mandatory real-NATS gate failed to even collect `test_production_admission_nats.py` (`from tests.docker_nats_support import ...` only resolved when invoked with `sdk/python` as the working directory, not from the repo root as the workflow does) — added `sdk/python/tests/conftest.py` to fix path resolution regardless of invocation directory. `publish-go.yml`'s stub-regeneration step called the pre-hermetic-codegen `tools/make_protos.sh` invocation (no mode flag, custom `CAP_OUT_GO` output directory) that PR #81's rewrite made incompatible; replaced it with a direct test of the already-tracked, already-freshness-checked `cordum/agent/v1/*.pb.go` output.

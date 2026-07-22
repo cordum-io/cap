@@ -1,5 +1,15 @@
 # First CAP Job (under 10 minutes)
 
+> **Just want to try CAP?** The onboarding fixes this guide is built around
+> have shipped in every release since v2.15.0 (current: **v2.16.1**). Install
+> the published package instead of building from source —
+> `pip install cap-sdk-python`, `npm install cap-sdk-node`, or
+> `go get github.com/cordum-io/cap/v2` — then jump to whichever language
+> section below matches (2A Go, 2B Python, 2C Node), skip its "obtain the
+> candidate artifact" step, and use your installed package in its place. The
+> rest of this guide (steps 0–4) is the from-source path: useful for
+> contributors testing unreleased changes, not required to try CAP.
+
 Starting from an empty workspace, this lab builds or downloads a candidate SDK
 artifact, installs it into an empty **consumer** directory, and runs one CAP job
 in Go, Python, or Node. It uses a direct NATS worker subject so every component
@@ -64,13 +74,11 @@ Scheduler performs the governed dispatch.
 
 ## 0. Obtain candidate artifacts
 
-This guide and its package repairs are currently in the **Unreleased** section
-of the changelog. The current public packages predate those repairs, so this
-document does not claim that an older registry artifact contains these files.
-CI creates and installs the candidate proxy, wheel, and tarball in clean
-directories without a source-tree fallback. After a release explicitly lists
-these onboarding repairs, substitute that single pinned release version for the
-candidate artifact variables.
+This section builds a fresh SDK artifact directly from source instead of
+installing the published package — useful for testing an unreleased change,
+not required to try CAP (see the note at the top of this guide). CI creates
+and installs the candidate proxy, wheel, and tarball in clean directories
+without a source-tree fallback.
 
 If a maintainer supplied the artifact for your language, set only its `CAP_*`
 variable(s) and continue to step 1.

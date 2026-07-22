@@ -17,11 +17,10 @@ This wiki provides a comprehensive guide to understanding, using, and contributi
 ## Release Status
 
 <!-- cap-release:begin:release-status -->
-- **Current verified published release:** 2.14.0 (tag `v2.14.0`, 2026-06-02, channel stable)
+- **Current verified published release:** 2.16.1 (tag `v2.16.1`, 2026-07-22, channel stable)
 - **Wire protocol:** 1 (compatible range 1–1)
 - **Wire schema:** 1.0.0
 - **Specifications:** 20 normative documents
-- **Prepared release snapshot:** 2.16.0 (tag `v2.16.0`, channel stable); publication status is not asserted by this source state.
 <!-- cap-release:end -->
 
 ## SDK Support
@@ -29,10 +28,10 @@ This wiki provides a comprehensive guide to understanding, using, and contributi
 <!-- cap-release:begin:sdk-table -->
 | Component | Language | Kind | Tier | Registry | Package | Version | Toolchain |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| cap-go | go | sdk | stable | proxy.golang.org | github.com/cordum-io/cap/v2 | 2.14.0 | go1.25.12 |
-| cap-node | node | sdk | stable | registry.npmjs.org | cap-sdk-node | 2.14.0 | node20 |
-| cap-python | python | sdk | stable | pypi.org | cap-sdk-python | 2.14.0 | python3.11 |
-| cordum-guard | python | extension | stable | pypi.org | cordum-guard | 2.14.0 | python3.11 |
+| cap-go | go | sdk | stable | proxy.golang.org | github.com/cordum-io/cap/v2 | 2.16.1 | go1.25.12 |
+| cap-node | node | sdk | stable | registry.npmjs.org | cap-sdk-node | 2.16.1 | node20 |
+| cap-python | python | sdk | stable | pypi.org | cap-sdk-python | 2.16.1 | python3.11 |
+| cordum-guard | python | extension | stable | pypi.org | cordum-guard | 2.16.1 | python3.11 |
 | cap-cpp | cpp | sdk | experimental | - | - | - | - |
 | cap-dotnet | dotnet | sdk | experimental | - | - | - | - |
 | cap-java | java | sdk | experimental | - | - | - | - |

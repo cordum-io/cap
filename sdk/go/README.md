@@ -12,7 +12,7 @@ through the governed Scheduler/Safety path (see `docs/reference.md`).
 
 ```bash
 mkdir echo && cd echo && go mod init example.com/echo
-go get github.com/cordum-io/cap/v2@v2.14.0
+go get github.com/cordum-io/cap/v2@v2.16.1
 # add main.go below, then:
 go run .
 ```
@@ -149,7 +149,7 @@ Environment:
 
 ### Authenticated worker trust
 
-In this unreleased source tree, production workers should use `HandshakeModeWarn` only for a measured migration
+Production workers should use `HandshakeModeWarn` only for a measured migration
 and `HandshakeModeEnforce` for fail-closed admission. Both require a complete
 `capsdk.WorkerTrustConfig`: enrolled worker/agent/tenant identities, exact
 `capsdk.WorkerHandshakeAudience`, an active P-256 proof key ID/private key,

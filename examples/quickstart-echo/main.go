@@ -45,10 +45,15 @@ func run() error {
 	defer nc.Close()
 
 	// Dev-lab worker: consume submitted jobs directly and echo the job id.
+	// AllowUnsigned is the explicit, intentional opt-out required since the
+	// CAP-PRODUCTION signing default landed (v2.15.0): this quickstart's
+	// direct-pool wiring has no scheduler/safety-kernel path to hold or
+	// verify signing keys, matching its own "development lab" doc comment.
 	w := &worker.Worker{
-		NATS:     nc,
-		Subject:  capsdk.SubjectSubmit,
-		SenderID: "echo-worker",
+		NATS:          nc,
+		Subject:       capsdk.SubjectSubmit,
+		SenderID:      "echo-worker",
+		AllowUnsigned: true,
 		Handler: func(_ context.Context, req *agentv1.JobRequest) (*agentv1.JobResult, error) {
 			return &agentv1.JobResult{
 				JobId:     req.JobId,
@@ -81,7 +86,7 @@ func run() error {
 	}
 
 	req := &agentv1.JobRequest{JobId: jobID, Topic: "job.echo"}
-	if err := client.Submit(context.Background(), nc, req, jobID, "echo-client", nil); err != nil {
+	if err := client.SubmitUnsigned(context.Background(), nc, req, jobID, "echo-client"); err != nil {
 		return fmt.Errorf("submit: %w", err)
 	}
 

@@ -52,10 +52,6 @@ Other examples:
 
 ## Install an SDK
 
-The package names below install the current public release. The first-job guide in this
-**Unreleased** tree requires the candidate artifacts it documents; use registry packages for
-that guide only after release notes explicitly include the onboarding and package repairs.
-
 **Python:**
 ```bash
 pip install cap-sdk-python
@@ -101,8 +97,8 @@ production trust configuration.
 
 ## Authenticated Worker Sessions
 
-The unreleased Go, Python, and Node runtime sources implement the CAP v1 signed
-worker challenge/authenticate exchange over core NATS request/reply. A worker
+The Go, Python, and Node runtimes implement the CAP v1 signed worker
+challenge/authenticate exchange over core NATS request/reply. A worker
 proves possession of an enrolled P-256 key, pins the scheduler signing identity,
 and receives an opaque short-lived `BusPacket.auth_token` bound to the exact
 `cordum-scheduler` audience plus its authoritative worker, agent, tenant, and
@@ -149,11 +145,10 @@ flowchart LR
 ## Release Status
 
 <!-- cap-release:begin:release-status -->
-- **Current verified published release:** 2.14.0 (tag `v2.14.0`, 2026-06-02, channel stable)
+- **Current verified published release:** 2.16.1 (tag `v2.16.1`, 2026-07-22, channel stable)
 - **Wire protocol:** 1 (compatible range 1–1)
 - **Wire schema:** 1.0.0
 - **Specifications:** 20 normative documents
-- **Prepared release snapshot:** 2.16.0 (tag `v2.16.0`, channel stable); publication status is not asserted by this source state.
 <!-- cap-release:end -->
 
 ## Learn More

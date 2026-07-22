@@ -35,8 +35,8 @@ func TestGoldenManifest_IsValidAndOnDisk(t *testing.T) {
 	if ps := CheckSpecsOnDisk(m, root); len(ps) != 0 {
 		t.Fatalf("golden manifest specs missing on disk: %v", ps)
 	}
-	if m.Release.Version != "2.14.0" {
-		t.Errorf("golden release version = %q, want 2.14.0", m.Release.Version)
+	if m.Release.Version != "2.16.1" {
+		t.Errorf("golden release version = %q, want 2.16.1", m.Release.Version)
 	}
 	if m.Wire.ProtocolVersion != 1 {
 		t.Errorf("golden wire protocol = %d, want 1", m.Wire.ProtocolVersion)
@@ -45,7 +45,7 @@ func TestGoldenManifest_IsValidAndOnDisk(t *testing.T) {
 
 // TestGoldenManifest_GuardTracksReleaseVersion pins the released cordum-guard
 // artifact to the release train. The PyPI cordum-guard package publishes on the
-// same version line as the SDKs (latest 2.14.0); source pyproject carries an
+// same version line as the SDKs (latest 2.16.1); source pyproject carries an
 // in-development version that must not masquerade as the published artifact.
 func TestGoldenManifest_GuardTracksReleaseVersion(t *testing.T) {
 	m, _ := loadGolden(t)

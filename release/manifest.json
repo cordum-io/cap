@@ -2,20 +2,15 @@
   "$schema": "./manifest.schema.json",
   "schemaVersion": "1.2.0",
   "release": {
-    "version": "2.14.0",
-    "tag": "v2.14.0",
-    "date": "2026-06-02",
-    "commit": "e65a0a8392f552a8e14969a4efb4fe8d4b11a901",
-    "channel": "stable"
-  },
-  "snapshot": {
     "version": "2.16.1",
     "tag": "v2.16.1",
+    "date": "2026-07-22",
+    "commit": "32b9db9670c597685344808272f9b246026091ba",
     "channel": "stable"
   },
   "development": {
-    "commit": "28fbd69",
-    "describe": "v2.16.0-1-g28fbd69",
+    "commit": "32b9db9",
+    "describe": "v2.16.1",
     "released": false
   },
   "wire": {
@@ -55,7 +50,7 @@
       "package": "github.com/cordum-io/cap/v2",
       "registry": "proxy.golang.org",
       "import": "github.com/cordum-io/cap/v2/sdk/go",
-      "version": "2.14.0",
+      "version": "2.16.1",
       "toolchain": "go1.25.12",
       "publication": "published",
       "evidence": "sdk/go conformance_test.go plus CI real-NATS end-to-end and immutable-tag publication verification"
@@ -68,7 +63,7 @@
       "package": "cap-sdk-node",
       "registry": "registry.npmjs.org",
       "import": "cap-sdk-node",
-      "version": "2.14.0",
+      "version": "2.16.1",
       "toolchain": "node20",
       "publication": "published",
       "evidence": "CI build, source tests, package verification, and immutable-tag npm publication verification"
@@ -81,7 +76,7 @@
       "package": "cap-sdk-python",
       "registry": "pypi.org",
       "import": "cap-sdk-python",
-      "version": "2.14.0",
+      "version": "2.16.1",
       "toolchain": "python3.11",
       "publication": "published",
       "evidence": "CI pytest, clean wheel and sdist verification, and immutable-tag PyPI publication verification"
@@ -94,7 +89,7 @@
       "package": "cordum-guard",
       "registry": "pypi.org",
       "import": "cordum-guard",
-      "version": "2.14.0",
+      "version": "2.16.1",
       "toolchain": "python3.11",
       "publication": "published",
       "evidence": "unit tests plus immutable-tag PyPI publication verification for the manifest-declared release"
@@ -123,7 +118,7 @@
     "python": { "tested": "3.11", "minimum": "3.9" }
   },
   "security": {
-    "supportedLines": ["2.14.x"],
+    "supportedLines": ["2.16.x"],
     "reportingRoute": "SECURITY.md"
   },
   "links": [

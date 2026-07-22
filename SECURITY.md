@@ -5,7 +5,7 @@
 <!-- cap-release:begin:security-lines -->
 | Version | Supported |
 | --- | --- |
-| 2.14.x | :white_check_mark: |
+| 2.16.x | :white_check_mark: |
 <!-- cap-release:end -->
 
 ## Reporting a Vulnerability

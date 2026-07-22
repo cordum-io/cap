@@ -9,8 +9,8 @@
     "channel": "stable"
   },
   "development": {
-    "commit": "32b9db9",
-    "describe": "v2.16.1",
+    "commit": "789e50b",
+    "describe": "v2.16.1-3-g789e50b",
     "released": false
   },
   "wire": {

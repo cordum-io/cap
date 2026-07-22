@@ -8,14 +8,14 @@
     "commit": "e65a0a8392f552a8e14969a4efb4fe8d4b11a901",
     "channel": "stable"
   },
-  "snapshot": {
-    "version": "2.15.1",
-    "tag": "v2.15.1",
+  "candidate": {
+    "version": "2.16.0",
+    "tag": "v2.16.0",
     "channel": "stable"
   },
   "development": {
-    "commit": "cc2e0d7",
-    "describe": "v2.15.0-1-gcc2e0d7",
+    "commit": "7c3cec3",
+    "describe": "v2.15.1-4-g7c3cec3",
     "released": false
   },
   "wire": {

@@ -9,7 +9,7 @@ Deep technical content for implementers. For an overview, see the [README](../RE
 - **Wire protocol:** 1 (compatible range 1–1)
 - **Wire schema:** 1.0.0
 - **Specifications:** 20 normative documents
-- **Prepared release snapshot:** 2.15.1 (tag `v2.15.1`, channel stable); publication status is not asserted by this source state.
+- **Release candidate (not published):** 2.16.0 (tag `v2.16.0`, channel stable)
 <!-- cap-release:end -->
 
 - Reference implementation: Cordum.

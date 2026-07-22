@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools==82.0.1", "wheel==0.47.0"]
+requires = ["setuptools==83.0.0", "wheel==0.47.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "cap-sdk-python"
-version = "2.16.2-dev"
+version = "2.16.2.dev0"
 description = "CAP (Cordum Agent Protocol) Python SDK"
 readme = "README.md"
 requires-python = ">=3.9"

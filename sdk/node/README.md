@@ -12,18 +12,10 @@ Scheduler/Safety path (see `docs/reference.md`).
 
 ```bash
 mkdir echo && cd echo && npm init -y
-npm install cap-sdk-node@2.14.0 nats
+npm install cap-sdk-node@2.16.1 nats
 # add echo.js below, then:
 node echo.js
 ```
-
-> **Known limitation (published `cap-sdk-node@2.14.0`):** the currently-published
-> npm package does not bundle the CAP `.proto` files, and `loadRoot()` resolves
-> them relative to the installed package directory, so a bare `npm install` of
-> `@2.14.0` fails with a missing-`.proto` error (it works from a CAP repository
-> checkout). The Node packaging fix that bundles the protos has since landed in
-> source (see the Unreleased changelog) and ships in the next release; the Go and
-> Python quickstarts already run standalone against their released artifacts.
 
 <!-- cap-release:snippet:node-echo:node -->
 ```js
@@ -171,7 +163,7 @@ agent.run().catch(console.error);
 
 ### Authenticated worker trust
 
-In this unreleased source tree, `Agent` accepts a `workerTrust` option with `mode`, `config`, `timeoutMs`,
+`Agent` accepts a `workerTrust` option with `mode`, `config`, `timeoutMs`,
 `retries`, and `renewMinIntervalMs`. Modes are `off`, `warn`, and `enforce`;
 `CORDUM_SDK_HANDSHAKE` may supply the mode. `warn` and `enforce` require a
 complete `WorkerTrustConfig`: enrolled worker/agent/tenant identities, exact

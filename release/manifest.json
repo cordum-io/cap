@@ -8,9 +8,14 @@
     "commit": "32b9db9670c597685344808272f9b246026091ba",
     "channel": "stable"
   },
+  "candidate": {
+    "version": "2.17.0",
+    "tag": "v2.17.0",
+    "channel": "stable"
+  },
   "development": {
-    "commit": "789e50b",
-    "describe": "v2.16.1-3-g789e50b",
+    "commit": "3ca24af",
+    "describe": "v2.16.1-9-g3ca24af",
     "released": false
   },
   "wire": {

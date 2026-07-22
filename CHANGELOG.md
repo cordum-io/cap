@@ -4,7 +4,7 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
-## Development
+## v2.17.0 — 2026-07-22
 
 - **Go SDK ResourceRef registry:** added an immutable registry of operator-installed
   resolver/externalizer backends. Resolution and externalization require authenticated
@@ -12,6 +12,9 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   type, size, SHA-256, purpose, and expiry, and expose no generic URL/file fallback or
   embedded-credential path. Resolved bytes are opaque and clone-returning; cancellation and
   backend failures fail closed with bounded typed errors.
+- Dependency maintenance: bumped `google.golang.org/grpc` 1.79.3 to 1.82.1; bumped
+  `linkify-it` 5.0.1 to 5.0.2 (sdk/node dev dependency); kept `setuptools` pinned to 82.0.1
+  in sdk/python (the 83.0.0 bump was reverted).
 
 ## v2.16.1 — 2026-07-22
 

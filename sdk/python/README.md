@@ -23,7 +23,7 @@ Scheduler/Safety path (see `docs/reference.md`).
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
-pip install cap-sdk-python==2.14.0 nats-py
+pip install cap-sdk-python==2.16.1 nats-py
 # add echo.py below, then:
 python echo.py
 ```
@@ -204,7 +204,7 @@ asyncio.run(agent.run())
 
 ### Authenticated worker trust
 
-- In this unreleased source tree, `Agent` accepts `worker_trust_mode`, `worker_trust`, bounded timeout/retry/renewal tuning, or the `CORDUM_SDK_HANDSHAKE` mode. `warn`/`enforce` require a complete `WorkerTrustConfig` with enrolled identities, exact audience, active P-256 proof key, scheduler identity/pins, and SDK version.
+- `Agent` accepts `worker_trust_mode`, `worker_trust`, bounded timeout/retry/renewal tuning, or the `CORDUM_SDK_HANDSHAKE` mode. `warn`/`enforce` require a complete `WorkerTrustConfig` with enrolled identities, exact audience, active P-256 proof key, scheduler identity/pins, and SDK version.
 - Omitting every trust option retains legacy `off` for source compatibility. Once configuration or tuning is present, mode is explicit and `off` rejects dormant material; use `warn` only for visible migration and `enforce` for fail-closed admission.
 - Before handlers, the runtime uses bounded protobuf request/reply on `sys.worker.handshake.challenge` and `sys.worker.handshake.authenticate`, verifies the pinned scheduler, installs and attaches the opaque token, and renews with the current token. It never falls back to ISSUE; expired, revoked, superseded, wrong-audience, or binding-mismatched sessions are invalid.
 - Enroll/rotate through an authenticated control plane: register only the public key, retain the private key in the worker, overlap scheduler pins, then revoke old authoritative key/session records.

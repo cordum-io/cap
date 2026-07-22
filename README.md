@@ -52,10 +52,6 @@ Other examples:
 
 ## Install an SDK
 
-The package names below install the current public release. The first-job guide in this
-**Unreleased** tree requires the candidate artifacts it documents; use registry packages for
-that guide only after release notes explicitly include the onboarding and package repairs.
-
 **Python:**
 ```bash
 pip install cap-sdk-python
@@ -101,8 +97,8 @@ production trust configuration.
 
 ## Authenticated Worker Sessions
 
-The unreleased Go, Python, and Node runtime sources implement the CAP v1 signed
-worker challenge/authenticate exchange over core NATS request/reply. A worker
+The Go, Python, and Node runtimes implement the CAP v1 signed worker
+challenge/authenticate exchange over core NATS request/reply. A worker
 proves possession of an enrolled P-256 key, pins the scheduler signing identity,
 and receives an opaque short-lived `BusPacket.auth_token` bound to the exact
 `cordum-scheduler` audience plus its authoritative worker, agent, tenant, and

@@ -282,6 +282,18 @@ actual subject, authenticated tenant/sender, signature-covered session token,
 message ID, and exact signed-body digest. Its state is private, its accessors
 return copies, and the externally constructible zero value carries no trust.
 
+Applications that materialize structured `ResourceRef` values can install a
+sealed `capsdk.ResourceRegistry`. Each registration pairs one exact resolver ID
+with operator-configured resolver and externalizer backends plus a streaming
+byte limit. `Resolve` and `Externalize` require a `TrustedResourceContext`
+derived from the authenticated local tenant/job authority; reference fields
+never supply or override those values. The registry rechecks expiry, media type,
+size, SHA-256, purpose, and backend identity and returns clone-safe verified
+bytes. It has no generic URL, filesystem, redirect, or credential fallback.
+Managed workers validate the configured resolver IDs but do not fetch resource
+content implicitly; handlers and adapters explicitly call the registry at their
+trusted boundary.
+
 `ManagedReplayStore` is a lease-and-outcome contract, not a process-local
 duplicate cache. It must durably claim, renew, complete, and abort work. A
 completed logical result is replayed with a fresh session token and production

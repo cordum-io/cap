@@ -8,7 +8,7 @@
     "commit": "32b9db9670c597685344808272f9b246026091ba",
     "channel": "stable"
   },
-  "candidate": {
+  "snapshot": {
     "version": "2.17.0",
     "tag": "v2.17.0",
     "channel": "stable"

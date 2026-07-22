@@ -18,6 +18,7 @@ const (
 
 var (
 	ErrInvalidResourceRegistry         = errors.New("capsdk: invalid resource registry")
+	ErrResourceContextRequired         = errors.New("capsdk: resource operation context required")
 	ErrInvalidTrustedResourceContext   = errors.New("capsdk: invalid trusted resource context")
 	ErrResourceResolverUnavailable     = errors.New("capsdk: resource resolver unavailable")
 	ErrResourceExternalizerUnavailable = errors.New("capsdk: resource externalizer unavailable")

@@ -36,6 +36,9 @@ func (registry *ResourceRegistry) Externalize(
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
+	if !expiresAt.After(registry.currentTime()) {
+		return nil, ErrResourceExpired
+	}
 	if len(content) == 0 {
 		return nil, ErrResourceSizeMismatch
 	}
@@ -78,7 +81,7 @@ func (registry *ResourceRegistry) externalizeInputs(
 		return resourceBackend{}, time.Time{}, ErrInvalidResourceRegistry
 	}
 	if ctx == nil {
-		return resourceBackend{}, time.Time{}, ErrInvalidTrustedResourceContext
+		return resourceBackend{}, time.Time{}, ErrResourceContextRequired
 	}
 	if err := ctx.Err(); err != nil {
 		return resourceBackend{}, time.Time{}, err

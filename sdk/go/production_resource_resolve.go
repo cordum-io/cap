@@ -24,7 +24,7 @@ func (registry *ResourceRegistry) Resolve(
 		return ResolvedResource{}, ErrInvalidResourceRegistry
 	}
 	if ctx == nil {
-		return ResolvedResource{}, ErrInvalidTrustedResourceContext
+		return ResolvedResource{}, ErrResourceContextRequired
 	}
 	if err := ctx.Err(); err != nil {
 		return ResolvedResource{}, err

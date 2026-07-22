@@ -34,6 +34,30 @@ func TestResourceRegistryRejectsInvalidTrustedContextBeforeBackend(t *testing.T)
 	}
 }
 
+func TestResourceRegistryRejectsMissingOperationContext(t *testing.T) {
+	now := time.Date(2026, 7, 20, 12, 0, 0, 0, time.UTC)
+	content := []byte("payload")
+	backend := &backendHarness{content: content, mediaType: "application/json"}
+	externalizeCalls := 0
+	backend.externalize = func(capsdk.ResourceExternalizeRequest) (*agentv1.ResourceRef, error) {
+		externalizeCalls++
+		return nil, nil
+	}
+	registry := newRegistry(t, fixedClock(now), backend, 64)
+
+	_, resolveErr := registry.Resolve(nil, validRef(content, now.Add(time.Hour)), trustedContext())
+	_, externalizeErr := registry.ExternalizeBytes(
+		nil, "memory", content, "application/json", "job-input", now.Add(time.Hour), trustedContext(),
+	)
+	if !errors.Is(resolveErr, capsdk.ErrResourceContextRequired) ||
+		!errors.Is(externalizeErr, capsdk.ErrResourceContextRequired) {
+		t.Fatalf("Resolve error=%v Externalize error=%v", resolveErr, externalizeErr)
+	}
+	if backend.resolveCalls != 0 || externalizeCalls != 0 {
+		t.Fatalf("backend calls resolve=%d externalize=%d", backend.resolveCalls, externalizeCalls)
+	}
+}
+
 func invalidTrustedResourceContexts() map[string]capsdk.TrustedResourceContext {
 	return map[string]capsdk.TrustedResourceContext{
 		"empty tenant":   {JobID: "job-7"},

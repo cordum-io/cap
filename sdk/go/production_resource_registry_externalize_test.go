@@ -162,18 +162,39 @@ func TestResourceRegistryExternalizeRejectsCancellationAtEndOfRead(t *testing.T)
 	}
 }
 
-func TestResourceRegistryExternalizeRejectsExpiryDuringBackendCall(t *testing.T) {
+func TestResourceRegistryExternalizeRejectsExpiryAfterReadBeforeBackend(t *testing.T) {
 	base := time.Date(2026, 7, 20, 12, 0, 0, 0, time.UTC)
 	times := []time.Time{base, base.Add(2 * time.Second)}
 	index := 0
 	clock := func() time.Time { value := times[index]; index++; return value }
-	backend := &backendHarness{}
+	called := false
+	backend := &backendHarness{externalize: func(capsdk.ResourceExternalizeRequest) (*agentv1.ResourceRef, error) {
+		called = true
+		return nil, nil
+	}}
 	registry := newRegistry(t, clock, backend, 64)
 	_, err := registry.Externalize(
 		context.Background(), "memory", strings.NewReader("payload"),
 		"application/json", "job-input", base.Add(time.Second), trustedContext(),
 	)
+	if !errors.Is(err, capsdk.ErrResourceExpired) || called {
+		t.Fatalf("Externalize() error=%v backend-called=%v", err, called)
+	}
+}
+
+func TestResourceRegistryExternalizeRejectsExpiryDuringBackendCall(t *testing.T) {
+	base := time.Date(2026, 7, 20, 12, 0, 0, 0, time.UTC)
+	times := []time.Time{base, base, base.Add(2 * time.Second)}
+	index := 0
+	clock := func() time.Time { value := times[index]; index++; return value }
+	backend := &backendHarness{}
+	registry := newRegistry(t, clock, backend, 64)
+
+	_, err := registry.Externalize(
+		context.Background(), "memory", strings.NewReader("payload"),
+		"application/json", "job-input", base.Add(time.Second), trustedContext(),
+	)
 	if !errors.Is(err, capsdk.ErrResourceExpired) {
-		t.Fatalf("Externalize() error = %v", err)
+		t.Fatalf("Externalize() error=%v", err)
 	}
 }

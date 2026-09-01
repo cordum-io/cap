@@ -9,6 +9,7 @@ import (
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -77,6 +78,17 @@ func (resource ResolvedResource) MediaType() string {
 
 func newResolvedResource(content []byte, mediaType string) ResolvedResource {
 	return ResolvedResource{content: append([]byte(nil), content...), mediaType: mediaType}
+}
+
+func cloneResourceRefWithoutUnknowns(ref *agentv1.ResourceRef) (*agentv1.ResourceRef, error) {
+	if err := validateNoProductionUnknowns(ref.ProtoReflect()); err != nil {
+		return nil, ErrInvalidResourceRef
+	}
+	snapshot := proto.Clone(ref).(*agentv1.ResourceRef)
+	if err := validateNoProductionUnknowns(snapshot.ProtoReflect()); err != nil {
+		return nil, ErrInvalidResourceRef
+	}
+	return snapshot, nil
 }
 
 // ResourceExternalizeRequest contains bounded content and trusted local

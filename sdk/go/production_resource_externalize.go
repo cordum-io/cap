@@ -136,7 +136,10 @@ func (registry *ResourceRegistry) validateExternalizedRef(
 	if ref == nil {
 		return nil, ErrResourceMetadataMismatch
 	}
-	snapshot := proto.Clone(ref).(*agentv1.ResourceRef)
+	snapshot, err := cloneResourceRefWithoutUnknowns(ref)
+	if err != nil {
+		return nil, err
+	}
 	if !externalizedMetadataMatches(snapshot, backendID, request) {
 		return nil, ErrResourceMetadataMismatch
 	}

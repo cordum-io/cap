@@ -10,7 +10,6 @@ import (
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
-	"google.golang.org/protobuf/proto"
 )
 
 // Resolve fetches through the exact installed resolver selected by ref, then
@@ -63,7 +62,10 @@ func (registry *ResourceRegistry) resolveSnapshot(
 	if ref == nil {
 		return nil, resourceBackend{}, time.Time{}, ErrInvalidResourceRef
 	}
-	snapshot := proto.Clone(ref).(*agentv1.ResourceRef)
+	snapshot, err := cloneResourceRefWithoutUnknowns(ref)
+	if err != nil {
+		return nil, resourceBackend{}, time.Time{}, err
+	}
 	now := registry.currentTime()
 	if err := validateGenericResourceRef(snapshot, now); err != nil {
 		return nil, resourceBackend{}, time.Time{}, err

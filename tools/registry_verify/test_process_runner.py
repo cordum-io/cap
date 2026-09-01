@@ -21,6 +21,7 @@ class ProcessRunnerTests(unittest.TestCase):
     @mock.patch("tools.registry_verify.process_runner.subprocess.Popen")
     def test_runner_uses_argv_without_a_shell(self, popen: mock.Mock) -> None:
         process = popen.return_value
+        process.pid = 2_147_483_647
         process.stdout = io.BytesIO(b"ok\n")
         process.wait.return_value = 0
         process.returncode = 0
@@ -132,6 +133,7 @@ class ProcessRunnerTests(unittest.TestCase):
                 raise OSError("capture denied")
 
         process = popen.return_value
+        process.pid = 2_147_483_647
         process.stdout = BrokenPipe()
         process.wait.return_value = 0
         process.returncode = 0

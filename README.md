@@ -145,11 +145,10 @@ flowchart LR
 ## Release Status
 
 <!-- cap-release:begin:release-status -->
-- **Current verified published release:** 2.16.1 (tag `v2.16.1`, 2026-07-22, channel stable)
+- **Current verified published release:** 2.17.0 (tag `v2.17.0`, 2026-07-22, channel stable)
 - **Wire protocol:** 1 (compatible range 1–1)
 - **Wire schema:** 1.0.0
 - **Specifications:** 20 normative documents
-- **Prepared release snapshot:** 2.17.0 (tag `v2.17.0`, channel stable); publication status is not asserted by this source state.
 <!-- cap-release:end -->
 
 ## Learn More

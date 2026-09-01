@@ -7,36 +7,37 @@ import json
 import os
 import re
 import shutil
-import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, Callable, Mapping, Optional, Sequence
+from typing import Callable, Mapping, Optional, Sequence
+
+if __package__:
+    from .process_runner import CommandFailure, RunResult, run_command
+else:
+    from process_runner import CommandFailure, RunResult, run_command
 
 CAP_MODULE = "github.com/cordum-io/cap/v2"
 OFFICIAL_PROXY = "https://proxy.golang.org"
 OFFICIAL_SUMDB = "sum.golang.org"
-MAX_OUTPUT_BYTES = 262_144
 COMMAND_TIMEOUT_SECONDS = 180
 RUN_TIMEOUT_SECONDS = 45
 STABLE_V2 = re.compile(r"^2\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+CLEARED_GO_ENV = (
+    "AR", "CC", "CXX", "GOCACHEPROG", "GODEBUG", "GOEXPERIMENT", "GOFLAGS",
+    "GOOS", "GOARCH", "GOINSECURE", "GONOPROXY", "GONOSUMDB", "GOPRIVATE",
+    "GOROOT", "PKG_CONFIG",
+)
 
 class ManifestError(ValueError):
     """The release manifest cannot authorize this verification."""
 class VerificationError(RuntimeError):
     """The installed-artifact proof failed closed."""
-class CommandFailure(VerificationError):
-    """A bounded child process failed or timed out."""
 @dataclass(frozen=True)
 class ReleaseConfig:
     module: str
     version: str
-@dataclass(frozen=True)
-class RunResult:
-    argv: tuple[str, ...]
-    returncode: int
-    output: str
 
 Runner = Callable[[Sequence[str], Path, Mapping[str, str], int], RunResult]
 
@@ -108,49 +109,27 @@ def build_go_environment(root: Path, inherited: Optional[Mapping[str, str]] = No
         {
             "GOMODCACHE": str(root / "module-cache"),
             "GOCACHE": str(root / "build-cache"),
+            "GOPATH": str(root / "gopath"),
+            "GOTMPDIR": str(root / "go-tmp"),
             "GOPROXY": OFFICIAL_PROXY,
             "GOSUMDB": OFFICIAL_SUMDB,
             "GOWORK": "off",
             "GOTOOLCHAIN": "local",
             "GOENV": "off",
-            "GOFLAGS": "",
-            "GOPRIVATE": "",
-            "GONOPROXY": "",
-            "GONOSUMDB": "",
-            "GOINSECURE": "",
+            "GOAUTH": "off",
+            "GOTELEMETRY": "off",
+            "GOVCS": "*:off",
+            "CGO_ENABLED": "0",
+            "GO111MODULE": "on",
         }
     )
+    for name in CLEARED_GO_ENV:
+        environment[name] = ""
     return environment
-
-def _read_tail(log: BinaryIO) -> str:
-    log.flush()
-    size = log.tell()
-    truncated = size > MAX_OUTPUT_BYTES
-    log.seek(max(0, size - MAX_OUTPUT_BYTES))
-    output = log.read().decode("utf-8", errors="replace")
-    return ("[output truncated]\n" if truncated else "") + output
 
 def _command_label(argv: Sequence[str]) -> str:
     return " ".join(repr(part) for part in argv)
 
-def run_command(argv: Sequence[str], cwd: Path, env: Mapping[str, str], timeout: int) -> RunResult:
-    command = tuple(str(part) for part in argv)
-    with tempfile.TemporaryFile(mode="w+b") as log:
-        try:
-            process = subprocess.Popen(
-                list(command), cwd=str(cwd), env=dict(env), stdin=subprocess.DEVNULL,
-                stdout=log, stderr=subprocess.STDOUT, shell=False,
-            )
-        except OSError as error:
-            raise CommandFailure(f"cannot start command {_command_label(command)}: {error}") from error
-        try:
-            process.wait(timeout=timeout)
-        except subprocess.TimeoutExpired as error:
-            process.kill()
-            process.wait()
-            output = _read_tail(log).strip().replace("\n", " | ")
-            raise CommandFailure(f"command timed out after {timeout}s: {_command_label(command)}: {output}") from error
-        return RunResult(command, int(process.returncode), _read_tail(log))
 
 def _require_success(result: RunResult) -> RunResult:
     if result.returncode != 0:
@@ -227,13 +206,21 @@ def prove_missing_grpc_sums(sum_path: Path, build: Callable[[], RunResult]) -> N
     if sum_path.read_bytes() != original:
         raise VerificationError("go.sum was not restored byte-for-byte")
 
-def _resolve_go(explicit: Optional[str]) -> str:
+def _resolve_go(
+    explicit: Optional[str], forbidden_roots: Sequence[Path], path_value: Optional[str] = None,
+) -> str:
     if explicit:
-        return explicit
-    executable = shutil.which("go")
-    if executable is None:
-        raise VerificationError("go executable is not available")
-    return str(Path(executable).resolve())
+        candidates = [Path(explicit)]
+    else:
+        name = "go.exe" if os.name == "nt" else "go"
+        search = os.environ.get("PATH", "") if path_value is None else path_value
+        candidates = [Path(entry) / name for entry in search.split(os.pathsep) if entry]
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        executable = resolved.is_file() and (os.name == "nt" or os.access(resolved, os.X_OK))
+        if executable and not any(_within(resolved, root) for root in forbidden_roots):
+            return str(resolved)
+    raise VerificationError("go executable is unavailable outside verification source and temp roots")
 
 def _source_root(manifest: Path) -> Path:
     parent = manifest.resolve().parent
@@ -247,13 +234,15 @@ def verify_consumer(
     if not example.is_file() or example.is_symlink():
         raise VerificationError(f"Go quickstart example is not a regular file: {example}")
     execute = run_command if runner is None else runner
-    go = _resolve_go(go_executable)
     with tempfile.TemporaryDirectory(prefix="cap-registry-verify-") as temporary:
         root = Path(temporary)
+        source_root = _source_root(manifest)
+        go = _resolve_go(go_executable, (source_root, root))
         consumer = root / "consumer with spaces"
         consumer.mkdir()
         shutil.copyfile(example, consumer / "main.go")
         environment = build_go_environment(root)
+        Path(environment["GOTMPDIR"]).mkdir()
 
         def checked(*args: str, timeout: int = COMMAND_TIMEOUT_SECONDS) -> RunResult:
             return _require_success(execute((go, *args), consumer, environment, timeout))
@@ -264,7 +253,7 @@ def verify_consumer(
         checked("mod", "verify")
         edit = checked("mod", "edit", "-json").output
         graph = checked("list", "-m", "-json", "all").output
-        validate_module_graph(edit, graph, release, _source_root(manifest), Path(environment["GOMODCACHE"]))
+        validate_module_graph(edit, graph, release, source_root, Path(environment["GOMODCACHE"]))
         checked("build", "-mod=readonly", ".")
         mutation_environment = dict(environment)
         mutation_environment["GOCACHE"] = str(root / "mutation-build-cache")
@@ -291,7 +280,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     arguments = parse_args(argv)
     try:
         verify_consumer(arguments.manifest, arguments.example, bool(arguments.run))
-    except (ManifestError, VerificationError, OSError) as error:
+    except (ManifestError, VerificationError, CommandFailure, OSError) as error:
         print(f"registry-go-consumer: FAIL: {error}", file=sys.stderr)
         return 1
     return 0

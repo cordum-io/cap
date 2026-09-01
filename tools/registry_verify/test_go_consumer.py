@@ -4,7 +4,6 @@ import contextlib
 import io
 import json
 import os
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -12,10 +11,11 @@ from pathlib import Path
 from typing import Mapping, Sequence
 from unittest import mock
 
-try:
-    from tools.registry_verify import go_consumer
-except ImportError:
-    go_consumer = None  # type: ignore[assignment]
+from tools.registry_verify import go_consumer
+
+EXPECTED_HELPER = Path(__file__).with_name("go_consumer.py").resolve()
+if Path(go_consumer.__file__).resolve() != EXPECTED_HELPER:
+    raise ImportError(f"loaded non-local go_consumer helper: {go_consumer.__file__}")
 
 MODULE = "github.com/cordum-io/cap/v2"
 VERSION = "2.16.1"
@@ -46,7 +46,7 @@ def write_fixture(root: Path) -> tuple[Path, Path]:
     return manifest, example
 class ImplementationRequiredTestCase(unittest.TestCase):
     def setUp(self) -> None:
-        self.assertIsNotNone(go_consumer, "go_consumer implementation is missing")
+        self.assertEqual(Path(go_consumer.__file__).resolve(), EXPECTED_HELPER)
 class ReleaseParsingTests(ImplementationRequiredTestCase):
     def test_accepts_exact_published_stable_go_component(self) -> None:
         with tempfile.TemporaryDirectory(prefix="cap registry ") as temporary:
@@ -99,57 +99,43 @@ class EnvironmentAndCommandTests(ImplementationRequiredTestCase):
             "GONOPROXY": "*",
             "GONOSUMDB": "*",
             "GOINSECURE": "*",
+            "GOAUTH": "helper-command",
+            "GOCACHEPROG": "cache-command",
+            "CC": "compiler-command",
         }
         env = go_consumer.build_go_environment(Path("C:/temp/root"), inherited)
         self.assertEqual(env["GOPROXY"], "https://proxy.golang.org")
         self.assertEqual(env["GOSUMDB"], "sum.golang.org")
         self.assertEqual(env["GOWORK"], "off")
         self.assertEqual(env["GOTOOLCHAIN"], "local")
-        for name in ("GOFLAGS", "GOPRIVATE", "GONOPROXY", "GONOSUMDB", "GOINSECURE"):
+        for name in go_consumer.CLEARED_GO_ENV:
             self.assertEqual(env[name], "")
         self.assertEqual(env["GOENV"], "off")
+        self.assertEqual(env["GOAUTH"], "off")
+        self.assertEqual(env["GOTELEMETRY"], "off")
+        self.assertEqual(env["CGO_ENABLED"], "0")
+        self.assertEqual(env["GOVCS"], "*:off")
+        self.assertEqual(env["GO111MODULE"], "on")
         self.assertNotEqual(Path(env["GOMODCACHE"]), Path(env["GOCACHE"]))
-    @mock.patch("tools.registry_verify.go_consumer.subprocess.Popen")
-    def test_runner_uses_argv_without_a_shell(self, popen: mock.Mock) -> None:
-        process = popen.return_value
-        process.wait.return_value = 0
-        process.returncode = 0
-        with tempfile.TemporaryDirectory() as temporary:
-            result = go_consumer.run_command(
-                [sys.executable, "-c", "print('ok')"], Path(temporary), {}, 5
-            )
-        self.assertEqual(result.returncode, 0)
-        self.assertEqual(popen.call_args.kwargs["shell"], False)
-        self.assertNotIn("cmd", popen.call_args.args[0][0].lower())
-    @mock.patch("tools.registry_verify.go_consumer.subprocess.Popen", side_effect=OSError("spawn denied"))
-    def test_spawn_error_has_command_provenance(self, _popen: mock.Mock) -> None:
-        with tempfile.TemporaryDirectory() as temporary:
-            with self.assertRaisesRegex(go_consumer.CommandFailure, "cannot start.*probe"):
-                go_consumer.run_command(["missing-go", "probe"], Path(temporary), {}, 5)
+        self.assertNotEqual(Path(env["GOPATH"]), Path(env["GOMODCACHE"]))
 
-    def test_timeout_and_failure_include_bounded_provenance(self) -> None:
+    def test_go_resolution_uses_only_path_and_rejects_source(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            cwd = Path(temporary)
-            with self.assertRaisesRegex(go_consumer.CommandFailure, "timed out"):
-                go_consumer.run_checked(
-                    [sys.executable, "-c", "import time; time.sleep(2)"], cwd, {}, 1
-                )
-            with self.assertRaisesRegex(go_consumer.CommandFailure, "exit 7.*boom"):
-                go_consumer.run_checked(
-                    [sys.executable, "-c", "import sys; print('boom'); sys.exit(7)"],
-                    cwd,
-                    {},
-                    5,
-                )
-
-    def test_runner_preserves_a_normal_module_graph(self) -> None:
-        payload = "x" * 20_000
-        with tempfile.TemporaryDirectory() as temporary:
-            result = go_consumer.run_command(
-                [sys.executable, "-c", f"print({payload!r})"], Path(temporary), {}, 5
+            root = Path(temporary)
+            source, trusted = root / "source", root / "trusted"
+            source.mkdir()
+            trusted.mkdir()
+            name = "go.exe" if os.name == "nt" else "go"
+            for directory in (source, trusted):
+                executable = directory / name
+                executable.write_bytes(b"fixture")
+                executable.chmod(0o755)
+            path = os.pathsep.join(("", str(source), str(trusted)))
+            self.assertEqual(
+                go_consumer._resolve_go(None, (source,), path), str((trusted / name).resolve())
             )
-        self.assertNotIn("[output truncated]", result.output)
-        self.assertEqual(result.output.strip(), payload)
+            with self.assertRaises(go_consumer.VerificationError):
+                go_consumer._resolve_go(None, (source,), str(source))
 
 class MutationTests(ImplementationRequiredTestCase):
     def test_missing_grpc_metadata_is_rejected_then_restored(self) -> None:
@@ -168,7 +154,10 @@ class MutationTests(ImplementationRequiredTestCase):
     def test_mutation_requires_targets_and_exact_failure_signature(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             sum_path = Path(temporary) / "go.sum"
-            for content, output in ((b"other v1 h1:x\n", "missing go.sum entry for grpc"), (b"google.golang.org/grpc v1 h1:x\n", "network failed")):
+            for content, output in (
+                (b"other v1 h1:x\n", "missing go.sum entry for grpc"),
+                (b"google.golang.org/grpc v1 h1:x\ngoogle.golang.org/grpc v1/go.mod h1:y\n", "network failed"),
+            ):
                 sum_path.write_bytes(content)
                 with self.subTest(content=content):
                     with self.assertRaises(go_consumer.VerificationError):
@@ -216,6 +205,8 @@ class ModuleGraphTests(ImplementationRequiredTestCase):
                 with self.subTest(name=name):
                     with self.assertRaises(go_consumer.VerificationError):
                         go_consumer.validate_module_graph(*values, release, source, cache)
+            with self.assertRaises(go_consumer.VerificationError):
+                go_consumer.validate_module_graph(edit, valid, release, root, cache)
 
 class VerificationFlowTests(ImplementationRequiredTestCase):
     def test_requires_existing_example_before_running_commands(self) -> None:
@@ -232,7 +223,9 @@ class VerificationFlowTests(ImplementationRequiredTestCase):
             manifest, example = write_fixture(Path(temporary))
             runner = FakeRunner()
             with contextlib.redirect_stdout(io.StringIO()):
-                go_consumer.verify_consumer(manifest, example, False, runner=runner, go_executable="go")
+                go_consumer.verify_consumer(
+                    manifest, example, False, runner=runner, go_executable=sys.executable
+                )
         commands = [call[0][1:] for call in runner.calls]
         self.assertEqual(
             commands,
@@ -260,7 +253,9 @@ class VerificationFlowTests(ImplementationRequiredTestCase):
             manifest, example = write_fixture(Path(temporary))
             runner = FakeRunner()
             with contextlib.redirect_stdout(io.StringIO()):
-                go_consumer.verify_consumer(manifest, example, True, runner=runner, go_executable="go")
+                go_consumer.verify_consumer(
+                    manifest, example, True, runner=runner, go_executable=sys.executable
+                )
         self.assertEqual(runner.calls[-1][0][1:], ("run", "-mod=readonly", "."))
 
     def test_cli_requires_exactly_one_mode(self) -> None:

@@ -38,6 +38,18 @@ func addCount(violations *[]string, text, value string, count int, label string)
 	}
 }
 
+func addExactLine(violations *[]string, text, line, label string) {
+	count := 0
+	for _, candidate := range strings.Split(text, "\n") {
+		if candidate == line {
+			count++
+		}
+	}
+	if count != 1 {
+		*violations = append(*violations, label)
+	}
+}
+
 func addOrder(violations *[]string, text, first, second, label string) {
 	left, right := strings.Index(text, first), strings.Index(text, second)
 	if left < 0 || right < 0 || left >= right {
@@ -59,18 +71,55 @@ func registryJobNames(text string) []string {
 	return names
 }
 
+func activeWorkflow(text string) string {
+	lines := strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n")
+	active := make([]string, 0, len(lines))
+	for _, line := range lines {
+		if strings.HasPrefix(strings.TrimSpace(line), "#") {
+			continue
+		}
+		if comment := strings.Index(line, " #"); comment >= 0 {
+			line = line[:comment]
+		}
+		active = append(active, line)
+	}
+	return strings.Join(active, "\n")
+}
+
+func registryJobBlock(text, name string) string {
+	marker := "\n  " + name + ":\n"
+	start := strings.Index(text, marker)
+	if start < 0 {
+		return ""
+	}
+	block := text[start+len(marker):]
+	next := regexp.MustCompile(`(?m)^  [a-z][a-z0-9-]*:\s*$`).FindStringIndex(block)
+	if next != nil {
+		block = block[:next[0]]
+	}
+	return block
+}
+
 func validateRegistryShape(text string) []string {
 	var violations []string
+	build := registryJobBlock(text, "build-proof")
+	live := registryJobBlock(text, "live")
 	addMissing(&violations, text, "  schedule:\n", "schedule trigger")
 	addMissing(&violations, text, "  workflow_dispatch:\n", "workflow_dispatch trigger")
 	if !slices.Equal(registryJobNames(text), []string{"build-proof", "live"}) {
 		violations = append(violations, "isolated build-proof and live jobs")
 	}
 	addCount(&violations, text, "    timeout-minutes: 15", 2, "explicit job timeouts")
-	addMissing(&violations, text, "os: [ubuntu-24.04, windows-2025]", "Windows/Linux build matrix")
-	addMissing(&violations, text, "fail-fast: false", "non-short-circuit matrix")
-	addMissing(&violations, text, "needs: build-proof", "live job depends on build proof")
-	addMissing(&violations, text, "needs.build-proof.result == 'success'", "successful matrix dependency")
+	addMissing(&violations, build, "os: [ubuntu-24.04, windows-2025]", "Windows/Linux build matrix")
+	addMissing(&violations, build, "fail-fast: false", "non-short-circuit matrix")
+	addMissing(&violations, live, "needs: build-proof", "live job depends on build proof")
+	addExactLine(&violations, live, "    if: ${{ needs.build-proof.result == 'success' }}", "successful matrix dependency")
+	if strings.HasPrefix(build, "    if:") || strings.Contains(build, "\n    if:") {
+		violations = append(violations, "build proof job condition")
+	}
+	addMissing(&violations, live, "    services:\n", "live NATS service")
+	addMissing(&violations, live, "          - 4222:4222", "live NATS port")
+	addMissing(&violations, live, "      CAP_NATS_URL: nats://127.0.0.1:4222", "live NATS URL")
 	return violations
 }
 
@@ -81,34 +130,52 @@ func validateRegistryPins(text string) []string {
 	addCount(&violations, text, setupPyPin, 2, "immutable setup-python pin")
 	addCount(&violations, text, "persist-credentials: false", 2, "checkout credential isolation")
 	addCount(&violations, text, "go-version-file: 'go.mod'", 2, "root Go version file")
-	addCount(&violations, text, "python-version: '3.11'", 2, "exact Python version")
-	addMissing(&violations, text, natsPin, "immutable NATS 2.12.6 image")
+	addCount(&violations, text, "python-version: '3.11.9'", 2, "exact Python version")
+	addMissing(&violations, registryJobBlock(text, "live"), natsPin, "immutable NATS 2.12.6 image")
 	return violations
 }
 
 func validateRegistryCommands(text string) []string {
 	var violations []string
-	unit := "python -m unittest tools.registry_verify.test_go_consumer"
-	build := "tools/registry_verify/go_consumer.py --manifest release/manifest.json --example examples/quickstart-echo/main.go --build-only"
-	run := "tools/registry_verify/go_consumer.py --manifest release/manifest.json --example examples/quickstart-echo/main.go --run"
-	addMissing(&violations, text, unit, "helper unit gate")
-	addMissing(&violations, text, build, "matrix build-only gate")
-	addMissing(&violations, text, run, "live readonly run gate")
-	addOrder(&violations, text, unit, build, "helper unit gate before build proof")
+	unit := "        run: python -m unittest tools.registry_verify.test_go_consumer tools.registry_verify.test_process_runner"
+	command := "python tools/registry_verify/go_consumer.py --manifest release/manifest.json --example examples/quickstart-echo/main.go"
+	build, run := "        run: "+command+" --build-only", "        run: "+command+" --run"
+	buildJob, liveJob := registryJobBlock(text, "build-proof"), registryJobBlock(text, "live")
+	addExactLine(&violations, buildJob, unit, "helper unit gate")
+	addExactLine(&violations, buildJob, build, "matrix build-only gate")
+	addExactLine(&violations, liveJob, run, "live readonly run gate")
+	if strings.Contains(buildJob, "\n        if:") {
+		violations = append(violations, "helper unit gate may not be conditional")
+	}
+	addOrder(&violations, buildJob, unit, build, "helper unit gate before build proof")
 	addOrder(&violations, text, "Registry exact-version proof", "Go released-artifact quickstart", "registry proof before Go run")
 	addOrder(&violations, text, "Go released-artifact quickstart", "Python released-artifact quickstart", "Go run before Python lane")
-	addMissing(&violations, text, "VERSION=\"$(python", "manifest-derived version")
+	addCount(&violations, text, "VERSION=\"$(python", 2, "manifest-derived version")
 	addMissing(&violations, text, `"cap-sdk-python==${VERSION}" "nats-py==2.6.0"`, "exact Python artifact input")
-	addMissing(&violations, text, `test "$failures" -eq 0`, "ABSENT and UNKNOWN fail closed")
-	for _, registry := range []string{"proxy.golang.org", "registry.npmjs.org", "pypi.org/pypi/cap-sdk-python", "pypi.org/pypi/cordum-guard"} {
-		addMissing(&violations, text, registry, "all exact-version registry probes")
-	}
+	validateRegistryFailureFence(&violations, liveJob)
+	addCount(&violations, text, canonicalRegistryProof, 1, "canonical registry proof")
 	return violations
+}
+
+func validateRegistryFailureFence(violations *[]string, live string) {
+	addCount(violations, live, "          failures=0", 1, "ABSENT and UNKNOWN fail closed")
+	addCount(violations, live, `          test "$failures" -eq 0`, 1, "ABSENT and UNKNOWN fail closed")
+	addMissing(violations, live, `404|410) echo "${name}: ABSENT (${code})" >&2; return 1 ;;`, "ABSENT and UNKNOWN fail closed")
+	addMissing(violations, live, "echo \"${name}: UNKNOWN after bounded retries\" >&2\n            return 1", "ABSENT and UNKNOWN fail closed")
+	probes := []string{
+		`check "go v${VERSION}" "https://proxy.golang.org/github.com/cordum-io/cap/v2/@v/v${VERSION}.info"`,
+		`check "npm cap-sdk-node" "https://registry.npmjs.org/cap-sdk-node/${VERSION}"`,
+		`check "pypi cap-sdk-python" "https://pypi.org/pypi/cap-sdk-python/${VERSION}/json"`,
+		`check "pypi cordum-guard" "https://pypi.org/pypi/cordum-guard/${VERSION}/json"`,
+	}
+	for _, probe := range probes {
+		addMissing(violations, live, probe+` || failures=$((failures + 1))`, "all exact-version registry probes")
+	}
 }
 
 func validateRegistryForbidden(text string) []string {
 	var violations []string
-	for _, forbidden := range []string{"nats:2.10", "@latest", "continue-on-error", "pip install --upgrade pip", "GOSUMDB=off", "GONOSUMDB=*", "GOPROXY=direct", " replace "} {
+	for _, forbidden := range []string{"nats:2.10", "@latest", "continue-on-error", "pip install --upgrade pip", "GOSUMDB=off", "GONOSUMDB=*", "GOPROXY=direct", " replace ", "if: false", "if: ${{ false }}"} {
 		if strings.Contains(text, forbidden) {
 			violations = append(violations, "forbidden bypass: "+forbidden)
 		}
@@ -126,10 +193,11 @@ func validateRegistryForbidden(text string) []string {
 }
 
 func validateRegistryWorkflow(text string) []string {
-	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = activeWorkflow(text)
 	violations := validateRegistryShape(text)
 	violations = append(violations, validateRegistryPins(text)...)
 	violations = append(violations, validateRegistryCommands(text)...)
+	validateCanonicalRegistryJobs(&violations, registryJobBlock(text, "build-proof"), registryJobBlock(text, "live"))
 	return append(violations, validateRegistryForbidden(text)...)
 }
 
@@ -141,21 +209,7 @@ func TestRegistryVerifyWorkflowContract(t *testing.T) {
 
 func TestRegistryVerifyWorkflowMutations(t *testing.T) {
 	workflow := readRegistryWorkflow(t)
-	mutations := []struct {
-		name, old, replacement, want string
-	}{
-		{"drop schedule", "  schedule:\n", "  disabled_schedule:\n", "schedule trigger"},
-		{"drop Windows", "os: [ubuntu-24.04, windows-2025]", "os: [ubuntu-24.04]", "Windows/Linux build matrix"},
-		{"mutable checkout", checkoutPin, "actions/checkout@v4", "immutable checkout pin"},
-		{"drop checkout fence", "persist-credentials: false", "persist-credentials: true", "checkout credential isolation"},
-		{"float broker", natsPin, "nats:2.10", "immutable NATS 2.12.6 image"},
-		{"drop unit gate", "python -m unittest tools.registry_verify.test_go_consumer", "echo skipped-unit", "helper unit gate"},
-		{"drop build gate", " --build-only", " --run", "matrix build-only gate"},
-		{"drop live gate", " --run", " --build-only", "live readonly run gate"},
-		{"allow unknown", `test "$failures" -eq 0`, "true", "ABSENT and UNKNOWN fail closed"},
-		{"pip upgrade", "Python released-artifact quickstart", "Python released-artifact quickstart\n        run: pip install --upgrade pip", "forbidden bypass"},
-	}
-	for _, mutation := range mutations {
+	for _, mutation := range registryWorkflowMutations {
 		t.Run(mutation.name, func(t *testing.T) {
 			changed := strings.Replace(workflow, mutation.old, mutation.replacement, 1)
 			if changed == workflow {
@@ -165,6 +219,16 @@ func TestRegistryVerifyWorkflowMutations(t *testing.T) {
 				t.Fatalf("mutation escaped validator; want violation containing %q", mutation.want)
 			}
 		})
+	}
+	commented := strings.Replace(workflow, "python -m unittest", "# python -m unittest", 1)
+	if !containsViolation(validateRegistryWorkflow(commented), "helper unit gate") {
+		t.Fatal("commented helper command escaped validator")
+	}
+	swapped := strings.Replace(workflow, "--build-only", "--SWAP", 1)
+	swapped = strings.Replace(swapped, "--run", "--build-only", 1)
+	swapped = strings.Replace(swapped, "--SWAP", "--run", 1)
+	if !containsViolation(validateRegistryWorkflow(swapped), "matrix build-only gate") {
+		t.Fatal("matrix/live command swap escaped validator")
 	}
 }
 

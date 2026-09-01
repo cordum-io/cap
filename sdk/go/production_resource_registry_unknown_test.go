@@ -22,7 +22,7 @@ func TestResourceRegistryResolveRejectsUnknownFieldsBeforeBackend(t *testing.T) 
 			mutate(ref)
 
 			_, err := registry.Resolve(context.Background(), ref, trustedContext())
-			if !errors.Is(err, capsdk.ErrMalformedProductionWire) || backend.resolveCalls != 0 {
+			if !errors.Is(err, capsdk.ErrInvalidResourceRef) || backend.resolveCalls != 0 {
 				t.Fatalf("Resolve() error=%v backend-calls=%d", err, backend.resolveCalls)
 			}
 		})
@@ -44,7 +44,7 @@ func TestResourceRegistryExternalizeRejectsUnknownBackendFields(t *testing.T) {
 				context.Background(), "memory", []byte("payload"),
 				"application/json", "job-input", now.Add(time.Hour), trustedContext(),
 			)
-			if ref != nil || !errors.Is(err, capsdk.ErrMalformedProductionWire) {
+			if ref != nil || !errors.Is(err, capsdk.ErrInvalidResourceRef) {
 				t.Fatalf("ExternalizeBytes() ref=%v error=%v", ref, err)
 			}
 		})

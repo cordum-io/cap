@@ -254,6 +254,7 @@ def verify_consumer(
         edit = checked("mod", "edit", "-json").output
         graph = checked("list", "-m", "-json", "all").output
         validate_module_graph(edit, graph, release, source_root, Path(environment["GOMODCACHE"]))
+        print(f"registry-go-consumer: module-graph=OK module={release.module}@v{release.version} replace=none source=isolated-cache")
         checked("build", "-mod=readonly", ".")
         mutation_environment = dict(environment)
         mutation_environment["GOCACHE"] = str(root / "mutation-build-cache")
@@ -261,10 +262,16 @@ def verify_consumer(
             consumer / "go.sum",
             lambda: execute((go, "build", "-mod=readonly", "."), consumer, mutation_environment, COMMAND_TIMEOUT_SECONDS),
         )
+        print("registry-go-consumer: grpc-sum-mutation=REJECTED_AND_RESTORED")
         checked("mod", "verify")
+        print("registry-go-consumer: go-mod-verify=OK")
         checked("build", "-mod=readonly", ".")
+        print("registry-go-consumer: readonly-build=OK")
         if run_mode:
-            checked("run", "-mod=readonly", ".", timeout=RUN_TIMEOUT_SECONDS)
+            result = checked("run", "-mod=readonly", ".", timeout=RUN_TIMEOUT_SECONDS)
+            if "quickstart-echo: OK" not in result.output.splitlines():
+                raise VerificationError("quickstart run omitted its success marker")
+            print("quickstart-echo: OK")
         print(f"registry-go-consumer: OK module={release.module}@v{release.version} mode={'run' if run_mode else 'build'}")
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:

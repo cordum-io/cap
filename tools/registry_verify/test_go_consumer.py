@@ -252,11 +252,14 @@ class VerificationFlowTests(ImplementationRequiredTestCase):
         with tempfile.TemporaryDirectory() as temporary:
             manifest, example = write_fixture(Path(temporary))
             runner = FakeRunner()
-            with contextlib.redirect_stdout(io.StringIO()):
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
                 go_consumer.verify_consumer(
                     manifest, example, True, runner=runner, go_executable=sys.executable
                 )
         self.assertEqual(runner.calls[-1][0][1:], ("run", "-mod=readonly", "."))
+        for evidence in ("module-graph=OK", "go-mod-verify=OK", "grpc-sum-mutation=REJECTED_AND_RESTORED", "readonly-build=OK", "quickstart-echo: OK"):
+            self.assertIn(evidence, output.getvalue())
 
     def test_cli_requires_exactly_one_mode(self) -> None:
         base = ["--manifest", "m.json", "--example", "main.go"]

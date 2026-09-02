@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 import os
-from typing import Optional
+import subprocess
+import sys
+from typing import Optional, Sequence
+
+START_BARRIER = b"\x00"
 
 if os.name == "nt":
     import ctypes
@@ -109,3 +113,28 @@ def terminate(handle: Optional[int]) -> None:
 def close(handle: Optional[int]) -> None:
     if os.name == "nt" and handle is not None and not _CLOSE_HANDLE(handle):
         raise _last_error("CloseHandle(job)")
+
+
+def run_after_barrier(argv: Sequence[str]) -> int:
+    """Launch argv only after the parent has assigned this process to its Job."""
+    if os.name != "nt":
+        print("contained launcher is Windows-only", file=sys.stderr)
+        return 126
+    if sys.stdin.buffer.read(1) != START_BARRIER:
+        print("contained launcher did not receive its start barrier", file=sys.stderr)
+        return 126
+    if not argv:
+        print("contained launcher received no command", file=sys.stderr)
+        return 126
+    try:
+        result = subprocess.run(
+            list(argv), stdin=subprocess.DEVNULL, check=False, shell=False
+        )
+    except OSError as error:
+        print(f"contained command could not start: {error}", file=sys.stderr)
+        return 127
+    return result.returncode
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_after_barrier(sys.argv[1:]))

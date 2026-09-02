@@ -1,10 +1,15 @@
-"""Bounded, shell-free subprocess execution for registry verification."""
+"""Bounded, shell-free execution for trusted registry toolchain commands.
+
+Windows targets start behind a Job Object barrier. POSIX cleanup covers the
+inherited process group; intentionally daemonized commands are not supported.
+"""
 
 from __future__ import annotations
 
 import os
 import signal
 import subprocess
+import sys
 import threading
 import time
 from dataclasses import dataclass
@@ -61,6 +66,16 @@ def _captured_output(tail: bytearray, truncated: bool) -> str:
     return ("[output truncated]\n" if truncated else "") + output
 
 
+def _close_pipe(pipe: Optional[BinaryIO], label: str) -> str:
+    if pipe is None:
+        return ""
+    try:
+        pipe.close()
+    except (OSError, ValueError) as error:
+        return f"{label} close failed: {error}"
+    return ""
+
+
 def _terminate_process_tree(
     process: subprocess.Popen[bytes], job_handle: Optional[int],
 ) -> str:
@@ -103,15 +118,51 @@ def _terminate_process_tree(
     return tree_error
 
 
+def _cleanup_unobserved_process(
+    process: subprocess.Popen[bytes], job_handle: Optional[int]
+) -> str:
+    details: list[str] = []
+    try:
+        tree_error = _terminate_process_tree(process, job_handle)
+        if tree_error:
+            details.append(tree_error)
+    except OSError as error:
+        details.append(f"process cleanup failed: {error}")
+    for pipe, label in ((process.stdin, "stdin"), (process.stdout, "stdout")):
+        if error := _close_pipe(pipe, label):
+            details.append(error)
+    try:
+        windows_job.close(job_handle)
+    except OSError as error:
+        details.append(f"job close failed: {error}")
+    return "; ".join(details)
+
+
+def _windows_launch_command(command: tuple[str, ...]) -> tuple[str, ...]:
+    launcher = str(Path(windows_job.__file__).resolve())
+    return (sys.executable, "-I", "-S", launcher, *command)
+
+
+def _release_windows_child(process: subprocess.Popen[bytes]) -> None:
+    if process.stdin is None:
+        raise OSError("contained launcher has no start-barrier pipe")
+    try:
+        process.stdin.write(windows_job.START_BARRIER)
+        process.stdin.flush()
+    finally:
+        process.stdin.close()
+
+
 def _start_process(
     command: tuple[str, ...], cwd: Path, env: Mapping[str, str]
 ) -> tuple[subprocess.Popen[bytes], Optional[int]]:
+    launch = _windows_launch_command(command) if os.name == "nt" else command
     try:
         process = subprocess.Popen(
-            list(command),
+            list(launch),
             cwd=str(cwd),
             env=dict(env),
-            stdin=subprocess.DEVNULL,
+            stdin=subprocess.PIPE if os.name == "nt" else subprocess.DEVNULL,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             shell=False,
@@ -120,12 +171,40 @@ def _start_process(
         )
     except OSError as error:
         raise CommandFailure(f"cannot start command {_command_label(command)}: {error}") from error
+    job_handle: Optional[int] = None
     try:
-        return process, windows_job.assign_kill_on_close(process.pid)
-    except OSError as error:
-        detail = _terminate_process_tree(process, None)
+        job_handle = windows_job.assign_kill_on_close(process.pid)
+        if os.name == "nt":
+            _release_windows_child(process)
+        return process, job_handle
+    except (OSError, ValueError) as error:
+        detail = _cleanup_unobserved_process(process, job_handle)
         suffix = f"; {detail}" if detail else ""
         raise CommandFailure(f"cannot contain command {_command_label(command)}: {error}{suffix}") from error
+
+
+def _start_output_reader(
+    process: subprocess.Popen[bytes],
+    job_handle: Optional[int],
+    command: tuple[str, ...],
+    tail: bytearray,
+    truncated: list[bool],
+    errors: list[Exception],
+) -> threading.Thread:
+    try:
+        reader = threading.Thread(
+            target=_drain_output, args=(process.stdout, tail, truncated, errors), daemon=True
+        )
+        reader.start()
+        return reader
+    except BaseException as error:
+        detail = _cleanup_unobserved_process(process, job_handle)
+        if not isinstance(error, Exception):
+            raise
+        suffix = f"; {detail}" if detail else ""
+        raise CommandFailure(
+            f"cannot start output reader for {_command_label(command)}: {error}{suffix}"
+        ) from error
 
 
 def run_command(
@@ -134,14 +213,13 @@ def run_command(
     command = tuple(str(part) for part in argv)
     process, job_handle = _start_process(command, cwd, env)
     if process.stdout is None:
-        _terminate_process_tree(process, job_handle)
-        windows_job.close(job_handle)
-        raise CommandFailure(f"cannot capture command output: {_command_label(command)}")
+        detail = _cleanup_unobserved_process(process, job_handle)
+        suffix = f"; {detail}" if detail else ""
+        raise CommandFailure(
+            f"cannot capture command output: {_command_label(command)}{suffix}"
+        )
     tail, truncated, errors = bytearray(), [False], []
-    reader = threading.Thread(
-        target=_drain_output, args=(process.stdout, tail, truncated, errors), daemon=True
-    )
-    reader.start()
+    reader = _start_output_reader(process, job_handle, command, tail, truncated, errors)
     deadline = time.monotonic() + timeout
     process_timeout, pipe_timeout, cleanup_error = False, False, ""
     try:

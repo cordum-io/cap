@@ -61,6 +61,7 @@
     "typescript": "^5.4.0"
   },
   "overrides": {
-    "diff": "^8.0.3"
+    "diff": "^8.0.3",
+    "serialize-javascript": "^7.1.1"
   }
 }

@@ -29,7 +29,7 @@ This wiki provides a comprehensive guide to understanding, using, and contributi
 <!-- cap-release:begin:sdk-table -->
 | Component | Language | Kind | Tier | Registry | Package | Version | Toolchain |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| cap-go | go | sdk | stable | proxy.golang.org | github.com/cordum-io/cap/v2 | 2.16.1 | go1.25.12 |
+| cap-go | go | sdk | stable | proxy.golang.org | github.com/cordum-io/cap/v2 | 2.16.1 | go1.27.2 |
 | cap-node | node | sdk | stable | registry.npmjs.org | cap-sdk-node | 2.16.1 | node20 |
 | cap-python | python | sdk | stable | pypi.org | cap-sdk-python | 2.16.1 | python3.11 |
 | cordum-guard | python | extension | stable | pypi.org | cordum-guard | 2.16.1 | python3.11 |

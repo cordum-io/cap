@@ -4,6 +4,22 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
+## Unreleased
+
+- **Go minimum raised to 1.27.2 (security):** the Go module's `go` directive rises from
+  1.25.12 to 1.27.2, because the Go 1.27.2 security release fixes the reachable
+  standard-library advisories GO-2026-6599, GO-2026-6600, GO-2026-6603, GO-2026-6605,
+  GO-2026-6607, GO-2026-6608, GO-2026-6610, GO-2026-6611, GO-2026-6612, GO-2026-6613 and
+  GO-2026-6617. Building CAP from source, or from the next release, requires Go 1.27.2 or
+  newer; downstream modules on an older Go (for example Cordum on Go 1.26.x) must raise
+  their Go version before adopting that release. Already-published releases are unchanged.
+- Dependency security bumps: `google.golang.org/grpc` 1.82.1 to 1.83.2 (GO-2026-6348,
+  GO-2026-6443); `golang.org/x/net` 0.55.0 to 0.60.0 (GO-2026-6603, GO-2026-6610,
+  GO-2026-6611, GO-2026-6612, GO-2026-6617); `golang.org/x/text` 0.37.0 to 0.42.0
+  (GO-2026-5970). `go mod tidy` also moved `golang.org/x/crypto` to 0.57.0,
+  `golang.org/x/sys` to 0.48.0 and `google.golang.org/genproto/googleapis/rpc` to
+  v0.0.0-20260526163538-3dc84a4a5aaa.
+
 ## v2.17.0 — 2026-07-22
 
 - **Go SDK ResourceRef registry:** added an immutable registry of operator-installed

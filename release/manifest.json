@@ -56,7 +56,7 @@
       "registry": "proxy.golang.org",
       "import": "github.com/cordum-io/cap/v2/sdk/go",
       "version": "2.16.1",
-      "toolchain": "go1.25.12",
+      "toolchain": "go1.27.2",
       "publication": "published",
       "evidence": "sdk/go conformance_test.go plus CI real-NATS end-to-end and immutable-tag publication verification"
     },
@@ -118,7 +118,7 @@
     { "name": "rabbitmq", "state": "experimental", "limitations": "No behavioral conformance evidence yet; not a supported binding.", "evidence": "" }
   ],
   "toolchains": {
-    "go": { "tested": "1.25.12", "minimum": "1.25.12" },
+    "go": { "tested": "1.27.2", "minimum": "1.27.2" },
     "node": { "tested": "20", "minimum": "20" },
     "python": { "tested": "3.11", "minimum": "3.9" }
   },

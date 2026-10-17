@@ -64,7 +64,7 @@ Scheduler performs the governed dispatch.
   maintainer.
 - `curl` for the NATS health/readiness checks.
 - One language toolchain:
-  - Go `1.25.12` or newer.
+  - Go `1.27.2` or newer.
   - CPython `3.9` through `3.14`.
   - Node.js `18`, `20`, or `22` with npm.
 - The candidate artifact for the one language you selected:

@@ -4,6 +4,20 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
+## Development
+
+- **Go SDK requires Go 1.26.0 or newer (was 1.25.12).** `golang.org/x/net` v0.60.0, the
+  first release that fixes four reachable advisories govulncheck reports against v0.55.0
+  (GO-2026-6603, GO-2026-6611, GO-2026-6612, GO-2026-6617), itself declares `go 1.26.0`.
+  Go 1.25 left upstream support when Go 1.27 shipped. Repository builds and CI now use the
+  `go1.26.9` toolchain through the `toolchain` directive, which also clears the standard
+  library advisories fixed in 1.26.9; the toolchain line does not apply to consumers.
+- Dependency maintenance: bumped `google.golang.org/grpc` 1.82.1 to 1.83.1 (GO-2026-6348)
+  and `golang.org/x/net` 0.55.0 to 0.60.0 (with `x/crypto` 0.57.0, `x/sys` 0.48.0 and
+  `x/text` 0.42.0); bumped sdk/node dev dependencies `js-yaml` 4.3.1, `markdown-it` 14.3.2
+  and `brace-expansion` 2.1.7, and tools/codegen dev dependencies `markdown-it` 14.3.2 and
+  `brace-expansion` 2.1.7.
+
 ## v2.17.0 — 2026-07-22
 
 - **Go SDK ResourceRef registry:** added an immutable registry of operator-installed

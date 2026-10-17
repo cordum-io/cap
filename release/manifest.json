@@ -118,7 +118,7 @@
     { "name": "rabbitmq", "state": "experimental", "limitations": "No behavioral conformance evidence yet; not a supported binding.", "evidence": "" }
   ],
   "toolchains": {
-    "go": { "tested": "1.25.12", "minimum": "1.25.12" },
+    "go": { "tested": "1.26.9", "minimum": "1.26.0" },
     "node": { "tested": "20", "minimum": "20" },
     "python": { "tested": "3.11", "minimum": "3.9" }
   },

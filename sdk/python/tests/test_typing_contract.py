@@ -22,7 +22,11 @@ def test_strict_external_consumer_type_checks() -> None:
         "--disallow-any-decorated",
         "--disallow-any-unimported",
         "--no-incremental",
-        "--python-version=3.9",
+        # Target the running interpreter: the installed dependencies were
+        # resolved for it, and pydantic >= 2.14 (Python >= 3.10 only) uses
+        # syntax a 3.9 target cannot parse. The 3.9 floor is still checked by
+        # the 3.9 matrix entry and the CI/publish typing lanes, which run on 3.9.
+        f"--python-version={sys.version_info[0]}.{sys.version_info[1]}",
         str(CONSUMER.relative_to(SDK_ROOT)),
     ]
     result = subprocess.run(

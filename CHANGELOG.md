@@ -17,6 +17,13 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `x/text` 0.42.0); bumped sdk/node dev dependencies `js-yaml` 4.3.1, `markdown-it` 14.3.2
   and `brace-expansion` 2.1.7, and tools/codegen dev dependencies `markdown-it` 14.3.2 and
   `brace-expansion` 2.1.7.
+- **Spec (no wire change):** added `spec/interop/trace-context.md`, the normative W3C Trace
+  Context carrier contract for CAP over NATS, and `spec/interop/vectors/trace-context-v1.json`.
+  The contract covers lowercase `traceparent`/`tracestate` headers, no baggage by default,
+  admission before extraction, and trace data that is never authority. It also pins the
+  OpenTelemetry messaging span attributes to semantic conventions v1.44.0. The 32 traceparent
+  vectors were cross-checked against otel-go v1.47.0, opentelemetry-api 1.41.1 and
+  `@opentelemetry/core` 2.12.0.
 
 ## v2.17.0 — 2026-07-22
 

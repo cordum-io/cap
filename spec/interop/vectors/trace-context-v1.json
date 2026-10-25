@@ -1,0 +1,378 @@
+{
+  "schema_version": 1,
+  "contract": "spec/interop/trace-context.md",
+  "description": "W3C Trace Context carrier vectors for CAP over NATS. Every traceparent case is reproduced identically by the three native propagators in sources.verified_with; forms on which they diverge are documented in the contract and excluded here.",
+  "sources": {
+    "w3c_trace_context": "Trace Context Level 1, W3C Recommendation 23 November 2021 (https://www.w3.org/TR/trace-context-1/)",
+    "otel_semconv": "v1.44.0",
+    "otel_semconv_url": "https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/messaging/messaging-spans.md",
+    "verified_with": {
+      "go": "go.opentelemetry.io/otel v1.47.0 propagation.TraceContext",
+      "python": "opentelemetry-api 1.41.1 TraceContextTextMapPropagator",
+      "node": "@opentelemetry/api 1.9.1 + @opentelemetry/core 2.12.0 W3CTraceContextPropagator"
+    }
+  },
+  "traceparent_cases": [
+    {
+      "name": "valid_sampled_with_tracestate",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "tracestate": "rojo=00f067aa0ba902b7,congo=t61rcWkgMzE"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": "rojo=00f067aa0ba902b7,congo=t61rcWkgMzE"
+      }
+    },
+    {
+      "name": "valid_unsampled",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-00"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": false,
+        "tracestate": ""
+      }
+    },
+    {
+      "name": "valid_empty_tracestate",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "tracestate": ""
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": ""
+      }
+    },
+    {
+      "name": "valid_flags_03_sampled",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-03"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": ""
+      }
+    },
+    {
+      "name": "valid_tracestate_ows_normalized",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "tracestate": "rojo=00f067aa0ba902b7 ,\tcongo=t61rcWkgMzE"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": "rojo=00f067aa0ba902b7,congo=t61rcWkgMzE"
+      }
+    },
+    {
+      "name": "valid_tracestate_multi_tenant_key",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "tracestate": "fw529a3039@dt=ab,rojo=00f067aa0ba902b7"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": "fw529a3039@dt=ab,rojo=00f067aa0ba902b7"
+      }
+    },
+    {
+      "name": "valid_tracestate_32_members",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "tracestate": "k0=v,k1=v,k2=v,k3=v,k4=v,k5=v,k6=v,k7=v,k8=v,k9=v,k10=v,k11=v,k12=v,k13=v,k14=v,k15=v,k16=v,k17=v,k18=v,k19=v,k20=v,k21=v,k22=v,k23=v,k24=v,k25=v,k26=v,k27=v,k28=v,k29=v,k30=v,k31=v"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": "k0=v,k1=v,k2=v,k3=v,k4=v,k5=v,k6=v,k7=v,k8=v,k9=v,k10=v,k11=v,k12=v,k13=v,k14=v,k15=v,k16=v,k17=v,k18=v,k19=v,k20=v,k21=v,k22=v,k23=v,k24=v,k25=v,k26=v,k27=v,k28=v,k29=v,k30=v,k31=v"
+      }
+    },
+    {
+      "name": "valid_tracestate_member_value_256",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "tracestate": "rojo=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": "rojo=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    {
+      "name": "future_version_cc",
+      "headers": {
+        "traceparent": "cc-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": ""
+      }
+    },
+    {
+      "name": "future_version_cc_with_suffix",
+      "headers": {
+        "traceparent": "cc-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01-what-the-future-will-be-like"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": ""
+      }
+    },
+    {
+      "name": "oversize_tracestate_member_257_dropped",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "tracestate": "rojo=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": ""
+      }
+    },
+    {
+      "name": "oversize_tracestate_member_600_dropped",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "tracestate": "rojo=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "verdict": "valid",
+      "expected": {
+        "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+        "parent_id": "00f067aa0ba902b7",
+        "sampled": true,
+        "tracestate": ""
+      }
+    },
+    {
+      "name": "uppercase_trace_id",
+      "headers": {
+        "traceparent": "00-4BF92F3577B34DA6A3CE929D0E0E4736-00f067aa0ba902b7-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "uppercase_parent_id",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00F067AA0BA902B7-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "uppercase_version",
+      "headers": {
+        "traceparent": "0A-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "uppercase_flags",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-0A"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "non_hex_trace_id",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e473g-00f067aa0ba902b7-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "all_zero_trace_id",
+      "headers": {
+        "traceparent": "00-00000000000000000000000000000000-00f067aa0ba902b7-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "all_zero_parent_id",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000000-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "version_ff",
+      "headers": {
+        "traceparent": "ff-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "future_version_cc_bad_suffix_delimiter",
+      "headers": {
+        "traceparent": "cc-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01x"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "version_00_with_suffix",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01-suffix"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "bad_length_short_trace_id",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e473-00f067aa0ba902b7-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "bad_length_long_trace_id",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736a-00f067aa0ba902b7-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "bad_length_short_parent_id",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "bad_length_long_parent_id",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7a-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "bad_length_missing_flags",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "bad_length_one_char_flags",
+      "headers": {
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-1"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "bad_length_three_char_version",
+      "headers": {
+        "traceparent": "000-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "bad_delimiters_underscore",
+      "headers": {
+        "traceparent": "00_4bf92f3577b34da6a3ce929d0e0e4736_00f067aa0ba902b7_01"
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "empty_traceparent",
+      "headers": {
+        "traceparent": ""
+      },
+      "verdict": "invalid",
+      "expected": null
+    },
+    {
+      "name": "tracestate_without_traceparent",
+      "headers": {
+        "tracestate": "rojo=00f067aa0ba902b7,congo=t61rcWkgMzE"
+      },
+      "verdict": "invalid",
+      "expected": null
+    }
+  ],
+  "attribute_maps": {
+    "publish": {
+      "input": {
+        "subject": "sys.job.submit",
+        "bus_packet_trace_id": "3f2c1a9e-6b7d-4e21-9c5a-8d0f4b7e2a11"
+      },
+      "span_name": "publish sys.job.submit",
+      "span_kind": "PRODUCER",
+      "attributes": {
+        "messaging.system": "nats",
+        "messaging.operation.name": "publish",
+        "messaging.operation.type": "send",
+        "messaging.destination.name": "sys.job.submit",
+        "messaging.message.conversation_id": "3f2c1a9e-6b7d-4e21-9c5a-8d0f4b7e2a11"
+      }
+    },
+    "process": {
+      "input": {
+        "subject": "job.gpu",
+        "queue_group": "job.gpu",
+        "admission": "cap_production_verified",
+        "bus_packet_trace_id": "3f2c1a9e-6b7d-4e21-9c5a-8d0f4b7e2a11",
+        "signature_metadata_message_id_base64": "Xww7nip9TBGOb5ChssPU5Q=="
+      },
+      "span_name": "process job.gpu",
+      "span_kind": "CONSUMER",
+      "attributes": {
+        "messaging.system": "nats",
+        "messaging.operation.name": "process",
+        "messaging.operation.type": "process",
+        "messaging.destination.name": "job.gpu",
+        "messaging.consumer.group.name": "job.gpu",
+        "messaging.message.id": "5f0c3b9e2a7d4c118e6f90a1b2c3d4e5",
+        "messaging.message.conversation_id": "3f2c1a9e-6b7d-4e21-9c5a-8d0f4b7e2a11"
+      }
+    }
+  }
+}

@@ -32,12 +32,12 @@ RFC 2119/8174 key words are normative. Sections marked informative are not.
    for example `Traceparent`, is treated as absent. The NATS clients CAP pins
    all look headers up by exact case: nats.go v1.49.0 `Header.Get` is
    case-sensitive, nats.js 2.29.3 `MsgHdrs.get` defaults to `Match.Exact`, and
-   nats-py 2.16.0 exposes headers as a plain `dict`. Trace Context §3.2.1 asks vendors
-   to accept any casing because HTTP field names are case-insensitive. NATS
-   header keys are case-sensitive, so CAP fixes one spelling instead.
+   nats-py 2.16.0 exposes headers as a plain `dict`. Trace Context §3.2.1 asks
+   vendors to accept any casing because HTTP field names are case-insensitive.
+   NATS header keys are case-sensitive, so CAP fixes one spelling instead.
 4. A producer MUST NOT emit more than one field for either key. The vectors
-   cover single-valued headers only. However a consumer treats a repeated
-   field, the result MUST NOT affect admission or authority.
+   cover single-valued headers only. Whatever a consumer does with a repeated
+   field MUST NOT affect admission or authority.
 5. Trace headers are outside the signed bytes. CAP-PRODUCTION signs the
    `BusPacket` bytes only ([19](../19-cap-production-profile.md)). An
    intermediary or publisher can add, change, or remove these headers without
@@ -104,8 +104,9 @@ A consumer MUST handle each message in this order:
 
 Rules:
 
-- Trace headers MUST NOT be read, parsed, or used before admission or
-  validation succeeds.
+- An implementation MUST NOT extract, parse as trace context, or otherwise use
+  trace headers before admission or validation succeeds. The NATS client's
+  generic decoding of the header block is not extraction.
 - A rejected packet is dropped, as [16](../16-protocol-errors.md) requires. Its
   headers MUST NOT be extracted and MUST NOT become a parent or a link. An
   implementation MAY record a `process` span for the rejection. That span MUST
@@ -113,9 +114,11 @@ Rules:
   `messaging.message.id` or `messaging.message.conversation_id`.
 - A missing or invalid creation context MUST NOT reject, delay, or reroute the
   packet. Processing continues and starts a new root: no part of the invalid
-  context is used as a parent or a link. Invalid means that the native W3C
-  propagator yields no valid remote span context, as in the `invalid`
-  [vectors](#vectors).
+  context is used as a parent or a link, so the process span is a root span,
+  or the child of an active ambient span (see
+  [Linking and parenting](#linking-and-parenting)). Invalid means that the
+  native W3C propagator yields no valid remote span context, as in the
+  `invalid` [vectors](#vectors).
 - Trace-state handling never changes whether `traceparent` is valid
   (Trace Context §3.3).
 - The sampled flag is a hint. A consumer MAY apply its own sampler and MAY
@@ -144,13 +147,17 @@ audit record as if they were authenticated.
 | publish | `PRODUCER` | `publish <destination>` | once per published packet; its context is the creation context injected into the headers |
 | process | `CONSUMER` | `process <destination>` | once per admitted packet, covering handler execution; a rejection span is optional, as [Processing order](#processing-order) describes |
 
-- `<destination>` is the actual subject when that subject is in the
+- `<destination>` is the actual subject only when that subject is in the
   [09 subject table](../09-transport-profile.md#subjecttopic-conventions):
-  either a fixed `sys.*` subject or `job.<pool>`. The operator configures the
-  pools, so `job.<pool>` stays low-cardinality.
-- For a broker-generated reply inbox, for example the reply to a worker-trust
-  request, the span name omits the destination and is just `publish` or
-  `process`, following the semconv cardinality rule.
+  either a fixed `sys.*` subject, or `job.<pool>` for a pool the participant is
+  configured to publish to or consume from. Operators configure the pools, so
+  `job.<pool>` stays low-cardinality.
+- For any other subject, including a broker-generated reply inbox such as the
+  reply to a worker-trust request, the span name omits the destination and is
+  just `publish` or `process`, following the semconv cardinality rule. This
+  keeps publisher-chosen subjects on wildcard subscriptions out of telemetry,
+  as [16](../16-protocol-errors.md#safe-diagnostics) already requires for
+  alerts.
 - Spans are per message. This contract defines no batch, `create`, `receive`,
   or `settle` spans.
 
@@ -166,7 +173,7 @@ semconv vocabulary.
 | `messaging.system` | `nats` | Required |
 | `messaging.operation.name` | `publish` | Required |
 | `messaging.operation.type` | `send` | Required |
-| `messaging.destination.name` | the actual subject | Required for a 09 subject; MUST NOT be set for a reply inbox |
+| `messaging.destination.name` | the actual subject | Required for a 09 subject; MUST NOT be set for any other subject |
 | `messaging.destination.temporary` | `true` (boolean) | Required for a reply inbox; otherwise not set |
 | `messaging.destination.anonymous` | `true` (boolean) | Required for a reply inbox; otherwise not set |
 | `messaging.message.conversation_id` | `BusPacket.trace_id` of the published packet | Required |
@@ -181,7 +188,7 @@ semconv vocabulary.
 | `messaging.system` | `nats` | Required |
 | `messaging.operation.name` | `process` | Required |
 | `messaging.operation.type` | `process` | Required |
-| `messaging.destination.name` | the actual subject | Required for a 09 subject; MUST NOT be set for a reply inbox |
+| `messaging.destination.name` | the actual subject | Required for a 09 subject; MUST NOT be set for any other subject |
 | `messaging.destination.temporary` | `true` (boolean) | Required for a reply inbox; otherwise not set |
 | `messaging.destination.anonymous` | `true` (boolean) | Required for a reply inbox; otherwise not set |
 | `messaging.consumer.group.name` | the NATS queue group | Conditionally Required: when the subscription uses a queue group |

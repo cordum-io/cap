@@ -68,6 +68,13 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `parse(data: unknown): T`, so zod 3 and zod 4 schemas both type-check and the published
   typings no longer import zod. Code that imports zod without declaring it now resolves
   zod 4; declare zod in your own package.json to stay on zod 3.
+- **Spec (no wire change):** added `spec/interop/trace-context.md`, the normative W3C Trace
+  Context carrier contract for CAP over NATS, and `spec/interop/vectors/trace-context-v1.json`.
+  The contract covers lowercase `traceparent`/`tracestate` headers, no baggage by default,
+  admission before extraction, and trace data that is never authority. It also pins the
+  OpenTelemetry messaging span attributes to semantic conventions v1.44.0. The 32 traceparent
+  vectors were cross-checked against otel-go v1.47.0, opentelemetry-api 1.41.1 and
+  `@opentelemetry/core` 2.12.0.
 
 ## v2.17.0 — 2026-07-22
 

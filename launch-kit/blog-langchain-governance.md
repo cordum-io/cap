@@ -112,7 +112,7 @@ guard = CordumToolGuard(mock, policy="langchain_demo", risk_tags=["agent"])
 guarded_tools = guard.wrap(raw_tools)
 ```
 
-`CordumToolGuard.wrap()` returns new tool instances with safety checks injected into `_run`. Your original tools are unchanged. Pass `guarded_tools` to your agent instead of the originals.
+`CordumToolGuard.wrap()` patches each tool's `_run` in place to add the safety check and returns the same tool objects, so the originals in `raw_tools` are guarded too. Pass `guarded_tools` to your agent.
 
 ## Step 5: Run and Observe
 

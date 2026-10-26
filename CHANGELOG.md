@@ -9,17 +9,18 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 - **cordum-guard closes governance bypasses (security, behavior change).**
   - Verdicts: the client now reads the gateway's protojson names
     (`DECISION_TYPE_REQUIRE_HUMAN`, ...). Previously every real verdict, DENY included, parsed
-    as ALLOW outside CAP-PRODUCTION. Unknown verdicts, including `DECISION_TYPE_UNSPECIFIED`,
-    now fail closed as DENY in every profile; they used to default to ALLOW.
+    as ALLOW outside CAP-PRODUCTION. Missing verdicts (e.g. an empty 200 body) and unknown
+    verdicts, including `DECISION_TYPE_UNSPECIFIED`, now fail closed as DENY in every profile.
+    Outside CAP-PRODUCTION they used to default to ALLOW.
   - Tool guards: the LangChain and LlamaIndex guards treat everything except
     `allow` / `allow_with_constraints` as blocking. `require_approval` (or
     `approvalRequired: true`) used to run the tool; it now raises the new
     `CordumApprovalRequiredError` (a `CordumBlockedError`) with `reason`, `rule_id`,
     `policy_snapshot`, `approval_ref` and `job_id`. Unknown verdicts return `[BLOCKED]`. The
     LlamaIndex guard now also guards `acall()` and `real_fn` (used by CodeActAgent), which
-    ran unguarded. The LangChain guard keeps
-    the wrapped `_run` / `_arun` signature, so `@tool` / `StructuredTool` tools receive
-    LangChain's `config` argument again instead of failing with `TypeError`.
+    ran unguarded. The LangChain guard keeps the wrapped `_run` / `_arun` signature, so
+    `@tool` / `StructuredTool` tools receive LangChain's `config` argument again instead of
+    failing with `TypeError`.
   - Labels: guards now send labels at the top level, where the Safety Kernel matches label
     rules. Before, they were sent only under `meta.labels` and no label rule ever matched
     guard traffic. `meta.labels` is still sent.
@@ -27,7 +28,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
     per call, 256 chars per value, never for secret-like names), so rules such as
     `label_threshold: {arg.amount: 10000}` work. The policy cache key now includes labels.
     `@guard` approval jobs carry the same labels and mask secret-like arguments in the
-    prompt.
+    prompt. Pass `include_args=False` to a guard to send no argument labels. For `@guard`
+    this also keeps argument values out of the approval prompt.
   - Added `Decision.ALLOW_WITH_CONSTRAINTS` and the `SafetyDecision` fields `rule_id`,
     `policy_snapshot`, `approval_required`, `approval_ref` and `constraints`. Constraints are
     not enforced in-process.

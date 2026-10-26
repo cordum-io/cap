@@ -229,6 +229,18 @@ class TestArgumentLabels:
         assert labels["policy"] == "financial_ops"
         assert labels["tool"] == "transfer_funds"
 
+    def test_include_args_false_sends_no_argument_labels(self):
+        client = _make_client(Decision.ALLOW)
+        tool = _make_tool("send_email")
+
+        CordumToolGuard(client, policy="ops", include_args=False).wrap_one(tool)
+        tool._run(to="bob@example.com", body="private medical details")
+
+        labels = client.evaluate_policy.call_args.kwargs["labels"]
+        assert not [k for k in labels if k.startswith("arg.")]
+        assert labels["policy"] == "ops"
+        assert labels["tool"] == "send_email"
+
     def test_nan_amount_is_sent_as_inf(self):
         # json.loads accepts NaN, and NaN never exceeds a label_threshold.
         client = _make_client(Decision.ALLOW)

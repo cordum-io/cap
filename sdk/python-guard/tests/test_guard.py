@@ -287,3 +287,23 @@ class TestArgumentLabels:
         assert submitted["labels"]["arg.amount"] == "15000.0"
         assert "sk-live-123" not in submitted["prompt"]
         assert "amount=15000.0" in submitted["prompt"]
+
+    def test_include_args_false_keeps_arguments_out_of_labels_and_prompt(self):
+        client = _make_client(Decision.REQUIRE_APPROVAL)
+        client.submit_job.return_value = JobResponse(job_id="j-4")
+        client.wait_for_decision.return_value = JobStatus(job_id="j-4", state="succeeded")
+
+        @guard(client, policy="support", include_args=False)
+        def send_email(to: str, body: str) -> str:
+            return "sent"
+
+        assert send_email("bob@example.com", body="private medical details") == "sent"
+
+        evaluated = client.evaluate_policy.call_args.kwargs["labels"]
+        submitted = client.submit_job.call_args.kwargs
+        assert not [k for k in evaluated if k.startswith("arg.")]
+        assert evaluated["policy"] == "support"
+        assert submitted["labels"] == evaluated
+        assert "private medical details" not in submitted["prompt"]
+        assert "bob@example.com" not in submitted["prompt"]
+        assert submitted["prompt"] == "Approval required: send_email(...)"

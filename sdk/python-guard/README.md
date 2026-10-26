@@ -129,6 +129,10 @@ see their values:
   `auth`, `credential(s)`, `cookie` or `session`, as a whole word of the name
   (`client_secret`, `accessToken` and `session_id` match; `max_tokens` does not). Do not pass
   credentials through other argument names.
+- **Opt out** with `include_args=False` on `CordumToolGuard(...)` or `@guard(...)` when tools
+  take sensitive free text. No `arg.*` labels are sent, and `@guard` also leaves argument values
+  out of its approval job prompt. Rules on `arg.*` labels then never fire for that guard, so
+  gate those tools by capability or risk tag instead.
 
 The `arg.` prefix keeps model-chosen argument names out of label keys the kernel interprets
 itself (`agent_id`, `secrets_present`, `mcp.*`, `_delegation.*`). Write policies against the
@@ -146,8 +150,8 @@ rules:
 ```
 
 The kernel skips a `label_threshold` check when the label is missing or not numeric, so a
-rule on an argument that is not sent (secret-like name, non-scalar, past the 16-label cap)
-never fires.
+rule on an argument that is not sent (secret-like name, non-scalar, past the 16-label cap,
+`include_args=False`) never fires.
 
 ## Async Support
 
@@ -183,6 +187,7 @@ async def async_operation():
 | `capability` | function name  | Override the capability identifier       |
 | `topic`      | `"job.guard"`  | NATS topic for policy evaluation         |
 | `timeout`    | `300.0`        | Max wait for approval decisions (seconds)|
+| `include_args` | `True`       | Send scalar arguments as `arg.*` labels; `False` also keeps them out of the approval prompt |
 
 ### CordumToolGuard (LangChain / LlamaIndex)
 
@@ -192,6 +197,7 @@ async def async_operation():
 | `policy`     | `""`           | Policy name                          |
 | `risk_tags`  | `[]`           | Risk tags for all wrapped tools      |
 | `topic`      | `"job.guard"`  | NATS topic for evaluation            |
+| `include_args` | `True`       | Send scalar tool arguments as `arg.*` labels |
 
 ## Testing
 
@@ -261,8 +267,9 @@ client = CordumClient("http://localhost:8081", api_key="key", on_error=my_fallba
 Only connection/timeout errors trigger fail-open. Auth errors (401/403) and explicit DENY responses always propagate normally.
 
 The client reads the gateway's protojson verdicts (`DECISION_TYPE_ALLOW`,
-`DECISION_TYPE_REQUIRE_HUMAN`, ...) as well as plain names. An unrecognised verdict, including
-`DECISION_TYPE_UNSPECIFIED`, fails closed as DENY in every profile.
+`DECISION_TYPE_REQUIRE_HUMAN`, ...) as well as plain names. A response with no verdict (for
+example an empty 200 body) and an unrecognised verdict, including `DECISION_TYPE_UNSPECIFIED`,
+both fail closed as DENY in every profile.
 
 ## License
 

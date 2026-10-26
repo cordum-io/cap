@@ -136,6 +136,16 @@ class TestEvaluatePolicy:
         assert "failing closed" in d.reason
 
     @respx.mock
+    def test_empty_200_body_fails_closed(self, client: CordumClient):
+        # e.g. a proxy answering 200 with no body: no verdict, no permission.
+        respx.post(f"{GATEWAY}/api/v1/policy/evaluate").mock(
+            return_value=httpx.Response(200)
+        )
+        d = client.evaluate_policy(topic="job.guard")
+        assert d.decision == Decision.DENY
+        assert "missing gateway decision" in d.reason
+
+    @respx.mock
     @pytest.mark.parametrize(
         ("raw", "expected"),
         [

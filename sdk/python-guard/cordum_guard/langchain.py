@@ -49,11 +49,14 @@ class CordumToolGuard:
         policy: str = "",
         risk_tags: Optional[list[str]] = None,
         topic: str = "job.guard",
+        include_args: bool = True,
     ) -> None:
         self.client = client
         self.policy = policy
         self.risk_tags = risk_tags or []
         self.topic = topic
+        # False: send no arg.* labels (tools taking sensitive free text).
+        self.include_args = include_args
 
     def wrap(self, tools: list[BaseTool]) -> list[BaseTool]:
         """Return a new list of guarded tools."""

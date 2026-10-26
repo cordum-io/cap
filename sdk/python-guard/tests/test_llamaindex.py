@@ -186,3 +186,16 @@ class TestLabels:
         assert labels["arg.amount"] == "15000"
         assert labels["arg.to_account"] == "alice"
         assert "arg.api_key" not in labels
+
+    def test_include_args_false_sends_no_argument_labels(self):
+        client = _make_client(Decision.ALLOW)
+        tool = _make_tool()
+
+        CordumToolGuard(client, include_args=False).wrap_one(tool)
+        tool._fn(note="private medical details")
+        asyncio.run(tool._async_fn(note="private medical details"))
+
+        for call in client.evaluate_policy.call_args_list:
+            labels = call.kwargs["labels"]
+            assert not [k for k in labels if k.startswith("arg.")]
+            assert labels["tool"] == "transfer_funds"

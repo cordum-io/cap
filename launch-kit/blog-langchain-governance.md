@@ -97,7 +97,7 @@ The `default_decision` controls what happens to tools without an explicit policy
 - **ALLOW** — tool executes normally
 - **DENY** — tool is blocked, returns a `[BLOCKED]` message
 - **THROTTLE** — tool executes after a configurable delay
-- **REQUIRE_APPROVAL** — tool waits for human approval before executing
+- **REQUIRE_APPROVAL** — tool does not run; the guard raises `CordumApprovalRequiredError` so your app can get a human's sign-off
 
 ## Step 4: Wrap Your Tools
 
@@ -159,7 +159,7 @@ guard = CordumToolGuard(client, policy="production_ops")
 guarded_tools = guard.wrap(your_tools)
 ```
 
-The real Safety Kernel gives you centralized policy management, `REQUIRE_APPROVAL` for human-in-the-loop workflows (approvals appear in the Cordum dashboard), full audit logging with trace IDs, and policy evaluation caching for performance. Your tool code stays exactly the same — only the client changes.
+The real Safety Kernel gives you centralized policy management, `REQUIRE_APPROVAL` for human-in-the-loop workflows (the guard stops the call and raises `CordumApprovalRequiredError` so you can route it for sign-off), full audit logging with trace IDs, and policy evaluation caching for performance. Your tool code stays exactly the same — only the client changes.
 
 ## Next Steps
 

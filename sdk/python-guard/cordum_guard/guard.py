@@ -117,16 +117,14 @@ def _gate_tool_call(
     None and ``delay`` is the seconds to wait before running. Raises
     :class:`CordumApprovalRequiredError` when a human must approve.
     """
+    labels = {"policy": tool_guard.policy, "tool": name, "description": description[:200]}
+    if tool_guard.include_args:
+        labels.update(_arg_labels(_named_args(fn, args, kwargs)))
     decision = tool_guard.client.evaluate_policy(
         topic=tool_guard.topic,
         capability=name,
         risk_tags=tool_guard.risk_tags,
-        labels={
-            "policy": tool_guard.policy,
-            "tool": name,
-            "description": description[:200],
-            **_arg_labels(_named_args(fn, args, kwargs)),
-        },
+        labels=labels,
     )
     try:
         return None, _check_decision(decision)
@@ -145,6 +143,7 @@ def guard(
     capability: str = "",
     topic: str = "job.guard",
     timeout: float = 300.0,
+    include_args: bool = True,
 ) -> Callable[[F], F]: ...
 
 
@@ -156,6 +155,7 @@ def guard(
     capability: str = "",
     topic: str = "job.guard",
     timeout: float = 300.0,
+    include_args: bool = True,
 ) -> Callable[[F], F]:
     """Decorator that enforces Cordum safety policy before executing a function.
 
@@ -172,8 +172,9 @@ def guard(
         capability: Override the capability name (defaults to function name).
         topic: NATS topic for the policy evaluation.
         timeout: Max seconds to wait for an approval decision.
-
-    Scalar arguments are sent as ``arg.<name>`` labels (see README).
+        include_args: Send scalar arguments as ``arg.<name>`` labels (see
+            README). False sends none and keeps argument values out of the
+            approval job prompt.
     """
     tags = risk_tags or []
 
@@ -181,34 +182,41 @@ def guard(
         cap = capability or fn.__name__
         labels = {"policy": policy, "function": fn.__qualname__} if policy else {"function": fn.__qualname__}
 
+        def call_labels(args: tuple[Any, ...], kwargs: dict[str, Any]) -> dict[str, str]:
+            if not include_args:
+                return labels
+            return {**labels, **_arg_labels(_named_args(fn, args, kwargs))}
+
         if inspect.iscoroutinefunction(fn):
 
             @functools.wraps(fn)
             async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
-                call_labels = {**labels, **_arg_labels(_named_args(fn, args, kwargs))}
+                labels_now = call_labels(args, kwargs)
                 decision = client.evaluate_policy(
                     topic=topic,
                     capability=cap,
                     risk_tags=tags,
-                    labels=call_labels,
+                    labels=labels_now,
                 )
                 return await _handle_decision_async(
-                    decision, client, fn, args, kwargs, topic, cap, tags, call_labels, timeout
+                    decision, client, fn, args, kwargs, topic, cap, tags, labels_now, timeout,
+                    include_args,
                 )
 
             return async_wrapper  # type: ignore[return-value]
 
         @functools.wraps(fn)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-            call_labels = {**labels, **_arg_labels(_named_args(fn, args, kwargs))}
+            labels_now = call_labels(args, kwargs)
             decision = client.evaluate_policy(
                 topic=topic,
                 capability=cap,
                 risk_tags=tags,
-                labels=call_labels,
+                labels=labels_now,
             )
             return _handle_decision_sync(
-                decision, client, fn, args, kwargs, topic, cap, tags, call_labels, timeout
+                decision, client, fn, args, kwargs, topic, cap, tags, labels_now, timeout,
+                include_args,
             )
 
         return sync_wrapper  # type: ignore[return-value]
@@ -227,6 +235,7 @@ def _handle_decision_sync(
     tags: list[str],
     labels: dict[str, str],
     timeout: float,
+    include_args: bool = True,
 ) -> Any:
     try:
         delay = _check_decision(decision)
@@ -234,7 +243,7 @@ def _handle_decision_sync(
         # Submit a job (same labels as the evaluation) so the approval
         # appears in the dashboard, then wait for the human verdict.
         job = client.submit_job(
-            prompt=f"Approval required: {cap}({_summarize_args(_named_args(fn, args, kwargs))})",
+            prompt=_approval_prompt(cap, fn, args, kwargs, include_args),
             topic=topic,
             capability=cap,
             risk_tags=tags,
@@ -260,12 +269,13 @@ async def _handle_decision_async(
     tags: list[str],
     labels: dict[str, str],
     timeout: float,
+    include_args: bool = True,
 ) -> Any:
     try:
         delay = _check_decision(decision)
     except CordumApprovalRequiredError:
         job = client.submit_job(
-            prompt=f"Approval required: {cap}({_summarize_args(_named_args(fn, args, kwargs))})",
+            prompt=_approval_prompt(cap, fn, args, kwargs, include_args),
             topic=topic,
             capability=cap,
             risk_tags=tags,
@@ -278,6 +288,17 @@ async def _handle_decision_async(
     if delay:
         await asyncio.sleep(delay)
     return await fn(*args, **kwargs)
+
+
+def _approval_prompt(
+    cap: str,
+    fn: Callable[..., Any],
+    args: tuple[Any, ...],
+    kwargs: dict[str, Any],
+    include_args: bool,
+) -> str:
+    summary = _summarize_args(_named_args(fn, args, kwargs)) if include_args else "..."
+    return f"Approval required: {cap}({summary})"
 
 
 def _summarize_args(named: dict[str, Any]) -> str:

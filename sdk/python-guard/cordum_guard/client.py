@@ -311,26 +311,19 @@ def _parse_safety_decision(
 ) -> SafetyDecision:
     """Parse a policy evaluation response into a SafetyDecision.
 
-    An unknown verdict string (including ``DECISION_TYPE_UNSPECIFIED`` and
-    output-only verdicts) FAILS CLOSED (DENY) in every profile. Under the
-    CAP-PRODUCTION profile a missing, null or non-string verdict fails closed
-    too. Outside production, a missing verdict keeps the historical
-    permissive default and an explicit malformed type raises instead of
-    authorizing work.
+    A missing verdict, or an unknown verdict string (including
+    ``DECISION_TYPE_UNSPECIFIED`` and output-only verdicts), FAILS CLOSED
+    (DENY) in every profile. A null or non-string verdict fails closed under
+    CAP-PRODUCTION and raises outside it, so a malformed gateway response
+    never authorizes work.
     """
-    missing = "decision" not in data
-    raw = data.get("decision")
-    if missing:
-        if production:
-            return SafetyDecision(
-                decision=Decision.DENY,
-                reason=(
-                    "CAP-PRODUCTION: missing gateway decision; "
-                    "failing closed"
-                ),
-            )
-        raw = "allow"
-    elif not isinstance(raw, str):
+    if "decision" not in data:
+        return SafetyDecision(
+            decision=Decision.DENY,
+            reason="missing gateway decision; failing closed",
+        )
+    raw = data["decision"]
+    if not isinstance(raw, str):
         if production:
             return SafetyDecision(
                 decision=Decision.DENY,

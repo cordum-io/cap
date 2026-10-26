@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"sort"
 	"testing"
 )
 
@@ -125,9 +126,10 @@ type coverageDoc struct {
 	} `json:"behaviors"`
 }
 
-// The coverage index must reference only real cases, and every gated behavior
+// The coverage index must reference only real cases, every gated behavior
 // must be explicit (marked gated, with a reason, and no cases) so a deferred
-// behavior can never masquerade as covered.
+// behavior can never masquerade as covered, and every shipped case must be
+// mapped by a non-gated behavior so no case ships unaccounted for.
 func TestCoverageIndexIsConsistent(t *testing.T) {
 	b, err := os.ReadFile(filepath.Join("..", "..", "spec", "tck", "coverage.json"))
 	if err != nil {
@@ -138,6 +140,7 @@ func TestCoverageIndexIsConsistent(t *testing.T) {
 		t.Fatalf("coverage.json invalid: %v", err)
 	}
 	ids := shippedScenarioIDs(t)
+	mapped := map[string]bool{}
 	sawGated := false
 	for _, bh := range cov.Behaviors {
 		if bh.Gated != "" {
@@ -154,10 +157,21 @@ func TestCoverageIndexIsConsistent(t *testing.T) {
 			if _, ok := ids[id]; !ok {
 				t.Fatalf("coverage behavior %q references unknown case %q", bh.Behavior, id)
 			}
+			mapped[id] = true
 		}
 	}
 	if !sawGated {
 		t.Fatal("expected coverage.json to explicitly record the gated CAP-PRODUCTION behaviors")
+	}
+	unmapped := make([]string, 0, len(ids))
+	for id := range ids {
+		if !mapped[id] {
+			unmapped = append(unmapped, id)
+		}
+	}
+	sort.Strings(unmapped)
+	for _, id := range unmapped {
+		t.Errorf("shipped case %q is not listed by any non-gated coverage behavior", id)
 	}
 }
 

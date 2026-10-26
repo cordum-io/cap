@@ -17,6 +17,10 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `x/text` 0.42.0); bumped sdk/node dev dependencies `js-yaml` 4.3.1, `markdown-it` 14.3.2
   and `brace-expansion` 2.1.7, and tools/codegen dev dependencies `markdown-it` 14.3.2 and
   `brace-expansion` 2.1.7.
+- Conformance and support-tier truth: `spec/tck/coverage.json` no longer says the
+  CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
+  test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python
+  pending gates and points their real-NATS gates at the fail-closed, CI-mandatory suites.
 
 ## v2.17.0 — 2026-07-22
 

@@ -89,7 +89,14 @@ class TestCacheKey:
 
     def test_none_risk_tags(self):
         key = make_cache_key("t", "c", None)
-        assert key == ("t", "c", ())
+        assert key == ("t", "c", (), ())
+
+    def test_labels_part_of_key(self):
+        # Argument labels feed label rules, so they must split cache entries.
+        key_a = make_cache_key("t", "c", None, {"arg.amount": "1"})
+        key_b = make_cache_key("t", "c", None, {"arg.amount": "999"})
+        assert key_a != key_b
+        assert key_a == make_cache_key("t", "c", None, {"arg.amount": "1"})
 
 
 # ---- CordumClient integration tests ----------------------------------------
@@ -126,6 +133,16 @@ class TestClientCacheIntegration:
         assert r1.decision == Decision.ALLOW
         assert r2.decision == Decision.ALLOW
         assert client._http.request.call_count == 1  # only 1 HTTP call
+
+    def test_different_labels_not_served_from_cache(self):
+        # A cached ALLOW for a small amount must not be reused for a large one.
+        client = self._make_client()
+        self._mock_response(client, "allow")
+
+        client.evaluate_policy(topic="job.t", capability="cap", labels={"arg.amount": "1"})
+        client.evaluate_policy(topic="job.t", capability="cap", labels={"arg.amount": "999"})
+
+        assert client._http.request.call_count == 2
 
     def test_different_policies_both_hit_http(self):
         client = self._make_client()

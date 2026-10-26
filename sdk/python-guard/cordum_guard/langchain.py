@@ -16,10 +16,13 @@ Example::
 
 from __future__ import annotations
 
+import asyncio
+import functools
+import time
 from typing import Any, Optional
 
 from .client import CordumClient
-from .types import Decision
+from .guard import _gate_tool_call
 
 try:
     from langchain_core.tools import BaseTool, ToolException
@@ -31,7 +34,14 @@ except ImportError as _err:
 
 
 class CordumToolGuard:
-    """Wraps LangChain tools with Cordum safety evaluation."""
+    """Wraps LangChain tools with Cordum safety evaluation.
+
+    Per call: DENY or an unknown verdict returns ``[BLOCKED] <tool>: <reason>``
+    without running the tool; REQUIRE_APPROVAL raises
+    :class:`~cordum_guard.exceptions.CordumApprovalRequiredError`; THROTTLE
+    waits, then runs; ALLOW and ALLOW_WITH_CONSTRAINTS run. Scalar tool
+    arguments are sent as ``arg.<name>`` labels.
+    """
 
     def __init__(
         self,
@@ -53,26 +63,19 @@ class CordumToolGuard:
         """Wrap a single LangChain tool with a safety check."""
         guard_self = self
         original_run = tool._run
+        description = tool.description or ""
 
-        def guarded_run(
-            *args: Any, **kwargs: Any
-        ) -> str:
-            decision = guard_self.client.evaluate_policy(
-                topic=guard_self.topic,
-                capability=tool.name,
-                risk_tags=guard_self.risk_tags,
-                labels={
-                    "policy": guard_self.policy,
-                    "tool": tool.name,
-                    "description": (tool.description or "")[:200],
-                },
+        # wraps() keeps the original signature: LangChain injects `config` and
+        # `run_manager` only when `_run` declares them (StructuredTool needs both).
+        @functools.wraps(original_run)
+        def guarded_run(*args: Any, **kwargs: Any) -> Any:
+            blocked, delay = _gate_tool_call(
+                guard_self, tool.name, description, original_run, args, kwargs
             )
-            if decision.decision == Decision.DENY:
-                return f"[BLOCKED] {tool.name}: {decision.reason}"
-            if decision.decision == Decision.THROTTLE:
-                import time
-
-                time.sleep(decision.throttle_duration_seconds)
+            if blocked is not None:
+                return blocked
+            if delay:
+                time.sleep(delay)
             return original_run(*args, **kwargs)  # type: ignore[misc]
 
         tool._run = guarded_run  # type: ignore[assignment]
@@ -81,24 +84,15 @@ class CordumToolGuard:
         if hasattr(tool, "_arun") and tool._arun is not None:
             original_arun = tool._arun
 
-            async def guarded_arun(
-                *args: Any, **kwargs: Any
-            ) -> str:
-                decision = guard_self.client.evaluate_policy(
-                    topic=guard_self.topic,
-                    capability=tool.name,
-                    risk_tags=guard_self.risk_tags,
-                    labels={
-                        "policy": guard_self.policy,
-                        "tool": tool.name,
-                    },
+            @functools.wraps(original_arun)
+            async def guarded_arun(*args: Any, **kwargs: Any) -> Any:
+                blocked, delay = _gate_tool_call(
+                    guard_self, tool.name, description, original_arun, args, kwargs
                 )
-                if decision.decision == Decision.DENY:
-                    return f"[BLOCKED] {tool.name}: {decision.reason}"
-                if decision.decision == Decision.THROTTLE:
-                    import asyncio
-
-                    await asyncio.sleep(decision.throttle_duration_seconds)
+                if blocked is not None:
+                    return blocked
+                if delay:
+                    await asyncio.sleep(delay)
                 return await original_arun(*args, **kwargs)  # type: ignore[misc]
 
             tool._arun = guarded_arun  # type: ignore[assignment]

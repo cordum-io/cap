@@ -62,7 +62,9 @@ All three tools are standard LangChain `BaseTool` subclasses, wrapped with `Cord
 4. Based on the decision:
    - **ALLOW**: `_run` executes normally, result returned
    - **DENY**: `_run` is never called, returns `[BLOCKED] tool_name: reason`
+   - **REQUIRE_APPROVAL**: `_run` is never called, raises `CordumApprovalRequiredError`
    - **THROTTLE**: sleeps for the configured duration, then executes
+   - Any other verdict: blocked like DENY (fail closed)
 5. All decisions are logged in `mock.call_log` for audit
 
 ## Production Usage

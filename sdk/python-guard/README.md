@@ -29,11 +29,14 @@ def execute_transfer(amount: float, to_account: str):
 
 The `@guard` decorator intercepts every call to `execute_transfer`:
 
-1. Evaluates the safety policy via the Cordum Safety Kernel
-2. **allow** — function runs normally
+1. Evaluates the safety policy via the Cordum Safety Kernel, sending the call's scalar
+   arguments as `arg.*` labels (see [Policy labels](#policy-labels))
+2. **allow** / **allow_with_constraints** — function runs normally
 3. **deny** — raises `CordumBlockedError`
-4. **require_approval** — waits for human approval in the dashboard
+4. **require_approval** — submits the call as a job with the same labels and waits for human
+   approval in the dashboard; values of secret-like arguments are masked in the job prompt
 5. **throttle** — delays execution per policy
+6. **any other verdict** — raises `CordumBlockedError` (fail closed)
 
 ## LangChain Integration
 
@@ -55,6 +58,92 @@ from cordum_guard.llamaindex import CordumToolGuard
 client = CordumClient("http://localhost:8081", api_key="your-api-key")
 guarded_tools = CordumToolGuard(client, policy="agent_ops").wrap(tools)
 ```
+
+`call()`, `acall()` and `real_fn` (which CodeActAgent hands to its code executor) are all
+guarded.
+
+## Tool guard decisions
+
+`CordumToolGuard` (LangChain and LlamaIndex) evaluates every tool call, sync and async, and
+treats every verdict except **allow** and **allow_with_constraints** as blocking:
+
+| Verdict | Tool runs? | Agent / caller sees |
+|---------|------------|---------------------|
+| `allow` | yes | the tool result |
+| `allow_with_constraints` | yes | the tool result; constraints are **not** enforced (see below) |
+| `throttle` | yes, after the delay | the tool result |
+| `deny` | no | `[BLOCKED] <tool>: <reason>` as the tool result |
+| `require_approval` (kernel `REQUIRE_HUMAN`) | no | `CordumApprovalRequiredError` is raised |
+| anything else (unknown, `DECISION_TYPE_UNSPECIFIED`) | no | `[BLOCKED] <tool>: <reason>` (fail closed) |
+
+A response with `approvalRequired: true` is treated as `require_approval` unless the verdict
+is `deny`.
+
+```python
+from cordum_guard import CordumApprovalRequiredError
+
+try:
+    agent.invoke({"input": "Transfer $15,000 from Bob to Alice"})
+except CordumApprovalRequiredError as exc:
+    # The tool did NOT run.
+    print(exc.reason, exc.rule_id, exc.policy_snapshot, exc.approval_ref, exc.job_id)
+```
+
+`CordumApprovalRequiredError` subclasses `CordumBlockedError`, so existing
+`except CordumBlockedError` handlers still fail closed. It carries `decision` (the full
+`SafetyDecision`), `reason`, `rule_id`, `policy_snapshot`, `approval_ref` and `job_id`.
+Cordum keys approvals by job ID, so `approval_ref == job_id`, and the gateway only sets them
+when the evaluation was bound to a job: `/api/v1/policy/evaluate` echoes the request
+`job_id`, and the tool guards evaluate without one, so both are empty for tool calls. An
+evaluation creates no approval. To get a human decision, submit the action as a job with the
+same labels (it appears under **Approvals** with its job ID) and poll it with
+`client.wait_for_decision(job_id)`; that is what `@guard` does.
+
+**allow_with_constraints:** the action runs, but in-process guards cannot apply the returned
+constraints (budgets, sandbox, toolchain, diff, redaction level). They are available as
+`SafetyDecision.constraints` from `client.evaluate_policy(...)` for callers that can enforce
+them. Use `deny` or `require_approval` for rules that must hold in-process.
+
+## Policy labels
+
+Labels are sent at the top level of the evaluate request, where the Safety Kernel matches
+`labels`, `label_allowlist` and `label_threshold` rules, and are also copied to
+`meta.labels` for older consumers. The guards always send `policy` plus `tool` and
+`description` (tool guards) or `function` (`@guard`).
+
+**Arguments:** scalar call arguments are sent as `arg.<parameter name>` labels so policies can
+see their values:
+
+- Only `bool`, `int`, `float`, `Decimal` and `str` values are sent. Bools become
+  `true` / `false`; numbers use `str()`, except NaN, which is sent as `inf` so
+  `label_threshold` rules still trip. `None`, lists, dicts and objects are skipped.
+- Positional arguments are named from the function signature; extra `*args` are not sent.
+- Names must match `[A-Za-z_][A-Za-z0-9_]{0,63}`.
+- At most 16 argument labels per call, in argument order. Values are cut at 256 characters.
+- Arguments with secret-like names are never sent: `password`, `passwd`, `passphrase`,
+  `secret`, `token`, `api_key` / `apikey`, `access_key`, `private_key`, `authorization`,
+  `auth`, `credential(s)`, `cookie` or `session`, as a whole word of the name
+  (`client_secret`, `accessToken` and `session_id` match; `max_tokens` does not). Do not pass
+  credentials through other argument names.
+
+The `arg.` prefix keeps model-chosen argument names out of label keys the kernel interprets
+itself (`agent_id`, `secrets_present`, `mcp.*`, `_delegation.*`). Write policies against the
+prefixed name:
+
+```yaml
+rules:
+  - id: financial-approval
+    match:
+      capabilities: [transfer_funds]
+      label_threshold:
+        arg.amount: 10000
+    decision: require_approval
+    reason: "Transfers over $10,000 require human approval."
+```
+
+The kernel skips a `label_threshold` check when the label is missing or not numeric, so a
+rule on an argument that is not sent (secret-like name, non-scalar, past the 16-label cap)
+never fires.
 
 ## Async Support
 
@@ -142,6 +231,9 @@ client = CordumClient(
 # Clear cache: client.clear_cache()
 ```
 
+The cache key covers topic, capability, risk tags and labels, so calls with different
+argument values never share a cached verdict.
+
 ## Failure Modes
 
 Configure what happens when the gateway is unreachable:
@@ -163,6 +255,10 @@ client = CordumClient("http://localhost:8081", api_key="key", on_error=my_fallba
 ```
 
 Only connection/timeout errors trigger fail-open. Auth errors (401/403) and explicit DENY responses always propagate normally.
+
+The client reads the gateway's protojson verdicts (`DECISION_TYPE_ALLOW`,
+`DECISION_TYPE_REQUIRE_HUMAN`, ...) as well as plain names. An unrecognised verdict, including
+`DECISION_TYPE_UNSPECIFIED`, fails closed as DENY in every profile.
 
 ## License
 

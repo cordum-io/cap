@@ -198,3 +198,92 @@ class TestAsyncRequireApproval:
 
         result = asyncio.get_event_loop().run_until_complete(async_transfer())
         assert result == "transferred"
+
+
+class TestDecisionMapping:
+    def test_allow_with_constraints_executes(self):
+        client = _make_client(Decision.ALLOW_WITH_CONSTRAINTS)
+
+        @guard(client)
+        def op() -> str:
+            return "ran"
+
+        assert op() == "ran"
+
+    def test_unknown_decision_raises_and_does_not_run(self):
+        client = MagicMock()
+        client.evaluate_policy.return_value = SafetyDecision.model_construct(
+            decision="quarantine", reason="unrecognised verdict"
+        )
+        called = False
+
+        @guard(client)
+        def op():
+            nonlocal called
+            called = True
+
+        with pytest.raises(CordumBlockedError):
+            op()
+        assert not called
+
+    def test_approval_required_flag_routes_to_approval(self):
+        client = _make_client(Decision.ALLOW, approval_required=True)
+        client.submit_job.return_value = JobResponse(job_id="j-f")
+        client.wait_for_decision.return_value = JobStatus(job_id="j-f", state="denied")
+
+        @guard(client)
+        def op():
+            return "nope"
+
+        with pytest.raises(CordumBlockedError):
+            op()
+        client.submit_job.assert_called_once()
+
+    def test_async_unknown_decision_raises(self):
+        client = MagicMock()
+        client.evaluate_policy.return_value = SafetyDecision.model_construct(
+            decision="redact"
+        )
+
+        @guard(client)
+        async def op():
+            return "nope"
+
+        with pytest.raises(CordumBlockedError):
+            asyncio.run(op())
+
+
+class TestArgumentLabels:
+    def test_evaluate_receives_argument_labels(self):
+        client = _make_client(Decision.ALLOW)
+
+        @guard(client, policy="financial_ops")
+        def transfer(amount: float, to_account: str, password: str = "") -> str:
+            return "sent"
+
+        transfer(15000.0, to_account="bob", password="hunter2")
+
+        labels = client.evaluate_policy.call_args.kwargs["labels"]
+        assert labels["arg.amount"] == "15000.0"  # positional, named by signature
+        assert labels["arg.to_account"] == "bob"
+        assert "arg.password" not in labels
+        assert labels["policy"] == "financial_ops"
+        assert labels["function"].endswith("transfer")
+
+    def test_approval_job_carries_same_labels_and_no_secrets(self):
+        client = _make_client(Decision.REQUIRE_APPROVAL)
+        client.submit_job.return_value = JobResponse(job_id="j-3")
+        client.wait_for_decision.return_value = JobStatus(job_id="j-3", state="succeeded")
+
+        @guard(client)
+        def transfer(amount: float, api_key: str) -> str:
+            return "sent"
+
+        assert transfer(15000.0, api_key="sk-live-123") == "sent"
+
+        evaluated = client.evaluate_policy.call_args.kwargs["labels"]
+        submitted = client.submit_job.call_args.kwargs
+        assert submitted["labels"] == evaluated
+        assert submitted["labels"]["arg.amount"] == "15000.0"
+        assert "sk-live-123" not in submitted["prompt"]
+        assert "amount=15000.0" in submitted["prompt"]

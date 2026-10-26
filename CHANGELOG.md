@@ -6,6 +6,31 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **cordum-guard closes governance bypasses (security, behavior change).**
+  - Verdicts: the client now reads the gateway's protojson names
+    (`DECISION_TYPE_REQUIRE_HUMAN`, ...). Previously every real verdict, DENY included, parsed
+    as ALLOW outside CAP-PRODUCTION. Unknown verdicts, including `DECISION_TYPE_UNSPECIFIED`,
+    now fail closed as DENY in every profile; they used to default to ALLOW.
+  - Tool guards: the LangChain and LlamaIndex guards treat everything except
+    `allow` / `allow_with_constraints` as blocking. `require_approval` (or
+    `approvalRequired: true`) used to run the tool; it now raises the new
+    `CordumApprovalRequiredError` (a `CordumBlockedError`) with `reason`, `rule_id`,
+    `policy_snapshot`, `approval_ref` and `job_id`. Unknown verdicts return `[BLOCKED]`. The
+    LlamaIndex guard now also guards `acall()` and `real_fn` (used by CodeActAgent), which
+    ran unguarded. The LangChain guard keeps
+    the wrapped `_run` / `_arun` signature, so `@tool` / `StructuredTool` tools receive
+    LangChain's `config` argument again instead of failing with `TypeError`.
+  - Labels: guards now send labels at the top level, where the Safety Kernel matches label
+    rules. Before, they were sent only under `meta.labels` and no label rule ever matched
+    guard traffic. `meta.labels` is still sent.
+  - Arguments: every guard sends scalar call arguments as bounded `arg.<name>` labels (16
+    per call, 256 chars per value, never for secret-like names), so rules such as
+    `label_threshold: {arg.amount: 10000}` work. The policy cache key now includes labels.
+    `@guard` approval jobs carry the same labels and mask secret-like arguments in the
+    prompt.
+  - Added `Decision.ALLOW_WITH_CONSTRAINTS` and the `SafetyDecision` fields `rule_id`,
+    `policy_snapshot`, `approval_required`, `approval_ref` and `constraints`. Constraints are
+    not enforced in-process.
 - **Go SDK requires Go 1.26.0 or newer (was 1.25.12).** `golang.org/x/net` v0.60.0, the
   first release that fixes four reachable advisories govulncheck reports against v0.55.0
   (GO-2026-6603, GO-2026-6611, GO-2026-6612, GO-2026-6617), itself declares `go 1.26.0`.

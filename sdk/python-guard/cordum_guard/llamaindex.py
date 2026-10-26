@@ -15,11 +15,14 @@ Example::
 
 from __future__ import annotations
 
+import asyncio
 import functools
+import inspect
+import time
 from typing import Any, Optional
 
 from .client import CordumClient
-from .types import Decision
+from .guard import _gate_tool_call
 
 try:
     from llama_index.core.tools import FunctionTool
@@ -31,7 +34,11 @@ except ImportError as _err:
 
 
 class CordumToolGuard:
-    """Wraps LlamaIndex tools with Cordum safety evaluation."""
+    """Wraps LlamaIndex tools with Cordum safety evaluation.
+
+    Same per-call behavior as the LangChain guard, on ``call()``, ``acall()``
+    and ``real_fn``.
+    """
 
     def __init__(
         self,
@@ -50,29 +57,52 @@ class CordumToolGuard:
         return [self.wrap_one(t) for t in tools]
 
     def wrap_one(self, tool: FunctionTool) -> FunctionTool:
-        """Wrap a single LlamaIndex FunctionTool with a safety check."""
+        """Wrap a single LlamaIndex FunctionTool with a safety check.
+
+        Every entry point is guarded: ``call()`` runs ``_fn``, ``acall()`` runs
+        ``_async_fn`` (built from the original function at construction time,
+        so wrapping ``_fn`` alone left async agents unguarded), and
+        CodeActAgent hands ``real_fn`` straight to its code executor.
+        """
         guard_self = self
-        original_fn = tool._fn
+        name = tool.metadata.name or tool._fn.__name__
+        description = tool.metadata.description or ""
+        real_fn = getattr(tool, "_real_fn", None)
+        # The user's function names positional arguments for arg.* labels.
+        signature_fn = real_fn or tool._fn
 
-        @functools.wraps(original_fn)
-        def guarded_fn(*args: Any, **kwargs: Any) -> Any:
-            decision = guard_self.client.evaluate_policy(
-                topic=guard_self.topic,
-                capability=tool.metadata.name or original_fn.__name__,
-                risk_tags=guard_self.risk_tags,
-                labels={
-                    "policy": guard_self.policy,
-                    "tool": tool.metadata.name or "",
-                    "description": (tool.metadata.description or "")[:200],
-                },
-            )
-            if decision.decision == Decision.DENY:
-                return f"[BLOCKED] {tool.metadata.name}: {decision.reason}"
-            if decision.decision == Decision.THROTTLE:
-                import time
+        def guard_sync(fn: Any) -> Any:
+            @functools.wraps(fn)
+            def guarded(*args: Any, **kwargs: Any) -> Any:
+                blocked, delay = _gate_tool_call(
+                    guard_self, name, description, signature_fn, args, kwargs
+                )
+                if blocked is not None:
+                    return blocked
+                if delay:
+                    time.sleep(delay)
+                return fn(*args, **kwargs)
 
-                time.sleep(decision.throttle_duration_seconds)
-            return original_fn(*args, **kwargs)
+            return guarded
 
-        tool._fn = guarded_fn
+        def guard_async(fn: Any) -> Any:
+            @functools.wraps(fn)
+            async def guarded(*args: Any, **kwargs: Any) -> Any:
+                blocked, delay = _gate_tool_call(
+                    guard_self, name, description, signature_fn, args, kwargs
+                )
+                if blocked is not None:
+                    return blocked
+                if delay:
+                    await asyncio.sleep(delay)
+                return await fn(*args, **kwargs)
+
+            return guarded
+
+        tool._fn = guard_sync(tool._fn)
+        if getattr(tool, "_async_fn", None) is not None:
+            tool._async_fn = guard_async(tool._async_fn)
+        if real_fn is not None:
+            wrap = guard_async if inspect.iscoroutinefunction(real_fn) else guard_sync
+            tool._real_fn = wrap(real_fn)
         return tool

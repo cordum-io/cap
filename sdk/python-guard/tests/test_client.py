@@ -123,14 +123,84 @@ class TestEvaluatePolicy:
         assert d.throttle_duration_seconds == 3.5
 
     @respx.mock
-    def test_unknown_decision_defaults_allow(self, client: CordumClient):
+    @pytest.mark.parametrize(
+        "raw",
+        ["unknown_value", "", "DECISION_TYPE_UNSPECIFIED", "DECISION_TYPE_QUARANTINE"],
+    )
+    def test_unknown_decision_fails_closed(self, client: CordumClient, raw: str):
         respx.post(f"{GATEWAY}/api/v1/policy/evaluate").mock(
-            return_value=httpx.Response(
-                200, json={"decision": "unknown_value"}
-            )
+            return_value=httpx.Response(200, json={"decision": raw})
         )
         d = client.evaluate_policy(topic="job.guard")
-        assert d.decision == Decision.ALLOW
+        assert d.decision == Decision.DENY
+        assert "failing closed" in d.reason
+
+    @respx.mock
+    @pytest.mark.parametrize(
+        ("raw", "expected"),
+        [
+            # The gateway serialises the kernel's PolicyCheckResponse with
+            # protojson, so verdicts arrive as DecisionType enum names.
+            ("DECISION_TYPE_ALLOW", Decision.ALLOW),
+            ("DECISION_TYPE_DENY", Decision.DENY),
+            ("DECISION_TYPE_REQUIRE_HUMAN", Decision.REQUIRE_APPROVAL),
+            ("DECISION_TYPE_THROTTLE", Decision.THROTTLE),
+            ("DECISION_TYPE_ALLOW_WITH_CONSTRAINTS", Decision.ALLOW_WITH_CONSTRAINTS),
+            ("require_human", Decision.REQUIRE_APPROVAL),
+            ("require-approval", Decision.REQUIRE_APPROVAL),
+            ("DENY", Decision.DENY),
+        ],
+    )
+    def test_gateway_decision_names(self, client: CordumClient, raw, expected):
+        respx.post(f"{GATEWAY}/api/v1/policy/evaluate").mock(
+            return_value=httpx.Response(200, json={"decision": raw})
+        )
+        assert client.evaluate_policy(topic="job.guard").decision == expected
+
+    @respx.mock
+    def test_require_human_response_fields(self, client: CordumClient):
+        # Exact shape of the gateway's protojson (camelCase) response.
+        respx.post(f"{GATEWAY}/api/v1/policy/evaluate").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "decision": "DECISION_TYPE_REQUIRE_HUMAN",
+                    "reason": "Transfers over $10,000 require human approval.",
+                    "redactedContextPtr": "",
+                    "policySnapshot": "snap-1",
+                    "ruleId": "financial-approval",
+                    "constraints": None,
+                    "approvalRequired": True,
+                    "approvalRef": "job-42",
+                    "remediations": [],
+                    "redactedContextRef": None,
+                    "identity": None,
+                },
+            )
+        )
+        d = client.evaluate_policy(topic="job.guard", job_id="job-42")
+        assert d.decision == Decision.REQUIRE_APPROVAL
+        assert d.approval_required is True
+        assert d.approval_ref == "job-42"
+        assert d.rule_id == "financial-approval"
+        assert d.policy_snapshot == "snap-1"
+        assert d.constraints == {}
+
+    @respx.mock
+    def test_labels_sent_at_top_level(self, client: CordumClient):
+        # The Safety Kernel matches rules on the request's top-level labels;
+        # meta.labels is kept only for older consumers.
+        route = respx.post(f"{GATEWAY}/api/v1/policy/evaluate").mock(
+            return_value=httpx.Response(200, json={"decision": "allow"})
+        )
+        client.evaluate_policy(
+            topic="job.guard", labels={"policy": "ops", "arg.amount": "15000"}
+        )
+        import json
+
+        body = json.loads(route.calls[0].request.content)
+        assert body["labels"] == {"policy": "ops", "arg.amount": "15000"}
+        assert body["meta"]["labels"] == body["labels"]
 
     @respx.mock
     def test_request_body_includes_meta(self, client: CordumClient):

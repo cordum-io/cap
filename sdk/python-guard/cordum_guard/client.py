@@ -158,7 +158,7 @@ class CordumClient:
         setting. Auth errors and explicit DENY responses are never affected.
         """
         production = getattr(self, "_production_profile", False)
-        cache_key = make_cache_key(topic, capability, risk_tags)
+        cache_key = make_cache_key(topic, capability, risk_tags, labels)
 
         if not production and cache and self._cache is not None:
             cached = self._cache.get(cache_key)
@@ -172,6 +172,9 @@ class CordumClient:
         if risk_tags:
             meta["risk_tags"] = risk_tags
         if labels:
+            # The Safety Kernel matches rules on top-level labels only;
+            # meta.labels is kept for older consumers.
+            body["labels"] = labels
             meta["labels"] = labels
         if meta:
             body["meta"] = meta
@@ -287,16 +290,33 @@ class CordumClient:
         return resp.json()
 
 
+def _parse_decision(raw: str) -> Optional[Decision]:
+    """Map a gateway verdict string to a Decision, or None if unknown.
+
+    The gateway serialises the kernel response with protojson, so verdicts
+    arrive as enum names (``DECISION_TYPE_REQUIRE_HUMAN``); plain, upper-case
+    and kebab-case spellings are accepted too.
+    """
+    name = raw.strip().lower().replace("-", "_").removeprefix("decision_type_")
+    if name == "require_human":
+        name = Decision.REQUIRE_APPROVAL.value
+    try:
+        return Decision(name)
+    except ValueError:
+        return None
+
+
 def _parse_safety_decision(
     data: dict[str, Any], production: bool = False
 ) -> SafetyDecision:
     """Parse a policy evaluation response into a SafetyDecision.
 
-    Under the CAP-PRODUCTION profile a missing, null, non-string, or unknown
-    verdict FAILS CLOSED (DENY): a malformed gateway response must never be
-    read as permission. Outside production, a missing or unknown string keeps
-    the historical permissive default; an explicit malformed type still
-    fails instead of authorizing work.
+    An unknown verdict string (including ``DECISION_TYPE_UNSPECIFIED`` and
+    output-only verdicts) FAILS CLOSED (DENY) in every profile. Under the
+    CAP-PRODUCTION profile a missing, null or non-string verdict fails closed
+    too. Outside production, a missing verdict keeps the historical
+    permissive default and an explicit malformed type raises instead of
+    authorizing work.
     """
     missing = "decision" not in data
     raw = data.get("decision")
@@ -319,21 +339,14 @@ def _parse_safety_decision(
                 ),
             )
         raise TypeError("gateway decision must be a string")
-    # The gateway may return upper-case or snake_case variants.
-    decision_str = raw.lower().strip()
-    try:
-        decision = Decision(decision_str)
-    except ValueError:
-        if production:
-            return SafetyDecision(
-                decision=Decision.DENY,
-                reason=(
-                    f"CAP-PRODUCTION: unknown gateway decision {decision_str!r}; "
-                    "failing closed"
-                ),
-            )
-        decision = Decision.ALLOW
+    decision = _parse_decision(raw)
+    if decision is None:
+        return SafetyDecision(
+            decision=Decision.DENY,
+            reason=f"unknown gateway decision {raw!r}; failing closed",
+        )
 
+    # protojson emits camelCase field names; accept snake_case as well.
     return SafetyDecision(
         decision=decision,
         reason=data.get("reason", ""),
@@ -342,4 +355,11 @@ def _parse_safety_decision(
         throttle_duration_seconds=float(
             data.get("throttle_duration_seconds", 0)
         ),
+        rule_id=data.get("rule_id") or data.get("ruleId") or "",
+        policy_snapshot=data.get("policy_snapshot") or data.get("policySnapshot") or "",
+        approval_required=bool(
+            data.get("approval_required") or data.get("approvalRequired")
+        ),
+        approval_ref=data.get("approval_ref") or data.get("approvalRef") or "",
+        constraints=data.get("constraints") or {},
     )

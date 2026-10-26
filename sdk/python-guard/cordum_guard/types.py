@@ -9,12 +9,16 @@ from pydantic import BaseModel, Field
 
 
 class Decision(str, Enum):
-    """Safety decision types returned by the Cordum Safety Kernel."""
+    """Safety decision types returned by the Cordum Safety Kernel.
+
+    ``REQUIRE_APPROVAL`` is the kernel's ``DECISION_TYPE_REQUIRE_HUMAN``.
+    """
 
     ALLOW = "allow"
     DENY = "deny"
     REQUIRE_APPROVAL = "require_approval"
     THROTTLE = "throttle"
+    ALLOW_WITH_CONSTRAINTS = "allow_with_constraints"
 
 
 class SafetyDecision(BaseModel):
@@ -25,6 +29,13 @@ class SafetyDecision(BaseModel):
     matched_rules: list[str] = Field(default_factory=list)
     remediations: list[dict[str, Any]] = Field(default_factory=list)
     throttle_duration_seconds: float = 0.0
+    rule_id: str = ""
+    policy_snapshot: str = ""
+    approval_required: bool = False
+    # The kernel echoes the request job_id here when approval is required.
+    approval_ref: str = ""
+    # Raw PolicyConstraints for ALLOW_WITH_CONSTRAINTS; guards do not enforce them.
+    constraints: dict[str, Any] = Field(default_factory=dict)
 
 
 class JobResponse(BaseModel):

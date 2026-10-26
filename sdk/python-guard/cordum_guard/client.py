@@ -324,9 +324,10 @@ class CordumClient:
         while True:
             status = self.get_job(job_id)
             state = status.state.lower()
-            # approval_decision is the last transition. It survives the
-            # scheduler re-queuing an approved job for approval when its
-            # dispatch fails; approval_status flips back to "pending".
+            # approval_decision is the last transition. Cordum v1.2.0 and
+            # earlier re-queue an approved job for approval when its dispatch
+            # fails: approval_status reads "pending" again, approval_decision
+            # keeps "approve". Later servers keep the job approved.
             outcome = _APPROVAL_OUTCOMES.get(
                 status.approval_decision.lower(), status.approval_status.lower()
             )

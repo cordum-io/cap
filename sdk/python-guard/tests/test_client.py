@@ -302,9 +302,9 @@ class TestWaitForApproval:
 
     @respx.mock
     def test_approval_survives_the_job_being_requeued(self, client: CordumClient):
-        # An approved job whose dispatch fails is re-checked and put back in
-        # the approval queue: approval_status says pending again, but
-        # approval_decision still records the human's approve.
+        # Cordum v1.2.0 and earlier re-check an approved job whose dispatch
+        # fails and put it back in the approval queue: approval_status says
+        # pending again, but approval_decision still records the approve.
         respx.get(f"{GATEWAY}/api/v1/jobs/j-w").mock(return_value=_job(
             state="APPROVAL_REQUIRED", approval_status="pending",
             approval_decision="approve", approval_by="alice",

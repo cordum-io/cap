@@ -304,10 +304,11 @@ def _submit_approval_job(
 def _await_approval(client: CordumClient, job_id: str, timeout: float) -> None:
     """Wait for the human verdict on ``job_id``; return only if approved.
 
-    Waits for the approval, not for the job: no worker serves the approval
-    job's topic, so it never finishes. However the wait ends, the job is then
-    cancelled; left alone, the scheduler keeps retrying it and puts it back
-    in the approval queue.
+    Waits for the approval, not for the job: no worker runs it, and Cordum
+    v1.2.0 and earlier never finish it. However the wait ends, the job is
+    then cancelled, so those servers stop retrying it and re-queuing the
+    approval. Later servers complete an allowed ``job.guard`` job themselves;
+    cancelling it then returns 200 "job already terminal", which is harmless.
     """
     try:
         client.wait_for_approval(job_id, timeout=timeout)

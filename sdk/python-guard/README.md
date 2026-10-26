@@ -116,8 +116,9 @@ them. Use `deny` or `require_approval` for rules that must hold in-process.
 
 On `require_approval`, `@guard` submits the call as a job on its `topic` (`job.guard` by
 default) so it appears under **Approvals**, then blocks in
-`client.wait_for_approval(job_id, timeout=timeout)`. No worker serves that topic, so the job
-never runs or finishes. The function runs in your process once a human approves:
+`client.wait_for_approval(job_id, timeout=timeout)`. No worker runs that job. Cordum releases
+after v1.2.0 mark an approved `job.guard` job `SUCCEEDED`; v1.2.0 and earlier never finish
+it. The function runs in your process once a human approves:
 
 | `GET /api/v1/jobs/{id}` reports | `@guard` |
 |---------------------------------|----------|
@@ -127,19 +128,26 @@ never runs or finishes. The function runs in your process once a human approves:
 | state `SUCCEEDED` with no approval | raises `CordumBlockedError` |
 | still pending after `timeout` seconds | raises `CordumTimeoutError` |
 
-The guard reads `approval_decision`, not `approval_status`. When Cordum's scheduler cannot
-dispatch an approved job, it re-checks the policy on the retry. While the policy still
-requires approval, the job goes back into the approval queue and `approval_status` reads
-`pending` again; `approval_decision` keeps the human's `approve`.
+The guard reads `approval_decision`, not `approval_status`. On Cordum v1.2.0 and earlier,
+when the scheduler cannot dispatch an approved job, it re-checks the policy on the retry.
+While the policy still requires approval, the job goes back into the approval queue and
+`approval_status` reads `pending` again; `approval_decision` keeps the human's `approve`.
+Later releases keep the job approved.
 
 When the wait ends, approved or not, `@guard` cancels the job
 (`POST /api/v1/jobs/{id}/cancel`) so it does not reappear under **Approvals** and a late
-approval cannot be granted for a call that gave up. Cancelling needs `jobs.write` or the
-admin role; if it fails, the guard logs a warning and the verdict stands. The async
-decorator polls in a worker thread, so the event loop keeps running.
+approval cannot be granted for a call that gave up. On servers that complete `job.guard`
+jobs, the cancel after an approval finds the job finished and returns 200 ("job already
+terminal"), which is harmless. Cancelling needs `jobs.write` or the admin role; if it
+fails, the guard logs a warning and the verdict stands. The async decorator polls in a
+worker thread, so the event loop keeps running.
 
-- If your tenant uses a topic registry, register the guard topic. Otherwise the gateway
-  rejects the approval job with `unknown_topic` and the call raises `CordumError`.
+- Cordum (after v1.2.0) completes only `job.guard` approval jobs. With a custom `topic=`,
+  the approval job needs a worker that completes it; otherwise the server retries it until
+  the guard cancels it.
+- If your tenant uses a topic registry, `job.guard` (and any custom guard topic) must be
+  registered (`POST /api/v1/topics`). Otherwise the gateway rejects the approval job with
+  `unknown_topic` and the call raises `CordumError`.
 - Approve with a different identity than the guard's API key, because Cordum rejects
   self-approval.
 

@@ -423,12 +423,23 @@ class TestApprovalAgainstGatewayResponses:
         return cancels
 
     def test_approved_job_back_in_the_queue_still_runs_once(self):
-        # After approval the scheduler cannot route job.guard, re-checks the
-        # policy on redelivery and re-queues the job: approval_status reads
-        # "pending" again while approval_decision keeps "approve".
+        # Cordum v1.2.0 and earlier: after approval the scheduler cannot route
+        # job.guard, re-checks the policy on redelivery and re-queues the job.
+        # approval_status reads "pending" again, approval_decision keeps "approve".
         ran: list = []
         cancels = self._run({
             "state": "APPROVAL_REQUIRED", "approval_status": "pending",
+            "approval_decision": "approve", "approval_by": "alice",
+        }, ran)
+        assert ran == [50000.0]
+        assert cancels == 1
+
+    def test_server_completed_job_runs_once(self):
+        # Later servers mark an approved job.guard job SUCCEEDED; the guard's
+        # cancel then hits a finished job, which the gateway answers with 200.
+        ran: list = []
+        cancels = self._run({
+            "state": "SUCCEEDED", "approval_status": "approved",
             "approval_decision": "approve", "approval_by": "alice",
         }, ran)
         assert ran == [50000.0]

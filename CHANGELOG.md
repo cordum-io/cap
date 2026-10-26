@@ -34,9 +34,9 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
     `policy_snapshot`, `approval_required`, `approval_ref` and `constraints`. Constraints are
     not enforced in-process.
   - `@guard` approvals: the decorator waited for its approval job to finish, but no worker
-    serves `job.guard`, so an approved call never ran. After approval Cordum's scheduler
-    cannot route the job, re-checks the policy on the retry and puts the job back in the
-    approval queue. The call then failed with `CordumTimeoutError`. `@guard` now waits for
+    serves `job.guard`, so an approved call never ran. After approval, Cordum v1.2.0 and
+    earlier cannot route the job, re-check the policy on the retry and put the job back in
+    the approval queue. The call then failed with `CordumTimeoutError`. `@guard` now waits for
     the approval outcome with the new `CordumClient.wait_for_approval()`, which reads
     `approval_decision` from `GET /api/v1/jobs/{id}`. Approved runs the function. Rejected,
     expired or invalidated raises `CordumBlockedError`. No verdict within `timeout` still

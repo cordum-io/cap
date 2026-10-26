@@ -28,9 +28,9 @@
       "gates": [
         {"id": "publish", "kind": "workflow", "path": ".github/workflows/publish-python.yml"},
         {"id": "install", "kind": "manifest", "path": "sdk/python/pyproject.toml"},
-        {"id": "compat", "kind": "test", "path": "sdk/python/tests/test_conformance.py", "pending": true, "blockedBy": "task-83785a91"},
+        {"id": "compat", "kind": "test", "path": "sdk/python/tests/test_conformance.py"},
         {"id": "tck", "kind": "test", "path": "sdk/python/tests/test_conformance.py"},
-        {"id": "real-nats", "kind": "test", "path": "sdk/python/tests/test_progress.py", "pending": true, "blockedBy": "task-83785a91"}
+        {"id": "real-nats", "kind": "test", "path": "sdk/python/tests/integration/test_worker_nats.py"}
       ]
     },
     {
@@ -44,9 +44,9 @@
       "gates": [
         {"id": "publish", "kind": "workflow", "path": ".github/workflows/publish-node.yml"},
         {"id": "install", "kind": "manifest", "path": "sdk/node/package.json"},
-        {"id": "compat", "kind": "test", "path": "sdk/node/test/conformance.test.ts", "pending": true, "blockedBy": "task-de2ef8fb"},
+        {"id": "compat", "kind": "test", "path": "sdk/node/test/conformance.test.ts"},
         {"id": "tck", "kind": "test", "path": "sdk/node/test/conformance.test.ts"},
-        {"id": "real-nats", "kind": "test", "path": "sdk/node/test/progress.test.ts", "pending": true, "blockedBy": "task-de2ef8fb"}
+        {"id": "real-nats", "kind": "test", "path": "sdk/node/test/integration/nats.e2e.ts"}
       ]
     },
     {

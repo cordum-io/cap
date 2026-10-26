@@ -89,6 +89,10 @@ except CordumApprovalRequiredError as exc:
     print(exc.reason, exc.rule_id, exc.policy_snapshot, exc.approval_ref, exc.job_id)
 ```
 
+Agent runtimes decide whether a tool exception reaches you. LangGraph's default `ToolNode`
+re-raises it from `agent.invoke`. With `ToolNode(..., handle_tool_errors=True)` the model
+receives the error text instead. In both cases the tool does not run.
+
 `CordumApprovalRequiredError` subclasses `CordumBlockedError`, so existing
 `except CordumBlockedError` handlers still fail closed. It carries `decision` (the full
 `SafetyDecision`), `reason`, `rule_id`, `policy_snapshot`, `approval_ref` and `job_id`.

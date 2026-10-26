@@ -20,11 +20,12 @@ Start at [`spec/tck/README.md`](../spec/tck/README.md).
 
 Some behaviors are authored and enforced now; others are **gated** and recorded
 as such in `spec/tck/coverage.json` rather than quietly omitted. The index is
-machine-checked: a gated behavior must carry a reason and list no cases, and a
-non-gated behavior must list cases that resolve to shipped scenarios, so a
-deferred behavior cannot masquerade as covered.
+machine-checked: a gated behavior must carry a reason and list no cases, a
+non-gated behavior must list cases that resolve to shipped scenarios, and every
+shipped scenario must be listed by a non-gated behavior, so a deferred behavior
+cannot masquerade as covered and no shipped case goes unaccounted for.
 
-**Enforced now — 14 behaviors, 50 cases across 49 scenarios:**
+**Enforced now — 14 behaviors, 51 cases across 49 scenarios:**
 
 - Legal lifecycle transitions and rejections (spec/07), including backwards
   transitions, same-state idempotence, conflicting terminals, and every terminal

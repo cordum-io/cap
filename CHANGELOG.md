@@ -45,8 +45,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
     gains `approval_status`, `approval_decision`, `approval_by` and `approval_reason`, and
     `MockCordumClient` gains `wait_for_approval()`.
 - **cordum-guard: `CordumClient` takes `ca_cert` and `verify`.** `ca_cert` (default
-  `$CORDUM_CA_CERT`) is a PEM bundle the client trusts for the gateway's TLS certificate, for
-  gateway calls only. `verify` is passed to httpx. Verification is off only with an explicit
+  `$CORDUM_TLS_CA`, the variable `cordumctl` reads) is a PEM bundle the client trusts for the
+  gateway's TLS certificate, for gateway calls only. `verify` is passed to httpx. Verification is off only with an explicit
   `verify=False`, which logs a warning. Before, a gateway behind a private CA, such as the
   Compose stack on `https://localhost:8081`, needed `SSL_CERT_FILE` pointed at a merged
   bundle, which changed every other HTTPS client in the process.

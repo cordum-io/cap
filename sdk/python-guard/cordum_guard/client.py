@@ -52,7 +52,7 @@ def _tls_verify(
     """httpx ``verify`` value for the gateway connection.
 
     Only an explicit ``verify=False`` turns verification off. ``True`` (or
-    None) verifies against ``ca_cert``, else ``$CORDUM_CA_CERT``, else
+    None) verifies against ``ca_cert``, else ``$CORDUM_TLS_CA``, else
     httpx's default CAs. Anything else (an ``ssl.SSLContext``) is passed as is.
     """
     if verify is False:
@@ -63,7 +63,7 @@ def _tls_verify(
         return False
     if verify is not True and verify is not None:
         return verify
-    ca_cert = ca_cert or os.environ.get("CORDUM_CA_CERT")
+    ca_cert = ca_cert or os.environ.get("CORDUM_TLS_CA")
     if not ca_cert:
         return True
     return ssl.create_default_context(cafile=ca_cert)
@@ -81,7 +81,7 @@ class CordumClient:
             risk_tags=["write", "financial"],
         )
 
-    TLS: ``ca_cert`` (default ``$CORDUM_CA_CERT``) is a PEM bundle the client
+    TLS: ``ca_cert`` (default ``$CORDUM_TLS_CA``) is a PEM bundle the client
     trusts for the gateway's certificate instead of the default CAs.
     ``verify`` is passed to httpx: ``True`` verifies, an ``ssl.SSLContext`` is
     used as is, and ``False`` disables verification and logs a warning.

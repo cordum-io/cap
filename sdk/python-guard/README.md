@@ -211,7 +211,7 @@ async def async_operation():
 | `cache_ttl`   | `0`           | Cache TTL in seconds (0 = disabled)  |
 | `cache_max_size` | `1000`     | Max cached policy entries             |
 | `on_error`    | `"closed"`    | Failure mode: `"closed"`, `"open"`, or callable |
-| `ca_cert`     | `$CORDUM_CA_CERT` | PEM bundle trusted for the gateway's TLS certificate (see [Going to production](#going-to-production)) |
+| `ca_cert`     | `$CORDUM_TLS_CA` | PEM bundle trusted for the gateway's TLS certificate (see [Going to production](#going-to-production)) |
 | `verify`      | `True`        | Passed to httpx; `False` disables TLS verification and logs a warning |
 
 ### @guard decorator
@@ -250,8 +250,9 @@ client = CordumClient(
 )
 ```
 
-Or set `CORDUM_CA_CERT=/path/to/cordum/certs/ca/ca.crt`, which `ca_cert` defaults to. The
-client then trusts only that bundle, and only for gateway calls. You do not need to point
+Or set `CORDUM_TLS_CA=/path/to/cordum/certs/ca/ca.crt`, which `ca_cert` defaults to. It is
+the variable `cordumctl` reads for `--cacert`. The client then trusts only that bundle, and
+only for gateway calls. You do not need to point
 `SSL_CERT_FILE` at a merged bundle, which changes every other HTTPS client in the process.
 
 `verify` is passed to httpx: `True` (the default) verifies the certificate, and an

@@ -416,7 +416,7 @@ def _one_ca_bundle(tmp_path) -> str:
 class TestTLS:
     @pytest.fixture(autouse=True)
     def _no_env_ca(self, monkeypatch):
-        monkeypatch.delenv("CORDUM_CA_CERT", raising=False)
+        monkeypatch.delenv("CORDUM_TLS_CA", raising=False)
 
     def _verify_arg(self, **kwargs):
         with patch("cordum_guard.client.httpx.Client") as http_client:
@@ -434,7 +434,7 @@ class TestTLS:
         assert len(ctx.get_ca_certs()) == 1
 
     def test_env_default_applies(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("CORDUM_CA_CERT", _one_ca_bundle(tmp_path))
+        monkeypatch.setenv("CORDUM_TLS_CA", _one_ca_bundle(tmp_path))
         ctx = self._verify_arg()
         assert isinstance(ctx, ssl.SSLContext)
         assert len(ctx.get_ca_certs()) == 1
@@ -444,12 +444,12 @@ class TestTLS:
             CordumClient(GATEWAY, api_key=API_KEY, ca_cert=str(tmp_path / "missing.pem"))
 
     def test_ssl_context_is_passed_as_is(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("CORDUM_CA_CERT", str(tmp_path / "ignored.pem"))
+        monkeypatch.setenv("CORDUM_TLS_CA", str(tmp_path / "ignored.pem"))
         ctx = ssl.create_default_context()
         assert self._verify_arg(verify=ctx) is ctx
 
     def test_verify_false_disables_and_warns(self, caplog, tmp_path, monkeypatch):
-        monkeypatch.setenv("CORDUM_CA_CERT", str(tmp_path / "ignored.pem"))
+        monkeypatch.setenv("CORDUM_TLS_CA", str(tmp_path / "ignored.pem"))
         with caplog.at_level(logging.WARNING, logger="cordum_guard"):
             assert self._verify_arg(verify=False) is False
         assert "TLS certificate verification is disabled" in caplog.text

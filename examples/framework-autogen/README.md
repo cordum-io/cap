@@ -86,6 +86,7 @@ client = CordumClient(
     gateway_url="https://localhost:8081",
     api_key="your-api-key",
     tenant_id="default",
+    ca_cert="/path/to/cordum/certs/ca/ca.crt",  # gateway CA; or set CORDUM_TLS_CA
 )
 ```
 

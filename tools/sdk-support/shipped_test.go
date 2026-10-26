@@ -40,8 +40,18 @@ func entryByID(m *Manifest, id string) (Entry, bool) {
 	return Entry{}, false
 }
 
-// Go must be fully earned; Python and Node are stable but must honestly surface
-// pending gates rather than presenting unearned evidence as satisfied.
+func gateByID(e Entry, id string) (Gate, bool) {
+	for _, g := range e.Gates {
+		if g.ID == id {
+			return g, true
+		}
+	}
+	return Gate{}, false
+}
+
+// Go, Python and Node must be fully-earned stable. The Python and Node
+// real-NATS gates must name the suites that fail, rather than skip, when no
+// broker is configured, so a skipped run can never stand in for the evidence.
 func TestShippedTiersReflectHonestMaturity(t *testing.T) {
 	m := loadShipped(t)
 
@@ -49,19 +59,16 @@ func TestShippedTiersReflectHonestMaturity(t *testing.T) {
 	if !ok || goEntry.Tier != TierStable || !goEntry.FullyEarned() {
 		t.Fatalf("go must be fully-earned stable, got %+v", goEntry)
 	}
-	for _, id := range []string{"python", "node"} {
+	for id, realNATS := range map[string]string{
+		"python": "sdk/python/tests/integration/test_worker_nats.py",
+		"node":   "sdk/node/test/integration/nats.e2e.ts",
+	} {
 		e, ok := entryByID(m, id)
-		if !ok || e.Tier != TierStable {
-			t.Fatalf("%s must be stable, got %+v", id, e)
+		if !ok || e.Tier != TierStable || !e.FullyEarned() || len(e.PendingGates()) != 0 {
+			t.Fatalf("%s must be fully-earned stable with no pending gates, got %+v", id, e)
 		}
-		pg := e.PendingGates()
-		if len(pg) == 0 {
-			t.Fatalf("%s must declare its pending gates honestly at this baseline", id)
-		}
-		for _, g := range pg {
-			if g.BlockedBy == "" {
-				t.Fatalf("%s pending gate %q must name a blocking task", id, g.ID)
-			}
+		if g, ok := gateByID(e, "real-nats"); !ok || g.Path != realNATS {
+			t.Fatalf("%s real-nats gate must be %s, got %+v", id, realNATS, g)
 		}
 	}
 

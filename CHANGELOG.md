@@ -33,6 +33,17 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   - Added `Decision.ALLOW_WITH_CONSTRAINTS` and the `SafetyDecision` fields `rule_id`,
     `policy_snapshot`, `approval_required`, `approval_ref` and `constraints`. Constraints are
     not enforced in-process.
+  - `@guard` approvals: the decorator waited for its approval job to finish, but no worker
+    serves `job.guard`, so an approved call never ran. After approval Cordum's scheduler
+    cannot route the job, re-checks the policy on the retry and puts the job back in the
+    approval queue. The call then failed with `CordumTimeoutError`. `@guard` now waits for
+    the approval outcome with the new `CordumClient.wait_for_approval()`, which reads
+    `approval_decision` from `GET /api/v1/jobs/{id}`. Approved runs the function. Rejected,
+    expired or invalidated raises `CordumBlockedError`. No verdict within `timeout` still
+    raises `CordumTimeoutError`. Afterwards the guard cancels the approval job. The async
+    decorator now polls in a worker thread instead of blocking the event loop. `JobStatus`
+    gains `approval_status`, `approval_decision`, `approval_by` and `approval_reason`, and
+    `MockCordumClient` gains `wait_for_approval()`.
 - **Go SDK requires Go 1.26.0 or newer (was 1.25.12).** `golang.org/x/net` v0.60.0, the
   first release that fixes four reachable advisories govulncheck reports against v0.55.0
   (GO-2026-6603, GO-2026-6611, GO-2026-6612, GO-2026-6617), itself declares `go 1.26.0`.

@@ -63,7 +63,7 @@ Each tool is a standard CrewAI `@tool` function with a `@guard` decorator that i
 4. Based on the decision:
    - **ALLOW**: function executes normally
    - **DENY**: `CordumBlockedError` is raised, function never runs
-   - **REQUIRE_APPROVAL**: a job is submitted for approval; on success the function executes
+   - **REQUIRE_APPROVAL**: a job is submitted for approval; once a human approves it the function executes (the mock approves at once)
 5. All decisions are logged in `mock.call_log` for audit
 
 ## Production Usage

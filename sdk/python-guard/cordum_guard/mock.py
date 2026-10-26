@@ -6,6 +6,7 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+from .exceptions import CordumBlockedError
 from .types import Decision, JobResponse, JobStatus, SafetyDecision
 
 
@@ -133,6 +134,21 @@ class MockCordumClient:
         poll_interval: float = 2.0,
     ) -> JobStatus:
         return self.get_job(job_id)
+
+    def wait_for_approval(
+        self,
+        job_id: str,
+        timeout: float = 300.0,
+        poll_interval: float = 2.0,
+    ) -> JobStatus:
+        """Mock approvals resolve at once: approved unless the job was denied,
+        rejected or cancelled (then :class:`CordumBlockedError`)."""
+        status = self.get_job(job_id)
+        if status.state != "succeeded":
+            raise CordumBlockedError(
+                SafetyDecision(decision=Decision.DENY, reason=f"mock approval job {status.state}")
+            )
+        return status
 
     def cancel_job(self, job_id: str) -> None:
         job = self._jobs.get(job_id)

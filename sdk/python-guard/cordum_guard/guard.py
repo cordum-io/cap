@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import functools
 import inspect
+import logging
 import re
 import time
 from decimal import Decimal
@@ -15,6 +16,8 @@ from .exceptions import CordumApprovalRequiredError, CordumBlockedError
 from .types import Decision, SafetyDecision
 
 F = TypeVar("F", bound=Callable[..., Any])
+
+_logger = logging.getLogger("cordum_guard")
 
 # Call arguments reach policy as ``arg.<name>`` labels. The prefix keeps
 # LLM-chosen values out of label keys the kernel interprets itself
@@ -170,8 +173,10 @@ def guard(
         policy: Policy name (used as label for traceability).
         risk_tags: Risk tags sent to the Safety Kernel.
         capability: Override the capability name (defaults to function name).
-        topic: NATS topic for the policy evaluation.
-        timeout: Max seconds to wait for an approval decision.
+        topic: NATS topic for the policy evaluation and the approval job.
+        timeout: Max seconds to wait for a human approval. Approved runs the
+            function; rejected or expired raises :class:`CordumBlockedError`;
+            no verdict in time raises :class:`CordumTimeoutError`.
         include_args: Send scalar arguments as ``arg.<name>`` labels (see
             README). False sends none and keeps argument values out of the
             approval job prompt.
@@ -240,19 +245,9 @@ def _handle_decision_sync(
     try:
         delay = _check_decision(decision)
     except CordumApprovalRequiredError:
-        # Submit a job (same labels as the evaluation) so the approval
-        # appears in the dashboard, then wait for the human verdict.
-        job = client.submit_job(
-            prompt=_approval_prompt(cap, fn, args, kwargs, include_args),
-            topic=topic,
-            capability=cap,
-            risk_tags=tags,
-            labels=labels,
-        )
-        status = client.wait_for_decision(job.job_id, timeout=timeout)
-        if status.state.lower() in ("succeeded", "running"):
-            return fn(*args, **kwargs)
-        raise CordumBlockedError(decision) from None
+        job_id = _submit_approval_job(client, fn, args, kwargs, topic, cap, tags, labels, include_args)
+        _await_approval(client, job_id, timeout)
+        return fn(*args, **kwargs)
     if delay:
         time.sleep(delay)
     return fn(*args, **kwargs)
@@ -274,20 +269,53 @@ async def _handle_decision_async(
     try:
         delay = _check_decision(decision)
     except CordumApprovalRequiredError:
-        job = client.submit_job(
-            prompt=_approval_prompt(cap, fn, args, kwargs, include_args),
-            topic=topic,
-            capability=cap,
-            risk_tags=tags,
-            labels=labels,
-        )
-        status = client.wait_for_decision(job.job_id, timeout=timeout)
-        if status.state.lower() in ("succeeded", "running"):
-            return await fn(*args, **kwargs)
-        raise CordumBlockedError(decision) from None
+        job_id = _submit_approval_job(client, fn, args, kwargs, topic, cap, tags, labels, include_args)
+        # Poll in a thread so the wait does not block the event loop.
+        await asyncio.to_thread(_await_approval, client, job_id, timeout)
+        return await fn(*args, **kwargs)
     if delay:
         await asyncio.sleep(delay)
     return await fn(*args, **kwargs)
+
+
+def _submit_approval_job(
+    client: CordumClient,
+    fn: Callable[..., Any],
+    args: tuple[Any, ...],
+    kwargs: dict[str, Any],
+    topic: str,
+    cap: str,
+    tags: list[str],
+    labels: dict[str, str],
+    include_args: bool,
+) -> str:
+    """Submit the call as a job (same labels as the evaluation) so the
+    approval appears in the dashboard; return its job ID."""
+    job = client.submit_job(
+        prompt=_approval_prompt(cap, fn, args, kwargs, include_args),
+        topic=topic,
+        capability=cap,
+        risk_tags=tags,
+        labels=labels,
+    )
+    return job.job_id
+
+
+def _await_approval(client: CordumClient, job_id: str, timeout: float) -> None:
+    """Wait for the human verdict on ``job_id``; return only if approved.
+
+    Waits for the approval, not for the job: no worker serves the approval
+    job's topic, so it never finishes. However the wait ends, the job is then
+    cancelled; left alone, the scheduler keeps retrying it and puts it back
+    in the approval queue.
+    """
+    try:
+        client.wait_for_approval(job_id, timeout=timeout)
+    finally:
+        try:
+            client.cancel_job(job_id)
+        except Exception as exc:  # cleanup only: the verdict is already decided
+            _logger.warning("could not cancel approval job %s: %s", job_id, exc)
 
 
 def _approval_prompt(

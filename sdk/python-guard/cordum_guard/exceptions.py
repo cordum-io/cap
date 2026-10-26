@@ -37,7 +37,7 @@ class CordumApprovalRequiredError(CordumBlockedError):
             only echoes the ``job_id`` it was given, and the tool guards
             evaluate without one.
         job_id: Job to approve or poll (``client.approve_job`` /
-            ``client.wait_for_decision``) when ``approval_ref`` is set.
+            ``client.wait_for_approval``) when ``approval_ref`` is set.
         reason: Why approval is required.
         rule_id: The policy rule that matched.
         policy_snapshot: Policy version that produced the verdict.
@@ -55,7 +55,7 @@ class CordumApprovalRequiredError(CordumBlockedError):
 
 
 class CordumTimeoutError(CordumError):
-    """Raised when waiting for an approval times out."""
+    """Raised when waiting for an approval times out. The action did NOT run."""
 
     def __init__(self, job_id: str, timeout: float) -> None:
         self.job_id = job_id

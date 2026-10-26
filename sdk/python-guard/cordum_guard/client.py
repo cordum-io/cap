@@ -11,6 +11,7 @@ import httpx
 from .cache import PolicyCache, make_cache_key
 from .exceptions import (
     CordumAuthError,
+    CordumBlockedError,
     CordumConnectionError,
     CordumError,
     CordumTimeoutError,
@@ -27,6 +28,14 @@ from .types import (
 _TERMINAL_STATES = frozenset({
     "succeeded", "failed", "cancelled", "denied",
 })
+# Job states that end an approval without letting the action run.
+_FAILED_STATES = frozenset({"failed", "cancelled", "denied", "timeout", "quarantined"})
+_APPROVAL_OUTCOMES = {
+    "approve": "approved",
+    "reject": "rejected",
+    "expire": "expired",
+    "invalidate": "invalidated",
+}
 
 _logger = logging.getLogger("cordum_guard")
 
@@ -126,6 +135,10 @@ class CordumClient:
             result_ptr=resp.get("result_ptr", ""),
             failure_reason=resp.get("failure_reason", ""),
             tenant_id=resp.get("tenant_id", ""),
+            approval_status=resp.get("approval_status") or "",
+            approval_decision=resp.get("approval_decision") or "",
+            approval_by=resp.get("approval_by") or "",
+            approval_reason=resp.get("approval_reason") or "",
         )
 
     def cancel_job(self, job_id: str) -> None:
@@ -245,7 +258,9 @@ class CordumClient:
     ) -> JobStatus:
         """Poll a job until it reaches a terminal state.
 
-        Raises :class:`CordumTimeoutError` if the timeout is exceeded.
+        Raises :class:`CordumTimeoutError` if the timeout is exceeded. To wait
+        for a human approval rather than for the job to finish, use
+        :meth:`wait_for_approval`.
         """
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
@@ -254,6 +269,57 @@ class CordumClient:
                 return status
             time.sleep(min(poll_interval, deadline - time.monotonic()))
         raise CordumTimeoutError(job_id, timeout)
+
+    def wait_for_approval(
+        self,
+        job_id: str,
+        timeout: float = 300.0,
+        poll_interval: float = 2.0,
+    ) -> JobStatus:
+        """Poll a job until a human resolves its approval.
+
+        Returns the :class:`JobStatus` once the job is approved. Raises
+        :class:`CordumBlockedError` when the approval is rejected, expires or
+        is invalidated, or the job ends without one, and
+        :class:`CordumTimeoutError` if nobody decides within ``timeout``.
+
+        Unlike :meth:`wait_for_decision` this does not wait for the job to
+        finish, so it works for approval-only jobs that no worker runs, such
+        as the ones ``@guard`` submits.
+        """
+        deadline = time.monotonic() + timeout
+        while True:
+            status = self.get_job(job_id)
+            state = status.state.lower()
+            # approval_decision is the last transition. It survives the
+            # scheduler re-queuing an approved job for approval when its
+            # dispatch fails; approval_status flips back to "pending".
+            outcome = _APPROVAL_OUTCOMES.get(
+                status.approval_decision.lower(), status.approval_status.lower()
+            )
+            if state == "timeout" and outcome == "pending":
+                outcome = "expired"
+            if outcome in ("rejected", "expired", "invalidated"):
+                reason = f"approval {outcome}"
+                if outcome == "rejected" and status.approval_reason:
+                    reason += f": {status.approval_reason}"
+                raise CordumBlockedError(SafetyDecision(decision=Decision.DENY, reason=reason))
+            if state in _FAILED_STATES:
+                raise CordumBlockedError(SafetyDecision(
+                    decision=Decision.DENY, reason=f"approval job ended {status.state}",
+                ))
+            # approval_by is set only by a real approve/reject; the gateway
+            # can derive "approved" from the job state alone.
+            if outcome == "approved" and status.approval_by:
+                return status
+            if state == "succeeded":
+                raise CordumBlockedError(SafetyDecision(
+                    decision=Decision.DENY, reason="approval job succeeded without an approval",
+                ))
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise CordumTimeoutError(job_id, timeout)
+            time.sleep(min(poll_interval, remaining))
 
     # ------------------------------------------------------------------
     # Internal HTTP plumbing

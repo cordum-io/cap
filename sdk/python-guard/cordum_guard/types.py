@@ -54,6 +54,13 @@ class JobStatus(BaseModel):
     result_ptr: str = ""
     failure_reason: str = ""
     tenant_id: str = ""
+    # Human approval, as GET /api/v1/jobs/{id} reports it. approval_status:
+    # pending / approved / rejected / expired / invalidated. approval_decision
+    # is the last transition: approve / reject / expire / invalidate.
+    approval_status: str = ""
+    approval_decision: str = ""
+    approval_by: str = ""
+    approval_reason: str = ""
 
 
 class ApprovalEntry(BaseModel):

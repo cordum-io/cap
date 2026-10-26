@@ -7,8 +7,10 @@ import respx
 from cordum_guard.client import CordumClient
 from cordum_guard.exceptions import (
     CordumAuthError,
+    CordumBlockedError,
     CordumConnectionError,
     CordumError,
+    CordumTimeoutError,
 )
 from cordum_guard.types import Decision
 
@@ -71,6 +73,16 @@ class TestGetJob:
         status = client.get_job("j-1")
         assert status.job_id == "j-1"
         assert status.state == "succeeded"
+
+    @respx.mock
+    def test_get_job_reads_approval_fields(self, client: CordumClient):
+        respx.get(f"{GATEWAY}/api/v1/jobs/j-1").mock(return_value=httpx.Response(200, json={
+            "id": "j-1", "state": "DENIED", "approval_status": "rejected",
+            "approval_decision": "reject", "approval_by": "bob", "approval_reason": "no",
+        }))
+        status = client.get_job("j-1")
+        assert (status.approval_status, status.approval_decision) == ("rejected", "reject")
+        assert (status.approval_by, status.approval_reason) == ("bob", "no")
 
 
 class TestCancelJob:
@@ -257,6 +269,85 @@ class TestApprovals:
             return_value=httpx.Response(200, json={})
         )
         client.reject_job("j-1")
+
+
+def _job(**fields):
+    return httpx.Response(200, json={"id": "j-w", "topic": "job.guard", **fields})
+
+
+PENDING = {"state": "APPROVAL_REQUIRED", "approval_status": "pending"}
+APPROVED = {
+    "state": "PENDING", "approval_status": "approved",
+    "approval_decision": "approve", "approval_by": "alice",
+}
+
+
+class TestWaitForApproval:
+    """Bodies follow GET /api/v1/jobs/{id} for an approval job (cordum gateway
+    handleGetJob)."""
+
+    @respx.mock
+    def test_returns_once_approved(self, client: CordumClient):
+        route = respx.get(f"{GATEWAY}/api/v1/jobs/j-w").mock(
+            side_effect=[_job(**PENDING), _job(**APPROVED)]
+        )
+        status = client.wait_for_approval("j-w", timeout=5, poll_interval=0)
+        assert status.approval_by == "alice"
+        assert route.call_count == 2
+
+    @respx.mock
+    def test_approval_survives_the_job_being_requeued(self, client: CordumClient):
+        # An approved job whose dispatch fails is re-checked and put back in
+        # the approval queue: approval_status says pending again, but
+        # approval_decision still records the human's approve.
+        respx.get(f"{GATEWAY}/api/v1/jobs/j-w").mock(return_value=_job(
+            state="APPROVAL_REQUIRED", approval_status="pending",
+            approval_decision="approve", approval_by="alice",
+        ))
+        assert client.wait_for_approval("j-w", timeout=0).approval_decision == "approve"
+
+    @respx.mock
+    def test_approved_job_that_finished_counts(self, client: CordumClient):
+        respx.get(f"{GATEWAY}/api/v1/jobs/j-w").mock(
+            return_value=_job(**{**APPROVED, "state": "SUCCEEDED"})
+        )
+        assert client.wait_for_approval("j-w", timeout=0).state == "SUCCEEDED"
+
+    @pytest.mark.parametrize(
+        "body, reason",
+        [
+            ({"state": "DENIED", "approval_status": "rejected", "approval_decision": "reject",
+              "approval_by": "bob", "approval_reason": "too large"}, "approval rejected: too large"),
+            ({"state": "TIMEOUT", "approval_status": "pending"}, "approval expired"),
+            ({"state": "DENIED", "approval_status": "invalidated",
+              "approval_decision": "invalidate"}, "approval invalidated"),
+            ({**APPROVED, "state": "DENIED"}, "approval job ended DENIED"),
+            ({"state": "CANCELLED", "approval_status": "pending"}, "approval job ended CANCELLED"),
+            ({"state": "FAILED"}, "approval job ended FAILED"),
+            ({"state": "SUCCEEDED"}, "succeeded without an approval"),
+        ],
+        ids=["rejected", "expired", "invalidated", "denied-after-approval", "cancelled",
+             "failed", "succeeded-unapproved"],
+    )
+    @respx.mock
+    def test_blocks_unless_approved(self, client: CordumClient, body, reason):
+        respx.get(f"{GATEWAY}/api/v1/jobs/j-w").mock(return_value=_job(**body))
+        with pytest.raises(CordumBlockedError, match=reason) as exc_info:
+            client.wait_for_approval("j-w", timeout=5, poll_interval=0)
+        assert exc_info.value.decision.decision == Decision.DENY
+
+    @pytest.mark.parametrize(
+        "body",
+        [PENDING, {**APPROVED, "approval_by": ""}],
+        ids=["pending", "approved-without-approver"],
+    )
+    @respx.mock
+    def test_times_out_while_unresolved(self, client: CordumClient, body):
+        # The gateway derives "approved" from the job state for legacy
+        # records; without an approver it is not trusted.
+        respx.get(f"{GATEWAY}/api/v1/jobs/j-w").mock(return_value=_job(**body))
+        with pytest.raises(CordumTimeoutError):
+            client.wait_for_approval("j-w", timeout=0)
 
 
 class TestErrorHandling:

@@ -75,6 +75,23 @@ class TestRequireApproval:
         status = mock.get_job(job.job_id)
         assert status.state == "succeeded"
 
+    def test_guard_runs_require_approval_calls_once_the_mock_approves(self):
+        mock = MockCordumClient()
+        mock.set_policy_response("transfer", Decision.REQUIRE_APPROVAL)
+
+        @guard(mock, capability="transfer")
+        def transfer():
+            return "sent"
+
+        assert transfer() == "sent"
+
+    def test_wait_for_approval_raises_for_a_rejected_job(self):
+        mock = MockCordumClient()
+        job = mock.submit_job("test", topic="job.pending")
+        mock.reject_job(job.job_id)
+        with pytest.raises(CordumBlockedError):
+            mock.wait_for_approval(job.job_id)
+
 
 class TestThrottle:
     def test_throttle_duration_returned(self):

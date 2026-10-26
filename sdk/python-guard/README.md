@@ -33,8 +33,10 @@ The `@guard` decorator intercepts every call to `execute_transfer`:
    arguments as `arg.*` labels (see [Policy labels](#policy-labels))
 2. **allow** / **allow_with_constraints** — function runs normally
 3. **deny** — raises `CordumBlockedError`
-4. **require_approval** — submits the call as a job with the same labels and waits for human
-   approval in the dashboard; values of secret-like arguments are masked in the job prompt
+4. **require_approval** — submits the call as a job with the same labels and waits for a human
+   verdict in the dashboard: approved runs the function, rejected or expired raises
+   `CordumBlockedError` (see [@guard approvals](#guard-approvals)); values of secret-like
+   arguments are masked in the job prompt
 5. **throttle** — delays execution per policy
 6. **any other verdict** — raises `CordumBlockedError` (fail closed)
 
@@ -101,12 +103,45 @@ when the evaluation was bound to a job: `/api/v1/policy/evaluate` echoes the req
 `job_id`, and the tool guards evaluate without one, so both are empty for tool calls. An
 evaluation creates no approval. To get a human decision, submit the action as a job with the
 same labels (it appears under **Approvals** with its job ID) and poll it with
-`client.wait_for_decision(job_id)`; that is what `@guard` does.
+`client.wait_for_approval(job_id)`, as `@guard` does (see [@guard approvals](#guard-approvals)).
+Do not use `client.wait_for_decision(job_id)` for this: it waits for the job to finish, and
+a job that no worker runs never finishes.
 
 **allow_with_constraints:** the action runs, but in-process guards cannot apply the returned
 constraints (budgets, sandbox, toolchain, diff, redaction level). They are available as
 `SafetyDecision.constraints` from `client.evaluate_policy(...)` for callers that can enforce
 them. Use `deny` or `require_approval` for rules that must hold in-process.
+
+## @guard approvals
+
+On `require_approval`, `@guard` submits the call as a job on its `topic` (`job.guard` by
+default) so it appears under **Approvals**, then blocks in
+`client.wait_for_approval(job_id, timeout=timeout)`. No worker serves that topic, so the job
+never runs or finishes. The function runs in your process once a human approves:
+
+| `GET /api/v1/jobs/{id}` reports | `@guard` |
+|---------------------------------|----------|
+| `approval_decision: approve` and an `approval_by` | runs the function |
+| `approval_status` `rejected` or `invalidated`, or state `TIMEOUT` (expired) | raises `CordumBlockedError` |
+| state `DENIED`, `FAILED`, `CANCELLED` or `QUARANTINED` | raises `CordumBlockedError` |
+| state `SUCCEEDED` with no approval | raises `CordumBlockedError` |
+| still pending after `timeout` seconds | raises `CordumTimeoutError` |
+
+The guard reads `approval_decision`, not `approval_status`. When Cordum's scheduler cannot
+dispatch an approved job, it re-checks the policy on the retry. While the policy still
+requires approval, the job goes back into the approval queue and `approval_status` reads
+`pending` again; `approval_decision` keeps the human's `approve`.
+
+When the wait ends, approved or not, `@guard` cancels the job
+(`POST /api/v1/jobs/{id}/cancel`) so it does not reappear under **Approvals** and a late
+approval cannot be granted for a call that gave up. Cancelling needs `jobs.write` or the
+admin role; if it fails, the guard logs a warning and the verdict stands. The async
+decorator polls in a worker thread, so the event loop keeps running.
+
+- If your tenant uses a topic registry, register the guard topic. Otherwise the gateway
+  rejects the approval job with `unknown_topic` and the call raises `CordumError`.
+- Approve with a different identity than the guard's API key, because Cordum rejects
+  self-approval.
 
 ## Policy labels
 
@@ -186,7 +221,7 @@ async def async_operation():
 | `risk_tags`  | `[]`           | Risk tags sent to the Safety Kernel      |
 | `capability` | function name  | Override the capability identifier       |
 | `topic`      | `"job.guard"`  | NATS topic for policy evaluation         |
-| `timeout`    | `300.0`        | Max wait for approval decisions (seconds)|
+| `timeout`    | `300.0`        | Max wait for a human verdict (seconds), then `CordumTimeoutError` |
 | `include_args` | `True`       | Send scalar arguments as `arg.*` labels; `False` also keeps them out of the approval prompt |
 
 ### CordumToolGuard (LangChain / LlamaIndex)
@@ -224,6 +259,9 @@ assert safe_func() == "works"
 assert len(mock.call_log) == 1
 assert mock.call_log[0].capability == "safe-op"
 ```
+
+The mock approves every approval job at once, so `@guard` calls that get `require_approval`
+run against it.
 
 ## Caching
 

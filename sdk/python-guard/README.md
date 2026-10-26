@@ -211,6 +211,8 @@ async def async_operation():
 | `cache_ttl`   | `0`           | Cache TTL in seconds (0 = disabled)  |
 | `cache_max_size` | `1000`     | Max cached policy entries             |
 | `on_error`    | `"closed"`    | Failure mode: `"closed"`, `"open"`, or callable |
+| `ca_cert`     | `$CORDUM_CA_CERT` | PEM bundle trusted for the gateway's TLS certificate (see [Going to production](#going-to-production)) |
+| `verify`      | `True`        | Passed to httpx; `False` disables TLS verification and logs a warning |
 
 ### @guard decorator
 
@@ -233,6 +235,29 @@ async def async_operation():
 | `risk_tags`  | `[]`           | Risk tags for all wrapped tools      |
 | `topic`      | `"job.guard"`  | NATS topic for evaluation            |
 | `include_args` | `True`       | Send scalar tool arguments as `arg.*` labels |
+
+## Going to production
+
+Connect to the gateway over HTTPS. When its certificate is signed by a private CA, as in
+Cordum's Docker Compose stack (`certs/ca/ca.crt` in the cordum checkout), give the client
+that CA bundle:
+
+```python
+client = CordumClient(
+    "https://localhost:8081",
+    api_key="your-api-key",
+    ca_cert="/path/to/cordum/certs/ca/ca.crt",
+)
+```
+
+Or set `CORDUM_CA_CERT=/path/to/cordum/certs/ca/ca.crt`, which `ca_cert` defaults to. The
+client then trusts only that bundle, and only for gateway calls. You do not need to point
+`SSL_CERT_FILE` at a merged bundle, which changes every other HTTPS client in the process.
+
+`verify` is passed to httpx: `True` (the default) verifies the certificate, and an
+`ssl.SSLContext` is used as is (`ca_cert` is ignored). Verification is off only when you
+pass `verify=False`. The client then logs a warning. Use it only against a local test
+stack.
 
 ## Testing
 

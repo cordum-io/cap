@@ -1,5 +1,10 @@
 """Tests for cordum_guard.client — HTTP mocking with respx."""
 
+import logging
+import ssl
+from unittest.mock import patch
+
+import certifi
 import pytest
 import httpx
 import respx
@@ -396,6 +401,63 @@ class TestHeaders:
         assert headers["x-api-key"] == "my-key"
         assert headers["x-tenant-id"] == "acme"
         c.close()
+
+
+def _one_ca_bundle(tmp_path) -> str:
+    """A PEM bundle holding exactly one CA certificate."""
+    pem = open(certifi.where(), encoding="ascii").read()
+    end = "-----END CERTIFICATE-----"
+    first = pem[pem.index("-----BEGIN CERTIFICATE-----"):pem.index(end) + len(end)]
+    path = tmp_path / "ca.pem"
+    path.write_text(first + "\n", encoding="ascii")
+    return str(path)
+
+
+class TestTLS:
+    @pytest.fixture(autouse=True)
+    def _no_env_ca(self, monkeypatch):
+        monkeypatch.delenv("CORDUM_CA_CERT", raising=False)
+
+    def _verify_arg(self, **kwargs):
+        with patch("cordum_guard.client.httpx.Client") as http_client:
+            CordumClient(GATEWAY, api_key=API_KEY, **kwargs)
+        return http_client.call_args.kwargs["verify"]
+
+    def test_verifies_by_default(self):
+        assert self._verify_arg() is True
+
+    def test_ca_cert_path_is_passed_through(self, tmp_path):
+        ctx = self._verify_arg(ca_cert=_one_ca_bundle(tmp_path))
+        assert isinstance(ctx, ssl.SSLContext)
+        assert ctx.verify_mode == ssl.CERT_REQUIRED and ctx.check_hostname
+        # Only the bundle is trusted, not the default CAs.
+        assert len(ctx.get_ca_certs()) == 1
+
+    def test_env_default_applies(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("CORDUM_CA_CERT", _one_ca_bundle(tmp_path))
+        ctx = self._verify_arg()
+        assert isinstance(ctx, ssl.SSLContext)
+        assert len(ctx.get_ca_certs()) == 1
+
+    def test_missing_bundle_fails_at_construction(self, tmp_path):
+        with pytest.raises(FileNotFoundError):
+            CordumClient(GATEWAY, api_key=API_KEY, ca_cert=str(tmp_path / "missing.pem"))
+
+    def test_ssl_context_is_passed_as_is(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("CORDUM_CA_CERT", str(tmp_path / "ignored.pem"))
+        ctx = ssl.create_default_context()
+        assert self._verify_arg(verify=ctx) is ctx
+
+    def test_verify_false_disables_and_warns(self, caplog, tmp_path, monkeypatch):
+        monkeypatch.setenv("CORDUM_CA_CERT", str(tmp_path / "ignored.pem"))
+        with caplog.at_level(logging.WARNING, logger="cordum_guard"):
+            assert self._verify_arg(verify=False) is False
+        assert "TLS certificate verification is disabled" in caplog.text
+
+    def test_verify_true_does_not_warn(self, caplog):
+        with caplog.at_level(logging.WARNING, logger="cordum_guard"):
+            self._verify_arg(verify=True)
+        assert caplog.text == ""
 
 
 class TestContextManager:

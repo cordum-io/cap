@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import logging
+import os
+import ssl
 import time
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import httpx
 
@@ -44,6 +46,29 @@ def _base_url(url: str) -> str:
     return url.rstrip("/")
 
 
+def _tls_verify(
+    verify: Union[bool, ssl.SSLContext, None], ca_cert: Optional[str]
+) -> Union[bool, ssl.SSLContext]:
+    """httpx ``verify`` value for the gateway connection.
+
+    Only an explicit ``verify=False`` turns verification off. ``True`` (or
+    None) verifies against ``ca_cert``, else ``$CORDUM_CA_CERT``, else
+    httpx's default CAs. Anything else (an ``ssl.SSLContext``) is passed as is.
+    """
+    if verify is False:
+        _logger.warning(
+            "TLS certificate verification is disabled for the Cordum gateway "
+            "(verify=False); use this only against a local test stack"
+        )
+        return False
+    if verify is not True and verify is not None:
+        return verify
+    ca_cert = ca_cert or os.environ.get("CORDUM_CA_CERT")
+    if not ca_cert:
+        return True
+    return ssl.create_default_context(cafile=ca_cert)
+
+
 class CordumClient:
     """Synchronous client for the Cordum API Gateway.
 
@@ -55,6 +80,11 @@ class CordumClient:
             capability="bank_transfer",
             risk_tags=["write", "financial"],
         )
+
+    TLS: ``ca_cert`` (default ``$CORDUM_CA_CERT``) is a PEM bundle the client
+    trusts for the gateway's certificate instead of the default CAs.
+    ``verify`` is passed to httpx: ``True`` verifies, an ``ssl.SSLContext`` is
+    used as is, and ``False`` disables verification and logs a warning.
     """
 
     def __init__(
@@ -67,6 +97,8 @@ class CordumClient:
         cache_max_size: int = 1000,
         on_error: OnErrorMode = "closed",
         production_profile: bool = False,
+        ca_cert: Optional[str] = None,
+        verify: Union[bool, ssl.SSLContext] = True,
     ) -> None:
         if production_profile and on_error != "closed":
             raise ValueError(
@@ -83,6 +115,7 @@ class CordumClient:
                 "Content-Type": "application/json",
             },
             timeout=timeout,
+            verify=_tls_verify(verify, ca_cert),
         )
         self._cache: PolicyCache | None = None
         if cache_ttl > 0:

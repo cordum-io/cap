@@ -44,6 +44,12 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
     decorator now polls in a worker thread instead of blocking the event loop. `JobStatus`
     gains `approval_status`, `approval_decision`, `approval_by` and `approval_reason`, and
     `MockCordumClient` gains `wait_for_approval()`.
+- **cordum-guard: `CordumClient` takes `ca_cert` and `verify`.** `ca_cert` (default
+  `$CORDUM_CA_CERT`) is a PEM bundle the client trusts for the gateway's TLS certificate, for
+  gateway calls only. `verify` is passed to httpx. Verification is off only with an explicit
+  `verify=False`, which logs a warning. Before, a gateway behind a private CA, such as the
+  Compose stack on `https://localhost:8081`, needed `SSL_CERT_FILE` pointed at a merged
+  bundle, which changed every other HTTPS client in the process.
 - **Go SDK requires Go 1.26.0 or newer (was 1.25.12).** `golang.org/x/net` v0.60.0, the
   first release that fixes four reachable advisories govulncheck reports against v0.55.0
   (GO-2026-6603, GO-2026-6611, GO-2026-6612, GO-2026-6617), itself declares `go 1.26.0`.

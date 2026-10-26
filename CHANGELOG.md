@@ -18,6 +18,12 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `x/text` 0.42.0); bumped sdk/node dev dependencies `js-yaml` 4.3.1, `markdown-it` 14.3.2
   and `brace-expansion` 2.1.7, and tools/codegen dev dependencies `markdown-it` 14.3.2 and
   `brace-expansion` 2.1.7.
+- **Node SDK depends on zod 4 (`^4.6.7`, was `^3.24.0`)** to clear GHSA-mrhx-c7xc-m3w5,
+  where zod can exhaust memory validating oversized constrained collections. `Agent.job`,
+  `JobOptions.outputSchema` and `testHandler` now take a `JobSchema<T>`, any object with
+  `parse(data: unknown): T`, so zod 3 and zod 4 schemas both type-check and the published
+  typings no longer import zod. Code that imports zod without declaring it now resolves
+  zod 4; declare zod in your own package.json to stay on zod 3.
 
 ## v2.17.0 — 2026-07-22
 

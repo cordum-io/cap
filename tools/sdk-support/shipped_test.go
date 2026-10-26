@@ -59,16 +59,16 @@ func TestShippedTiersReflectHonestMaturity(t *testing.T) {
 	if !ok || goEntry.Tier != TierStable || !goEntry.FullyEarned() {
 		t.Fatalf("go must be fully-earned stable, got %+v", goEntry)
 	}
-	for id, realNATS := range map[string]string{
-		"python": "sdk/python/tests/integration/test_worker_nats.py",
-		"node":   "sdk/node/test/integration/nats.e2e.ts",
+	for _, want := range []struct{ id, realNATS string }{
+		{"python", "sdk/python/tests/integration/test_worker_nats.py"},
+		{"node", "sdk/node/test/integration/nats.e2e.ts"},
 	} {
-		e, ok := entryByID(m, id)
+		e, ok := entryByID(m, want.id)
 		if !ok || e.Tier != TierStable || !e.FullyEarned() || len(e.PendingGates()) != 0 {
-			t.Fatalf("%s must be fully-earned stable with no pending gates, got %+v", id, e)
+			t.Fatalf("%s must be fully-earned stable with no pending gates, got %+v", want.id, e)
 		}
-		if g, ok := gateByID(e, "real-nats"); !ok || g.Path != realNATS {
-			t.Fatalf("%s real-nats gate must be %s, got %+v", id, realNATS, g)
+		if g, ok := gateByID(e, "real-nats"); !ok || g.Path != want.realNATS {
+			t.Fatalf("%s real-nats gate must be %s, got %+v", want.id, want.realNATS, g)
 		}
 	}
 

@@ -64,7 +64,11 @@ The bridge keeps one record per task. Events are applied in arrival order:
 1. **Publish.** When the bridge publishes the `JobRequest` for turn N, the task
    enters `SUBMITTED` and turn N becomes the current turn. This is allowed only
    when no task exists yet (turn 1) or the task is `INPUT_REQUIRED` or
-   `AUTH_REQUIRED` (turn N > 1).
+   `AUTH_REQUIRED` (turn N > 1). The interrupted-to-`SUBMITTED` transition is
+   one compare-and-set on the task record, done before the publish. A message
+   that loses that race, a message to a task whose current turn is still in
+   flight, and a 65th turn all fail with `UNSUPPORTED_OPERATION` and publish
+   nothing.
 2. **Progress** (`sys.job.progress`, `JobProgress.status`). Only events for the
    current turn's job count. Only `PENDING`, `SCHEDULED`, `DISPATCHED`,
    `RUNNING` and `FAILED_RETRYABLE` are applied; a progress hint never makes a

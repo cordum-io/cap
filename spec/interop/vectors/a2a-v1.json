@@ -1750,6 +1750,64 @@
       "expected_error": "UNSUPPORTED_OPERATION"
     },
     {
+      "id": "send-to-busy-task",
+      "description": "A message to a task whose current turn is still in flight fails with UNSUPPORTED_OPERATION and publishes nothing.",
+      "caller": {
+        "tenant": "tenant-a",
+        "principal": "alice"
+      },
+      "turns": [
+        {
+          "message_id": "msg-1",
+          "task_ref": null,
+          "parts": [
+            {
+              "kind": "text",
+              "text": "Book me a flight"
+            }
+          ]
+        },
+        {
+          "message_id": "msg-2",
+          "task_ref": "same",
+          "parts": [
+            {
+              "kind": "text",
+              "text": "are you done yet?"
+            }
+          ]
+        }
+      ],
+      "cap_events": [
+        {
+          "kind": "submit_published",
+          "turn": 1
+        },
+        {
+          "kind": "progress",
+          "turn": 1,
+          "job_status": "JOB_STATUS_RUNNING",
+          "envelope": null,
+          "duplicate": false
+        }
+      ],
+      "a2a_call": {
+        "method": "SendMessage",
+        "task_ref": "owner"
+      },
+      "expected_a2a_state": "TASK_STATE_WORKING",
+      "expected_terminal": false,
+      "expected_event_order": [
+        "TASK_STATE_SUBMITTED",
+        "TASK_STATE_WORKING"
+      ],
+      "expected_publishes": {
+        "job_request": 1,
+        "job_cancel": 0
+      },
+      "expected_error": "UNSUPPORTED_OPERATION"
+    },
+    {
       "id": "cross-tenant-get-task",
       "description": "GetTask from another tenant returns the same TASK_NOT_FOUND as an unknown id.",
       "caller": {

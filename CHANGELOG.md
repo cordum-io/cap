@@ -69,7 +69,7 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   typings no longer import zod. Code that imports zod without declaring it now resolves
   zod 4; declare zod in your own package.json to stay on zod 3.
 - **A2A interop design (draft):** added `spec/interop/a2a-mapping.md` and
-  `spec/interop/vectors/a2a-v1.json` (33 cases). They map A2A 1.0 tasks onto CAP jobs:
+  `spec/interop/vectors/a2a-v1.json` (34 cases). They map A2A 1.0 tasks onto CAP jobs:
   each `JobStatus` maps to one A2A `TaskState`. A versioned turn-result envelope
   (`application/vnd.cordum.cap.a2a-turn-result.v1+json`) carries input-required and
   auth-required, with credentials only out of band. The design also covers identity

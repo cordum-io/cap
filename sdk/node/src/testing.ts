@@ -3,8 +3,7 @@
  * Allows testing handlers without running NATS or Redis.
  */
 import type { Msg, NatsConnection, Subscription, SubscriptionOptions } from "nats";
-import { z } from "zod";
-import { Agent, InMemoryBlobStore, AgentOptions, Context } from "./runtime";
+import { Agent, InMemoryBlobStore, AgentOptions, Context, JobSchema } from "./runtime";
 import { loadRoot, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import { encodeDeterministic } from "./codec";
 
@@ -95,8 +94,8 @@ export async function testHandler<TIn, TOut>(
   handler: (ctx: Context, data: TIn) => Promise<TOut> | TOut,
   input: TIn,
   options: {
-    inputSchema?: z.ZodType<TIn>;
-    outputSchema?: z.ZodType<TOut>;
+    inputSchema?: JobSchema<TIn>;
+    outputSchema?: JobSchema<TOut>;
     senderId?: string;
     retries?: number;
     jobId?: string;

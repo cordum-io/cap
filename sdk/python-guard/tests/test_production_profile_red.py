@@ -105,13 +105,18 @@ def test_legacy_explicit_non_string_decision_fails_stop(verdict: object) -> None
         client.evaluate_policy(topic="job.compat")
 
 
-def test_legacy_missing_decision_preserves_compatibility_allow() -> None:
+@pytest.mark.parametrize("production", [True, False], ids=["production", "legacy"])
+def test_missing_decision_fails_closed_in_every_profile(production: bool) -> None:
+    # Outside CAP-PRODUCTION a missing verdict used to default to ALLOW.
     client = CordumClient.__new__(CordumClient)
     client.base_url = "https://gateway.example"
     client._http = MagicMock()
-    client._http.request.return_value = _response({})
+    client._http.request.return_value = _response({"reason": "no verdict here"})
     client._cache = None
     client._on_error = "closed"
-    client._production_profile = False
+    client._production_profile = production
 
-    assert client.evaluate_policy(topic="job.compat").decision == Decision.ALLOW
+    result = client.evaluate_policy(topic="job.compat")
+
+    assert result.decision == Decision.DENY
+    assert result.reason == "missing gateway decision; failing closed"

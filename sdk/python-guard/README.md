@@ -29,11 +29,16 @@ def execute_transfer(amount: float, to_account: str):
 
 The `@guard` decorator intercepts every call to `execute_transfer`:
 
-1. Evaluates the safety policy via the Cordum Safety Kernel
-2. **allow** — function runs normally
+1. Evaluates the safety policy via the Cordum Safety Kernel, sending the call's scalar
+   arguments as `arg.*` labels (see [Policy labels](#policy-labels))
+2. **allow** / **allow_with_constraints** — function runs normally
 3. **deny** — raises `CordumBlockedError`
-4. **require_approval** — waits for human approval in the dashboard
+4. **require_approval** — submits the call as a job with the same labels and waits for a human
+   verdict in the dashboard: approved runs the function, rejected or expired raises
+   `CordumBlockedError` (see [@guard approvals](#guard-approvals)); values of secret-like
+   arguments are masked in the job prompt
 5. **throttle** — delays execution per policy
+6. **any other verdict** — raises `CordumBlockedError` (fail closed)
 
 ## LangChain Integration
 
@@ -55,6 +60,141 @@ from cordum_guard.llamaindex import CordumToolGuard
 client = CordumClient("http://localhost:8081", api_key="your-api-key")
 guarded_tools = CordumToolGuard(client, policy="agent_ops").wrap(tools)
 ```
+
+`call()`, `acall()` and `real_fn` (which CodeActAgent hands to its code executor) are all
+guarded.
+
+## Tool guard decisions
+
+`CordumToolGuard` (LangChain and LlamaIndex) evaluates every tool call, sync and async, and
+treats every verdict except **allow** and **allow_with_constraints** as blocking:
+
+| Verdict | Tool runs? | Agent / caller sees |
+|---------|------------|---------------------|
+| `allow` | yes | the tool result |
+| `allow_with_constraints` | yes | the tool result; constraints are **not** enforced (see below) |
+| `throttle` | yes, after the delay | the tool result |
+| `deny` | no | `[BLOCKED] <tool>: <reason>` as the tool result |
+| `require_approval` (kernel `REQUIRE_HUMAN`) | no | `CordumApprovalRequiredError` is raised |
+| anything else (unknown, `DECISION_TYPE_UNSPECIFIED`) | no | `[BLOCKED] <tool>: <reason>` (fail closed) |
+
+A response with `approvalRequired: true` is treated as `require_approval` unless the verdict
+is `deny`.
+
+```python
+from cordum_guard import CordumApprovalRequiredError
+
+try:
+    agent.invoke({"input": "Transfer $15,000 from Bob to Alice"})
+except CordumApprovalRequiredError as exc:
+    # The tool did NOT run.
+    print(exc.reason, exc.rule_id, exc.policy_snapshot, exc.approval_ref, exc.job_id)
+```
+
+Agent runtimes decide whether a tool exception reaches you. LangGraph's default `ToolNode`
+re-raises it from `agent.invoke`. With `ToolNode(..., handle_tool_errors=True)` the model
+receives the error text instead. In both cases the tool does not run.
+
+`CordumApprovalRequiredError` subclasses `CordumBlockedError`, so existing
+`except CordumBlockedError` handlers still fail closed. It carries `decision` (the full
+`SafetyDecision`), `reason`, `rule_id`, `policy_snapshot`, `approval_ref` and `job_id`.
+Cordum keys approvals by job ID, so `approval_ref == job_id`, and the gateway only sets them
+when the evaluation was bound to a job: `/api/v1/policy/evaluate` echoes the request
+`job_id`, and the tool guards evaluate without one, so both are empty for tool calls. An
+evaluation creates no approval. To get a human decision, submit the action as a job with the
+same labels (it appears under **Approvals** with its job ID) and poll it with
+`client.wait_for_approval(job_id)`, as `@guard` does (see [@guard approvals](#guard-approvals)).
+Do not use `client.wait_for_decision(job_id)` for this: it waits for the job to finish, and
+a job that no worker runs never finishes.
+
+**allow_with_constraints:** the action runs, but in-process guards cannot apply the returned
+constraints (budgets, sandbox, toolchain, diff, redaction level). They are available as
+`SafetyDecision.constraints` from `client.evaluate_policy(...)` for callers that can enforce
+them. Use `deny` or `require_approval` for rules that must hold in-process.
+
+## @guard approvals
+
+On `require_approval`, `@guard` submits the call as a job on its `topic` (`job.guard` by
+default) so it appears under **Approvals**, then blocks in
+`client.wait_for_approval(job_id, timeout=timeout)`. No worker runs that job. Cordum releases
+after v1.2.0 mark an approved `job.guard` job `SUCCEEDED`; v1.2.0 and earlier never finish
+it. The function runs in your process once a human approves:
+
+| `GET /api/v1/jobs/{id}` reports | `@guard` |
+|---------------------------------|----------|
+| `approval_decision: approve` and an `approval_by` | runs the function |
+| `approval_status` `rejected` or `invalidated`, or state `TIMEOUT` (expired) | raises `CordumBlockedError` |
+| state `DENIED`, `FAILED`, `CANCELLED` or `QUARANTINED` | raises `CordumBlockedError` |
+| state `SUCCEEDED` with no approval | raises `CordumBlockedError` |
+| still pending after `timeout` seconds | raises `CordumTimeoutError` |
+
+The guard reads `approval_decision`, not `approval_status`. On Cordum v1.2.0 and earlier,
+when the scheduler cannot dispatch an approved job, it re-checks the policy on the retry.
+While the policy still requires approval, the job goes back into the approval queue and
+`approval_status` reads `pending` again; `approval_decision` keeps the human's `approve`.
+Later releases keep the job approved.
+
+When the wait ends, approved or not, `@guard` cancels the job
+(`POST /api/v1/jobs/{id}/cancel`) so it does not reappear under **Approvals** and a late
+approval cannot be granted for a call that gave up. On servers that complete `job.guard`
+jobs, the cancel after an approval finds the job finished and returns 200 ("job already
+terminal"), which is harmless. Cancelling needs `jobs.write` or the admin role; if it
+fails, the guard logs a warning and the verdict stands. The async decorator polls in a
+worker thread, so the event loop keeps running.
+
+- Cordum (after v1.2.0) completes only `job.guard` approval jobs. With a custom `topic=`,
+  the approval job needs a worker that completes it; otherwise the server retries it until
+  the guard cancels it.
+- If your tenant uses a topic registry, `job.guard` (and any custom guard topic) must be
+  registered (`POST /api/v1/topics`). Otherwise the gateway rejects the approval job with
+  `unknown_topic` and the call raises `CordumError`.
+- Approve with a different identity than the guard's API key, because Cordum rejects
+  self-approval.
+
+## Policy labels
+
+Labels are sent at the top level of the evaluate request, where the Safety Kernel matches
+`labels`, `label_allowlist` and `label_threshold` rules, and are also copied to
+`meta.labels` for older consumers. The guards always send `policy` plus `tool` and
+`description` (tool guards) or `function` (`@guard`).
+
+**Arguments:** scalar call arguments are sent as `arg.<parameter name>` labels so policies can
+see their values:
+
+- Only `bool`, `int`, `float`, `Decimal` and `str` values are sent. Bools become
+  `true` / `false`; numbers use `str()`, except NaN, which is sent as `inf` so
+  `label_threshold` rules still trip. `None`, lists, dicts and objects are skipped.
+- Positional arguments are named from the function signature; extra `*args` are not sent.
+- Names must match `[A-Za-z_][A-Za-z0-9_]{0,63}`.
+- At most 16 argument labels per call, in argument order. Values are cut at 256 characters.
+- Arguments with secret-like names are never sent: `password`, `passwd`, `passphrase`,
+  `secret`, `token`, `api_key` / `apikey`, `access_key`, `private_key`, `authorization`,
+  `auth`, `credential(s)`, `cookie` or `session`, as a whole word of the name
+  (`client_secret`, `accessToken` and `session_id` match; `max_tokens` does not). Do not pass
+  credentials through other argument names.
+- **Opt out** with `include_args=False` on `CordumToolGuard(...)` or `@guard(...)` when tools
+  take sensitive free text. No `arg.*` labels are sent, and `@guard` also leaves argument values
+  out of its approval job prompt. Rules on `arg.*` labels then never fire for that guard, so
+  gate those tools by capability or risk tag instead.
+
+The `arg.` prefix keeps model-chosen argument names out of label keys the kernel interprets
+itself (`agent_id`, `secrets_present`, `mcp.*`, `_delegation.*`). Write policies against the
+prefixed name:
+
+```yaml
+rules:
+  - id: financial-approval
+    match:
+      capabilities: [transfer_funds]
+      label_threshold:
+        arg.amount: 10000
+    decision: require_approval
+    reason: "Transfers over $10,000 require human approval."
+```
+
+The kernel skips a `label_threshold` check when the label is missing or not numeric, so a
+rule on an argument that is not sent (secret-like name, non-scalar, past the 16-label cap,
+`include_args=False`) never fires.
 
 ## Async Support
 
@@ -79,6 +219,8 @@ async def async_operation():
 | `cache_ttl`   | `0`           | Cache TTL in seconds (0 = disabled)  |
 | `cache_max_size` | `1000`     | Max cached policy entries             |
 | `on_error`    | `"closed"`    | Failure mode: `"closed"`, `"open"`, or callable |
+| `ca_cert`     | `$CORDUM_TLS_CA` | PEM bundle trusted for the gateway's TLS certificate (see [Going to production](#going-to-production)) |
+| `verify`      | `True`        | Passed to httpx; `False` disables TLS verification and logs a warning |
 
 ### @guard decorator
 
@@ -89,7 +231,8 @@ async def async_operation():
 | `risk_tags`  | `[]`           | Risk tags sent to the Safety Kernel      |
 | `capability` | function name  | Override the capability identifier       |
 | `topic`      | `"job.guard"`  | NATS topic for policy evaluation         |
-| `timeout`    | `300.0`        | Max wait for approval decisions (seconds)|
+| `timeout`    | `300.0`        | Max wait for a human verdict (seconds), then `CordumTimeoutError` |
+| `include_args` | `True`       | Send scalar arguments as `arg.*` labels; `False` also keeps them out of the approval prompt |
 
 ### CordumToolGuard (LangChain / LlamaIndex)
 
@@ -99,6 +242,31 @@ async def async_operation():
 | `policy`     | `""`           | Policy name                          |
 | `risk_tags`  | `[]`           | Risk tags for all wrapped tools      |
 | `topic`      | `"job.guard"`  | NATS topic for evaluation            |
+| `include_args` | `True`       | Send scalar tool arguments as `arg.*` labels |
+
+## Going to production
+
+Connect to the gateway over HTTPS. When its certificate is signed by a private CA, as in
+Cordum's Docker Compose stack (`certs/ca/ca.crt` in the cordum checkout), give the client
+that CA bundle:
+
+```python
+client = CordumClient(
+    "https://localhost:8081",
+    api_key="your-api-key",
+    ca_cert="/path/to/cordum/certs/ca/ca.crt",
+)
+```
+
+Or set `CORDUM_TLS_CA=/path/to/cordum/certs/ca/ca.crt`, which `ca_cert` defaults to. It is
+the variable `cordumctl` reads for `--cacert`. The client then trusts only that bundle, and
+only for gateway calls. You do not need to point
+`SSL_CERT_FILE` at a merged bundle, which changes every other HTTPS client in the process.
+
+`verify` is passed to httpx: `True` (the default) verifies the certificate, and an
+`ssl.SSLContext` is used as is (`ca_cert` is ignored). Verification is off only when you
+pass `verify=False`. The client then logs a warning. Use it only against a local test
+stack.
 
 ## Testing
 
@@ -126,6 +294,9 @@ assert len(mock.call_log) == 1
 assert mock.call_log[0].capability == "safe-op"
 ```
 
+The mock approves every approval job at once, so `@guard` calls that get `require_approval`
+run against it.
+
 ## Caching
 
 Enable TTL-based caching to reduce gateway round-trips:
@@ -141,6 +312,9 @@ client = CordumClient(
 # Bypass cache per-call: client.evaluate_policy(..., cache=False)
 # Clear cache: client.clear_cache()
 ```
+
+The cache key covers topic, capability, risk tags and labels, so calls with different
+argument values never share a cached verdict.
 
 ## Failure Modes
 
@@ -163,6 +337,11 @@ client = CordumClient("http://localhost:8081", api_key="key", on_error=my_fallba
 ```
 
 Only connection/timeout errors trigger fail-open. Auth errors (401/403) and explicit DENY responses always propagate normally.
+
+The client reads the gateway's protojson verdicts (`DECISION_TYPE_ALLOW`,
+`DECISION_TYPE_REQUIRE_HUMAN`, ...) as well as plain names. A response with no verdict (for
+example an empty 200 body) and an unrecognised verdict, including `DECISION_TYPE_UNSPECIFIED`,
+both fail closed as DENY in every profile.
 
 ## License
 

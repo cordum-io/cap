@@ -62,7 +62,9 @@ All three tools are standard LangChain `BaseTool` subclasses, wrapped with `Cord
 4. Based on the decision:
    - **ALLOW**: `_run` executes normally, result returned
    - **DENY**: `_run` is never called, returns `[BLOCKED] tool_name: reason`
+   - **REQUIRE_APPROVAL**: `_run` is never called, raises `CordumApprovalRequiredError`
    - **THROTTLE**: sleeps for the configured duration, then executes
+   - Any other verdict: blocked like DENY (fail closed)
 5. All decisions are logged in `mock.call_log` for audit
 
 ## Production Usage
@@ -77,6 +79,7 @@ client = CordumClient(
     gateway_url="https://localhost:8081",
     api_key="your-api-key",
     tenant_id="default",
+    ca_cert="/path/to/cordum/certs/ca/ca.crt",  # gateway CA; or set CORDUM_TLS_CA
 )
 
 guard = CordumToolGuard(client, policy="production_ops")

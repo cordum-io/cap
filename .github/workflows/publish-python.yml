@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   build-and-verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-26.04 has no Python 3.9 build
     timeout-minutes: 30
     permissions:
       contents: read

@@ -97,7 +97,7 @@ The `default_decision` controls what happens to tools without an explicit policy
 - **ALLOW** — tool executes normally
 - **DENY** — tool is blocked, returns a `[BLOCKED]` message
 - **THROTTLE** — tool executes after a configurable delay
-- **REQUIRE_APPROVAL** — tool waits for human approval before executing
+- **REQUIRE_APPROVAL** — tool does not run; the guard raises `CordumApprovalRequiredError` so your app can get a human's sign-off
 
 ## Step 4: Wrap Your Tools
 
@@ -112,7 +112,7 @@ guard = CordumToolGuard(mock, policy="langchain_demo", risk_tags=["agent"])
 guarded_tools = guard.wrap(raw_tools)
 ```
 
-`CordumToolGuard.wrap()` returns new tool instances with safety checks injected into `_run`. Your original tools are unchanged. Pass `guarded_tools` to your agent instead of the originals.
+`CordumToolGuard.wrap()` patches each tool's `_run` in place to add the safety check and returns the same tool objects, so the originals in `raw_tools` are guarded too. Pass `guarded_tools` to your agent.
 
 ## Step 5: Run and Observe
 
@@ -153,13 +153,14 @@ client = CordumClient(
     gateway_url="https://localhost:8081",
     api_key="your-api-key",
     tenant_id="default",
+    ca_cert="/path/to/cordum/certs/ca/ca.crt",  # gateway CA; or set CORDUM_TLS_CA
 )
 
 guard = CordumToolGuard(client, policy="production_ops")
 guarded_tools = guard.wrap(your_tools)
 ```
 
-The real Safety Kernel gives you centralized policy management, `REQUIRE_APPROVAL` for human-in-the-loop workflows (approvals appear in the Cordum dashboard), full audit logging with trace IDs, and policy evaluation caching for performance. Your tool code stays exactly the same — only the client changes.
+The real Safety Kernel gives you centralized policy management, `REQUIRE_APPROVAL` for human-in-the-loop workflows (the guard stops the call and raises `CordumApprovalRequiredError` so you can route it for sign-off), full audit logging with trace IDs, and policy evaluation caching for performance. Your tool code stays exactly the same — only the client changes.
 
 ## Next Steps
 

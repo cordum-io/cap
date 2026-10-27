@@ -6,7 +6,6 @@ import {
   SubscriptionOptions,
 } from "nats";
 import { createClient, RedisClientType } from "redis";
-import { z, ZodTypeAny } from "zod";
 import { loadRoot, SUBJECT_RESULT, DEFAULT_PROTOCOL_VERSION } from "./protos";
 import type { Middleware } from "./middleware";
 import { heartbeatLoop, heartbeatPayload } from "./heartbeat";
@@ -132,11 +131,19 @@ export interface Context {
 
 type Handler<TIn, TOut> = (ctx: Context, data: TIn) => Promise<TOut> | TOut;
 
+/**
+ * Validates job input or output. The runtime only calls `parse`, so zod 3 and
+ * zod 4 schemas both satisfy this without tying consumers to one zod major.
+ */
+export interface JobSchema<T = unknown> {
+  parse(data: unknown): T;
+}
+
 interface HandlerSpec {
   topic: string;
   handler: Handler<any, any>;
-  inputSchema?: ZodTypeAny;
-  outputSchema?: ZodTypeAny;
+  inputSchema?: JobSchema;
+  outputSchema?: JobSchema;
   retries: number;
 }
 
@@ -170,11 +177,11 @@ export interface AgentOptions {
 
 /** Per-handler options for {@link Agent.job}. */
 export interface JobOptions<TOut = any> {
-  outputSchema?: z.ZodType<TOut>;
+  outputSchema?: JobSchema<TOut>;
   retries?: number;
 }
 
-type JobRegistrationOptions<TIn, TOut> = JobOptions<TOut> & { inputSchema?: z.ZodType<TIn> };
+type JobRegistrationOptions<TIn, TOut> = JobOptions<TOut> & { inputSchema?: JobSchema<TIn> };
 
 function pointerForKey(key: string): string {
   return `redis://${key}`;
@@ -397,7 +404,7 @@ export class Agent {
 
   job<TIn, TOut>(
     topic: string,
-    inputSchema: z.ZodType<TIn>,
+    inputSchema: JobSchema<TIn>,
     handler: Handler<TIn, TOut>,
     options?: JobOptions<TOut>
   ): void;
@@ -408,11 +415,11 @@ export class Agent {
   ): void;
   job<TIn, TOut>(
     topic: string,
-    arg2: z.ZodType<TIn> | Handler<TIn, TOut>,
+    arg2: JobSchema<TIn> | Handler<TIn, TOut>,
     arg3?: Handler<TIn, TOut> | JobRegistrationOptions<TIn, TOut>,
     arg4: JobOptions<TOut> = {}
   ): void {
-    let inputSchema: z.ZodType<TIn> | undefined;
+    let inputSchema: JobSchema<TIn> | undefined;
     let handler: Handler<TIn, TOut>;
     let options: JobRegistrationOptions<TIn, TOut>;
 
@@ -434,7 +441,7 @@ export class Agent {
       topic,
       handler,
       inputSchema,
-      outputSchema: options.outputSchema as ZodTypeAny | undefined,
+      outputSchema: options.outputSchema,
       retries,
     });
   }

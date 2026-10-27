@@ -10,13 +10,20 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   first release that fixes four reachable advisories govulncheck reports against v0.55.0
   (GO-2026-6603, GO-2026-6611, GO-2026-6612, GO-2026-6617), itself declares `go 1.26.0`.
   Go 1.25 left upstream support when Go 1.27 shipped. Repository builds and CI now use the
-  `go1.26.9` toolchain through the `toolchain` directive, which also clears the standard
-  library advisories fixed in 1.26.9; the toolchain line does not apply to consumers.
+  `go1.26.10` toolchain through the `toolchain` directive, which also clears the standard
+  library advisories fixed through 1.26.10, including GO-2026-6809 in `crypto/x509`; the
+  toolchain line does not apply to consumers.
 - Dependency maintenance: bumped `google.golang.org/grpc` 1.82.1 to 1.83.1 (GO-2026-6348)
   and `golang.org/x/net` 0.55.0 to 0.60.0 (with `x/crypto` 0.57.0, `x/sys` 0.48.0 and
   `x/text` 0.42.0); bumped sdk/node dev dependencies `js-yaml` 4.3.1, `markdown-it` 14.3.2
   and `brace-expansion` 2.1.7, and tools/codegen dev dependencies `markdown-it` 14.3.2 and
   `brace-expansion` 2.1.7.
+- **Node SDK depends on zod 4 (`^4.6.7`, was `^3.24.0`)** to clear GHSA-mrhx-c7xc-m3w5,
+  where zod can exhaust memory validating oversized constrained collections. `Agent.job`,
+  `JobOptions.outputSchema` and `testHandler` now take a `JobSchema<T>`, any object with
+  `parse(data: unknown): T`, so zod 3 and zod 4 schemas both type-check and the published
+  typings no longer import zod. Code that imports zod without declaring it now resolves
+  zod 4; declare zod in your own package.json to stay on zod 3.
 
 ## v2.17.0 — 2026-07-22
 

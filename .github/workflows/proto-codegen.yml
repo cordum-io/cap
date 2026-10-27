@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   generated-contract:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # ubuntu-26.04 has no Python 3.12.8 build
     steps:
       - uses: actions/checkout@v4
         with:

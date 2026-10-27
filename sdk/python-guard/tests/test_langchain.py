@@ -3,12 +3,15 @@
 These tests mock langchain_core to avoid requiring it as a dependency.
 """
 
+import asyncio
+import inspect
 import sys
 import types
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from cordum_guard.exceptions import CordumApprovalRequiredError
 from cordum_guard.types import Decision, SafetyDecision
 
 
@@ -134,3 +137,180 @@ class TestPolicyLabels:
         assert call_kwargs["labels"]["tool"] == "my_tool"
         assert call_kwargs["risk_tags"] == ["read"]
         assert call_kwargs["capability"] == "my_tool"
+
+
+class TestRequireApprovalPath:
+    def test_require_approval_raises_and_tool_not_run(self):
+        client = _make_client(
+            Decision.REQUIRE_APPROVAL,
+            reason="Transfers over $10,000 require human approval.",
+            rule_id="financial-approval",
+            policy_snapshot="snap-1",
+            approval_required=True,
+            approval_ref="job-42",
+        )
+        tool = _make_tool("transfer_funds")
+        original_run = tool._run
+
+        CordumToolGuard(client).wrap_one(tool)
+        with pytest.raises(CordumApprovalRequiredError) as exc_info:
+            tool._run(amount=15000, to_account="alice")
+
+        original_run.assert_not_called()
+        err = exc_info.value
+        assert err.approval_ref == "job-42"
+        assert err.job_id == "job-42"
+        assert err.rule_id == "financial-approval"
+        assert err.policy_snapshot == "snap-1"
+        assert err.reason == "Transfers over $10,000 require human approval."
+        assert err.decision.decision == Decision.REQUIRE_APPROVAL
+
+    def test_approval_required_flag_blocks_even_when_decision_is_allow(self):
+        client = _make_client(Decision.ALLOW, approval_required=True)
+        tool = _make_tool()
+        original_run = tool._run
+
+        CordumToolGuard(client).wrap_one(tool)
+        with pytest.raises(CordumApprovalRequiredError):
+            tool._run("input")
+        original_run.assert_not_called()
+
+    def test_async_require_approval_raises_and_tool_not_awaited(self):
+        client = _make_client(Decision.REQUIRE_APPROVAL, reason="needs sign-off")
+        tool = _make_tool()
+        tool._arun = AsyncMock(return_value="async result")
+        original_arun = tool._arun
+
+        CordumToolGuard(client).wrap_one(tool)
+        with pytest.raises(CordumApprovalRequiredError):
+            asyncio.run(tool._arun(amount=1))
+        original_arun.assert_not_awaited()
+
+
+class TestFailClosedDecisions:
+    def test_unknown_decision_blocks(self):
+        client = MagicMock()
+        client.evaluate_policy.return_value = SafetyDecision.model_construct(
+            decision="quarantine", reason="unrecognised verdict"
+        )
+        tool = _make_tool("risky_tool")
+        original_run = tool._run
+
+        CordumToolGuard(client).wrap_one(tool)
+        result = tool._run("input")
+
+        assert result == "[BLOCKED] risky_tool: unrecognised verdict"
+        original_run.assert_not_called()
+
+    def test_allow_with_constraints_runs(self):
+        client = _make_client(
+            Decision.ALLOW_WITH_CONSTRAINTS, constraints={"redactionLevel": "high"}
+        )
+        tool = _make_tool()
+
+        CordumToolGuard(client).wrap_one(tool)
+        assert tool._run("input") == "tool result"
+
+
+class TestArgumentLabels:
+    def test_scalar_arguments_become_prefixed_labels(self):
+        client = _make_client(Decision.ALLOW)
+        tool = _make_tool("transfer_funds")
+
+        CordumToolGuard(client, policy="financial_ops").wrap_one(tool)
+        tool._run(amount=15000, to_account="alice", dry_run=False, memo=None, meta={"a": 1})
+
+        labels = client.evaluate_policy.call_args.kwargs["labels"]
+        assert labels["arg.amount"] == "15000"
+        assert labels["arg.to_account"] == "alice"
+        assert labels["arg.dry_run"] == "false"
+        assert "arg.memo" not in labels  # None carries no value
+        assert "arg.meta" not in labels  # non-scalars are never flattened
+        assert labels["policy"] == "financial_ops"
+        assert labels["tool"] == "transfer_funds"
+
+    def test_include_args_false_sends_no_argument_labels(self):
+        client = _make_client(Decision.ALLOW)
+        tool = _make_tool("send_email")
+
+        CordumToolGuard(client, policy="ops", include_args=False).wrap_one(tool)
+        tool._run(to="bob@example.com", body="private medical details")
+
+        labels = client.evaluate_policy.call_args.kwargs["labels"]
+        assert not [k for k in labels if k.startswith("arg.")]
+        assert labels["policy"] == "ops"
+        assert labels["tool"] == "send_email"
+
+    def test_nan_amount_is_sent_as_inf(self):
+        # json.loads accepts NaN, and NaN never exceeds a label_threshold.
+        client = _make_client(Decision.ALLOW)
+        tool = _make_tool()
+
+        CordumToolGuard(client).wrap_one(tool)
+        tool._run(amount=float("nan"))
+
+        assert client.evaluate_policy.call_args.kwargs["labels"]["arg.amount"] == "inf"
+
+    def test_argument_labels_are_bounded(self):
+        client = _make_client(Decision.ALLOW)
+        tool = _make_tool()
+
+        CordumToolGuard(client).wrap_one(tool)
+        many = {f"p{i}": i for i in range(40)}
+        tool._run(note="x" * 5000, **many, **{"bad-name": 1, "y" * 65: 2})
+
+        labels = client.evaluate_policy.call_args.kwargs["labels"]
+        arg_keys = [k for k in labels if k.startswith("arg.")]
+        assert len(arg_keys) == 16
+        assert labels["arg.note"] == "x" * 256
+        assert "arg.bad-name" not in labels
+        assert all(len(k) <= len("arg.") + 64 for k in arg_keys)
+
+    def test_secret_arguments_are_never_sent(self):
+        client = _make_client(Decision.ALLOW)
+        tool = _make_tool()
+
+        CordumToolGuard(client).wrap_one(tool)
+        tool._run(
+            password="hunter2",
+            api_key="k-1",
+            accessToken="t-1",
+            client_secret="s-1",
+            auth="a-1",
+            session_id="sid-1",
+            private_key="pk-1",
+            amount=5,
+        )
+
+        labels = client.evaluate_policy.call_args.kwargs["labels"]
+        assert {k for k in labels if k.startswith("arg.")} == {"arg.amount"}
+        for value in ("hunter2", "k-1", "t-1", "s-1", "a-1", "sid-1", "pk-1"):
+            assert value not in labels.values()
+
+    def test_async_path_sends_same_labels(self):
+        client = _make_client(Decision.ALLOW)
+        tool = _make_tool("my_tool", "Does something")
+        tool._arun = AsyncMock(return_value="async result")
+
+        CordumToolGuard(client, policy="ops").wrap_one(tool)
+        assert asyncio.run(tool._arun(amount=3)) == "async result"
+
+        labels = client.evaluate_policy.call_args.kwargs["labels"]
+        assert labels["arg.amount"] == "3"
+        assert labels["description"] == "Does something"
+
+
+class TestSignaturePreserved:
+    def test_wrapped_run_keeps_signature_for_langchain_injection(self):
+        # LangChain only injects `config` / `run_manager` when the tool's
+        # `_run` signature declares them, and StructuredTool._run requires
+        # `config`; a bare (*args, **kwargs) wrapper breaks every @tool.
+        def real_run(*args, config, run_manager=None, **kwargs):
+            return "ok"
+
+        tool = _make_tool()
+        tool._run = real_run
+
+        CordumToolGuard(_make_client(Decision.ALLOW)).wrap_one(tool)
+        assert inspect.signature(tool._run) == inspect.signature(real_run)
+        assert tool._run(config={}, run_manager=None, query="q") == "ok"

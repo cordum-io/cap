@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import logging
+import os
+import ssl
 import time
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import httpx
 
 from .cache import PolicyCache, make_cache_key
 from .exceptions import (
     CordumAuthError,
+    CordumBlockedError,
     CordumConnectionError,
     CordumError,
     CordumTimeoutError,
@@ -27,12 +30,43 @@ from .types import (
 _TERMINAL_STATES = frozenset({
     "succeeded", "failed", "cancelled", "denied",
 })
+# Job states that end an approval without letting the action run.
+_FAILED_STATES = frozenset({"failed", "cancelled", "denied", "timeout", "quarantined"})
+_APPROVAL_OUTCOMES = {
+    "approve": "approved",
+    "reject": "rejected",
+    "expire": "expired",
+    "invalidate": "invalidated",
+}
 
 _logger = logging.getLogger("cordum_guard")
 
 
 def _base_url(url: str) -> str:
     return url.rstrip("/")
+
+
+def _tls_verify(
+    verify: Union[bool, ssl.SSLContext, None], ca_cert: Optional[str]
+) -> Union[bool, ssl.SSLContext]:
+    """httpx ``verify`` value for the gateway connection.
+
+    Only an explicit ``verify=False`` turns verification off. ``True`` (or
+    None) verifies against ``ca_cert``, else ``$CORDUM_TLS_CA``, else
+    httpx's default CAs. Anything else (an ``ssl.SSLContext``) is passed as is.
+    """
+    if verify is False:
+        _logger.warning(
+            "TLS certificate verification is disabled for the Cordum gateway "
+            "(verify=False); use this only against a local test stack"
+        )
+        return False
+    if verify is not True and verify is not None:
+        return verify
+    ca_cert = ca_cert or os.environ.get("CORDUM_TLS_CA")
+    if not ca_cert:
+        return True
+    return ssl.create_default_context(cafile=ca_cert)
 
 
 class CordumClient:
@@ -46,6 +80,11 @@ class CordumClient:
             capability="bank_transfer",
             risk_tags=["write", "financial"],
         )
+
+    TLS: ``ca_cert`` (default ``$CORDUM_TLS_CA``) is a PEM bundle the client
+    trusts for the gateway's certificate instead of the default CAs.
+    ``verify`` is passed to httpx: ``True`` verifies, an ``ssl.SSLContext`` is
+    used as is, and ``False`` disables verification and logs a warning.
     """
 
     def __init__(
@@ -58,6 +97,8 @@ class CordumClient:
         cache_max_size: int = 1000,
         on_error: OnErrorMode = "closed",
         production_profile: bool = False,
+        ca_cert: Optional[str] = None,
+        verify: Union[bool, ssl.SSLContext] = True,
     ) -> None:
         if production_profile and on_error != "closed":
             raise ValueError(
@@ -74,6 +115,7 @@ class CordumClient:
                 "Content-Type": "application/json",
             },
             timeout=timeout,
+            verify=_tls_verify(verify, ca_cert),
         )
         self._cache: PolicyCache | None = None
         if cache_ttl > 0:
@@ -126,6 +168,10 @@ class CordumClient:
             result_ptr=resp.get("result_ptr", ""),
             failure_reason=resp.get("failure_reason", ""),
             tenant_id=resp.get("tenant_id", ""),
+            approval_status=resp.get("approval_status") or "",
+            approval_decision=resp.get("approval_decision") or "",
+            approval_by=resp.get("approval_by") or "",
+            approval_reason=resp.get("approval_reason") or "",
         )
 
     def cancel_job(self, job_id: str) -> None:
@@ -158,7 +204,7 @@ class CordumClient:
         setting. Auth errors and explicit DENY responses are never affected.
         """
         production = getattr(self, "_production_profile", False)
-        cache_key = make_cache_key(topic, capability, risk_tags)
+        cache_key = make_cache_key(topic, capability, risk_tags, labels)
 
         if not production and cache and self._cache is not None:
             cached = self._cache.get(cache_key)
@@ -172,6 +218,9 @@ class CordumClient:
         if risk_tags:
             meta["risk_tags"] = risk_tags
         if labels:
+            # The Safety Kernel matches rules on top-level labels only;
+            # meta.labels is kept for older consumers.
+            body["labels"] = labels
             meta["labels"] = labels
         if meta:
             body["meta"] = meta
@@ -242,7 +291,9 @@ class CordumClient:
     ) -> JobStatus:
         """Poll a job until it reaches a terminal state.
 
-        Raises :class:`CordumTimeoutError` if the timeout is exceeded.
+        Raises :class:`CordumTimeoutError` if the timeout is exceeded. To wait
+        for a human approval rather than for the job to finish, use
+        :meth:`wait_for_approval`.
         """
         deadline = time.monotonic() + timeout
         while time.monotonic() < deadline:
@@ -251,6 +302,58 @@ class CordumClient:
                 return status
             time.sleep(min(poll_interval, deadline - time.monotonic()))
         raise CordumTimeoutError(job_id, timeout)
+
+    def wait_for_approval(
+        self,
+        job_id: str,
+        timeout: float = 300.0,
+        poll_interval: float = 2.0,
+    ) -> JobStatus:
+        """Poll a job until a human resolves its approval.
+
+        Returns the :class:`JobStatus` once the job is approved. Raises
+        :class:`CordumBlockedError` when the approval is rejected, expires or
+        is invalidated, or the job ends without one, and
+        :class:`CordumTimeoutError` if nobody decides within ``timeout``.
+
+        Unlike :meth:`wait_for_decision` this does not wait for the job to
+        finish, so it works for approval-only jobs that no worker runs, such
+        as the ones ``@guard`` submits.
+        """
+        deadline = time.monotonic() + timeout
+        while True:
+            status = self.get_job(job_id)
+            state = status.state.lower()
+            # approval_decision is the last transition. Cordum v1.2.0 and
+            # earlier re-queue an approved job for approval when its dispatch
+            # fails: approval_status reads "pending" again, approval_decision
+            # keeps "approve". Later servers keep the job approved.
+            outcome = _APPROVAL_OUTCOMES.get(
+                status.approval_decision.lower(), status.approval_status.lower()
+            )
+            if state == "timeout" and outcome == "pending":
+                outcome = "expired"
+            if outcome in ("rejected", "expired", "invalidated"):
+                reason = f"approval {outcome}"
+                if outcome == "rejected" and status.approval_reason:
+                    reason += f": {status.approval_reason}"
+                raise CordumBlockedError(SafetyDecision(decision=Decision.DENY, reason=reason))
+            if state in _FAILED_STATES:
+                raise CordumBlockedError(SafetyDecision(
+                    decision=Decision.DENY, reason=f"approval job ended {status.state}",
+                ))
+            # approval_by is set only by a real approve/reject; the gateway
+            # can derive "approved" from the job state alone.
+            if outcome == "approved" and status.approval_by:
+                return status
+            if state == "succeeded":
+                raise CordumBlockedError(SafetyDecision(
+                    decision=Decision.DENY, reason="approval job succeeded without an approval",
+                ))
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise CordumTimeoutError(job_id, timeout)
+            time.sleep(min(poll_interval, remaining))
 
     # ------------------------------------------------------------------
     # Internal HTTP plumbing
@@ -287,30 +390,40 @@ class CordumClient:
         return resp.json()
 
 
+def _parse_decision(raw: str) -> Optional[Decision]:
+    """Map a gateway verdict string to a Decision, or None if unknown.
+
+    The gateway serialises the kernel response with protojson, so verdicts
+    arrive as enum names (``DECISION_TYPE_REQUIRE_HUMAN``); plain, upper-case
+    and kebab-case spellings are accepted too.
+    """
+    name = raw.strip().lower().replace("-", "_").removeprefix("decision_type_")
+    if name == "require_human":
+        name = Decision.REQUIRE_APPROVAL.value
+    try:
+        return Decision(name)
+    except ValueError:
+        return None
+
+
 def _parse_safety_decision(
     data: dict[str, Any], production: bool = False
 ) -> SafetyDecision:
     """Parse a policy evaluation response into a SafetyDecision.
 
-    Under the CAP-PRODUCTION profile a missing, null, non-string, or unknown
-    verdict FAILS CLOSED (DENY): a malformed gateway response must never be
-    read as permission. Outside production, a missing or unknown string keeps
-    the historical permissive default; an explicit malformed type still
-    fails instead of authorizing work.
+    A missing verdict, or an unknown verdict string (including
+    ``DECISION_TYPE_UNSPECIFIED`` and output-only verdicts), FAILS CLOSED
+    (DENY) in every profile. A null or non-string verdict fails closed under
+    CAP-PRODUCTION and raises outside it, so a malformed gateway response
+    never authorizes work.
     """
-    missing = "decision" not in data
-    raw = data.get("decision")
-    if missing:
-        if production:
-            return SafetyDecision(
-                decision=Decision.DENY,
-                reason=(
-                    "CAP-PRODUCTION: missing gateway decision; "
-                    "failing closed"
-                ),
-            )
-        raw = "allow"
-    elif not isinstance(raw, str):
+    if "decision" not in data:
+        return SafetyDecision(
+            decision=Decision.DENY,
+            reason="missing gateway decision; failing closed",
+        )
+    raw = data["decision"]
+    if not isinstance(raw, str):
         if production:
             return SafetyDecision(
                 decision=Decision.DENY,
@@ -319,21 +432,14 @@ def _parse_safety_decision(
                 ),
             )
         raise TypeError("gateway decision must be a string")
-    # The gateway may return upper-case or snake_case variants.
-    decision_str = raw.lower().strip()
-    try:
-        decision = Decision(decision_str)
-    except ValueError:
-        if production:
-            return SafetyDecision(
-                decision=Decision.DENY,
-                reason=(
-                    f"CAP-PRODUCTION: unknown gateway decision {decision_str!r}; "
-                    "failing closed"
-                ),
-            )
-        decision = Decision.ALLOW
+    decision = _parse_decision(raw)
+    if decision is None:
+        return SafetyDecision(
+            decision=Decision.DENY,
+            reason=f"unknown gateway decision {raw!r}; failing closed",
+        )
 
+    # protojson emits camelCase field names; accept snake_case as well.
     return SafetyDecision(
         decision=decision,
         reason=data.get("reason", ""),
@@ -342,4 +448,11 @@ def _parse_safety_decision(
         throttle_duration_seconds=float(
             data.get("throttle_duration_seconds", 0)
         ),
+        rule_id=data.get("rule_id") or data.get("ruleId") or "",
+        policy_snapshot=data.get("policy_snapshot") or data.get("policySnapshot") or "",
+        approval_required=bool(
+            data.get("approval_required") or data.get("approvalRequired")
+        ),
+        approval_ref=data.get("approval_ref") or data.get("approvalRef") or "",
+        constraints=data.get("constraints") or {},
     )

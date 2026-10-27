@@ -4,6 +4,7 @@ __version__ = "0.1.1"
 
 from .client import CordumClient
 from .exceptions import (
+    CordumApprovalRequiredError,
     CordumAuthError,
     CordumBlockedError,
     CordumConnectionError,
@@ -16,6 +17,7 @@ from .types import Decision, OnErrorCallback, OnErrorMode, SafetyDecision
 
 __all__ = [
     "CordumClient",
+    "CordumApprovalRequiredError",
     "CordumAuthError",
     "CordumBlockedError",
     "CordumConnectionError",

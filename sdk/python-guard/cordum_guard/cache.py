@@ -12,16 +12,26 @@ from typing import Optional
 
 from .types import Decision, SafetyDecision
 
-CacheKey = tuple[str, str, tuple[str, ...]]
+CacheKey = tuple[str, str, tuple[str, ...], tuple[tuple[str, str], ...]]
 
 
 def make_cache_key(
     topic: str,
     capability: str,
     risk_tags: Optional[list[str]] = None,
+    labels: Optional[dict[str, str]] = None,
 ) -> CacheKey:
-    """Build a deterministic cache key from policy parameters."""
-    return (topic, capability, tuple(sorted(risk_tags or [])))
+    """Build a deterministic cache key from policy parameters.
+
+    Labels are part of the key: label rules (e.g. ``label_threshold`` on an
+    ``arg.*`` label) make the verdict depend on them.
+    """
+    return (
+        topic,
+        capability,
+        tuple(sorted(risk_tags or [])),
+        tuple(sorted((labels or {}).items())),
+    )
 
 
 class PolicyCache:

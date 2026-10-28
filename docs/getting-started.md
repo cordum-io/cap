@@ -1,7 +1,7 @@
 # First CAP Job (under 10 minutes)
 
 > **Just want to try CAP?** The onboarding fixes this guide is built around
-> have shipped in every release since v2.15.0 (current: **v2.16.1**). Install
+> have shipped in every release since v2.15.0 (current: **v2.17.0**). Install
 > the published package instead of building from source —
 > `pip install cap-sdk-python`, `npm install cap-sdk-node`, or
 > `go get github.com/cordum-io/cap/v2` — then jump to whichever language

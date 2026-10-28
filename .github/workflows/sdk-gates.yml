@@ -1,9 +1,11 @@
 # Evidence-backed SDK tier gates. Verifies the support/codegen manifests against
 # the real tree, then runs the Go stable-tier gates (build, vet, tests including
-# mandatory embedded real-NATS, the TCK, and the fixture matrix). Per-language
-# installed-artifact jobs (npm pack, wheel venv, C++ find_package consumer) are
-# added as each SDK's packaging predecessor lands; support-tiers.json already
-# marks those gates pending with the blocking task.
+# mandatory embedded real-NATS, the TCK, and the fixture matrix). The
+# cross-language-matrix job builds every stable SDK's installed artifact (Go
+# module proxy, Python wheel venv, npm-packed tarball) and checks all nine
+# producer->consumer fixture/signature edges. The Node and Python real-NATS
+# gates run in ci.yml (node-nats, python-nats). C++ is community tier and has
+# no installed-artifact consumer job.
 name: sdk-gates
 
 on:

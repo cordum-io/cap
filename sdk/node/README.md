@@ -12,7 +12,7 @@ Scheduler/Safety path (see `docs/reference.md`).
 
 ```bash
 mkdir echo && cd echo && npm init -y
-npm install cap-sdk-node@2.16.1 nats
+npm install cap-sdk-node@2.17.0 nats
 # add echo.js below, then:
 node echo.js
 ```

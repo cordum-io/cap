@@ -75,6 +75,10 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   OpenTelemetry messaging span attributes to semantic conventions v1.44.0. The 32 traceparent
   vectors were cross-checked against otel-go v1.47.0, opentelemetry-api 1.41.1 and
   `@opentelemetry/core` 2.12.0.
+- Conformance and support-tier truth: `spec/tck/coverage.json` no longer says the
+  CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
+  test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python
+  pending gates and points their real-NATS gates at the fail-closed, CI-mandatory suites.
 
 ## v2.17.0 — 2026-07-22
 

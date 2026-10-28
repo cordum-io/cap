@@ -12,7 +12,7 @@ through the governed Scheduler/Safety path (see `docs/reference.md`).
 
 ```bash
 mkdir echo && cd echo && go mod init example.com/echo
-go get github.com/cordum-io/cap/v2@v2.16.1
+go get github.com/cordum-io/cap/v2@v2.17.0
 # add main.go below, then:
 go run .
 ```

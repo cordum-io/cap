@@ -23,7 +23,7 @@ Scheduler/Safety path (see `docs/reference.md`).
 
 ```bash
 python -m venv .venv && . .venv/bin/activate
-pip install cap-sdk-python==2.16.1 nats-py
+pip install cap-sdk-python==2.17.0 nats-py
 # add echo.py below, then:
 python echo.py
 ```

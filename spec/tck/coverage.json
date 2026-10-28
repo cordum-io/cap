@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "Maps DoD conformance behaviors to TCK case IDs. 'gated' entries are behaviors whose scenarios cannot be authored yet because they depend on the CAP-PRODUCTION dispatch-identity/attempt/replay model, which is not yet on any ref. They are listed, not omitted, so the gap is explicit.",
+  "description": "Maps DoD conformance behaviors to TCK case IDs; every shipped case is listed by at least one non-gated behavior. The merged CAP-PRODUCTION DispatchIdentity/attempt/replay model is consumed by the shipped duplicate, retry and cancellation-fencing cases. 'gated' entries are behaviors not expressible as core-profile adapter cases: they are either another profile's conformance surface (CAP-PRODUCTION signing/identity, handshake session binding) or not wire-observable through this request/response adapter (policy-snapshot staleness, concurrent cancel-vs-result interleaving). They are listed, not omitted, so each gap and its reason stay explicit.",
   "behaviors": [
     {
       "behavior": "legal lifecycle transitions",
@@ -8,7 +8,8 @@
       "cases": [
         "lifecycle/cp-pending-to-scheduled",
         "lifecycle/cp-scheduled-to-dispatched",
-        "lifecycle/worker-running-to-succeeded"
+        "lifecycle/worker-running-to-succeeded",
+        "lifecycle/worker-running-to-failed-retryable"
       ]
     },
     {

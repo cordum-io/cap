@@ -68,6 +68,10 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `parse(data: unknown): T`, so zod 3 and zod 4 schemas both type-check and the published
   typings no longer import zod. Code that imports zod without declaring it now resolves
   zod 4; declare zod in your own package.json to stay on zod 3.
+- Conformance and support-tier truth: `spec/tck/coverage.json` no longer says the
+  CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
+  test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python
+  pending gates and points their real-NATS gates at the fail-closed, CI-mandatory suites.
 
 ## v2.17.0 — 2026-07-22
 

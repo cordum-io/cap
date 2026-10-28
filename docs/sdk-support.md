@@ -29,8 +29,8 @@ hand-set boolean.
 | SDK | Kind | Tier | Owner | Pending evidence |
 |-----|------|------|-------|------------------|
 | go | protocol-sdk | stable | @yaront1111 | — |
-| node | protocol-sdk | stable | @yaront1111 | compat (task-de2ef8fb), real-nats (task-de2ef8fb) |
-| python | protocol-sdk | stable | @yaront1111 | compat (task-83785a91), real-nats (task-83785a91) |
+| node | protocol-sdk | stable | @yaront1111 | — |
+| python | protocol-sdk | stable | @yaront1111 | — |
 | cpp | protocol-sdk | community | @yaront1111 | — |
 | python-guard | extension | community | @yaront1111 | — |
 | dotnet | protocol-sdk | experimental | @yaront1111 | — |

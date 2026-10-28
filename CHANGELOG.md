@@ -68,6 +68,13 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `parse(data: unknown): T`, so zod 3 and zod 4 schemas both type-check and the published
   typings no longer import zod. Code that imports zod without declaring it now resolves
   zod 4; declare zod in your own package.json to stay on zod 3.
+- **A2A interop design (draft):** added `spec/interop/a2a-mapping.md` and
+  `spec/interop/vectors/a2a-v1.json` (34 cases). They map A2A 1.0 tasks onto CAP jobs:
+  each `JobStatus` maps to one A2A `TaskState`. A versioned turn-result envelope
+  (`application/vnd.cordum.cap.a2a-turn-result.v1+json`) carries input-required and
+  auth-required, with credentials only out of band. The design also covers identity
+  and idempotency rules, cancel semantics, and the bridge-placement decision. It is a
+  design only: no bridge ships yet, and there is no wire change.
 - **Spec (no wire change):** added `spec/interop/trace-context.md`, the normative W3C Trace
   Context carrier contract for CAP over NATS, and `spec/interop/vectors/trace-context-v1.json`.
   The contract covers lowercase `traceparent`/`tracestate` headers, no baggage by default,

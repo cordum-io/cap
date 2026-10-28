@@ -75,6 +75,13 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   auth-required, with credentials only out of band. The design also covers identity
   and idempotency rules, cancel semantics, and the bridge-placement decision. It is a
   design only: no bridge ships yet, and there is no wire change.
+- **Spec (no wire change):** added `spec/interop/trace-context.md`, the normative W3C Trace
+  Context carrier contract for CAP over NATS, and `spec/interop/vectors/trace-context-v1.json`.
+  The contract covers lowercase `traceparent`/`tracestate` headers, no baggage by default,
+  admission before extraction, and trace data that is never authority. It also pins the
+  OpenTelemetry messaging span attributes to semantic conventions v1.44.0. The 32 traceparent
+  vectors were cross-checked against otel-go v1.47.0, opentelemetry-api 1.41.1 and
+  `@opentelemetry/core` 2.12.0.
 - Conformance and support-tier truth: `spec/tck/coverage.json` no longer says the
   CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
   test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python

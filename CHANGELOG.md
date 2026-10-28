@@ -75,6 +75,10 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   auth-required, with credentials only out of band. The design also covers identity
   and idempotency rules, cancel semantics, and the bridge-placement decision. It is a
   design only: no bridge ships yet, and there is no wire change.
+- Conformance and support-tier truth: `spec/tck/coverage.json` no longer says the
+  CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
+  test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python
+  pending gates and points their real-NATS gates at the fail-closed, CI-mandatory suites.
 
 ## v2.17.0 — 2026-07-22
 

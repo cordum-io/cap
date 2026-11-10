@@ -7,7 +7,9 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -199,6 +201,20 @@ func notPrintable(r rune) bool { return unicode.IsSpace(r) || unicode.IsControl(
 func (i *Ingress) Handler() http.Handler {
 	return http.MaxBytesHandler(a2asrv.NewJSONRPCHandler(i), maxRequestBytes)
 }
+
+// turnPart is one part in the envelope grammar of spec §4.3.
+type turnPart struct {
+	Kind      string          `json:"kind"`
+	Text      *string         `json:"text,omitempty"`
+	Data      json.RawMessage `json:"data,omitempty"`
+	MediaType string          `json:"media_type,omitempty"`
+}
+
+// constantTimeCompare is a variable so tests can count comparisons.
+var constantTimeCompare = subtle.ConstantTimeCompare
+
+// idempotencyKey is not implemented yet.
+func idempotencyKey(_, _, _, _ string) string { return "" }
 
 // authenticate fails closed until the key check is implemented.
 func (i *Ingress) authenticate(context.Context) (Identity, error) {

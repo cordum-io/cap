@@ -63,7 +63,7 @@ The chosen design is a shim. The new command `cap-framework-tck` gets a hidden `
   - **Retries and duplicates.** The shim reads the case params `attempt`, `activeAttempt`, `assignedWorkerId`, `deliveries` and `expect` (spec/tck/scenarios/core-retries.json:5-18). It first establishes `activeAttempt`, then delivers the case's packet. It maps `wrk-1` to the real worker id and maps any other id to an unknown worker. Expected outcomes mirror the reference adapter's model: internal/tck/refadapter_test.go:131-170 for duplicates and internal/tck/refadapter_test.go:209-235 for retries. A new attempt is accepted only when it equals `active+1`, and a cancel only when its attempt equals the active attempt.
   - **`lifecycle/worker-rejects-backwards-transition` and `-second-terminal`.** After a `SUCCEEDED` result, the shim redelivers the identical dispatch and sends a `JobCancel` for it. The case passes when no `invoked` marker, no `RUNNING` progress and no second terminal appears; at most a replay of the recorded `SUCCEEDED` may appear.
   - **`malformed/*`.** The shim mutates a valid signed packet into each malformed form. The case passes when the worker emits nothing for that job and the next barrier job still succeeds (internal/tck/refadapter_test.go:309-319).
-- **Non-vacuity.** The harness's own tests run the shim against a bare cap-sdk-python `Agent` with no NEW-1 fencing, and assert that runs D and R report FAIL. Today such a worker drops redelivery without replay (sdk/python/cap/runtime.py:1054-1055), and its event binding checks neither assigned worker nor attempt (sdk/python/cap/production_events.py:99-123).
+- **Non-vacuity.** The harness's own tests run the shim against a bare cap-sdk-python `Agent` with no NEW-1 fencing, and assert that runs D and R report FAIL. Today such a worker drops redelivery without replay (sdk/python/cap/runtime.py:1054-1055), and nothing in its admission path compares `dispatch.attempt` or `assigned_worker_id` with an active attempt. `bind_production_event` only copies the admitted dispatch onto outgoing events (sdk/python/cap/production_events.py:99-123).
 
 ### 1.3 Installed artifacts and the harness command
 
@@ -225,6 +225,10 @@ type Dispatch struct {
 	Identity        *agentv1.DispatchIdentity // persisted before Dispatch returns
 	Request         *agentv1.JobRequest       // admitted request with .Dispatch = Identity
 }
+
+// Scheduler is the in-memory state core; its fields are unexported and it is
+// safe for concurrent use.
+type Scheduler struct{ /* unexported */ }
 
 func New(cfg Config) (*Scheduler, error)
 func (s *Scheduler) Submit(v capsdk.VerifiedProductionPacket) (Job, error)

@@ -80,10 +80,10 @@ class OnboardingWorkflowContractTests(unittest.TestCase):
 
     def test_bootstrap_actions_are_immutable(self) -> None:
         pins = (
-            "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
-            "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065",
-            "actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5",
-            "actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+            "actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0",
+            "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0",
+            "actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0",
+            "actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0",
         )
         for pin in pins:
             with self.subTest(pin=pin):
@@ -234,7 +234,7 @@ class OnboardingWorkflowContractTests(unittest.TestCase):
     def test_processes_are_cleaned_and_failure_logs_are_archived(self) -> None:
         required = (
             "trap",
-            "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+            "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0",
             "if: ${{ failure() || cancelled() }}",
         )
         for value in required:

@@ -139,15 +139,15 @@ def test_playground_ci_always_captures_logs_and_cleans_state() -> None:
     assert "docker compose down -v --remove-orphans --timeout 5" in workflow
     assert "trap cleanup EXIT INT TERM" in workflow
     assert "if: ${{ failure() || cancelled() }}" in workflow
-    assert "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02" in workflow
+    assert "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0" in workflow
     assert "name: playground-${{ github.run_id }}-${{ github.run_attempt }}" in workflow
     assert "sleep " not in workflow
 
 
 def test_playground_ci_pins_bootstrap_actions() -> None:
     workflow = _workflow_text()
-    assert "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683" in workflow
-    assert "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065" in workflow
+    assert "actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0" in workflow
+    assert "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0" in workflow
 
 
 def test_final_cleanup_survives_missing_checkout() -> None:

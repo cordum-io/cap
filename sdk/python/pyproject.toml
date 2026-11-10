@@ -33,6 +33,8 @@ dependencies = [
 dev = [
   "build>=1.2,<2",
   "mypy>=1.8,<2",
+  "opentelemetry-api>=1.41.1,<2",
+  "opentelemetry-sdk>=1.41.1,<2",
   "packaging>=23.2",
   "pdoc>=14.0",
   "PyYAML>=6.0,<7",
@@ -40,6 +42,7 @@ dev = [
   "tomli>=2.0; python_version < '3.11'",
   "twine>=5.0,<7",
 ]
+otel = ["opentelemetry-api>=1.41.1,<2"]
 
 [project.urls]
 Homepage = "https://github.com/cordum-io/cap"

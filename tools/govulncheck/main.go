@@ -51,6 +51,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"syscall"
 	"time"
@@ -86,11 +87,14 @@ the gate's temporary root, which is always removed.
 const (
 	toolModulePath = "github.com/cordum-io/cap/v2/tools/govulncheck"
 	vulnModulePath = "golang.org/x/vuln"
+	captureLimit   = 1 << 20  // bytes kept per child stream
+	echoLimit      = 64 << 10 // bytes echoed per child stream on failure
 )
 
 var (
-	toolchainRE = regexp.MustCompile(`^go1\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`)
-	releaseRE   = regexp.MustCompile(`^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`)
+	toolchainRE   = regexp.MustCompile(`^go1\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`)
+	releaseRE     = regexp.MustCompile(`^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`)
+	overriddenEnv = []string{"GOVERSION", "GOROOT", "GOFLAGS", "GOTOOLCHAIN", "GOWORK", "GOTMPDIR"}
 )
 
 type options struct {
@@ -112,6 +116,7 @@ type gate struct {
 	toolToolchain  string
 	repoToolchain  string
 	pin            string
+	gotmp          string
 }
 
 func main() {
@@ -127,7 +132,7 @@ func main() {
 	os.Exit(code)
 }
 
-func run(ctx context.Context, args, env []string, stdout, stderr io.Writer, opts options) int {
+func run(ctx context.Context, args, env []string, stdout, stderr io.Writer, opts options) (code int) {
 	cfg, err := parseArgs(args)
 	if err != nil {
 		fmt.Fprintf(stderr, "govulncheck-gate: FAIL usage: %v\n\n%s", err, usageText)
@@ -135,14 +140,154 @@ func run(ctx context.Context, args, env []string, stdout, stderr io.Writer, opts
 	}
 	g := &gate{opts: opts, env: env, stdout: stdout, stderr: stderr, timeout: cfg.timeout}
 	if err := g.setup(cfg.repoRoot); err != nil {
-		return g.fail("setup", err.Error())
+		return g.fail("setup", err.Error(), nil)
 	}
-	return g.fail("setup", "stages are not implemented yet")
+	root, err := os.MkdirTemp(opts.tempParent, "cap-govulncheck-gate-")
+	if err != nil {
+		return g.fail("setup", err.Error(), nil)
+	}
+	// Children are reaped synchronously by runChild, so this runs after all
+	// of them have exited, on every return path.
+	defer func() {
+		if err := removeAll(root); err != nil {
+			g.report("cleanup", err.Error(), nil)
+			if code == 0 {
+				code = 1
+			}
+		}
+	}()
+	if root, err = filepath.Abs(root); err != nil {
+		return g.fail("setup", err.Error(), nil)
+	}
+	g.gotmp = filepath.Join(root, "gotmp")
+	for _, dir := range []string{"bin", "seed", "gotmp"} {
+		if err := os.Mkdir(filepath.Join(root, dir), 0o755); err != nil {
+			return g.fail("setup", err.Error(), nil)
+		}
+	}
+	ctx, cancel := context.WithTimeout(ctx, cfg.timeout) // one budget for every child
+	defer cancel()
+	return g.fail("setup", "stages are not implemented yet", nil)
 }
 
-func (g *gate) fail(stage, reason string) int {
+// removeAll retries for up to 2s because Windows can briefly keep a just-killed
+// executable locked.
+func removeAll(dir string) error {
+	deadline := time.Now().Add(2 * time.Second)
+	for {
+		err := os.RemoveAll(dir)
+		if err == nil || time.Now().After(deadline) {
+			return err
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// report prints one FAIL line, then the bounded child output when there is
+// a child result. The environment is never echoed.
+func (g *gate) report(stage, reason string, r *childResult) {
 	fmt.Fprintf(g.stderr, "govulncheck-gate: FAIL %s: %s\n", stage, reason)
+	if r != nil {
+		echo(g.stderr, "child stdout", &r.stdout)
+		echo(g.stderr, "child stderr", &r.stderr)
+	}
+}
+
+func (g *gate) fail(stage, reason string, r *childResult) int {
+	g.report(stage, reason, r)
 	return 1
+}
+
+// echo writes at most echoLimit bytes of c, then how many bytes were left out.
+func echo(w io.Writer, name string, c *capture) {
+	total := len(c.buf) + c.dropped
+	if total == 0 {
+		return
+	}
+	shown := c.buf[:min(len(c.buf), echoLimit)]
+	fmt.Fprintf(w, "--- %s ---\n%s", name, shown)
+	if len(shown) > 0 && shown[len(shown)-1] != '\n' {
+		fmt.Fprintln(w)
+	}
+	if rest := total - len(shown); rest > 0 {
+		fmt.Fprintf(w, "[truncated %d bytes]\n", rest)
+	}
+}
+
+// capture keeps the first captureLimit bytes written to it and counts the
+// rest. It always accepts the whole write, so a chatty child never blocks.
+type capture struct {
+	buf     []byte
+	dropped int
+}
+
+func (c *capture) Write(p []byte) (int, error) {
+	keep := min(len(p), captureLimit-len(c.buf))
+	c.buf = append(c.buf, p[:keep]...)
+	c.dropped += len(p) - keep
+	return len(p), nil
+}
+
+type childResult struct {
+	code           int
+	failure        string // set when the child was not run to its own exit
+	stdout, stderr capture
+}
+
+// problem returns why r is not a clean exit with code want, or "".
+func (r *childResult) problem(name string, want int) string {
+	switch {
+	case r.failure != "":
+		return r.failure
+	case r.code != want:
+		return fmt.Sprintf("%s exited %d", name, r.code)
+	case r.stdout.dropped > 0:
+		return fmt.Sprintf("stdout exceeded the %d-byte capture limit", captureLimit)
+	case r.stderr.dropped > 0:
+		return fmt.Sprintf("stderr exceeded the %d-byte capture limit", captureLimit)
+	}
+	return ""
+}
+
+// childEnv rebuilds a child's environment from the parent's on every call:
+// the Go selection keys are dropped case-insensitively and set to exact
+// values, so no stage inherits another stage's or the caller's selection.
+func childEnv(base []string, toolchain, gotmp string) []string {
+	env := make([]string, 0, len(base)+4)
+	for _, kv := range base {
+		key, _, _ := strings.Cut(kv, "=")
+		if !slices.ContainsFunc(overriddenEnv, func(o string) bool { return strings.EqualFold(key, o) }) {
+			env = append(env, kv)
+		}
+	}
+	return append(env, "GOTOOLCHAIN="+toolchain, "GOFLAGS=-mod=readonly", "GOWORK=off", "GOTMPDIR="+gotmp)
+}
+
+// runChild runs one argv (never a shell string) to completion. On timeout or
+// interrupt CommandContext kills the direct child; Wait always reaps it, and
+// WaitDelay bounds the wait for pipes held open by its descendants.
+func (g *gate) runChild(ctx context.Context, name string, args []string, dir, toolchain string) *childResult {
+	cmd := exec.CommandContext(ctx, name, args...)
+	cmd.Dir = dir
+	cmd.Env = childEnv(g.env, toolchain, g.gotmp)
+	cmd.WaitDelay = g.opts.waitDelay
+	r := &childResult{}
+	cmd.Stdout, cmd.Stderr = &r.stdout, &r.stderr
+	err := cmd.Run()
+	var exitErr *exec.ExitError
+	switch {
+	case errors.Is(ctx.Err(), context.DeadlineExceeded):
+		r.failure = "timed out after " + g.timeout.String()
+	case errors.Is(ctx.Err(), context.Canceled):
+		r.failure = "interrupted"
+	case errors.Is(err, exec.ErrWaitDelay):
+		r.failure = "output pipes still open after exit: " + err.Error()
+	case errors.As(err, &exitErr):
+		r.code = exitErr.ExitCode()
+	case err != nil:
+		r.failure = "start: " + err.Error()
+	}
+	return r
 }
 
 // onceString is a flag value that may be set only once.

@@ -7,9 +7,10 @@
 //     untrusted correlation hints, even on a CAP-PRODUCTION verified packet.
 //   - Call [Config.Extract] only after the packet has passed CAP-PRODUCTION
 //     admission or legacy validation, and never for a rejected packet.
-//   - Trace data never selects or influences tenant, principal or sender
-//     identity, a key, policy, a safety decision, approval, admission or
-//     routing.
+//   - Callers must never let trace data select or influence tenant,
+//     principal or sender identity, a key, policy, a safety decision,
+//     approval, admission or routing. This package makes none of those
+//     decisions.
 //
 // Behavior:
 //   - Only the lowercase traceparent and tracestate headers are read or

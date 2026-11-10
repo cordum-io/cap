@@ -967,7 +967,7 @@ func TestRealScannerEndToEnd(t *testing.T) {
 	})
 	t.Run("vulnerable repository exits 3", func(t *testing.T) {
 		repo := t.TempDir()
-		writeFile(t, filepath.Join(repo, "go.mod"), "module example.com/vulnrepo\n\ngo 1.25.12\n\ntoolchain go1.25.12\n")
+		writeFile(t, filepath.Join(repo, "go.mod"), "module example.com/vulnrepo\n\ngo 1.25.0\n\ntoolchain go1.25.12\n")
 		writeFile(t, filepath.Join(repo, "main.go"), wantSeedMainGo)
 		res := runReal(t, repo)
 		want := "govulncheck-gate: FAIL repository: vulnerabilities found (govulncheck exit 3)\n"

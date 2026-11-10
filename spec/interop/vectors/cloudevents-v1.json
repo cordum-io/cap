@@ -373,7 +373,7 @@
           "jobProgress": {
             "jobId": "job-44",
             "percent": 10,
-            "message": "démarrage \"phase 1\"\n✓ 𝄞\u0007",
+            "message": "d\u00e9marrage \"phase 1\"\n\u2713 \ud834\udd1e\u0007",
             "status": "JOB_STATUS_RUNNING"
           }
         }
@@ -390,7 +390,7 @@
         "data": {
           "jobId": "job-44",
           "percent": 10,
-          "message": "démarrage \"phase 1\"\n✓ 𝄞\u0007",
+          "message": "d\u00e9marrage \"phase 1\"\n\u2713 \ud834\udd1e\u0007",
           "status": "JOB_STATUS_RUNNING"
         }
       }

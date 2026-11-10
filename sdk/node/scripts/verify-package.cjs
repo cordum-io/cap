@@ -157,6 +157,9 @@ const sdk = require("cap-sdk-node");
   assert.equal(typeof sdk.loadRoot, "function");
   const packet = (await sdk.loadRoot()).lookupType("cordum.agent.v1.BusPacket");
   assert.equal(packet.fullName, ".cordum.agent.v1.BusPacket");
+  assert.equal(sdk.telemetry.injectHeaders(undefined, undefined), undefined);
+  assert.equal(sdk.telemetry.extract(undefined, undefined), undefined);
+  assert.equal(sdk.telemetry.FIXED_SUBJECTS.size, 11);
 })().catch((error) => { console.error(error); process.exitCode = 1; });
 `,
     "esm-probe.mjs": `
@@ -167,12 +170,14 @@ const packet = (await loadRoot()).lookupType("cordum.agent.v1.BusPacket");
 assert.equal(packet.fullName, ".cordum.agent.v1.BusPacket");
 `,
     "consumer.ts": `
-import { loadRoot, SUBJECT_SUBMIT } from "cap-sdk-node";
+import { loadRoot, SUBJECT_SUBMIT, telemetry } from "cap-sdk-node";
 async function describePacket(): Promise<string> {
   const packet = (await loadRoot()).lookupType("cordum.agent.v1.BusPacket");
   return \`${"${SUBJECT_SUBMIT}"}:${"${packet.fullName}"}\`;
 }
 void describePacket();
+const telemetryOff: telemetry.TelemetryConfig | undefined = undefined;
+void telemetry.startPublish(telemetryOff, { subject: SUBJECT_SUBMIT }).span.end();
 `,
     "tsconfig.json": JSON.stringify({
       compilerOptions: {
@@ -204,6 +209,8 @@ function verifyConsumer(tarball, tempDir) {
     ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--package-lock=false", tarball],
     consumerDir,
   );
+  const otelDir = path.join(consumerDir, "node_modules", "@opentelemetry");
+  assert.equal(fs.existsSync(otelDir), false, `clean consumer must not install OpenTelemetry: ${otelDir}`);
   const typescriptVersion = require(path.join(
     SDK_ROOT,
     "node_modules",

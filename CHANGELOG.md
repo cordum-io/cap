@@ -86,6 +86,13 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
   test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python
   pending gates and points their real-NATS gates at the fail-closed, CI-mandatory suites.
+- **Node SDK `telemetry` namespace:** `telemetry.injectHeaders`, `extract`, `startPublish`
+  and `startProcess` implement the `spec/interop/trace-context.md` contract over NATS headers:
+  only exact lowercase `traceparent` and `tracestate`, never `baggage`, extraction from an
+  empty context, and PRODUCER/CONSUMER messaging spans with the contract's attributes and
+  closed `error.type` values. The types are structural, so cap-sdk-node gains no OpenTelemetry
+  dependency: pass the OpenTelemetry API module and a `W3CTraceContextPropagator` to
+  `telemetry.fromOpenTelemetry`. The client and runtime do not call it yet.
 
 ## v2.17.0 — 2026-07-22
 

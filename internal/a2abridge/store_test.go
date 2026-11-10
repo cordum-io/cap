@@ -52,7 +52,7 @@ func TestStoreCapacityRejectsWithoutEviction(t *testing.T) {
 	}
 }
 
-func TestStoreFullRejectsNewTaskWithoutPublishing(t *testing.T) {
+func TestCapacityRejectsNewTaskWithoutPublishing(t *testing.T) {
 	h := newHarness(t, func(c *Config) { c.MaxTasks = 2 })
 	first := h.mustSend(t, as("key-alice"), textMsg("m-1", "hi"))
 	h.mustSend(t, as("key-alice"), textMsg("m-2", "hi"))

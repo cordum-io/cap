@@ -86,6 +86,14 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
   test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python
   pending gates and points their real-NATS gates at the fail-closed, CI-mandatory suites.
+- **Python SDK telemetry (no wire change):** added `cap.telemetry`, an OpenTelemetry API
+  adapter for `spec/interop/trace-context.md`. It reads and writes only the lowercase
+  `traceparent` and `tracestate` NATS headers, never `baggage`, uses the W3C trace-context
+  propagator by default, and starts the contract's `publish` (PRODUCER) and `process`
+  (CONSUMER) spans with exactly its attributes and closed `error.type` values. A `None`
+  config writes no headers and starts no spans. OpenTelemetry stays optional: the module
+  imports without it, and `pip install 'cap-sdk-python[otel]'` adds
+  `opentelemetry-api>=1.41.1,<2`. The Python client and runtime do not use it yet.
 
 ## v2.17.0 — 2026-07-22
 

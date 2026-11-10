@@ -287,6 +287,9 @@ func (i *Ingress) SendMessage(ctx context.Context, req *a2a.SendMessageRequest) 
 	if req == nil {
 		return nil, invalid("request is required")
 	}
+	if req.Config != nil && req.Config.PushConfig != nil {
+		return nil, a2a.ErrPushNotificationNotSupported // spec §6
+	}
 	parts, err := validateMessage(req.Message)
 	if err != nil {
 		return nil, err

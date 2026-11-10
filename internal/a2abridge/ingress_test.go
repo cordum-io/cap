@@ -715,6 +715,25 @@ func TestSendToExistingTaskIsUnsupported(t *testing.T) {
 	}
 }
 
+// Spec §6: push notifications are excluded, so an inline push config is
+// rejected rather than silently dropped, and nothing is published.
+func TestSendWithPushConfigIsRejected(t *testing.T) {
+	h := newHarness(t)
+	_, err := h.ing.SendMessage(as("key-alice"), &a2a.SendMessageRequest{
+		Message: textMsg("m-1", "hi"),
+		Config:  &a2a.SendMessageConfig{PushConfig: &a2a.PushConfig{URL: "https://hook.example/cb"}},
+	})
+	wantErr(t, err, a2a.ErrPushNotificationNotSupported)
+	h.wantNothingStored(t)
+	// A config without a push config is accepted.
+	res, err := h.ing.SendMessage(as("key-alice"), &a2a.SendMessageRequest{
+		Message: textMsg("m-1", "hi"), Config: &a2a.SendMessageConfig{ReturnImmediately: true},
+	})
+	if err != nil || res == nil || h.pub.count() != 1 {
+		t.Fatalf("config without push: res %v err %v publishes %d", res, err, h.pub.count())
+	}
+}
+
 // ---- DoD-5: parts validation ----
 
 func nested(depth int) any {

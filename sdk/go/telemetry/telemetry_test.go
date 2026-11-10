@@ -212,6 +212,13 @@ func TestExtractTraceContextVectors(t *testing.T) {
 	if cfg.Extract(nats.Header{"Traceparent": {vectorTraceparent}}).IsValid() {
 		t.Error("a wrong-case Traceparent key was extracted")
 	}
+	if cfg.Extract(nats.Header{"traceparent": {}, "tracestate": {}}).IsValid() || cfg.Extract(nil).IsValid() {
+		t.Error("an empty or nil header block was extracted")
+	}
+	repeated := cfg.Extract(nats.Header{"traceparent": {vectorTraceparent, "00-ffffffffffffffffffffffffffffffff-ffffffffffffffff-01"}})
+	if repeated.TraceID().String() != "4bf92f3577b34da6a3ce929d0e0e4736" {
+		t.Errorf("a repeated traceparent gave %v, want the first value", repeated)
+	}
 }
 
 func checkValidCase(t *testing.T, cfg *Config, tc traceparentCase, sc trace.SpanContext) {

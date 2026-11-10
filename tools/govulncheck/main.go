@@ -165,21 +165,22 @@ func run(ctx context.Context, args, env []string, stdout, stderr io.Writer, opts
 	if err := g.setup(cfg.repoRoot); err != nil {
 		return g.fail("setup", err.Error(), nil)
 	}
-	root, err := os.MkdirTemp(opts.tempParent, "cap-govulncheck-gate-")
+	created, err := os.MkdirTemp(opts.tempParent, "cap-govulncheck-gate-")
 	if err != nil {
 		return g.fail("setup", err.Error(), nil)
 	}
 	// Children are reaped synchronously by runChild, so this runs after all
 	// of them have exited, on every return path.
 	defer func() {
-		if err := removeAll(root); err != nil {
+		if err := removeAll(created); err != nil {
 			g.report("cleanup", err.Error(), nil)
 			if code == 0 {
 				code = 1
 			}
 		}
 	}()
-	if root, err = filepath.Abs(root); err != nil {
+	root, err := filepath.Abs(created)
+	if err != nil {
 		return g.fail("setup", err.Error(), nil)
 	}
 	g.gotmp = filepath.Join(root, "gotmp")

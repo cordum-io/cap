@@ -51,6 +51,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"slices"
 	"strings"
 	"syscall"
@@ -87,14 +88,36 @@ the gate's temporary root, which is always removed.
 const (
 	toolModulePath = "github.com/cordum-io/cap/v2/tools/govulncheck"
 	vulnModulePath = "golang.org/x/vuln"
+	scannerPkg     = "golang.org/x/vuln/cmd/govulncheck"
+	seedToolchain  = "go1.25.12"
 	captureLimit   = 1 << 20  // bytes kept per child stream
 	echoLimit      = 64 << 10 // bytes echoed per child stream on failure
+
+	// The seed: a Go 1.25.12 program that directly reaches
+	// net/url.(*URL).Parse, which GO-2026-6218 affects.
+	seedGoMod  = "module example.com/capseed\n\ngo 1.25.12\n"
+	seedMainGo = `package main
+
+import (
+	"fmt"
+	"net/url"
+)
+
+func main() {
+	base := &url.URL{Scheme: "https", Host: "example.com", Path: "/a/"}
+	ref, err := base.Parse("b/../c")
+	fmt.Println(ref, err)
+}
+`
 )
 
 var (
 	toolchainRE   = regexp.MustCompile(`^go1\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`)
 	releaseRE     = regexp.MustCompile(`^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$`)
+	seedHeaderRE  = regexp.MustCompile(`^Vulnerability #[0-9]+: GO-2026-6218$`)
+	seedTraceRE   = regexp.MustCompile(`^#[0-9]+: main\.go:[0-9]+:[0-9]+: capseed\.main calls url\.URL\.Parse$`)
 	overriddenEnv = []string{"GOVERSION", "GOROOT", "GOFLAGS", "GOTOOLCHAIN", "GOWORK", "GOTMPDIR"}
+	scanArgs      = []string{"-show", "version", "./..."}
 )
 
 type options struct {
@@ -167,7 +190,135 @@ func run(ctx context.Context, args, env []string, stdout, stderr io.Writer, opts
 	}
 	ctx, cancel := context.WithTimeout(ctx, cfg.timeout) // one budget for every child
 	defer cancel()
-	return g.fail("setup", "stages are not implemented yet", nil)
+	return g.stages(ctx, root)
+}
+
+// stages runs build, seed and repository in that fixed order; the only 0
+// result is a verified seed refusal followed by a verified clean scan.
+func (g *gate) stages(ctx context.Context, root string) int {
+	scanner := filepath.Join(root, "bin", scannerName(runtime.GOOS))
+	r := g.runChild(ctx, g.opts.goBin,
+		[]string{"build", "-mod=readonly", "-buildvcs=false", "-o", scanner, scannerPkg}, g.opts.toolDir, g.toolToolchain)
+	if reason := r.problem("go build", 0); reason != "" {
+		return g.fail("build", reason, r)
+	}
+	fmt.Fprintf(g.stdout, "govulncheck-gate: scanner %s@%s built with -mod=readonly (toolchain %s)\n",
+		vulnModulePath, g.pin, g.toolToolchain)
+
+	seed := filepath.Join(root, "seed")
+	if err := writeSeed(seed); err != nil {
+		return g.fail("seed", err.Error(), nil)
+	}
+	r = g.runChild(ctx, scanner, scanArgs, seed, seedToolchain)
+	if r.failure == "" && r.code == 0 {
+		return g.fail("seed", "seeded vulnerability was not reported (govulncheck exit 0)", r)
+	}
+	if reason := r.problem("govulncheck", 3); reason != "" {
+		return g.fail("seed", reason, r)
+	}
+	if _, err := checkSeedOutput(r.stdout.buf, g.pin); err != nil {
+		return g.fail("seed", err.Error(), r)
+	}
+	fmt.Fprintln(g.stdout, "govulncheck-gate: seed refused: GO-2026-6218 net/url@go1.25.12 reachable: capseed.main calls url.URL.Parse")
+
+	r = g.runChild(ctx, scanner, scanArgs, g.repoRoot, g.repoToolchain)
+	if r.failure == "" && r.code == 3 {
+		g.report("repository", "vulnerabilities found (govulncheck exit 3)", r)
+		return 3
+	}
+	if reason := r.problem("govulncheck", 0); reason != "" {
+		return g.fail("repository", reason, r)
+	}
+	if err := checkCleanOutput(r.stdout.buf, g.repoToolchain, g.pin); err != nil {
+		return g.fail("repository", err.Error(), r)
+	}
+	fmt.Fprintf(g.stdout, "govulncheck-gate: repository clean under %s: %s\n", g.repoToolchain, g.repoRoot)
+	fmt.Fprintln(g.stdout, "govulncheck-gate: PASS")
+	return 0
+}
+
+func writeSeed(dir string) error {
+	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(seedGoMod), 0o644); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(dir, "main.go"), []byte(seedMainGo), 0o644)
+}
+
+// outputLines splits scanner text into lines without trailing blanks or "\r".
+func outputLines(out []byte) []string {
+	lines := strings.Split(string(out), "\n")
+	for i, l := range lines {
+		lines[i] = strings.TrimRight(l, " \t\r")
+	}
+	return lines
+}
+
+func hasLine(lines []string, want string) bool {
+	return slices.ContainsFunc(lines, func(l string) bool { return strings.TrimSpace(l) == want })
+}
+
+// checkSeedOutput verifies govulncheck v1.8.0 text output for the seed and
+// returns the reachable trace it found.
+func checkSeedOutput(out []byte, pin string) (string, error) {
+	lines := outputLines(out)
+	for _, want := range []string{"Go: " + seedToolchain, "Scanner: govulncheck@" + pin} {
+		if !hasLine(lines, want) {
+			return "", fmt.Errorf("missing %q header", want)
+		}
+	}
+	if !hasLine(lines, "=== Symbol Results ===") {
+		return "", errors.New(`missing "=== Symbol Results ===" section`)
+	}
+	block := vulnBlock(lines)
+	if block == nil {
+		return "", errors.New(`missing "Vulnerability #N: GO-2026-6218" block`)
+	}
+	for _, want := range []string{"Found in: net/url@" + seedToolchain, "Example traces found:"} {
+		if !hasLine(block, want) {
+			return "", fmt.Errorf("GO-2026-6218 block lacks %q", want)
+		}
+	}
+	for _, l := range block {
+		if trace := strings.TrimSpace(l); seedTraceRE.MatchString(trace) {
+			return trace, nil
+		}
+	}
+	return "", errors.New(`GO-2026-6218 block lacks a "#N: main.go:L:C: capseed.main calls url.URL.Parse" trace`)
+}
+
+// vulnBlock returns the lines after the column-0 GO-2026-6218 header, up to
+// the first non-indented non-empty line (which includes the next
+// "Vulnerability #" header), or nil when there is no such header.
+func vulnBlock(lines []string) []string {
+	start := slices.IndexFunc(lines, seedHeaderRE.MatchString)
+	if start < 0 {
+		return nil
+	}
+	block := lines[start+1:]
+	for i, l := range block {
+		if l != "" && l[0] != ' ' && l[0] != '\t' {
+			return block[:i]
+		}
+	}
+	return block
+}
+
+// checkCleanOutput verifies a clean scan of the repository. It does not
+// require "=== Symbol Results ===", which v1.8.0 omits for trivial modules.
+func checkCleanOutput(out []byte, wantGo, pin string) error {
+	lines := outputLines(out)
+	for _, want := range []string{"Go: " + wantGo, "Scanner: govulncheck@" + pin} {
+		if !hasLine(lines, want) {
+			return fmt.Errorf("missing %q header", want)
+		}
+	}
+	if !hasLine(lines, "No vulnerabilities found.") {
+		return errors.New(`missing "No vulnerabilities found." line`)
+	}
+	if slices.ContainsFunc(lines, func(l string) bool { return strings.HasPrefix(strings.TrimSpace(l), "Vulnerability #") }) {
+		return errors.New(`reports vulnerabilities ("Vulnerability #" line present)`)
+	}
+	return nil
 }
 
 // removeAll retries for up to 2s because Windows can briefly keep a just-killed

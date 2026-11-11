@@ -181,6 +181,20 @@ def _generic_valid(ref: ResourceRef, ids: Sequence[str], now: datetime) -> bool:
     return True
 
 
+def _externalized_snapshot(ref: ResourceRef, backend_id: str,
+                          request: ResourceExternalizeRequest, stamp: Timestamp) -> ResourceRef:
+    if not isinstance(ref, ResourceRef):
+        raise ResourceMetadataMismatchError()
+    snapshot = _snapshot(ref)
+    if (snapshot.resolver_id != backend_id or snapshot.media_type != request.media_type
+            or snapshot.purpose != request.purpose or snapshot.size_bytes != request.size_bytes
+            or not hmac.compare_digest(snapshot.sha256, request.sha256)
+            or not snapshot.HasField("expires_at")
+            or snapshot.expires_at.seconds != stamp.seconds or snapshot.expires_at.nanos != stamp.nanos):
+        raise ResourceMetadataMismatchError()
+    return snapshot
+
+
 class ResourceRegistry:
     """Snapshot of installed backends; backend reads must honor declared_size_bytes."""
     __slots__ = ("_backends", "_now")
@@ -247,6 +261,45 @@ class ResourceRegistry:
             raise ResourceDigestMismatchError()
         return ResolvedResource(result.content, result.media_type)
 
+    async def externalize(self, backend_id: str, content: bytes, *, media_type: str,
+                          purpose: str, expires_at: datetime,
+                          trusted: TrustedResourceContext) -> ResourceRef:
+        _validate_trusted(trusted)
+        backend = self._backends.get(backend_id) if isinstance(backend_id, str) else None
+        if backend is None:
+            raise ResourceExternalizerUnavailableError()
+        if (not _matches(media_type, MAX_RESOURCE_MEDIA_TYPE_BYTES, _MEDIA_PATTERN)
+                or not _matches(purpose, MAX_RESOURCE_PURPOSE_BYTES, _PURPOSE_PATTERN)
+                or not isinstance(expires_at, datetime) or expires_at.utcoffset() is None):
+            raise InvalidResourceRefError()
+        stamp = _timestamp(expires_at)
+        validated_at = self._current_time()
+        if expires_at <= validated_at:
+            raise ResourceExpiredError()
+        if type(content) is not bytes:
+            raise ResourceBackendUnavailableError()
+        if len(content) > backend.max_bytes:
+            raise ResourceTooLargeError()
+        if not content:
+            raise ResourceSizeMismatchError()
+        request = ResourceExternalizeRequest(trusted, content, media_type, purpose,
+                                             expires_at.astimezone(timezone.utc), len(content),
+                                             hashlib.sha256(content).digest())
+        failed = False
+        ref = None
+        try:
+            ref = await backend.externalizer.externalize(request)
+        except Exception:
+            failed = True
+        if failed:
+            raise ResourceBackendUnavailableError()
+        if expires_at <= self._current_time():
+            raise ResourceExpiredError()
+        snapshot = _externalized_snapshot(ref, backend_id, request, stamp)
+        if not _generic_valid(snapshot, self.backend_ids, validated_at):
+            raise InvalidResourceRefError()
+        return snapshot
+
 
 class InMemoryResourceBackend:
     """Test-only, non-durable process storage. Not thread-safe or for production."""
@@ -266,3 +319,32 @@ class InMemoryResourceBackend:
         return ResourceRef(resolver_id=self.resolver_id, uri=uri, sha256=request.sha256,
                            size_bytes=request.size_bytes, media_type=request.media_type,
                            purpose=request.purpose, expires_at=_timestamp(request.expires_at))
+
+
+__all__ = [
+    "InMemoryResourceBackend",
+    "InvalidResourceRefError",
+    "InvalidResourceRegistryError",
+    "InvalidTrustedResourceContextError",
+    "MAX_TRUSTED_JOB_ID_BYTES",
+    "MAX_TRUSTED_TENANT_ID_BYTES",
+    "ResolvedResource",
+    "ResourceBackendRegistration",
+    "ResourceBackendUnavailableError",
+    "ResourceDigestMismatchError",
+    "ResourceExpiredError",
+    "ResourceExternalizeRequest",
+    "ResourceExternalizerBackend",
+    "ResourceExternalizerUnavailableError",
+    "ResourceMediaTypeMismatchError",
+    "ResourceMetadataMismatchError",
+    "ResourceRegistry",
+    "ResourceRegistryError",
+    "ResourceResolveRequest",
+    "ResourceResolveResult",
+    "ResourceResolverBackend",
+    "ResourceResolverUnavailableError",
+    "ResourceSizeMismatchError",
+    "ResourceTooLargeError",
+    "TrustedResourceContext",
+]

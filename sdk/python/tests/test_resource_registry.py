@@ -315,9 +315,11 @@ def test_resolve_verifies_snapshot_when_caller_mutates_ref():
 def test_cancellation_propagates_unchanged(operation):
     stub = _Stub()
     stub.error = asyncio.CancelledError()
-    with pytest.raises(asyncio.CancelledError) as caught:
-        asyncio.run(_operation(_registry(stub), operation))
-    assert caught.value is stub.error
+    async def check():
+        with pytest.raises(asyncio.CancelledError) as caught:
+            await _operation(_registry(stub), operation)
+        assert caught.value is stub.error
+    asyncio.run(check())
 
 
 @pytest.mark.parametrize("case", [

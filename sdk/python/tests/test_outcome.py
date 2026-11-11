@@ -19,6 +19,8 @@ from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cap.runtime import Agent, InMemoryBlobStore
 from cap.subjects import SUBJECT_RESULT
 from cap.testing import MockNATS
+from cap.worker import run_worker
+from worker_support import RecordingNATS, decode_result, job_packet
 
 CANARY = "cap-canary-7d13"
 TOPIC = "job.outcome"
@@ -236,6 +238,8 @@ CASES = [
          blob=('{"count": "%s"}' % CANARY).encode("utf-8"), input_model=StrictInput),
     Case("g-handler-raises", (FAILED, UNSPECIFIED, "", "handler failed"), calls=3,
          act=raises(lambda: RuntimeError(CANARY))),
+    Case("g-invalid-failure-is-ordinary", (FAILED, UNSPECIFIED, "", "handler failed"), calls=3,
+         act=raises(lambda: JobFailure(CANARY))),
     Case("h-output-invalid", (FAILED, UNSPECIFIED, "", "handler failed"), calls=3,
          act=returns({"count": CANARY}), output_model=StrictOutput),
     Case("i-encode-set", (FAILED, UNSPECIFIED, "", "result encode failed"), calls=1,
@@ -364,6 +368,28 @@ class TestRuntimeFailureTable:
         results = asyncio.run(scenario())
         assert (results["job-a"].status, results["job-a"].error_code) == (FAILED, "FRAMEWORK_ERROR")
         assert (results["job-b"].status, results["job-b"].error_code_enum) == (RETRYABLE, 203)
+
+
+class TestLowLevelWorkerIsUnchanged:
+    def test_job_failure_is_an_ordinary_exception(self):
+        async def scenario() -> job_pb2.JobResult:
+            bus = RecordingNATS()
+
+            async def handler(request: job_pb2.JobRequest) -> job_pb2.JobResult:
+                raise JobFailure("FRAMEWORK_ERROR", retryable=False)
+
+            task = asyncio.create_task(
+                run_worker("nats://test", TOPIC, handler, sender_id="worker-1", connect_fn=bus.connect)
+            )
+            await asyncio.wait_for(bus.subscription_ready.wait(), 1)
+            await bus.deliver(TOPIC, job_packet("job-low", TOPIC, "trace-low"))
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+            return decode_result(bus.publications[0]).job_result
+
+        result = asyncio.run(scenario())
+        published = (result.status, result.error_code_enum, result.error_code, result.error_message)
+        assert published == (FAILED, UNSPECIFIED, "", "handler failed")
 
 
 README = Path(__file__).resolve().parents[1] / "README.md"

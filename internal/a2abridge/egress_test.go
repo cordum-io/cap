@@ -12,6 +12,7 @@ import (
 	"math/big"
 	mathrandv2 "math/rand/v2"
 	"os"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -477,6 +478,17 @@ func TestEgressOverRealNATS(t *testing.T) {
 	})
 	h.want(t, "key-alice", id1, a2a.TaskStateSubmitted, a2a.TaskStateWorking, a2a.TaskStateFailed)
 	h.want(t, "key-alice", id2, a2a.TaskStateSubmitted, a2a.TaskStateRejected)
+	egCompletedOverNATS(t, h, publish)
+	egOK(t, stop())
+	for _, s := range subs.subs {
+		if s.IsValid() {
+			t.Fatalf("subscription %q survived stop", s.Subject)
+		}
+	}
+}
+
+func egCompletedOverNATS(t *testing.T, h *egHarness, publish func(string, []byte)) {
+	t.Helper()
 	id3, job3 := h.start(t, "key-alice", "msg-3")
 	publish(capsdk.SubjectProgress, h.progress(t, job3, egRunning))
 	egEventually(t, "task 3 WORKING", func() bool { return h.state("key-alice", id3) == a2a.TaskStateWorking })
@@ -486,12 +498,6 @@ func TestEgressOverRealNATS(t *testing.T) {
 		return err == nil && got.Status.State == a2a.TaskStateCompleted && len(got.Artifacts) == 1
 	})
 	h.want(t, "key-alice", id3, a2a.TaskStateSubmitted, a2a.TaskStateWorking, a2a.TaskStateCompleted)
-	egOK(t, stop())
-	for _, s := range subs.subs {
-		if s.IsValid() {
-			t.Fatalf("subscription %q survived stop", s.Subject)
-		}
-	}
 }
 
 // egVectorsInScope is slice 1's partition of a2a-v1.json (task-9c57b30d,
@@ -696,7 +702,7 @@ type egResults struct {
 var _ ResultReader = (*egResults)(nil)
 
 func (r *egResults) ReadResult(ctx context.Context, key string, maxBytes int) ([]byte, error) {
-	if _, ok := ctx.Deadline(); !ok || maxBytes != 262144 {
+	if deadline, ok := ctx.Deadline(); !ok || time.Until(deadline) > 5*time.Second || maxBytes != 262144 {
 		return nil, errors.New("missing read deadline or wrong bound")
 	}
 	if key == r.key && r.gate != nil {
@@ -786,7 +792,19 @@ func TestEnvelopeValidation(t *testing.T) {
 			}
 		})
 	}
-	bad := map[string][]byte{
+	for name, raw := range egInvalidEnvelopes(message, text, data, artifacts) {
+		t.Run(name, func(t *testing.T) {
+			if _, err := parseEnvelope(raw); err == nil {
+				t.Fatal("invalid envelope accepted")
+			}
+		})
+	}
+}
+
+func egInvalidEnvelopes(message func(string) string, text, data, artifacts func(int) string) map[string][]byte {
+	return map[string][]byte{
+		"case alias":             []byte(strings.Replace(string(egEnvelope("completed", "")), "media_type", "MEDIA_TYPE", 1)),
+		"duplicate field":        egEnvelope("completed", `,"a2a_state":"completed"`),
 		"wrong type":             []byte(`{"media_type":"bad","a2a_state":"completed"}`),
 		"unknown state":          egEnvelope("working", ""),
 		"missing message":        egEnvelope("input-required", ""),
@@ -815,13 +833,6 @@ func TestEnvelopeValidation(t *testing.T) {
 		"unknown message member": egEnvelope("completed", `,"message":{"parts":[`+egText+`],"token":"secret"}`),
 		"trailing data":          append(egEnvelope("completed", ""), []byte(` {}`)...),
 		"whole envelope bound":   egEnvelope("completed", message(strings.TrimSuffix(strings.Repeat(text(65536)+",", 4), ","))),
-	}
-	for name, raw := range bad {
-		t.Run(name, func(t *testing.T) {
-			if _, err := parseEnvelope(raw); err == nil {
-				t.Fatal("invalid envelope accepted")
-			}
-		})
 	}
 }
 
@@ -942,4 +953,43 @@ func TestFirstTerminalIsReservedBeforeTheEnvelopeRead(t *testing.T) {
 			egArtifactOrder(t, rec.events)
 		})
 	}
+}
+
+func TestEnvelopeSnapshotsAreIndependent(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	data := `{"kind":"data","data":{"nested":[9007199254740993]}}`
+	env := egEnvelope("completed", `,"message":{"parts":[`+data+`]},"artifacts":[{"artifact_id":"a","parts":[`+data+`]}]`)
+	h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job, env))
+	before, _ := h.ing.store.get(egIdents["key-alice"], string(id))
+	got, err := h.ing.GetTask(egAs("key-alice"), &a2a.GetTaskRequest{ID: id})
+	egOK(t, err)
+	for _, part := range []*a2a.Part{got.Artifacts[0].Parts[0], got.History[1].Parts[0], got.Status.Message.Parts[0]} {
+		value := part.Content.(a2a.Data).Value.(map[string]interface{})["nested"].([]interface{})
+		if value[0] != json.Number("9007199254740993") {
+			t.Fatal("lost number precision")
+		}
+		value[0] = "changed"
+	}
+	snap, _ := h.ing.store.get(egIdents["key-alice"], string(id))
+	snap.events[1].(*a2a.TaskArtifactUpdateEvent).Artifact.Parts[0].MediaType = "changed"
+	status := snap.events[2].(*a2a.TaskStatusUpdateEvent)
+	status.Status.Message.Parts[0].Content = a2a.Text("changed")
+	*status.Status.Timestamp = time.Time{}
+	after, _ := h.ing.store.get(egIdents["key-alice"], string(id))
+	if !reflect.DeepEqual(before, after) {
+		t.Fatal("caller mutated stored snapshot")
+	}
+}
+
+func TestEnvelopeReadTimeoutSettlesFailed(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	h.results.key, h.results.entered, h.results.gate = "res:"+job, make(chan struct{}, 1), make(chan struct{})
+	started := time.Now()
+	h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job, egComplete("completed")))
+	if elapsed := time.Since(started); elapsed < 4*time.Second || elapsed > 6*time.Second {
+		t.Fatalf("read timeout took %s", elapsed)
+	}
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateFailed)
 }

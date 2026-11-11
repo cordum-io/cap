@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -44,7 +45,7 @@ var _ Subscriber = (*nats.Conn)(nil)
 var egressSubjects = [...]string{capsdk.SubjectResult, capsdk.SubjectDLQ, capsdk.SubjectProgress}
 
 // Start subscribes to results, DLQ outcomes and progress, and applies each
-// verified packet to its task. It fails closed without a Subscriber or a
+// verified packet to its task. It fails closed without a Subscriber, Results or a
 // verification mode (ProductionTrust, ResultKeys or AllowUnsignedDev). The
 // returned stop unsubscribes every subscription.
 func (i *Ingress) Start(sub Subscriber) (stop func() error, err error) {
@@ -123,8 +124,8 @@ func (i *Ingress) readEnvelope(job string, res *agentv1.JobResult) *turnOutcome 
 
 var errEnvelope = errors.New("a2abridge: invalid turn-result envelope")
 
-// strictDecode closes each schema object and rejects trailing data and null
-// members. The required data member may itself be any JSON value (spec §4.3).
+// strictDecode closes schema objects, including duplicate/case-alias fields.
+// The required data member may itself be any JSON value (spec §4.3).
 func strictDecode(raw []byte, dst interface{}) error {
 	d := json.NewDecoder(bytes.NewReader(raw))
 	d.DisallowUnknownFields()
@@ -134,11 +135,22 @@ func strictDecode(raw []byte, dst interface{}) error {
 	if _, err := d.Token(); err != io.EOF {
 		return errEnvelope
 	}
-	var fields map[string]json.RawMessage
-	if json.Unmarshal(raw, &fields) != nil || fields == nil {
+	f := json.NewDecoder(bytes.NewReader(raw))
+	if token, err := f.Token(); err != nil || token != json.Delim('{') {
 		return errEnvelope
 	}
-	for key, value := range fields {
+	seen := map[string]bool{}
+	for f.More() {
+		token, err := f.Token()
+		key, ok := token.(string)
+		if err != nil || !ok || seen[key] || key != strings.ToLower(key) {
+			return errEnvelope
+		}
+		seen[key] = true
+		var value json.RawMessage
+		if f.Decode(&value) != nil {
+			return errEnvelope
+		}
 		if key != "data" && bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
 			return errEnvelope
 		}
@@ -175,17 +187,11 @@ func parseEnvelope(raw []byte) (*turnOutcome, error) {
 		return nil, errEnvelope
 	}
 	if env.Message != nil {
-		var msg struct {
-			Parts []json.RawMessage `json:"parts"`
-		}
-		if strictDecode(env.Message, &msg) != nil {
-			return nil, errEnvelope
-		}
-		parts, err := parseParts(msg.Parts, textOnly)
+		msg, err := parseMessage(env.Message, textOnly)
 		if err != nil {
 			return nil, errEnvelope
 		}
-		out.message = a2a.NewMessage(a2a.MessageRoleAgent, parts...)
+		out.message = msg
 	} else if out.state != a2a.TaskStateCompleted {
 		return nil, errEnvelope
 	}
@@ -197,6 +203,20 @@ func parseEnvelope(raw []byte) (*turnOutcome, error) {
 		out.artifacts = append(out.artifacts, artifact)
 	}
 	return out, nil
+}
+
+func parseMessage(raw []byte, textOnly bool) (*a2a.Message, error) {
+	var msg struct {
+		Parts []json.RawMessage `json:"parts"`
+	}
+	if strictDecode(raw, &msg) != nil {
+		return nil, errEnvelope
+	}
+	parts, err := parseParts(msg.Parts, textOnly)
+	if err != nil {
+		return nil, errEnvelope
+	}
+	return a2a.NewMessage(a2a.MessageRoleAgent, parts...), nil
 }
 
 func parseArtifact(raw []byte) (*a2a.Artifact, error) {

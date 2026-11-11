@@ -401,3 +401,59 @@ def test_public_api_is_exported():
                 or getattr(value, "_is_protocol", False)
                 or name in {"ResourceRegistry", "InMemoryResourceBackend"})
         assert name in cap.__all__ and getattr(cap, name) is value
+
+
+@pytest.mark.parametrize("expiry", [
+    datetime.min.replace(tzinfo=timezone(timedelta(hours=14))),
+    datetime.max.replace(tzinfo=timezone(timedelta(hours=-14))),
+])
+def test_externalize_rejects_utc_overflow_before_backend(expiry):
+    stub = _Stub()
+    _rejected(lambda: _externalize(_registry(stub), expires_at=expiry), rr.InvalidResourceRefError)
+    assert stub.calls == []
+
+
+@pytest.mark.parametrize("operation", ["resolve", "externalize"])
+def test_clock_utc_overflow_is_registry_error(operation):
+    stub = _Stub()
+    clock = lambda: datetime.min.replace(tzinfo=timezone(timedelta(hours=14)))
+    _rejected(lambda: _operation(_registry(stub, now=clock), operation), rr.InvalidResourceRegistryError)
+    assert stub.calls == []
+
+
+def test_expiry_post_fetch_preserves_nanoseconds():
+    stub, ref, clock = _Stub(), _ref(), [NOW]
+    ref.expires_at.nanos = 1
+    stub.hook = lambda: clock.__setitem__(0, EXPIRY)
+    result = asyncio.run(_registry(stub, now=lambda: clock[0]).resolve(ref, TRUSTED))
+    assert result.content == CONTENT
+
+
+def test_concurrent_operations_keep_request_state_isolated():
+    class DelayedMemory(rr.InMemoryResourceBackend):
+        async def resolve(self, request):
+            await asyncio.sleep(0)
+            return await super().resolve(request)
+
+        async def externalize(self, request):
+            await asyncio.sleep(0)
+            return await super().externalize(request)
+    registry = _registry(DelayedMemory())
+    async def round_trip(i):
+        trusted = rr.TrustedResourceContext("tenant-" + str(i), "job-" + str(i))
+        content = str(i).encode()
+        ref = await _externalize(registry, content=content, trusted=trusted)
+        assert ref.uri.startswith("memory://" + trusted.tenant_id + "/")
+        assert (await registry.resolve(ref, trusted)).content == content
+    async def run_all():
+        await asyncio.gather(*(round_trip(i) for i in range(20)))
+    asyncio.run(run_all())
+
+
+def test_default_clock_and_canonical_alias_backend():
+    backend = rr.InMemoryResourceBackend(resolver_id="memory_test")
+    registry = rr.ResourceRegistry([_registration(backend, id="memory_test")])
+    expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+    ref = asyncio.run(_externalize(registry, backend_id="memory_test", expires_at=expiry))
+    assert ref.resolver_id == "memory_test" and ref.uri.startswith("memory://")
+    assert asyncio.run(registry.resolve(ref, TRUSTED)).content == CONTENT

@@ -156,6 +156,15 @@ def _snapshot(ref: ResourceRef) -> ResourceRef:
     return snapshot
 
 
+def _utc(value: datetime) -> Optional[datetime]:
+    try:
+        if isinstance(value, datetime) and value.utcoffset() is not None:
+            return value.astimezone(timezone.utc)
+    except (OverflowError, ValueError):
+        pass
+    return None
+
+
 def _timestamp(value: datetime) -> Timestamp:
     result = Timestamp()
     result.FromDatetime(value.astimezone(timezone.utc))
@@ -222,10 +231,10 @@ class ResourceRegistry:
         return tuple(self._backends)
 
     def _current_time(self) -> datetime:
-        now = self._now()
-        if not isinstance(now, datetime) or now.utcoffset() is None:
+        now = _utc(self._now())
+        if now is None:
             raise InvalidResourceRegistryError()
-        return now.astimezone(timezone.utc)
+        return now
 
     async def resolve(self, ref: ResourceRef, trusted: TrustedResourceContext) -> ResolvedResource:
         _validate_trusted(trusted)
@@ -269,12 +278,14 @@ class ResourceRegistry:
         if backend is None:
             raise ResourceExternalizerUnavailableError()
         if (not _matches(media_type, MAX_RESOURCE_MEDIA_TYPE_BYTES, _MEDIA_PATTERN)
-                or not _matches(purpose, MAX_RESOURCE_PURPOSE_BYTES, _PURPOSE_PATTERN)
-                or not isinstance(expires_at, datetime) or expires_at.utcoffset() is None):
+                or not _matches(purpose, MAX_RESOURCE_PURPOSE_BYTES, _PURPOSE_PATTERN)):
             raise InvalidResourceRefError()
-        stamp = _timestamp(expires_at)
+        expiry = _utc(expires_at)
+        if expiry is None:
+            raise InvalidResourceRefError()
+        stamp = _timestamp(expiry)
         validated_at = self._current_time()
-        if expires_at <= validated_at:
+        if expiry <= validated_at:
             raise ResourceExpiredError()
         if type(content) is not bytes:
             raise ResourceBackendUnavailableError()
@@ -283,8 +294,7 @@ class ResourceRegistry:
         if not content:
             raise ResourceSizeMismatchError()
         request = ResourceExternalizeRequest(trusted, content, media_type, purpose,
-                                             expires_at.astimezone(timezone.utc), len(content),
-                                             hashlib.sha256(content).digest())
+                                             expiry, len(content), hashlib.sha256(content).digest())
         failed = False
         ref = None
         try:
@@ -293,7 +303,7 @@ class ResourceRegistry:
             failed = True
         if failed:
             raise ResourceBackendUnavailableError()
-        if expires_at <= self._current_time():
+        if expiry <= self._current_time():
             raise ResourceExpiredError()
         snapshot = _externalized_snapshot(ref, backend_id, request, stamp)
         if not _generic_valid(snapshot, self.backend_ids, validated_at):

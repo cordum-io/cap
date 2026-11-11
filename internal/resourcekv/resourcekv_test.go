@@ -306,6 +306,18 @@ func TestBackendSentinels(t *testing.T) {
 			}
 		})
 	}
+	assertInvalidExternalize(t, f)
+	if err := f.kv.Delete(f.ctx, expectedKey("tenant-a", ref.Sha256, media)); err != nil {
+		t.Fatal(err)
+	}
+	res, err := f.backend.Resolve(f.ctx, directRequest(f, ref))
+	if !errors.Is(err, resourcekv.ErrNotFound) || res.Body != nil {
+		t.Fatalf("deleted: %v", err)
+	}
+}
+
+func assertInvalidExternalize(t *testing.T, f *fixture) {
+	t.Helper()
 	for _, name := range []string{"tenant_dots", "size", "digest"} {
 		t.Run(name, func(t *testing.T) {
 			req := externalizeRequest(f)
@@ -326,13 +338,6 @@ func TestBackendSentinels(t *testing.T) {
 				t.Fatal(err)
 			}
 		})
-	}
-	if err := f.kv.Delete(f.ctx, expectedKey("tenant-a", ref.Sha256, media)); err != nil {
-		t.Fatal(err)
-	}
-	res, err := f.backend.Resolve(f.ctx, directRequest(f, ref))
-	if !errors.Is(err, resourcekv.ErrNotFound) || res.Body != nil {
-		t.Fatalf("deleted: %v", err)
 	}
 }
 
@@ -428,5 +433,232 @@ func TestGoldenEntry(t *testing.T) {
 	assertResolved(t, f, ref, content)
 }
 
-// Keep io in the acceptance file for the direct-body ownership tests below.
-var _ io.Reader
+// These narrow wrappers exercise failure paths that a healthy real server
+// cannot produce, while retaining the real server for all integration cases.
+type kvOverride struct {
+	jetstream.KeyValue
+	name   string
+	status func(context.Context) (jetstream.KeyValueStatus, error)
+	get    func(context.Context, string) (jetstream.KeyValueEntry, error)
+	put    func(context.Context, string, []byte) (uint64, error)
+}
+
+func (k *kvOverride) Bucket() string { return k.name }
+func (k *kvOverride) Status(ctx context.Context) (jetstream.KeyValueStatus, error) {
+	if k.status != nil {
+		return k.status(ctx)
+	}
+	return k.KeyValue.Status(ctx)
+}
+func (k *kvOverride) Get(ctx context.Context, key string) (jetstream.KeyValueEntry, error) {
+	if k.get != nil {
+		return k.get(ctx, key)
+	}
+	return k.KeyValue.Get(ctx, key)
+}
+func (k *kvOverride) Put(ctx context.Context, key string, v []byte) (uint64, error) {
+	if k.put != nil {
+		return k.put(ctx, key, v)
+	}
+	return k.KeyValue.Put(ctx, key, v)
+}
+
+type statusOverride struct {
+	jetstream.KeyValueStatus
+	bound int32
+}
+
+func (s statusOverride) Config() jetstream.KeyValueConfig {
+	return jetstream.KeyValueConfig{MaxValueSize: s.bound}
+}
+
+type entryOverride struct {
+	jetstream.KeyValueEntry
+	value []byte
+}
+
+func (e entryOverride) Value() []byte { return e.value }
+
+func TestConstructorEdges(t *testing.T) {
+	f := startKV(t)
+	var typedNil *kvOverride
+	if _, err := resourcekv.New(f.ctx, typedNil); !errors.Is(err, resourcekv.ErrInvalidBucket) {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"", strings.Repeat("a", 256), "bad.bucket", "bad/bucket", "bad bucket"} {
+		if _, err := resourcekv.New(f.ctx, &kvOverride{KeyValue: f.kv, name: name}); !errors.Is(err, resourcekv.ErrInvalidBucket) {
+			t.Fatalf("bucket %q: %v", name, err)
+		}
+	}
+	for _, bound := range []int32{-2, -1, 0, 1, 1 << 30, 1<<30 + 1} {
+		t.Run(fmt.Sprint(bound), func(t *testing.T) {
+			kv := &kvOverride{KeyValue: f.kv, name: bucket, status: func(context.Context) (jetstream.KeyValueStatus, error) { return statusOverride{bound: bound}, nil }}
+			b, err := resourcekv.New(f.ctx, kv)
+			if bound <= 0 || bound > 1<<30 {
+				if !errors.Is(err, resourcekv.ErrInvalidBucket) || b != nil {
+					t.Fatal(err)
+				}
+			} else if err != nil || b.Registration().MaxBytes != uint64(bound) {
+				t.Fatalf("valid bound: %v", err)
+			}
+		})
+	}
+	kv, err := f.js.CreateKeyValue(f.ctx, jetstream.KeyValueConfig{Bucket: "large-bound", MaxValueSize: 1 << 30, Storage: jetstream.MemoryStorage})
+	if err != nil {
+		t.Logf("server rejects 1 GiB bound (unit boundary tested): %v", err)
+		return
+	}
+	b, err := resourcekv.New(f.ctx, kv)
+	if err != nil || b.Registration().MaxBytes != 1<<30 {
+		t.Fatalf("server 1 GiB bound: %v", err)
+	}
+}
+
+func TestTenantAndURIEdges(t *testing.T) {
+	f := startKV(t)
+	for _, tenant := range []string{"a.b", "a_b", "a-b", "a."} {
+		f.trusted.TenantID = tenant
+		ref := f.store(t, []byte("payload"), "application/x+!#$&^json")
+		assertResolved(t, f, ref, []byte("payload"))
+	}
+	f.trusted.TenantID = "tenant-a"
+	ref := f.store(t, []byte("payload"), media)
+	for _, uri := range []string{strings.Replace(ref.Uri, "tenant-a", "Tenant-a", 1), strings.Replace(ref.Uri, "tenant-a", "", 1), ref.Uri + "/", strings.Replace(ref.Uri, "nats-kv", "NATS-KV", 1), " " + ref.Uri, ref.Uri + " ", strings.Replace(ref.Uri, bucket, "CAP-resources", 1), ref.Uri + "?query", ref.Uri + "%20"} {
+		r := proto.Clone(ref).(*agentv1.ResourceRef)
+		r.Uri = uri
+		got, err := f.registry.Resolve(f.ctx, r, f.trusted)
+		if err == nil || len(got.Content()) != 0 {
+			t.Fatalf("accepted %q", uri)
+		}
+	}
+}
+
+func TestBackendOwnership(t *testing.T) {
+	f := startKV(t)
+	req := externalizeRequest(f)
+	snapshot := bytes.Clone(req.Content)
+	var stored []byte
+	kv := &kvOverride{KeyValue: f.kv, name: bucket, put: func(_ context.Context, _ string, v []byte) (uint64, error) { stored = v; return 1, nil }}
+	b, err := resourcekv.New(f.ctx, kv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ref, err := b.Externalize(f.ctx, req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	req.Content[0] ^= 1
+	req.SHA256[0] ^= 1
+	if !bytes.Equal(stored, snapshot) || bytes.Equal(ref.Sha256, req.SHA256[:]) {
+		t.Fatal("request aliases stored bytes or digest")
+	}
+	kv.get = func(context.Context, string) (jetstream.KeyValueEntry, error) {
+		return entryOverride{value: stored}, nil
+	}
+	res, err := b.Resolve(f.ctx, directRequest(f, ref))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	stored[0] ^= 1
+	got, err := io.ReadAll(res.Body)
+	if err != nil || !bytes.Equal(got, snapshot) {
+		t.Fatalf("body aliases KV: %v", err)
+	}
+}
+
+func TestBackendInvalidContext(t *testing.T) {
+	f := startKV(t)
+	ref := f.store(t, []byte("payload"), media)
+	req := directRequest(f, ref)
+	for _, ctx := range []context.Context{nil, canceled(f.ctx)} {
+		want := capsdk.ErrResourceContextRequired
+		if ctx != nil {
+			want = context.Canceled
+		}
+		if _, err := resourcekv.New(ctx, f.kv); !errors.Is(err, want) {
+			t.Fatal(err)
+		}
+		if res, err := f.backend.Resolve(ctx, req); !errors.Is(err, want) || res.Body != nil {
+			t.Fatal(err)
+		}
+		if r, err := f.backend.Externalize(ctx, externalizeRequest(f)); !errors.Is(err, want) || r != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestBackendStorageErrors(t *testing.T) {
+	f := startKV(t)
+	ref := f.store(t, []byte("payload"), media)
+	req := directRequest(f, ref)
+	secret := errors.New("private-content-key-uri")
+	assertPrivate := func(err error) {
+		t.Helper()
+		if !errors.Is(err, secret) || strings.Contains(err.Error(), secret.Error()) {
+			t.Fatalf("error wrapping/redaction: %v", err)
+		}
+	}
+	kv := &kvOverride{KeyValue: f.kv, name: bucket, status: func(context.Context) (jetstream.KeyValueStatus, error) { return nil, secret }}
+	_, err := resourcekv.New(f.ctx, kv)
+	assertPrivate(err)
+	kv.status = nil
+	b, err := resourcekv.New(f.ctx, kv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kv.get = func(context.Context, string) (jetstream.KeyValueEntry, error) { return nil, secret }
+	res, err := b.Resolve(f.ctx, req)
+	assertPrivate(err)
+	if res.Body != nil {
+		t.Fatal("body on error")
+	}
+	kv.put = func(context.Context, string, []byte) (uint64, error) { return 0, secret }
+	r, err := b.Externalize(f.ctx, externalizeRequest(f))
+	assertPrivate(err)
+	if r != nil {
+		t.Fatal("ref on error")
+	}
+}
+
+func TestBackendCanceledDuringIO(t *testing.T) {
+	f := startKV(t)
+	ref := f.store(t, []byte("payload"), media)
+	req := directRequest(f, ref)
+	kv := &kvOverride{KeyValue: f.kv, name: bucket}
+	b, err := resourcekv.New(f.ctx, kv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	secret := errors.New("private-content-key-uri")
+	ctx, cancel := context.WithCancel(f.ctx)
+	kv.get = func(context.Context, string) (jetstream.KeyValueEntry, error) { cancel(); return nil, secret }
+	res, err := b.Resolve(ctx, req)
+	if !errors.Is(err, context.Canceled) || res.Body != nil {
+		t.Fatalf("during Get: %v", err)
+	}
+	ctx, cancel = context.WithCancel(f.ctx)
+	kv.put = func(context.Context, string, []byte) (uint64, error) { cancel(); return 0, secret }
+	r, err := b.Externalize(ctx, externalizeRequest(f))
+	if !errors.Is(err, context.Canceled) || r != nil {
+		t.Fatalf("during Put: %v", err)
+	}
+}
+
+func canceled(parent context.Context) context.Context {
+	ctx, cancel := context.WithCancel(parent)
+	cancel()
+	return ctx
+}
+
+func TestBackendDirectBound(t *testing.T) {
+	f := startKV(t)
+	req := externalizeRequest(f)
+	req.Content = make([]byte, 65537)
+	req.SHA256 = sha256.Sum256(req.Content)
+	req.SizeBytes = uint64(len(req.Content))
+	ref, err := f.backend.Externalize(f.ctx, req)
+	if !errors.Is(err, capsdk.ErrResourceTooLarge) || ref != nil || len(keys(t, f)) != 0 {
+		t.Fatalf("direct bound: %v", err)
+	}
+}

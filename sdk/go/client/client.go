@@ -9,6 +9,7 @@ import (
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
+	"github.com/cordum-io/cap/v2/sdk/go/telemetry"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -24,6 +25,8 @@ type Client struct {
 	// AllowUnsigned explicitly opts into legacy unsigned packet transport.
 	AllowUnsigned bool
 	Logger        *slog.Logger
+	// Telemetry is optional; nil sends no trace headers and starts no spans.
+	Telemetry *telemetry.Config
 }
 
 // Publisher is an interface that can publish a message to a subject.

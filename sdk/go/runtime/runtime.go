@@ -14,6 +14,7 @@ import (
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
+	"github.com/cordum-io/cap/v2/sdk/go/telemetry"
 	"github.com/nats-io/nats.go"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/protobuf/proto"
@@ -106,9 +107,18 @@ func (s *InMemoryBlobStore) Close() error {
 
 // Context provides handler context and metadata.
 type Context struct {
-	Job    *agentv1.JobRequest
-	Packet *agentv1.BusPacket
-	Logger *slog.Logger
+	Job      *agentv1.JobRequest
+	Packet   *agentv1.BusPacket
+	Logger   *slog.Logger
+	traceCtx context.Context
+}
+
+// TraceContext returns the process span context, or Background when unset.
+func (c Context) TraceContext() context.Context {
+	if c.traceCtx == nil {
+		return context.Background()
+	}
+	return c.traceCtx
 }
 
 // Handler processes a job payload.
@@ -162,6 +172,9 @@ type Agent struct {
 	MaxResultBytes  int
 	Logger          *slog.Logger
 	Metrics         MetricsHook
+	// Telemetry extracts only after admission or validation, records a process
+	// span around the handler, and injects on result publish. Nil changes nothing.
+	Telemetry *telemetry.Config
 
 	// Phase-2 worker handshake. Tenant + HandshakeMode opt the agent
 	// into the Phase-2 session-token flow on Start(); zero-valued

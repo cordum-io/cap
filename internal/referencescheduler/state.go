@@ -10,11 +10,13 @@
 package referencescheduler
 
 import (
-	"errors"
+	"crypto/rand"
+	"encoding/hex"
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -32,8 +34,11 @@ const (
 	SubjectTerminal = "refsched.job.terminal"
 )
 
+// maxIDBytes bounds job_id, topic, worker ID and dispatch ID; R3 allows any bound in [256, 4096].
+const maxIDBytes = 256
+
 // WorkerSubject returns "worker." + workerID + ".jobs".
-func WorkerSubject(workerID string) string { return "" }
+func WorkerSubject(workerID string) string { return "worker." + workerID + ".jobs" }
 
 // Limits bounds declared resources, attempts and injected-clock deadlines.
 type Limits struct {
@@ -80,80 +85,315 @@ type Dispatch struct {
 
 // Scheduler is the in-memory state core; its fields are unexported and it is
 // safe for concurrent use.
-type Scheduler struct{}
+type Scheduler struct {
+	limits Limits
+	allow  map[AllowRule]bool
+	now    func() time.Time
+	newID  func() (string, error)
+	store  store
+}
 
 // New refuses absent clock, empty allowlist and nonpositive limits.
-func New(cfg Config) (*Scheduler, error) { return nil, ErrNotImplemented }
+func New(cfg Config) (*Scheduler, error) {
+	l := cfg.Limits
+	if cfg.Now == nil || len(cfg.Allow) == 0 || l.MaxInputBytes == 0 || l.MaxOutputBytes == 0 || l.MaxArtifacts <= 0 ||
+		l.MaxAttempts == 0 || l.DispatchTimeout <= 0 || l.RunTimeout <= 0 || l.MaxRunTimeout <= 0 {
+		return nil, ErrInvalidConfig
+	}
+	s := &Scheduler{limits: l, allow: make(map[AllowRule]bool, len(cfg.Allow)), now: cfg.Now,
+		newID: cfg.NewDispatchID, store: store{jobs: make(map[jobKey]*record)}}
+	for _, rule := range cfg.Allow {
+		s.allow[rule] = true
+	}
+	if s.newID == nil {
+		s.newID = randomDispatchID
+	}
+	return s, nil
+}
 
 // Submit admits verified requests, recording SCHEDULED or DENIED; identical
 // requests under the same tenant-qualified job key are idempotent.
 func (s *Scheduler) Submit(v capsdk.VerifiedProductionPacket) (Job, error) {
-	return Job{}, ErrNotImplemented
+	p, err := admit(v, SubjectSubmit)
+	if err != nil {
+		return Job{}, err
+	}
+	req := p.GetJobRequest()
+	if req == nil {
+		return Job{}, ErrWrongPayload
+	}
+	if !validRequest(req, p.GetIdentity()) {
+		return Job{}, ErrInvalidJob
+	}
+	j := Job{TenantID: v.Tenant(), JobID: req.GetJobId(), Topic: req.GetTopic(), Capability: req.GetMeta().GetCapability(),
+		Status: agentv1.JobStatus_JOB_STATUS_SCHEDULED, UpdatedAt: s.now()}
+	var refusal error
+	switch {
+	case !s.allow[AllowRule{TenantID: j.TenantID, Topic: j.Topic, Capability: j.Capability}]:
+		refusal = ErrDenied
+		decide(&j, agentv1.JobStatus_JOB_STATUS_DENIED, agentv1.ErrorCode_ERROR_CODE_JOB_PERMISSION_DENIED)
+	case req.GetContextRef().GetSizeBytes() > s.limits.MaxInputBytes:
+		refusal = ErrInputTooLarge
+		decide(&j, agentv1.JobStatus_JOB_STATUS_DENIED, agentv1.ErrorCode_ERROR_CODE_JOB_RESOURCE_EXHAUSTED)
+	}
+	stored, inserted, err := s.store.insert(jobKey{j.TenantID, j.JobID}, &record{job: j, request: req})
+	if err != nil || !inserted {
+		return stored, err
+	}
+	return stored, refusal
 }
 
 // Dispatch requires SCHEDULED and reserves a new identity and deadline before return.
 func (s *Scheduler) Dispatch(tenantID, jobID, workerID string) (Dispatch, error) {
-	return Dispatch{}, ErrNotImplemented
+	if !validID(workerID) {
+		return Dispatch{}, ErrInvalidJob
+	}
+	id, err := s.newID()
+	if err != nil || !validID(id) {
+		return Dispatch{}, ErrInvalidConfig
+	}
+	now := s.now()
+	var out Dispatch
+	_, err = s.store.update(jobKey{tenantID, jobID}, func(j *Job, req *agentv1.JobRequest) (bool, error) {
+		if terminal(j.Status) {
+			return false, ErrTerminal
+		}
+		if j.Status != agentv1.JobStatus_JOB_STATUS_SCHEDULED {
+			return false, ErrInvalidTransition
+		}
+		j.Dispatch = &agentv1.DispatchIdentity{DispatchId: id, Attempt: j.Dispatch.GetAttempt() + 1, AssignedWorkerId: workerID}
+		j.Status, j.Acked, j.DispatchedAt, j.UpdatedAt = agentv1.JobStatus_JOB_STATUS_DISPATCHED, false, now, now
+		j.Deadline = now.Add(s.runTimeout(req.GetBudget().GetDeadlineMs()))
+		request := clone(req)
+		request.Dispatch = clone(j.Dispatch)
+		out = Dispatch{TenantID: tenantID, JobID: jobID, Subject: WorkerSubject(workerID), Identity: clone(j.Dispatch), Request: request}
+		return true, nil
+	})
+	if err != nil {
+		return Dispatch{}, err
+	}
+	return out, nil
 }
 
 // AckDispatch acknowledges the current identity without overwriting progress or results.
-func (s *Scheduler) AckDispatch(d Dispatch) error { return ErrNotImplemented }
+func (s *Scheduler) AckDispatch(d Dispatch) error {
+	_, err := s.store.update(jobKey{d.TenantID, d.JobID}, func(j *Job, _ *agentv1.JobRequest) (bool, error) {
+		if d.Identity == nil || !proto.Equal(d.Identity, j.Dispatch) {
+			return false, ErrStaleAttempt
+		}
+		if j.Status != agentv1.JobStatus_JOB_STATUS_DISPATCHED || j.Acked {
+			return false, nil // R8: a job already past DISPATCHED keeps its snapshot
+		}
+		j.Acked = true
+		return true, nil
+	})
+	return err
+}
 
 // ApplyProgress fences the verified worker and attempt and appends bounded artifacts
 // only before terminal, advancing DISPATCHED to RUNNING.
 func (s *Scheduler) ApplyProgress(v capsdk.VerifiedProductionPacket) (Job, error) {
-	return Job{}, ErrNotImplemented
+	p, err := admit(v, SubjectProgress)
+	if err != nil {
+		return Job{}, err
+	}
+	pr := p.GetJobProgress()
+	if pr == nil {
+		return Job{}, ErrWrongPayload
+	}
+	now := s.now()
+	return s.store.update(jobKey{v.Tenant(), pr.GetJobId()}, func(j *Job, _ *agentv1.JobRequest) (bool, error) {
+		if terminal(j.Status) {
+			return false, ErrTerminal
+		}
+		if err := fence(j, pr.GetDispatch(), v.Sender()); err != nil {
+			return false, err
+		}
+		if st := pr.GetStatus(); st != agentv1.JobStatus_JOB_STATUS_UNSPECIFIED && st != agentv1.JobStatus_JOB_STATUS_RUNNING {
+			return false, ErrInvalidTransition
+		}
+		if err := appendArtifacts(j, pr.GetArtifactRefs(), s.limits.MaxArtifacts); err != nil {
+			return false, err
+		}
+		j.Status, j.UpdatedAt = agentv1.JobStatus_JOB_STATUS_RUNNING, now
+		return true, nil
+	})
 }
 
 // ApplyResult fences the verified worker and attempt; the first terminal wins,
 // while retryable failures reschedule within MaxAttempts.
 func (s *Scheduler) ApplyResult(v capsdk.VerifiedProductionPacket) (Job, error) {
-	return Job{}, ErrNotImplemented
+	p, err := admit(v, SubjectResult)
+	if err != nil {
+		return Job{}, err
+	}
+	r := p.GetJobResult()
+	if r == nil {
+		return Job{}, ErrWrongPayload
+	}
+	now := s.now()
+	return s.store.update(jobKey{v.Tenant(), r.GetJobId()}, func(j *Job, _ *agentv1.JobRequest) (bool, error) {
+		if terminal(j.Status) {
+			// The winner's repeat, or a worker CANCELLED after a client cancel (R4), is a no-op.
+			repeat := proto.Equal(r, j.Result) || (r.GetStatus() == agentv1.JobStatus_JOB_STATUS_CANCELLED &&
+				j.Status == agentv1.JobStatus_JOB_STATUS_CANCELLED)
+			if repeat && fence(j, r.GetDispatch(), v.Sender()) == nil {
+				return false, nil
+			}
+			return false, ErrTerminal
+		}
+		if err := fence(j, r.GetDispatch(), v.Sender()); err != nil {
+			return false, err
+		}
+		switch r.GetStatus() {
+		case agentv1.JobStatus_JOB_STATUS_SUCCEEDED, agentv1.JobStatus_JOB_STATUS_FAILED,
+			agentv1.JobStatus_JOB_STATUS_FAILED_RETRYABLE, agentv1.JobStatus_JOB_STATUS_FAILED_FATAL:
+		default: // CANCELLED needs a client cancel first (R4); TIMEOUT and DENIED are the scheduler's
+			return false, ErrInvalidTransition
+		}
+		if err := appendArtifacts(j, r.GetArtifactRefs(), s.limits.MaxArtifacts); err != nil {
+			return false, err
+		}
+		j.UpdatedAt = now
+		switch {
+		case r.GetResultRef().GetSizeBytes() > s.limits.MaxOutputBytes:
+			decide(j, agentv1.JobStatus_JOB_STATUS_FAILED, agentv1.ErrorCode_ERROR_CODE_JOB_RESOURCE_EXHAUSTED)
+			return true, ErrOutputTooLarge
+		case r.GetStatus() != agentv1.JobStatus_JOB_STATUS_FAILED_RETRYABLE:
+			j.Status, j.Result = r.GetStatus(), r
+		case j.Dispatch.GetAttempt() < s.limits.MaxAttempts:
+			j.Status, j.Result = agentv1.JobStatus_JOB_STATUS_SCHEDULED, nil
+		default: // attempts exhausted: terminal FAILED keeps the worker's error codes
+			r.Status = agentv1.JobStatus_JOB_STATUS_FAILED
+			j.Status, j.Result = r.Status, r
+		}
+		return true, nil
+	})
 }
 
 // Cancel admits only the owning tenant's client cancel; a terminal winner is unchanged.
 func (s *Scheduler) Cancel(v capsdk.VerifiedProductionPacket) (Job, error) {
-	return Job{}, ErrNotImplemented
+	p, err := admit(v, SubjectClientCancel)
+	if err != nil {
+		return Job{}, err
+	}
+	c := p.GetJobCancel()
+	if c == nil {
+		return Job{}, ErrWrongPayload
+	}
+	now := s.now()
+	return s.store.update(jobKey{v.Tenant(), c.GetJobId()}, func(j *Job, _ *agentv1.JobRequest) (bool, error) {
+		if terminal(j.Status) {
+			return false, ErrTerminal
+		}
+		decide(j, agentv1.JobStatus_JOB_STATUS_CANCELLED, agentv1.ErrorCode_ERROR_CODE_UNSPECIFIED)
+		j.UpdatedAt = now
+		return true, nil
+	})
 }
 
 // Tick uses Config.Now to expire dispatch and run deadlines; changed jobs are
 // returned sorted by (TenantID, JobID).
-func (s *Scheduler) Tick() []Job { return nil }
+func (s *Scheduler) Tick() []Job {
+	now := s.now()
+	return s.store.sweep(func(j *Job) bool {
+		dispatched := j.Status == agentv1.JobStatus_JOB_STATUS_DISPATCHED
+		return dispatched && now.Sub(j.DispatchedAt) >= s.limits.DispatchTimeout ||
+			(dispatched || j.Status == agentv1.JobStatus_JOB_STATUS_RUNNING) && !now.Before(j.Deadline)
+	}, func(j *Job) {
+		decide(j, agentv1.JobStatus_JOB_STATUS_TIMEOUT, agentv1.ErrorCode_ERROR_CODE_JOB_TIMEOUT)
+		j.UpdatedAt = now
+	})
+}
 
 // Get returns a deep snapshot by tenant-qualified job key or ErrJobNotFound.
-func (s *Scheduler) Get(tenantID, jobID string) (Job, error) { return Job{}, ErrNotImplemented }
+func (s *Scheduler) Get(tenantID, jobID string) (Job, error) {
+	return s.store.get(jobKey{tenantID, jobID})
+}
 
-var (
-	// ErrInvalidConfig rejects absent clock, empty allowlist or nonpositive limits.
-	ErrInvalidConfig = errors.New("referencescheduler: invalid config")
-	// ErrUnverified rejects packets without SDK verification proof.
-	ErrUnverified = errors.New("referencescheduler: packet not verified")
-	// ErrWrongSubject rejects packets verified for another subject.
-	ErrWrongSubject = errors.New("referencescheduler: wrong subject")
-	// ErrWrongPayload rejects a payload incompatible with the operation.
-	ErrWrongPayload = errors.New("referencescheduler: wrong payload")
-	// ErrInvalidJob rejects invalid identifiers, missing context or tenant disagreement.
-	ErrInvalidJob = errors.New("referencescheduler: invalid job")
-	// ErrDenied accompanies DENIED on an allowlist miss.
-	ErrDenied = errors.New("referencescheduler: denied")
-	// ErrJobNotFound gives no existence oracle across tenants.
-	ErrJobNotFound = errors.New("referencescheduler: job not found")
-	// ErrJobConflict rejects a different request under an existing job key.
-	ErrJobConflict = errors.New("referencescheduler: job conflict")
-	// ErrInvalidTransition rejects a disallowed nonterminal transition.
-	ErrInvalidTransition = errors.New("referencescheduler: invalid transition")
-	// ErrTerminal preserves the first terminal winner.
-	ErrTerminal = errors.New("referencescheduler: job is terminal")
-	// ErrStaleAttempt rejects a different dispatch ID or attempt.
-	ErrStaleAttempt = errors.New("referencescheduler: stale or future attempt")
-	// ErrWrongWorker rejects a sender or assigned worker other than the active worker.
-	ErrWrongWorker = errors.New("referencescheduler: wrong worker")
-	// ErrInputTooLarge accompanies DENIED for an oversized declared input.
-	ErrInputTooLarge = errors.New("referencescheduler: input too large")
-	// ErrOutputTooLarge accompanies FAILED with RESOURCE_EXHAUSTED for oversized output.
-	ErrOutputTooLarge = errors.New("referencescheduler: output too large")
-	// ErrTooManyArtifacts rejects an entire append that would exceed MaxArtifacts.
-	ErrTooManyArtifacts = errors.New("referencescheduler: too many artifacts")
-	// ErrNotImplemented is stub only; the implementation deletes it.
-	ErrNotImplemented = errors.New("referencescheduler: not implemented")
-)
+// admit runs the checks every packet method makes before it reads state.
+func admit(v capsdk.VerifiedProductionPacket, subject string) (*agentv1.BusPacket, error) {
+	if !v.IsVerified() {
+		return nil, ErrUnverified
+	}
+	if v.Subject() != subject {
+		return nil, ErrWrongSubject
+	}
+	return v.Packet(), nil // a deep copy this call owns
+}
+
+// fence accepts an event only from the dispatch that holds the job: the same
+// dispatch_id and attempt (else ErrStaleAttempt), sent by and naming the
+// assigned worker (else ErrWrongWorker). A rescheduled job holds no dispatch.
+func fence(j *Job, d *agentv1.DispatchIdentity, sender string) error {
+	cur := j.Dispatch
+	if j.Status == agentv1.JobStatus_JOB_STATUS_SCHEDULED || cur.GetDispatchId() != d.GetDispatchId() ||
+		cur.GetAttempt() != d.GetAttempt() {
+		return ErrStaleAttempt
+	}
+	if sender != cur.GetAssignedWorkerId() || d.GetAssignedWorkerId() != cur.GetAssignedWorkerId() {
+		return ErrWrongWorker
+	}
+	return nil
+}
+
+// runTimeout is budget.deadline_ms (RunTimeout when not positive) capped at
+// MaxRunTimeout; comparing in milliseconds first avoids Duration overflow.
+func (s *Scheduler) runTimeout(deadlineMs int64) time.Duration {
+	d := s.limits.RunTimeout
+	if deadlineMs > 0 {
+		d = s.limits.MaxRunTimeout
+		if deadlineMs < s.limits.MaxRunTimeout.Milliseconds() {
+			d = time.Duration(deadlineMs) * time.Millisecond
+		}
+	}
+	return min(d, s.limits.MaxRunTimeout)
+}
+
+// decide records a terminal state the scheduler itself decides, with a
+// scheduler-authored result naming the job and the dispatch that held it.
+func decide(j *Job, status agentv1.JobStatus, code agentv1.ErrorCode) {
+	j.Status = status
+	j.Result = &agentv1.JobResult{JobId: j.JobID, Status: status, ErrorCodeEnum: code,
+		ErrorCode: legacyErrorCodes[code], Dispatch: clone(j.Dispatch)}
+}
+
+// legacyErrorCodes are the spec/13 error_code strings kept for older consumers.
+var legacyErrorCodes = map[agentv1.ErrorCode]string{
+	agentv1.ErrorCode_ERROR_CODE_JOB_TIMEOUT:           "TIMEOUT",
+	agentv1.ErrorCode_ERROR_CODE_JOB_PERMISSION_DENIED: "PERMISSION_DENIED",
+}
+
+func terminal(st agentv1.JobStatus) bool {
+	switch st {
+	case agentv1.JobStatus_JOB_STATUS_SUCCEEDED, agentv1.JobStatus_JOB_STATUS_FAILED, agentv1.JobStatus_JOB_STATUS_FAILED_FATAL,
+		agentv1.JobStatus_JOB_STATUS_CANCELLED, agentv1.JobStatus_JOB_STATUS_DENIED, agentv1.JobStatus_JOB_STATUS_TIMEOUT:
+		return true
+	}
+	return false
+}
+
+// appendArtifacts appends refs whole, or refuses them whole past the per-job bound.
+func appendArtifacts(j *Job, refs []*agentv1.ResourceRef, limit int) error {
+	if len(j.Artifacts)+len(refs) > limit {
+		return ErrTooManyArtifacts
+	}
+	j.Artifacts = append(j.Artifacts, refs...)
+	return nil
+}
+
+func validID(id string) bool { return id != "" && len(id) <= maxIDBytes }
+
+// validRequest bounds the job key and topic, requires context_ref, and requires
+// every nonempty identity mirror to equal the verified binding (spec/19).
+func validRequest(req *agentv1.JobRequest, identity *agentv1.IdentityBinding) bool {
+	return validID(req.GetJobId()) && validID(req.GetTopic()) && req.GetContextRef() != nil &&
+		capsdk.ValidateIdentityBinding(req, identity) == nil
+}
+
+// randomDispatchID returns 128 bits from crypto/rand as 32 lowercase hex characters (R9).
+func randomDispatchID() (string, error) {
+	b := make([]byte, 16)
+	_, err := rand.Read(b) // never fails since Go 1.24
+	return hex.EncodeToString(b), err
+}

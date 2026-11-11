@@ -1,5 +1,3 @@
-//go:build refsched_acceptance
-
 // Copyright (c) 2026 The cordum Agent Protocol Authors
 // SPDX-License-Identifier: Apache-2.0
 

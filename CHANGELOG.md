@@ -95,6 +95,14 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
   test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python
   pending gates and points their real-NATS gates at the fail-closed, CI-mandatory suites.
+- **Go SDK telemetry (no wire change):** added `sdk/go/telemetry`, an OpenTelemetry API
+  adapter for `spec/interop/trace-context.md`. It reads and writes only the lowercase
+  `traceparent` and `tracestate` NATS headers, never `baggage`, uses the W3C trace-context
+  propagator by default, and starts the contract's `publish` (PRODUCER) and `process`
+  (CONSUMER) spans with exactly its attributes and closed `error.type` values. A nil
+  `*telemetry.Config` writes no headers and starts no spans. The Go client and runtime do
+  not use it yet. The module now requires `go.opentelemetry.io/otel` and `otel/trace`
+  v1.47.0; `otel/sdk` v1.47.0 is required only by tests.
 
 ## v2.17.0 — 2026-07-22
 

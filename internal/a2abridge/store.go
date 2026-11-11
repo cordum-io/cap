@@ -2,6 +2,7 @@ package a2abridge
 
 import (
 	"bytes"
+	"encoding/json"
 	"slices"
 	"sync"
 	"time"
@@ -21,8 +22,11 @@ type taskRecord struct {
 	state                           a2a.TaskState
 	created                         time.Time
 	parts                           []turnPart
-	// events are the task's *a2a.TaskStatusUpdateEvent values in order. Each
-	// is immutable once appended, so clone copies only the slice.
+	artifacts                       []*a2a.Artifact
+	history                         []*a2a.Message // after the initial user message in parts
+	statusMsg                       *a2a.Message
+	settling                        string // SUCCEEDED winner reserved before the result read
+	// events are immutable after append; snapshots deep-copy their payloads.
 	events []a2a.Event
 	// turnDone is set when the current turn's job reached a terminal
 	// JobStatus: the first terminal result wins and later events are ignored.
@@ -42,7 +46,87 @@ func (r taskRecord) clone() taskRecord {
 	}
 	r.parts = parts
 	r.events = slices.Clone(r.events)
+	for idx, event := range r.events {
+		switch ev := event.(type) {
+		case *a2a.TaskStatusUpdateEvent:
+			copy := *ev
+			copy.Status.Message = cloneMessage(ev.Status.Message)
+			if ev.Status.Timestamp != nil {
+				ts := *ev.Status.Timestamp
+				copy.Status.Timestamp = &ts
+			}
+			r.events[idx] = &copy
+		case *a2a.TaskArtifactUpdateEvent:
+			copy := *ev
+			copy.Artifact = cloneArtifact(ev.Artifact)
+			r.events[idx] = &copy
+		}
+	}
+	r.artifacts = slices.Clone(r.artifacts)
+	for idx, a := range r.artifacts {
+		r.artifacts[idx] = cloneArtifact(a)
+	}
+	r.history = slices.Clone(r.history)
+	for idx, m := range r.history {
+		r.history[idx] = cloneMessage(m)
+	}
+	r.statusMsg = cloneMessage(r.statusMsg)
 	return r
+}
+
+// Only the closed envelope's text/data parts enter stored agent messages.
+func cloneParts(parts a2a.ContentParts) a2a.ContentParts {
+	out := slices.Clone(parts)
+	for idx, part := range out {
+		copy := *part
+		if data, ok := part.Content.(a2a.Data); ok {
+			copy.Content = a2a.Data{Value: cloneData(data.Value)}
+		}
+		out[idx] = &copy
+	}
+	return out
+}
+
+func cloneData(value interface{}) interface{} {
+	switch v := value.(type) {
+	case map[string]interface{}:
+		out := make(map[string]interface{}, len(v))
+		for key, item := range v {
+			out[key] = cloneData(item)
+		}
+		return out
+	case []interface{}:
+		out := make([]interface{}, len(v))
+		for idx, item := range v {
+			out[idx] = cloneData(item)
+		}
+		return out
+	case json.RawMessage:
+		return bytes.Clone(v)
+	default:
+		return value // immutable JSON scalar, including json.Number
+	}
+}
+
+func cloneMessage(m *a2a.Message) *a2a.Message {
+	if m == nil {
+		return nil
+	}
+	copy := *m
+	copy.Parts = cloneParts(m.Parts)
+	return &copy
+}
+
+func cloneArtifact(a *a2a.Artifact) *a2a.Artifact {
+	copy := *a
+	copy.Parts = cloneParts(a.Parts)
+	return &copy
+}
+
+type turnOutcome struct {
+	state     a2a.TaskState
+	message   *a2a.Message
+	artifacts []*a2a.Artifact
 }
 
 // turnRef binds an idempotency key to the turn it created.
@@ -147,15 +231,16 @@ func (s *store) size() int {
 // appendStatus records rec's current state as one status event.
 func appendStatus(rec *taskRecord, now time.Time) {
 	rec.events = append(rec.events, &a2a.TaskStatusUpdateEvent{TaskID: a2a.TaskID(rec.id),
-		ContextID: rec.contextID, Status: a2a.TaskStatus{State: rec.state, Timestamp: &now}})
+		ContextID: rec.contextID, Status: a2a.TaskStatus{State: rec.state, Message: rec.statusMsg, Timestamp: &now}})
 }
 
 // setState moves rec to state with one status event, only on a change.
-func setState(rec *taskRecord, state a2a.TaskState, now time.Time) bool {
-	if rec.state == state {
+func setState(rec *taskRecord, state a2a.TaskState, msg *a2a.Message, now time.Time) bool {
+	if rec.state == state && msg == nil {
 		return false
 	}
 	rec.state = state
+	rec.statusMsg = msg
 	appendStatus(rec, now)
 	return true
 }
@@ -219,7 +304,7 @@ func (s *store) applyProgress(jobID string, st agentv1.JobStatus, now time.Time)
 	if !ok || !progress || state == a2a.TaskStateSubmitted && rec.state == a2a.TaskStateWorking {
 		return false
 	}
-	return setState(rec, state, now)
+	return setState(rec, state, nil, now)
 }
 
 // applyResult applies a JobResult status for jobID. The first terminal status
@@ -229,8 +314,7 @@ func (s *store) applyResult(jobID string, st agentv1.JobStatus, now time.Time) b
 	if _, progress := progressState(st); progress {
 		return s.applyProgress(jobID, st, now)
 	}
-	// SUCCEEDED needs the turn-result envelope (slice 2, task-e0072c0e).
-	// Until then it, like an unknown status, maps to nothing and is dropped.
+	// SUCCEEDED is handled by reserveResult/readEnvelope/commitResult, not here.
 	state, terminal := terminalState(st)
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -239,5 +323,48 @@ func (s *store) applyResult(jobID string, st agentv1.JobStatus, now time.Time) b
 		return false
 	}
 	rec.turnDone = true
-	return setState(rec, state, now)
+	return setState(rec, state, nil, now)
+}
+
+// reserveResult chooses the first terminal winner before any result I/O.
+func (s *store) reserveResult(job string) (int, bool) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	rec, ok := s.current(job)
+	if !ok {
+		return 0, false
+	}
+	rec.turnDone, rec.settling = true, job
+	return rec.turn, true
+}
+
+// commitResult applies only the reserved turn; artifacts precede its status.
+func (s *store) commitResult(job string, turn int, out *turnOutcome, now time.Time) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	ref, ok := s.jobs[job]
+	if !ok {
+		return
+	}
+	rec, ok := s.tasks[ref.key]
+	if !ok || rec.turn != turn || rec.settling != job {
+		return
+	}
+	rec.settling = ""
+	if out == nil {
+		setState(rec, a2a.TaskStateFailed, nil, now)
+		return
+	}
+	for _, artifact := range out.artifacts {
+		a := cloneArtifact(artifact)
+		rec.artifacts = append(rec.artifacts, a)
+		rec.events = append(rec.events, &a2a.TaskArtifactUpdateEvent{
+			TaskID: a2a.TaskID(rec.id), ContextID: rec.contextID, Artifact: a, LastChunk: true})
+	}
+	msg := cloneMessage(out.message)
+	if msg != nil {
+		msg.TaskID, msg.ContextID = a2a.TaskID(rec.id), rec.contextID
+		rec.history = append(rec.history, msg)
+	}
+	setState(rec, out.state, msg, now)
 }

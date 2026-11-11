@@ -255,7 +255,8 @@ def test_release_actions_are_commit_pinned() -> None:
         owner, revision = action.rsplit("@", 1)
         assert "/" in owner
         assert re.fullmatch(r"[0-9a-f]{40}", revision), action
-    assert "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683" in actions
-    assert "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065" in actions
-    assert "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02" in actions
-    assert "actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093" in actions
+    assert "actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09" in actions
+    assert "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1" in actions
+    assert "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f" in actions
+    assert "actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131" in actions
+    assert "pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086" in actions

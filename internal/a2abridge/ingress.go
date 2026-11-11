@@ -83,6 +83,8 @@ type Config struct {
 	Publisher client.Publisher
 	// Inputs stores each turn input before its JobRequest is published.
 	Inputs InputWriter
+	// Results reads bounded turn-result envelopes; required by Start, not New.
+	Results ResultReader
 	// MaxTasks bounds the in-memory task store. 0 means 10 000.
 	MaxTasks int
 	// Rand supplies task and context ids. Nil means crypto/rand. It need not be
@@ -113,6 +115,7 @@ type Ingress struct {
 	unsigned bool
 	pub      client.Publisher
 	inputs   InputWriter
+	results  ResultReader
 	store    *store
 	randMu   sync.Mutex
 	rand     io.Reader
@@ -158,7 +161,7 @@ func New(cfg Config) (*Ingress, error) {
 	ing := &Ingress{
 		keys: keys, topic: cfg.Topic, sender: cfg.SenderID,
 		signer: cfg.SigningKey, unsigned: cfg.AllowUnsignedDev,
-		pub: cfg.Publisher, inputs: cfg.Inputs, store: newStore(maxTasks),
+		pub: cfg.Publisher, inputs: cfg.Inputs, results: cfg.Results, store: newStore(maxTasks),
 		rand: cfg.Rand, now: cfg.Now, resultKeys: cfg.ResultKeys, trust: cfg.ProductionTrust,
 	}
 	if ing.rand == nil {
@@ -440,7 +443,8 @@ func (r taskRecord) task() *a2a.Task {
 	msg := &a2a.Message{ID: r.messageID, ContextID: r.contextID, TaskID: a2a.TaskID(r.id),
 		Role: a2a.MessageRoleUser, Parts: parts}
 	return &a2a.Task{ID: a2a.TaskID(r.id), ContextID: r.contextID,
-		Status: a2a.TaskStatus{State: r.state, Timestamp: &created}, History: []*a2a.Message{msg}}
+		Status:  a2a.TaskStatus{State: r.state, Timestamp: &created, Message: r.statusMsg},
+		History: append([]*a2a.Message{msg}, r.history...), Artifacts: r.artifacts}
 }
 
 func invalid(msg string) error { return a2a.NewError(a2a.ErrInvalidParams, msg) }

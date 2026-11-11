@@ -267,7 +267,8 @@ async def summarize(ctx: Context, data: Input) -> Output:
   - `retryable=False`: `JOB_STATUS_FAILED_FATAL`.
 - `error_message` is always `handler reported failure`, and the metrics hook's
   `on_job_failed` gets the same text. The exception's arguments, its cause and
-  the input are never published.
+  the input are never published. A subclass must call `JobFailure.__init__`;
+  one that does not publishes `handler failed`, still without a retry.
 - The SDK never retries after a `JobFailure`: it publishes that outcome at
   once, whatever `retries` says. An ordinary exception, an `output_model`
   validation error included, still runs the handler up to `retries + 1` times;

@@ -2,11 +2,12 @@ import asyncio
 import hashlib
 import json
 import logging
+import math
 import os
 import secrets
 import time
 from dataclasses import dataclass, replace
-from datetime import timezone
+from datetime import datetime, timedelta, timezone
 from types import MappingProxyType
 from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Tuple, Type, TypeVar, Union
 
@@ -36,6 +37,8 @@ from cap.outcome import (
     _CONTEXT_FETCH_FAILED,
     _CONTEXT_NOT_FOUND,
     _CONTEXT_POINTER_INVALID,
+    _CONTEXT_REF_REFUSED,
+    _CONTEXT_REF_REQUIRED,
     _CONTEXT_TOO_LARGE,
     _HANDLER_FAILED,
     _INPUT_INVALID,
@@ -61,6 +64,14 @@ from cap.production_events import (
     seal_production_event,
 )
 from cap.production_validation import IdentityMismatchError, validate_identity_binding
+from cap.production_resource import validate_resource_ref_compatibility
+from cap.resource_registry import (
+    ResourceBackendUnavailableError,
+    ResourceRegistry,
+    ResourceRegistryError,
+    ResourceTooLargeError,
+    TrustedResourceContext,
+)
 from cap.validate import validate_bus_packet
 from cap.worker_trust import WorkerTrustConfig, WorkerTrustMode
 from cap.worker_trust_runtime import (
@@ -74,6 +85,8 @@ from cap.constants import DEFAULT_PROTOCOL_VERSION  # noqa: E402 — must be aft
 
 
 _HANDLER_FAILED_MESSAGE = "handler failed"
+_JSON_MEDIA_TYPE = "application/json"
+_RESULT_PURPOSE = "job-result"
 _LOG_FIELD_LIMIT = 256
 
 
@@ -354,6 +367,14 @@ class Agent:
     """High-level runtime that manages typed job handlers, blob storage, and NATS subscriptions.
 
     Register handlers with :meth:`job`, then call :meth:`run` to start processing.
+
+    ``resource_registry`` (an operator-built :class:`cap.ResourceRegistry`) switches
+    job input and output to ResourceRefs: input comes only from
+    ``JobRequest.context_ref`` and a SUCCEEDED result carries ``result_ref``,
+    externalized to ``result_backend_id`` for ``result_ref_ttl`` seconds. Both are
+    scoped to the worker-trust tenant and the admitted job id, so :meth:`start`
+    fails closed without a worker-trust configuration (mode warn or enforce).
+    Without a registry, ``context_ptr`` and ``result_ptr`` work as before.
     """
 
     def __init__(
@@ -383,6 +404,9 @@ class Agent:
         worker_trust_renew_min_interval: float = DEFAULT_RENEW_MIN_INTERVAL,
         production_trust: Optional[ProductionTrust] = None,
         replay_store: Optional[ReplayStore] = None,
+        resource_registry: Optional[ResourceRegistry] = None,
+        result_backend_id: Optional[str] = None,
+        result_ref_ttl: float = 3600.0,
     ) -> None:
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
@@ -416,6 +440,7 @@ class Agent:
             )
         self._production_trust = _snapshot_production_trust(production_trust)
         self._replay_store = replay_store
+        self._configure_resources(resource_registry, result_backend_id, result_ref_ttl)
         Agent._initialize_lifecycle(self)
 
     def _configure_worker_trust(
@@ -431,6 +456,31 @@ class Agent:
         self._worker_trust_timeout = timeout
         self._worker_trust_retries = retries
         self._worker_trust_renew_min_interval = renew_min_interval
+
+    def _configure_resources(
+        self,
+        registry: Optional[ResourceRegistry],
+        backend_id: Optional[str],
+        ttl: float,
+    ) -> None:
+        if registry is not None and not isinstance(registry, ResourceRegistry):
+            raise ValueError("resource_registry must be a ResourceRegistry")
+        if (registry is None) != (backend_id is None):
+            raise ValueError(
+                "resource_registry and result_backend_id must be configured together"
+            )
+        if registry is not None and backend_id not in registry.backend_ids:
+            raise ValueError("result_backend_id is not an installed backend")
+        if (
+            isinstance(ttl, bool)
+            or not isinstance(ttl, (int, float))
+            or not math.isfinite(ttl)
+            or ttl <= 0
+        ):
+            raise ValueError("result_ref_ttl must be a positive number of seconds")
+        self._resource_registry = registry
+        self._result_backend_id = backend_id
+        self._result_ref_ttl = float(ttl)
 
     def _initialize_lifecycle(self) -> None:
         self._handlers: Dict[str, HandlerSpec] = {}
@@ -513,6 +563,7 @@ class Agent:
             renew_min_interval=self._worker_trust_renew_min_interval,
         )
         self._validate_production_startup()
+        self._validate_resource_startup()
         self._capability = self._build_capability_handshake()
         self._lifecycle_state = "starting"
         try:
@@ -564,7 +615,7 @@ class Agent:
             connect_fn(**connect_options),
             "nats connect",
         )
-        if self._store is None:
+        if self._store is None and self._resource_registry is None:
             self._store = RedisBlobStore(self._redis_url)
         await self._establish_worker_trust()
         self._require_trust_startup_continuity()
@@ -1120,6 +1171,26 @@ class Agent:
             raise RuntimeError("CAP-PRODUCTION trust is unavailable")
         self._session_bound_production_trust(trust)
 
+    def _validate_resource_startup(self) -> None:
+        if self._resource_registry is None:
+            return
+        settings = self._trust_settings
+        if settings is None or settings.config is None:
+            raise RuntimeError("resource registry requires worker trust configuration")
+
+    def _trusted_resource_context(
+        self,
+        req: job_pb2.JobRequest,
+        authority: Optional[ProductionEventAuthority],
+    ) -> TrustedResourceContext:
+        """The worker-trust tenant and the admitted job id; nothing comes from the ref."""
+        settings = self._trust_settings
+        config = settings.config if settings is not None else None
+        if config is None:
+            raise RuntimeError("resource registry requires worker trust configuration")
+        job_id = authority.job_id if authority is not None else req.job_id
+        return TrustedResourceContext(tenant_id=config.tenant_id, job_id=job_id)
+
     def _session_bound_production_trust(self, trust: ProductionTrust) -> ProductionTrust:
         settings = self._trust_settings
         config = settings.config if settings is not None else None
@@ -1195,12 +1266,18 @@ class Agent:
             )
             ctx = Context(job=req, packet=packet, logger=ctx_logger)
 
+            registry = self._resource_registry
             store = self._store
-            if store is None:
+            if registry is not None:
+                trusted = self._trusted_resource_context(req, authority)
+                input_failure, input_data = await self._resolve_input(
+                    registry, trusted, spec, req
+                )
+            elif store is None:
                 ctx_logger.error("blob store not initialized")
                 return
-
-            input_failure, input_data = await self._read_input(store, spec, req)
+            else:
+                input_failure, input_data = await self._read_input(store, spec, req)
             if input_failure is not None:
                 await self._publish_failure(
                     ctx, req, input_failure, execution_ms=0, authority=authority
@@ -1249,21 +1326,27 @@ class Agent:
                         break
 
             elapsed_ms = int((time.monotonic() - start_time) * 1000)
-            if failure is None:
+            result = job_pb2.JobResult(
+                job_id=req.job_id,
+                status=job_pb2.JOB_STATUS_SUCCEEDED,
+                worker_id=self._sender_id,
+                execution_ms=elapsed_ms,
+            )
+            if failure is None and registry is not None:
+                failure, result_ref = await self._externalize_result(
+                    registry, trusted, output
+                )
+                if result_ref is not None:
+                    result.result_ref.CopyFrom(result_ref)
+            elif failure is None:
                 failure, result_ptr = await self._write_result(store, req, output)
+                result.result_ptr = result_ptr
             if failure is not None:
                 await self._publish_failure(
                     ctx, req, failure, execution_ms=elapsed_ms, authority=authority
                 )
                 return
 
-            result = job_pb2.JobResult(
-                job_id=req.job_id,
-                status=job_pb2.JOB_STATUS_SUCCEEDED,
-                result_ptr=result_ptr,
-                worker_id=self._sender_id,
-                execution_ms=elapsed_ms,
-            )
             await self._publish_result(ctx, result, authority)
             safe_metrics_call(
                 self._logger,
@@ -1291,6 +1374,46 @@ class Agent:
             return _CONTEXT_NOT_FOUND, None
         if self._max_context_bytes is not None and size > self._max_context_bytes:
             return _CONTEXT_TOO_LARGE, None
+        return self._decode_input(spec, payload)
+
+    async def _resolve_input(
+        self,
+        registry: ResourceRegistry,
+        trusted: TrustedResourceContext,
+        spec: HandlerSpec,
+        req: job_pb2.JobRequest,
+    ) -> Tuple[Optional[_Outcome], Any]:
+        """Resolve context_ref through the registry; a refused ref is never fetched."""
+        if not req.HasField("context_ref"):
+            return _CONTEXT_REF_REQUIRED, None
+        ref = req.context_ref
+        if req.context_ptr:
+            try:
+                validate_resource_ref_compatibility(req.context_ptr, ref)
+            except Exception:
+                return _CONTEXT_REF_REFUSED, None
+        if ref.media_type != _JSON_MEDIA_TYPE:
+            return _CONTEXT_DECODE_FAILED, None
+        limit = self._max_context_bytes
+        if limit is not None and ref.size_bytes > limit:
+            return _CONTEXT_TOO_LARGE, None
+        try:
+            resolved = await self._with_timeout(
+                registry.resolve(ref, trusted), "context resolve"
+            )
+        except ResourceTooLargeError:
+            return _CONTEXT_TOO_LARGE, None
+        except ResourceBackendUnavailableError:
+            return _CONTEXT_FETCH_FAILED, None
+        except ResourceRegistryError:
+            return _CONTEXT_REF_REFUSED, None
+        except Exception:
+            return _CONTEXT_FETCH_FAILED, None
+        if limit is not None and len(resolved.content) > limit:
+            return _CONTEXT_TOO_LARGE, None
+        return self._decode_input(spec, resolved.content)
+
+    def _decode_input(self, spec: HandlerSpec, payload: bytes) -> Tuple[Optional[_Outcome], Any]:
         try:
             raw = json.loads(payload.decode("utf-8"))
         except Exception:
@@ -1300,16 +1423,48 @@ class Agent:
         except Exception:
             return _INPUT_INVALID, None
 
+    def _encode_result(self, output: Any) -> Tuple[Optional[_Outcome], bytes]:
+        try:
+            result_payload = self._serialize_output(output)
+        except Exception:
+            return _RESULT_ENCODE_FAILED, b""
+        if self._max_result_bytes is not None and len(result_payload) > self._max_result_bytes:
+            return _RESULT_TOO_LARGE, b""
+        return None, result_payload
+
+    async def _externalize_result(
+        self, registry: ResourceRegistry, trusted: TrustedResourceContext, output: Any
+    ) -> Tuple[Optional[_Outcome], Optional[job_pb2.ResourceRef]]:
+        """Encode the output and externalize it; returns its ref or a fixed table row."""
+        failure, result_payload = self._encode_result(output)
+        if failure is not None:
+            return failure, None
+        try:
+            expires_at = datetime.now(timezone.utc) + timedelta(seconds=self._result_ref_ttl)
+            ref = await self._with_timeout(
+                registry.externalize(
+                    self._result_backend_id,
+                    result_payload,
+                    media_type=_JSON_MEDIA_TYPE,
+                    purpose=_RESULT_PURPOSE,
+                    expires_at=expires_at,
+                    trusted=trusted,
+                ),
+                "result externalize",
+            )
+        except ResourceTooLargeError:
+            return _RESULT_TOO_LARGE, None
+        except Exception:
+            return _RESULT_WRITE_FAILED, None
+        return None, ref
+
     async def _write_result(
         self, store: BlobStore, req: job_pb2.JobRequest, output: Any
     ) -> Tuple[Optional[_Outcome], str]:
         """Encode and store the output; returns its pointer or a fixed table row."""
-        try:
-            result_payload = self._serialize_output(output)
-        except Exception:
-            return _RESULT_ENCODE_FAILED, ""
-        if self._max_result_bytes is not None and len(result_payload) > self._max_result_bytes:
-            return _RESULT_TOO_LARGE, ""
+        failure, result_payload = self._encode_result(output)
+        if failure is not None:
+            return failure, ""
         result_key = f"res:{req.job_id}"
         try:
             await self._with_timeout(store.set(result_key, result_payload), "result write")

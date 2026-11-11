@@ -62,6 +62,9 @@ def _failed(error_code_enum: int, error_message: str) -> _Outcome:
 
 # The SDK failure table (task-013d478b, comment-e33d348f).
 _CONTEXT_POINTER_INVALID = _failed(_INVALID_INPUT, "context pointer invalid")
+# With a ResourceRegistry the input is JobRequest.context_ref (task-d35bf16f).
+_CONTEXT_REF_REQUIRED = _failed(_INVALID_INPUT, "context ref required")
+_CONTEXT_REF_REFUSED = _failed(_INVALID_INPUT, "context ref refused")
 _CONTEXT_FETCH_FAILED = _failed(_UNSPECIFIED, "context fetch failed")
 _CONTEXT_NOT_FOUND = _failed(_NOT_FOUND, "context not found")
 _CONTEXT_TOO_LARGE = _failed(_RESOURCE_EXHAUSTED, "context exceeds max size")

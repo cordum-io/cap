@@ -1,18 +1,32 @@
 import asyncio
+import json
 import os
 import unittest
 import uuid
-from typing import Awaitable, Callable, Optional
+from dataclasses import replace
+from datetime import datetime, timedelta, timezone
+from typing import Any, Awaitable, Callable, Optional
 
 import nats
 from nats.aio.client import Client as NATSClient
 from nats.aio.msg import Msg
 from nats.aio.subscription import Subscription
 
+from cryptography.hazmat.primitives.asymmetric import ec
+
 from cap.constants import DEFAULT_PROTOCOL_VERSION
+from cap.packet_boundary import finalize_packet
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
+from cap.resource_registry import (
+    InMemoryResourceBackend,
+    ResourceBackendRegistration,
+    ResourceRegistry,
+    TrustedResourceContext,
+)
+from cap.runtime import Agent
 from cap.subjects import SUBJECT_RESULT
 from cap.worker import run_worker
+from tests.worker_trust_runtime_support import trust_config
 
 
 NATS_URL_ENV = "CAP_TEST_NATS_URL"
@@ -217,6 +231,74 @@ class TestWorkerRealNATS(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(worker_connection.client.is_closed)
         finally:
             await _cleanup_task(worker_task)
+            if not submitter.is_closed:
+                await asyncio.wait_for(submitter.drain(), TIMEOUT_SECONDS)
+
+    async def test_context_ref_round_trip_over_real_nats(self) -> None:
+        nats_url = _required_nats_url()
+        suffix = uuid.uuid4().hex
+        topic = f"test.cap.python.agent.{suffix}"
+        job_id = f"job-{suffix}"
+        trace_id = f"trace-{suffix}"
+        scheduler_key = ec.generate_private_key(ec.SECP256R1())
+        config = replace(
+            trust_config(),
+            scheduler_public_keys={"scheduler-pin": scheduler_key.public_key()},
+        )
+        backend = InMemoryResourceBackend()
+        registry = ResourceRegistry(
+            [ResourceBackendRegistration("memory", 1 << 20, backend, backend)]
+        )
+        trusted = TrustedResourceContext(config.tenant_id, job_id)
+        context_ref = await registry.externalize(
+            "memory", json.dumps({"x": 1}).encode("utf-8"),
+            media_type="application/json", purpose="job-context",
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
+            trusted=trusted,
+        )
+        # Warn mode: no scheduler answers the trust exchange, so the worker runs
+        # without a session but still pins the scheduler key and the tenant.
+        agent = Agent(
+            nats_url=nats_url, sender_id=config.worker_id, heartbeat_interval=60,
+            worker_trust_mode="warn", worker_trust=config,
+            worker_trust_timeout=0.5, worker_trust_retries=1,
+            resource_registry=registry, result_backend_id="memory",
+        )
+
+        @agent.job(topic)
+        async def handler(ctx: Any, data: Any) -> Any:
+            return {"y": data["x"] + 1}
+
+        submitter = await _connect("cap-python-integration-submitter", nats_url)
+        results = await submitter.subscribe(SUBJECT_RESULT)
+        await submitter.flush(timeout=TIMEOUT_SECONDS)
+        try:
+            await asyncio.wait_for(agent.start(), TIMEOUT_SECONDS)
+            await agent._nc.flush(timeout=TIMEOUT_SECONDS)
+            packet = buspacket_pb2.BusPacket(
+                trace_id=trace_id,
+                sender_id=config.expected_scheduler_id,
+                protocol_version=DEFAULT_PROTOCOL_VERSION,
+            )
+            packet.created_at.GetCurrentTime()
+            packet.job_request.CopyFrom(
+                job_pb2.JobRequest(job_id=job_id, topic=topic, context_ref=context_ref)
+            )
+            signed = finalize_packet(packet, scheduler_key)
+            await submitter.publish(topic, signed.SerializeToString(deterministic=True))
+            await submitter.flush(timeout=TIMEOUT_SECONDS)
+
+            result = (await _next_result(results, trace_id)).job_result
+            self.assertEqual(job_id, result.job_id)
+            self.assertEqual(job_pb2.JOB_STATUS_SUCCEEDED, result.status)
+            self.assertEqual("", result.result_ptr)
+            self.assertTrue(result.HasField("result_ref"))
+            self.assertEqual("job-result", result.result_ref.purpose)
+            resolved = await registry.resolve(result.result_ref, trusted)
+            self.assertEqual(json.dumps({"y": 2}).encode("utf-8"), resolved.content)
+            self.assertEqual("application/json", resolved.media_type)
+        finally:
+            await asyncio.wait_for(agent.close(), TIMEOUT_SECONDS)
             if not submitter.is_closed:
                 await asyncio.wait_for(submitter.drain(), TIMEOUT_SECONDS)
 

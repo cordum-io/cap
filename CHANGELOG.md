@@ -145,6 +145,18 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   (`"context fetch failed"`, `"context decode failed"`, `"input validation failed"`,
   `"result encode failed"`, `"result write failed"`). The low-level `cap.worker` is unchanged.
 
+- **cap-sdk-python `Agent` reads `context_ref` and writes `result_ref` (no wire change):**
+  `cap.Agent` accepts `resource_registry` (a `cap.ResourceRegistry`), `result_backend_id`
+  and `result_ref_ttl` (seconds, default 3600). With a registry, job input comes only from
+  `JobRequest.context_ref`, resolved with the worker-trust tenant and the admitted job id,
+  never with values from the ref. A missing, refused, non-JSON or oversize ref fails before
+  the handler runs, with the new fixed texts `"context ref required"` and
+  `"context ref refused"` (`ERROR_CODE_JOB_INVALID_INPUT`) or an existing row. SUCCEEDED
+  results carry `result_ref` (`application/json`, purpose `job-result`) and no `result_ptr`.
+  `start()` fails closed, before connecting, without a worker-trust configuration (mode
+  `warn` or `enforce`), and no Redis store is opened. Without a registry, behaviour is
+  unchanged.
+
 ## v2.17.0 — 2026-07-22
 
 - **Go SDK ResourceRef registry:** added an immutable registry of operator-installed

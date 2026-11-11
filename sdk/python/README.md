@@ -282,6 +282,8 @@ Failures the `Agent` detects itself publish `JOB_STATUS_FAILED` with an empty
 | Condition | `error_code_enum` | `error_message` |
 |---|---|---|
 | `context_ptr` is not a valid pointer | `ERROR_CODE_JOB_INVALID_INPUT` | `context pointer invalid` |
+| a `resource_registry` is set and `context_ref` is missing | `ERROR_CODE_JOB_INVALID_INPUT` | `context ref required` |
+| the registry refused `context_ref`, or `context_ptr` names other bytes | `ERROR_CODE_JOB_INVALID_INPUT` | `context ref refused` |
 | context fetch raised or timed out | `ERROR_CODE_UNSPECIFIED` | `context fetch failed` |
 | no context blob at the pointer | `ERROR_CODE_JOB_NOT_FOUND` | `context not found` |
 | context over `max_context_bytes` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `context exceeds max size` |
@@ -291,6 +293,45 @@ Failures the `Agent` detects itself publish `JOB_STATUS_FAILED` with an empty
 | output is not JSON-serializable | `ERROR_CODE_UNSPECIFIED` | `result encode failed` |
 | result over `max_result_bytes` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `result exceeds max size` |
 | result write raised or timed out | `ERROR_CODE_UNSPECIFIED` | `result write failed` |
+
+#### ResourceRef input and output
+
+Pass an operator-built `cap.ResourceRegistry` to read job input from
+`JobRequest.context_ref` and publish results as `JobResult.result_ref`:
+
+```python
+from cap import Agent, InMemoryResourceBackend, ResourceBackendRegistration, ResourceRegistry
+
+backend = InMemoryResourceBackend()  # tests only: install a durable backend in production
+registry = ResourceRegistry([ResourceBackendRegistration("memory", 2 * 1024 * 1024, backend, backend)])
+agent = Agent(
+    resource_registry=registry,
+    result_backend_id="memory",  # required with a registry
+    result_ref_ttl=3600.0,  # seconds; the default
+    worker_trust_mode="enforce",
+    worker_trust=trust,  # a cap.WorkerTrustConfig
+)
+```
+
+- Every resolve and externalize runs under the worker-trust tenant
+  (`worker_trust.tenant_id`) and the admitted job id. Neither comes from the
+  ref. `start()` raises `RuntimeError` before it connects when there is no
+  worker-trust configuration (mode `warn` or `enforce`). No Redis store is opened.
+- Input comes only from `context_ref`. A `context_ptr` sent with it must name
+  the same Redis key (spec/19). A ref whose `media_type` is not
+  `application/json`, or whose `size_bytes` is over `max_context_bytes`, is
+  rejected before any fetch. The handler never runs for a missing, refused or
+  oversize ref, and `retries` never repeats the resolve.
+- A ref over the backend's `max_bytes` publishes `context exceeds max size`. A
+  backend error or timeout publishes `context fetch failed`, and so does another
+  tenant's ref, which the backend cannot find. A non-JSON ref publishes
+  `context decode failed`, and any other registry error `context ref refused`.
+- A SUCCEEDED result is externalized as `application/json` with purpose
+  `job-result`, expiring `result_ref_ttl` seconds later. It carries
+  `result_ref`, and `result_ptr` stays empty. A result over the backend's
+  `max_bytes` publishes `result exceeds max size`; any other failure
+  `result write failed`.
+- Without `resource_registry`, `context_ptr` and `result_ptr` work as before.
 
 ### Middleware
 

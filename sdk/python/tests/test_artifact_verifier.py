@@ -46,11 +46,14 @@ def _metadata(version: str, readme: bytes) -> bytes:
         "protobuf<7,>=6.31.1", "grpcio<2,>=1.76.0", "nats-py>=2.6.0",
         "cryptography>=41.0.0", "pydantic>=2.6.0", "redis>=5.0.0",
         'build<2,>=1.2; extra == "dev"', 'mypy<2,>=1.8; extra == "dev"',
+        'opentelemetry-api<2,>=1.41.1; extra == "dev"',
+        'opentelemetry-sdk<2,>=1.41.1; extra == "dev"',
         'packaging>=23.2; extra == "dev"', 'pdoc>=14.0; extra == "dev"',
         'PyYAML<7,>=6.0; extra == "dev"',
         'pytest<9,>=8.0; extra == "dev"',
         'tomli>=2.0; python_version < "3.11" and extra == "dev"',
         'twine<7,>=5.0; extra == "dev"',
+        'opentelemetry-api<2,>=1.41.1; extra == "otel"',
     )
     header = (
         "Metadata-Version: 2.4\n"

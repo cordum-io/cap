@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cordum.io/cap/tck/public-report-v1.schema.json",
+  "title": "CAP TCK Public Report v1",
+  "description": "Deterministic privacy projection of one TCK report. Only pattern-validated tokens survive: no detail, evidence, adapter, sdk, durations or error text. Cases are strictly sorted by id and the verdict is recomputable from them. Self-hosted evidence, not certification or endorsement.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "tckToolVersion",
+    "profile",
+    "role",
+    "transport",
+    "testedCommit",
+    "implementation",
+    "scenarioManifestSha256",
+    "cases",
+    "verdict"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string", "const": "cap-public-report/v1" },
+    "tckToolVersion": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9.+-]{0,63}(/[A-Za-z0-9][A-Za-z0-9.+-]{0,63})?$" },
+    "profile": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+    "role": { "type": "string", "enum": ["worker", "control-plane"] },
+    "transport": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+    "testedCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "implementation": { "$ref": "#/$defs/implementation" },
+    "scenarioManifestSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "cases": {
+      "description": "Every source case, strictly sorted by id. At least one case is required.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/case" },
+      "contains": { "properties": { "required": { "const": true } } }
+    },
+    "verdict": { "type": "string", "enum": ["PASS", "FAIL", "INCOMPLETE"] }
+  },
+  "$defs": {
+    "implementation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifactName", "artifactSha256"],
+      "properties": {
+        "artifactName": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,127}$" },
+        "artifactSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "required", "status"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*/[a-z0-9]+(-[a-z0-9]+)*$" },
+        "required": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["PASS", "FAIL", "ERROR", "UNSUPPORTED", "N/A"] }
+      }
+    }
+  }
+}

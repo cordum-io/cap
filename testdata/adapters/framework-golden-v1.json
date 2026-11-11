@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "description": "Framework-neutral golden cases every CAP framework adapter replays (design note: docs/adoption/framework-adapters-design.md). A workload is a symbolic name the operator's local registry resolves to a registered factory; limits are operator-provisioned bounds, not packet fields. Every case runs with no network and no LLM.",
+  "cases": [
+    {
+      "id": "success-echo",
+      "title": "Single-step workload returns its input as output",
+      "workload": "echo",
+      "input": {"text": "hello"},
+      "expect": {
+        "status": "JOB_STATUS_SUCCEEDED",
+        "progress": [],
+        "output": {"text": "hello"}
+      }
+    },
+    {
+      "id": "multi-step-progress",
+      "title": "Two-step workload reports ordered progress before its result",
+      "workload": "two-step-upper",
+      "input": {"text": "hello"},
+      "expect": {
+        "status": "JOB_STATUS_SUCCEEDED",
+        "progress": ["upper", "suffix"],
+        "output": {"text": "HELLO!", "steps": ["upper", "suffix"]}
+      }
+    },
+    {
+      "id": "artifact-emitted",
+      "title": "Workload emits one artifact before the terminal result",
+      "workload": "summarize-with-artifact",
+      "input": {"text": "hello"},
+      "expect": {
+        "status": "JOB_STATUS_SUCCEEDED",
+        "progress": ["summarize"],
+        "output": {"summary": "HELLO"},
+        "artifacts": [{"name": "summary", "mediaType": "text/plain", "content": "HELLO"}]
+      }
+    },
+    {
+      "id": "framework-failure-redacted",
+      "title": "Framework exception becomes a bounded failure without leaking exception text",
+      "workload": "raise-in-step",
+      "input": {"canary": "golden-canary-7f3a"},
+      "expect": {
+        "status": "JOB_STATUS_FAILED",
+        "progress": ["prepare"],
+        "errorCode": "ERROR_CODE_UNSPECIFIED",
+        "errorString": "FRAMEWORK_ERROR",
+        "forbiddenText": ["golden-canary-7f3a"]
+      }
+    },
+    {
+      "id": "cancel-mid-run",
+      "title": "JobCancel after the first progress marker stops the run as cancelled",
+      "workload": "wait-for-cancel",
+      "input": {"text": "hello"},
+      "cancel": {"afterProgress": "started"},
+      "expect": {
+        "status": "JOB_STATUS_CANCELLED",
+        "progress": ["started"]
+      }
+    },
+    {
+      "id": "deadline-exceeded",
+      "title": "Budget deadline elapses while the workload is blocked",
+      "workload": "wait-for-cancel",
+      "input": {"text": "hello"},
+      "limits": {"deadlineMs": 250},
+      "expect": {
+        "status": "JOB_STATUS_FAILED",
+        "progress": ["started"],
+        "errorCode": "ERROR_CODE_JOB_TIMEOUT",
+        "errorString": "TIMEOUT"
+      }
+    },
+    {
+      "id": "output-over-bound",
+      "title": "Output larger than the operator bound is refused, not truncated",
+      "workload": "repeat-text",
+      "input": {"text": "x", "times": 4096},
+      "limits": {"maxOutputBytes": 1024},
+      "expect": {
+        "status": "JOB_STATUS_FAILED",
+        "progress": [],
+        "errorCode": "ERROR_CODE_JOB_RESOURCE_EXHAUSTED"
+      }
+    },
+    {
+      "id": "input-rejected",
+      "title": "Input that fails the workload's schema never reaches the framework",
+      "workload": "two-step-upper",
+      "input": {"text": 42},
+      "expect": {
+        "status": "JOB_STATUS_FAILED",
+        "progress": [],
+        "errorCode": "ERROR_CODE_JOB_INVALID_INPUT"
+      }
+    },
+    {
+      "id": "unregistered-workload",
+      "title": "A workload name absent from the operator registry is refused without loading anything",
+      "workload": "not-registered",
+      "input": {"text": "hello"},
+      "expect": {
+        "status": "JOB_STATUS_FAILED",
+        "progress": [],
+        "errorCode": "ERROR_CODE_JOB_NOT_FOUND"
+      }
+    }
+  ]
+}

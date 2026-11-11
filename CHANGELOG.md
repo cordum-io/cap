@@ -54,8 +54,9 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   first release that fixes four reachable advisories govulncheck reports against v0.55.0
   (GO-2026-6603, GO-2026-6611, GO-2026-6612, GO-2026-6617), itself declares `go 1.26.0`.
   Go 1.25 left upstream support when Go 1.27 shipped. Repository builds and CI now use the
-  `go1.26.10` toolchain through the `toolchain` directive, which also clears the standard
-  library advisories fixed through 1.26.10, including GO-2026-6809 in `crypto/x509`; the
+  `go1.26.11` toolchain through the `toolchain` directive, which also clears the standard
+  library advisories fixed through 1.26.11, including GO-2026-6809 in `crypto/x509` and
+  GO-2026-6859 in `net/http`; the
   toolchain line does not apply to consumers.
 - Dependency maintenance: bumped `google.golang.org/grpc` 1.82.1 to 1.83.1 (GO-2026-6348)
   and `golang.org/x/net` 0.55.0 to 0.60.0 (with `x/crypto` 0.57.0, `x/sys` 0.48.0 and
@@ -82,10 +83,44 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   OpenTelemetry messaging span attributes to semantic conventions v1.44.0. The 32 traceparent
   vectors were cross-checked against otel-go v1.47.0, opentelemetry-api 1.41.1 and
   `@opentelemetry/core` 2.12.0.
+- **Spec (no wire change):** added `spec/interop/cloudevents-mapping.md`, a normative
+  CloudEvents 1.0 mapping for CAP job progress, job result, alert and workflow-event
+  packets, and `spec/interop/vectors/cloudevents-v1.json`. It defines `type`, an
+  operator-configured `source`, `subject` and `time`; an `id` that is the verified
+  CAP-PRODUCTION `message_id`, otherwise a SHA-256 over an RFC 8785 form of
+  `{type, subject, time, data}`; JSON `data` with an explicit redaction list; and the
+  `captraceid`, `capworkflowid`, `capstepindex`, `capparentjobid`, `traceparent` and
+  `tracestate` extensions. It is a documented mapping only: no CAP SDK or Cordum component
+  emits these events.
 - Conformance and support-tier truth: `spec/tck/coverage.json` no longer says the
   CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
   test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python
   pending gates and points their real-NATS gates at the fail-closed, CI-mandatory suites.
+- **Go SDK telemetry (no wire change):** added `sdk/go/telemetry`, an OpenTelemetry API
+  adapter for `spec/interop/trace-context.md`. It reads and writes only the lowercase
+  `traceparent` and `tracestate` NATS headers, never `baggage`, uses the W3C trace-context
+  propagator by default, and starts the contract's `publish` (PRODUCER) and `process`
+  (CONSUMER) spans with exactly its attributes and closed `error.type` values. A nil
+  `*telemetry.Config` writes no headers and starts no spans. The Go client and runtime do
+  not use it yet. The module now requires `go.opentelemetry.io/otel` and `otel/trace`
+  v1.47.0; `otel/sdk` v1.47.0 is required only by tests.
+
+- **Python SDK telemetry (no wire change):** added `cap.telemetry`, an OpenTelemetry API
+  adapter for `spec/interop/trace-context.md`. It reads and writes only the lowercase
+  `traceparent` and `tracestate` NATS headers, never `baggage`, uses the W3C trace-context
+  propagator by default, and starts the contract's `publish` (PRODUCER) and `process`
+  (CONSUMER) spans with exactly its attributes and closed `error.type` values. A `None`
+  config writes no headers and starts no spans. OpenTelemetry stays optional: the module
+  imports without it, and `pip install 'cap-sdk-python[otel]'` adds
+  `opentelemetry-api>=1.41.1,<2`. The Python client and runtime do not use it yet.
+
+- **Node SDK `telemetry` namespace:** `telemetry.injectHeaders`, `extract`, `startPublish`
+  and `startProcess` implement the `spec/interop/trace-context.md` contract over NATS headers:
+  only exact lowercase `traceparent` and `tracestate`, never `baggage`, extraction from an
+  empty context, and PRODUCER/CONSUMER messaging spans with the contract's attributes and
+  closed `error.type` values. The types are structural, so cap-sdk-node gains no OpenTelemetry
+  dependency: pass the OpenTelemetry API module and a `W3CTraceContextPropagator` to
+  `telemetry.fromOpenTelemetry`. The client and runtime do not call it yet.
 
 ## v2.17.0 — 2026-07-22
 

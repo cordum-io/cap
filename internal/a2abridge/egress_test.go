@@ -13,6 +13,7 @@ import (
 	mathrandv2 "math/rand/v2"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -99,6 +100,7 @@ func (f *egInputs) PutTurnInput(_ context.Context, key string, data []byte) erro
 type egHarness struct {
 	ing                   *Ingress
 	pub                   *egPublisher
+	results               *egResults
 	worker, sched, bridge *ecdsa.PrivateKey
 }
 
@@ -119,7 +121,7 @@ func egKey(t *testing.T) *ecdsa.PrivateKey {
 // egConfig is a valid Config with ResultKeys {worker-1, cordum-scheduler}.
 func egConfig(t *testing.T) (*egHarness, Config) {
 	t.Helper()
-	h := &egHarness{pub: &egPublisher{}, worker: egKey(t), sched: egKey(t), bridge: egKey(t)}
+	h := &egHarness{pub: &egPublisher{}, results: &egResults{}, worker: egKey(t), sched: egKey(t), bridge: egKey(t)}
 	keys := map[string]Identity{}
 	for k, id := range egIdents {
 		sum := sha256.Sum256([]byte(k))
@@ -127,7 +129,7 @@ func egConfig(t *testing.T) (*egHarness, Config) {
 	}
 	return h, Config{
 		APIKeys: keys, Topic: "job.a2a.agent", SenderID: "a2a-bridge", SigningKey: h.bridge,
-		Publisher: h.pub, Inputs: &egInputs{},
+		Publisher: h.pub, Inputs: &egInputs{}, Results: h.results,
 		Rand: mathrandv2.NewChaCha8([32]byte{9}), Now: func() time.Time { return egNow },
 		ResultKeys: map[string]*ecdsa.PublicKey{egWorker: &h.worker.PublicKey, egSched: &h.sched.PublicKey},
 	}
@@ -378,6 +380,11 @@ func (s *egSubs) Subscribe(subject string, cb nats.MsgHandler) (*nats.Subscripti
 }
 
 func TestStartAndNewFailClosed(t *testing.T) {
+	missing := newEgHarness(t, func(c *Config) { c.Results = nil })
+	missingSub := &egSubs{}
+	if _, err := missing.ing.Start(missingSub); err == nil || len(missingSub.subjects) != 0 {
+		t.Fatal("Start without Results must fail before subscribing")
+	}
 	if _, err := newEgHarness(t).ing.Start(nil); err == nil {
 		t.Fatal("Start(nil) succeeded")
 	}
@@ -470,6 +477,15 @@ func TestEgressOverRealNATS(t *testing.T) {
 	})
 	h.want(t, "key-alice", id1, a2a.TaskStateSubmitted, a2a.TaskStateWorking, a2a.TaskStateFailed)
 	h.want(t, "key-alice", id2, a2a.TaskStateSubmitted, a2a.TaskStateRejected)
+	id3, job3 := h.start(t, "key-alice", "msg-3")
+	publish(capsdk.SubjectProgress, h.progress(t, job3, egRunning))
+	egEventually(t, "task 3 WORKING", func() bool { return h.state("key-alice", id3) == a2a.TaskStateWorking })
+	publish(capsdk.SubjectResult, h.resultEnvelope(t, job3, egComplete("completed")))
+	egEventually(t, "task 3 COMPLETED with artifact", func() bool {
+		got, err := h.ing.GetTask(egAs("key-alice"), &a2a.GetTaskRequest{ID: id3})
+		return err == nil && got.Status.State == a2a.TaskStateCompleted && len(got.Artifacts) == 1
+	})
+	h.want(t, "key-alice", id3, a2a.TaskStateSubmitted, a2a.TaskStateWorking, a2a.TaskStateCompleted)
 	egOK(t, stop())
 	for _, s := range subs.subs {
 		if s.IsValid() {
@@ -485,6 +501,10 @@ var egVectorsInScope = []string{
 	"status-failed", "status-failed-fatal", "status-timeout", "status-denied-rejected",
 	"oversize-part-count-rejected", "url-part-rejected", "duplicate-message-id", "send-to-busy-task",
 	"unknown-task-get-task",
+	"status-succeeded-completed", "input-required", "auth-required", "duplicate-result",
+	"late-conflicting-result", "progress-after-terminal", "invalid-envelope-credential-field",
+	"invalid-envelope-auth-data-part", "missing-envelope", "send-to-terminal-task",
+	"cross-tenant-get-task", "cross-principal-get-task",
 }
 
 type egVecTurn struct {
@@ -499,9 +519,11 @@ type egVecCase struct {
 	Owner     *Identity   `json:"owner"`
 	Turns     []egVecTurn `json:"turns"`
 	CapEvents []struct {
-		Kind      string `json:"kind"`
-		Turn      int    `json:"turn"`
-		JobStatus string `json:"job_status"`
+		Kind      string          `json:"kind"`
+		Turn      int             `json:"turn"`
+		JobStatus string          `json:"job_status"`
+		Envelope  json.RawMessage `json:"envelope"`
+		Duplicate bool            `json:"duplicate"`
 	} `json:"cap_events"`
 	A2ACall *struct {
 		Method  string `json:"method"`
@@ -564,8 +586,8 @@ func TestVectorsAllCases(t *testing.T) {
 	for _, c := range file.Cases {
 		byID[c.ID] = c
 	}
-	if len(egVectorsInScope) != 14 {
-		t.Fatalf("%d vectors in scope, want 14", len(egVectorsInScope))
+	if len(egVectorsInScope) != 26 {
+		t.Fatalf("%d vectors in scope, want 26", len(egVectorsInScope))
 	}
 	for _, id := range egVectorsInScope {
 		c, ok := byID[id]
@@ -581,6 +603,7 @@ func (h *egHarness) egReplay(t *testing.T, c egVecCase, owner string) (a2a.TaskI
 	t.Helper()
 	var task a2a.TaskID
 	jobs, sent := map[int]string{}, 0
+	previous := map[int][]byte{}
 	for _, ev := range c.CapEvents {
 		v, known := agentv1.JobStatus_value[ev.JobStatus]
 		st := agentv1.JobStatus(v)
@@ -598,7 +621,18 @@ func (h *egHarness) egReplay(t *testing.T, c egVecCase, owner string) (a2a.TaskI
 		case ev.Kind == "result" && st == agentv1.JobStatus_JOB_STATUS_DENIED:
 			h.ing.deliver(capsdk.SubjectDLQ, h.dlq(t, jobs[ev.Turn], st))
 		case ev.Kind == "result":
-			h.ing.deliver(capsdk.SubjectResult, h.result(t, jobs[ev.Turn], st))
+			raw := h.result(t, jobs[ev.Turn], st)
+			if st == agentv1.JobStatus_JOB_STATUS_SUCCEEDED {
+				raw = h.resultEnvelope(t, jobs[ev.Turn], ev.Envelope)
+			}
+			if ev.Duplicate {
+				raw = previous[ev.Turn]
+				if raw == nil {
+					t.Fatal("duplicate without a previous result")
+				}
+			}
+			previous[ev.Turn] = raw
+			h.ing.deliver(capsdk.SubjectResult, raw)
 		default:
 			t.Fatalf("unknown cap event %q", ev.Kind)
 		}
@@ -639,12 +673,273 @@ func egRunVector(t *testing.T, c egVecCase) {
 	if st := h.state(caller, task); st != c.ExpectedState || st.Terminal() != c.ExpectedTerminal {
 		t.Fatalf("caller sees %s (terminal %v), want %s (terminal %v)", st, st.Terminal(), c.ExpectedState, c.ExpectedTerminal)
 	}
-	rec, _ := h.ing.store.get(egIdents[owner], string(task))
+	rec, _ := h.ing.store.get(egIdents[caller], string(task))
+	egArtifactOrder(t, rec.events)
 	if order := egStatusOrder(rec.events); !slices.Equal(order, c.ExpectedEventOrder) {
 		t.Fatalf("status events %v, want %v", order, c.ExpectedEventOrder)
 	}
 	req, cancels := h.pub.counts()
 	if req != c.ExpectedPublishes.JobRequest || cancels != c.ExpectedPublishes.JobCancel || cancels != 0 {
 		t.Fatalf("publishes: %d JobRequests, %d JobCancels; want %+v", req, cancels, c.ExpectedPublishes)
+	}
+}
+
+// egResults bounds reads and can gate one key without holding a store lock.
+type egResults struct {
+	sync.Map
+	err     error
+	key     string
+	entered chan struct{}
+	gate    chan struct{}
+}
+
+var _ ResultReader = (*egResults)(nil)
+
+func (r *egResults) ReadResult(ctx context.Context, key string, maxBytes int) ([]byte, error) {
+	if _, ok := ctx.Deadline(); !ok || maxBytes != 262144 {
+		return nil, errors.New("missing read deadline or wrong bound")
+	}
+	if key == r.key && r.gate != nil {
+		select {
+		case r.entered <- struct{}{}:
+		default:
+		}
+		select {
+		case <-r.gate:
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+	if r.err != nil {
+		return nil, r.err
+	}
+	v, ok := r.Load(key)
+	if !ok {
+		return nil, errors.New("missing result")
+	}
+	raw := v.([]byte)
+	if len(raw) > maxBytes {
+		return nil, errors.New("oversize result")
+	}
+	return slices.Clone(raw), nil
+}
+
+func egEnvelope(state, fields string) []byte {
+	return []byte(`{"media_type":"` + EnvelopeMediaType + `","a2a_state":"` + state + `"` + fields + `}`)
+}
+
+const egText = `{"kind":"text","text":"answer"}`
+const egArtifact = `{"artifact_id":"answer","name":"answer","parts":[` + egText + `]}`
+
+func egComplete(state string) []byte {
+	return egEnvelope(state, `,"message":{"parts":[`+egText+`]},"artifacts":[`+egArtifact+`]`)
+}
+
+func (h *egHarness) resultEnvelope(t *testing.T, job string, envelope []byte) []byte {
+	if len(envelope) != 0 && string(envelope) != "null" {
+		h.results.Store("res:"+job, slices.Clone(envelope))
+	}
+	p := egResultPkt(egWorker, job, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+	p.GetJobResult().ResultPtr = "redis://res:" + job
+	return egSign(t, h.worker, p)
+}
+
+func egArtifactOrder(t *testing.T, events []a2a.Event) {
+	t.Helper()
+	for idx, event := range events {
+		if ev, ok := event.(*a2a.TaskArtifactUpdateEvent); ok {
+			if !ev.LastChunk || idx+1 >= len(events) {
+				t.Fatal("artifact missing lastChunk or following status")
+			}
+			if _, ok := events[len(events)-1].(*a2a.TaskStatusUpdateEvent); !ok {
+				t.Fatal("artifact follows final status")
+			}
+		}
+	}
+}
+
+func TestEnvelopeValidation(t *testing.T) {
+	message := func(parts string) string { return `,"message":{"parts":[` + parts + `]}` }
+	text := func(n int) string { return `{"kind":"text","text":` + strconv.Quote(strings.Repeat("x", n)) + `}` }
+	data := func(depth int) string {
+		return `{"kind":"data","data":` + strings.Repeat("[", depth) + "0" + strings.Repeat("]", depth) + `}`
+	}
+	artifacts := func(n int) string {
+		return `,"artifacts":[` + strings.TrimSuffix(strings.Repeat(egArtifact+",", n), ",") + `]`
+	}
+	good := map[string][]byte{
+		"empty completed": egEnvelope("completed", ""),
+		"input required":  egEnvelope("input-required", message(egText)),
+		"auth required":   egEnvelope("auth-required", message(egText)+`,"artifacts":[]`),
+		"depth32":         egEnvelope("completed", message(data(32))),
+		"text65536":       egEnvelope("completed", message(text(65536))),
+		"eight artifacts": egEnvelope("completed", artifacts(8)),
+		"sixteen parts":   egEnvelope("completed", message(strings.TrimSuffix(strings.Repeat(egText+",", 16), ","))),
+		"media type":      egEnvelope("completed", message(`{"kind":"text","text":"ok","media_type":"text/plain"}`)),
+		"large integer":   egEnvelope("completed", message(`{"kind":"data","data":{"n":9007199254740993}}`)),
+	}
+	for name, raw := range good {
+		t.Run(name, func(t *testing.T) {
+			out, err := parseEnvelope(raw)
+			if err != nil || out == nil {
+				t.Fatalf("valid envelope: %v", err)
+			}
+		})
+	}
+	bad := map[string][]byte{
+		"wrong type":             []byte(`{"media_type":"bad","a2a_state":"completed"}`),
+		"unknown state":          egEnvelope("working", ""),
+		"missing message":        egEnvelope("input-required", ""),
+		"unknown member":         egEnvelope("completed", `,"token":"secret"`),
+		"null message":           egEnvelope("completed", `,"message":null`),
+		"null artifacts":         egEnvelope("completed", `,"artifacts":null`),
+		"null artifact":          egEnvelope("completed", `,"artifacts":[null]`),
+		"auth artifact":          egComplete("auth-required"),
+		"auth data":              egEnvelope("auth-required", message(data(1))),
+		"zero parts":             egEnvelope("completed", message("")),
+		"seventeen parts":        egEnvelope("completed", message(strings.TrimSuffix(strings.Repeat(egText+",", 17), ","))),
+		"nine artifacts":         egEnvelope("completed", artifacts(9)),
+		"text65537":              egEnvelope("completed", message(text(65537))),
+		"depth33":                egEnvelope("completed", message(data(33))),
+		"oversize data":          egEnvelope("completed", message(`{"kind":"data","data":`+strconv.Quote(strings.Repeat("x", 65535))+`}`)),
+		"url":                    egEnvelope("completed", message(`{"kind":"url","url":"https://example.test"}`)),
+		"text and data":          egEnvelope("completed", message(`{"kind":"text","text":"x","data":{}}`)),
+		"data and text":          egEnvelope("completed", message(`{"kind":"data","text":"x","data":{}}`)),
+		"null text":              egEnvelope("completed", message(`{"kind":"text","text":null}`)),
+		"empty media type":       egEnvelope("completed", message(`{"kind":"text","text":"x","media_type":""}`)),
+		"null media type":        egEnvelope("completed", message(`{"kind":"text","text":"x","media_type":null}`)),
+		"bad media type":         egEnvelope("completed", message(`{"kind":"text","text":"x","media_type":"not a type"}`)),
+		"bad artifact id":        egEnvelope("completed", `,"artifacts":[{"artifact_id":"a/b","parts":[`+egText+`]}]`),
+		"long artifact name":     egEnvelope("completed", `,"artifacts":[{"artifact_id":"a","name":`+strconv.Quote(strings.Repeat("é", 257))+`,"parts":[`+egText+`]}]`),
+		"null artifact name":     egEnvelope("completed", `,"artifacts":[{"artifact_id":"a","name":null,"parts":[`+egText+`]}]`),
+		"unknown message member": egEnvelope("completed", `,"message":{"parts":[`+egText+`],"token":"secret"}`),
+		"trailing data":          append(egEnvelope("completed", ""), []byte(` {}`)...),
+		"whole envelope bound":   egEnvelope("completed", message(strings.TrimSuffix(strings.Repeat(text(65536)+",", 4), ","))),
+	}
+	for name, raw := range bad {
+		t.Run(name, func(t *testing.T) {
+			if _, err := parseEnvelope(raw); err == nil {
+				t.Fatal("invalid envelope accepted")
+			}
+		})
+	}
+}
+
+func TestSucceededWithoutValidEnvelopeFails(t *testing.T) {
+	for _, mode := range []string{"wrong pointer", "reader error", "oversize", "missing"} {
+		t.Run(mode, func(t *testing.T) {
+			h := newEgHarness(t)
+			id, job := h.start(t, "key-alice", "msg-1")
+			raw := h.resultEnvelope(t, job, egComplete("completed"))
+			switch mode {
+			case "wrong pointer":
+				h.results.Store("res:other", egComplete("completed"))
+				pkt := egResultPkt(egWorker, job, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+				pkt.GetJobResult().ResultPtr = "redis://res:other"
+				raw = egSign(t, h.worker, pkt)
+			case "reader error":
+				h.results.err = errors.New("read failed")
+			case "oversize":
+				h.results.Store("res:"+job, []byte(strings.Repeat("x", 262145)))
+			case "missing":
+				h.results.Delete("res:" + job)
+			}
+			h.ing.deliver(capsdk.SubjectResult, raw)
+			h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateFailed)
+		})
+	}
+}
+
+func egWait(t *testing.T, ch <-chan struct{}, what string) {
+	t.Helper()
+	select {
+	case <-ch:
+	case <-time.After(5 * time.Second):
+		t.Fatalf("timed out waiting for %s", what)
+	}
+}
+
+func TestDuplicateResultCausesOneTransition(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	raw := h.resultEnvelope(t, job, egComplete("completed"))
+	done := make(chan struct{}, 16)
+	for range 16 {
+		go func() { h.ing.deliver(capsdk.SubjectResult, raw); done <- struct{}{} }()
+	}
+	for range 16 {
+		egWait(t, done, "duplicate delivery")
+	}
+	h.ing.deliver(capsdk.SubjectResult, raw)
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateCompleted)
+	rec, _ := h.ing.store.get(egIdents["key-alice"], string(id))
+	if len(rec.events) != 3 || len(rec.task().Artifacts) != 1 {
+		t.Fatalf("events=%d artifacts=%d", len(rec.events), len(rec.task().Artifacts))
+	}
+	egArtifactOrder(t, rec.events)
+	// A stale completion without a live reservation must never replace a winner (E32).
+	h2 := newEgHarness(t)
+	id2, job2 := h2.start(t, "key-alice", "msg-2")
+	h2.ing.deliver(capsdk.SubjectDLQ, h2.dlq(t, job2, agentv1.JobStatus_JOB_STATUS_DENIED))
+	out, err := parseEnvelope(egComplete("completed"))
+	egOK(t, err)
+	h2.ing.store.commitResult(job2, 1, out, egNow)
+	h2.want(t, "key-alice", id2, a2a.TaskStateSubmitted, a2a.TaskStateRejected)
+}
+
+func TestDuplicateInterruptedResultAppliesOnce(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	raw := h.resultEnvelope(t, job, egComplete("input-required"))
+	h.ing.deliver(capsdk.SubjectResult, raw)
+	h.ing.deliver(capsdk.SubjectResult, raw)
+	h.ing.deliver(capsdk.SubjectResult, h.result(t, job, egFailed))
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired)
+	got, err := h.ing.GetTask(egAs("key-alice"), &a2a.GetTaskRequest{ID: id})
+	egOK(t, err)
+	if got.Status.State.Terminal() || len(got.Artifacts) != 1 || len(got.History) != 2 {
+		t.Fatalf("wrong interrupted task: %+v", got)
+	}
+	msg := got.Status.Message
+	if msg == nil || msg.Role != a2a.MessageRoleAgent || msg.TaskID != id || msg.ContextID != got.ContextID || got.History[1].ID != msg.ID {
+		t.Fatal("status/history message binding")
+	}
+	rec, _ := h.ing.store.get(egIdents["key-alice"], string(id))
+	if len(rec.events) != 3 {
+		t.Fatalf("events=%d", len(rec.events))
+	}
+	egArtifactOrder(t, rec.events)
+}
+
+func TestFirstTerminalIsReservedBeforeTheEnvelopeRead(t *testing.T) {
+	for _, mode := range []string{"dlq-during-read", "reader-error-still-wins"} {
+		t.Run(mode, func(t *testing.T) {
+			h := newEgHarness(t)
+			id, job := h.start(t, "key-alice", "msg-1")
+			h.results.key, h.results.entered, h.results.gate = "res:"+job, make(chan struct{}, 1), make(chan struct{})
+			if mode == "reader-error-still-wins" {
+				h.results.err = errors.New("read failed")
+			}
+			raw := h.resultEnvelope(t, job, egComplete("completed"))
+			done := make(chan struct{})
+			go func() { h.ing.deliver(capsdk.SubjectResult, raw); close(done) }()
+			egWait(t, h.results.entered, "envelope read")
+			h.ing.deliver(capsdk.SubjectDLQ, h.dlq(t, job, agentv1.JobStatus_JOB_STATUS_DENIED))
+			h.ing.deliver(capsdk.SubjectProgress, h.progress(t, job, egRunning))
+			h.want(t, "key-alice", id, a2a.TaskStateSubmitted)
+			close(h.results.gate)
+			egWait(t, done, "settled result")
+			state, artifacts, events := a2a.TaskStateCompleted, 1, 3
+			if h.results.err != nil {
+				state, artifacts, events = a2a.TaskStateFailed, 0, 2
+			}
+			h.ing.deliver(capsdk.SubjectDLQ, h.dlq(t, job, agentv1.JobStatus_JOB_STATUS_DENIED))
+			h.want(t, "key-alice", id, a2a.TaskStateSubmitted, state)
+			rec, _ := h.ing.store.get(egIdents["key-alice"], string(id))
+			if len(rec.events) != events || len(rec.task().Artifacts) != artifacts {
+				t.Fatal("wrong event/artifact count")
+			}
+			egArtifactOrder(t, rec.events)
+		})
 	}
 }

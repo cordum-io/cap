@@ -109,24 +109,28 @@ func (f *fixture) scheduler(change func(*rs.Config)) *rs.Scheduler {
 	if err != nil {
 		f.t.Fatalf("New: %v", err)
 	}
-	if s == nil {
-		f.t.Fatal("New returned nil scheduler")
-	}
+	require(f.t, s != nil, "New returned nil scheduler")
 	return s
 }
 func (f *fixture) ref(size uint64) *agentv1.ResourceRef {
-	return &agentv1.ResourceRef{ResolverId: "nats-kv", Uri: "nats-kv://acceptance/" + f.tenantA + "/" + strings.Repeat("01", 32),
+	bucket := "acceptance"
+	if strings.Contains(f.tenantA, "CANARY") {
+		bucket = "bucket-CANARY"
+	}
+	return &agentv1.ResourceRef{ResolverId: "nats-kv", Uri: "nats-kv://" + bucket + "/" + f.tenantA + "/" + strings.Repeat("01", 32),
 		Sha256: []byte(strings.Repeat("\x01", 32)), MediaType: "application/json", SizeBytes: size}
 }
 func (f *fixture) request(id string) *agentv1.JobRequest {
 	return &agentv1.JobRequest{JobId: id, Topic: f.topicA, TenantId: f.tenantA,
-		Meta: &agentv1.JobMetadata{Capability: f.capability}, ContextRef: f.ref(512)}
+		Meta: &agentv1.JobMetadata{Capability: f.capability}, ContextRef: f.ref(512),
+		Labels: map[string]string{"canary": "label-CANARY-5a"}}
 }
 func progress(id string, d *agentv1.DispatchIdentity) *agentv1.JobProgress {
 	return &agentv1.JobProgress{JobId: id, Status: agentv1.JobStatus_JOB_STATUS_RUNNING, Dispatch: proto.Clone(d).(*agentv1.DispatchIdentity)}
 }
 func (f *fixture) result(d *agentv1.DispatchIdentity, status agentv1.JobStatus) *agentv1.JobResult {
-	return &agentv1.JobResult{JobId: f.jobID, Status: status, Dispatch: proto.Clone(d).(*agentv1.DispatchIdentity), ResultRef: f.ref(128)}
+	return &agentv1.JobResult{JobId: f.jobID, Status: status, Dispatch: proto.Clone(d).(*agentv1.DispatchIdentity), ResultRef: f.ref(128),
+		ResultPtr: "ptr-CANARY-3a", ErrorMessage: "message-CANARY-4a"}
 }
 func cancelOf(id string) *agentv1.JobCancel { return &agentv1.JobCancel{JobId: id} }
 func (f *fixture) envelope(subject, tenant, sender string, payload proto.Message) *agentv1.BusPacket {
@@ -228,42 +232,27 @@ func requireErr(t *testing.T, got, want error) {
 }
 func requireStatus(t *testing.T, j rs.Job, want agentv1.JobStatus) {
 	t.Helper()
-	if j.Status != want {
-		t.Fatalf("status: %v; want %v", j.Status, want)
-	}
+	require(t, j.Status == want, fmt.Sprintf("status: %v; want %v", j.Status, want))
 }
 func diffJob(a, b rs.Job) string {
-	if a.TenantID != b.TenantID || a.JobID != b.JobID || a.Topic != b.Topic || a.Capability != b.Capability {
-		return "identity"
-	}
-	if a.Status != b.Status {
-		return "status"
-	}
-	if a.Acked != b.Acked {
-		return "acked"
-	}
-	if !proto.Equal(a.Dispatch, b.Dispatch) {
-		return "dispatch"
-	}
-	if !proto.Equal(a.Result, b.Result) {
-		return "result"
-	}
-	if len(a.Artifacts) != len(b.Artifacts) {
-		return "artifact count"
+	for _, field := range []struct {
+		name  string
+		equal bool
+	}{
+		{"identity", a.TenantID == b.TenantID && a.JobID == b.JobID && a.Topic == b.Topic && a.Capability == b.Capability},
+		{"status", a.Status == b.Status}, {"acked", a.Acked == b.Acked},
+		{"dispatch", proto.Equal(a.Dispatch, b.Dispatch)}, {"result", proto.Equal(a.Result, b.Result)},
+		{"artifact count", len(a.Artifacts) == len(b.Artifacts)},
+		{"deadline", a.Deadline.Equal(b.Deadline)}, {"dispatched at", a.DispatchedAt.Equal(b.DispatchedAt)}, {"updated at", a.UpdatedAt.Equal(b.UpdatedAt)},
+	} {
+		if !field.equal {
+			return field.name
+		}
 	}
 	for i := range a.Artifacts {
 		if !proto.Equal(a.Artifacts[i], b.Artifacts[i]) {
 			return "artifact"
 		}
-	}
-	if !a.Deadline.Equal(b.Deadline) {
-		return "deadline"
-	}
-	if !a.DispatchedAt.Equal(b.DispatchedAt) {
-		return "dispatched at"
-	}
-	if !a.UpdatedAt.Equal(b.UpdatedAt) {
-		return "updated at"
 	}
 	return ""
 }
@@ -302,7 +291,6 @@ func cases(t *testing.T, rows []stateCase) {
 		t.Run(row.name, func(t *testing.T) { f := newFixture(t); s := f.scheduler(row.configure); row.check(f, s) })
 	}
 }
-
 func TestAcceptanceFixtures(t *testing.T) {
 	for _, tc := range []struct {
 		name, mode string
@@ -317,44 +305,39 @@ func TestAcceptanceFixtures(t *testing.T) {
 			v, e := f.tryPacket(p, tc.mode)
 			requireErr(t, e, tc.want)
 			if tc.want != nil {
-				if v.IsVerified() {
-					t.Fatal("rejected packet is verified")
-				}
+				require(t, !v.IsVerified(), "rejected packet is verified")
 				return
 			}
-			if !v.IsVerified() || v.Subject() != rs.SubjectSubmit || v.Tenant() != f.tenantA || v.Sender() != f.clientA {
-				t.Fatal("wrong verified authority")
-			}
+			require(t, !(!v.IsVerified() || v.Subject() != rs.SubjectSubmit || v.Tenant() != f.tenantA || v.Sender() != f.clientA), "wrong verified authority")
 			got := v.Packet()
 			got.Signature = nil
-			if !proto.Equal(got, p) {
-				t.Fatal("verified payload differs")
-			}
+			require(t, proto.Equal(got, p), "verified payload differs")
 		})
 	}
 	t.Run("zero_value_is_unverified", func(t *testing.T) {
-		if (capsdk.VerifiedProductionPacket{}).IsVerified() {
-			t.Fatal("zero proof is verified")
-		}
+		require(t, !((capsdk.VerifiedProductionPacket{}).IsVerified()), "zero proof is verified")
 	})
 	t.Run("fake_clock_is_exact", func(t *testing.T) {
 		f := newFixture(t)
 		at := time.Date(2030, 1, 2, 3, 4, 5, 0, time.UTC)
-		if !f.clock.Now().Equal(at) {
-			t.Fatal("clock origin")
-		}
+		require(t, f.clock.Now().Equal(at), "clock origin")
 		f.clock.Advance(time.Second + time.Nanosecond)
-		if !f.clock.Now().Equal(at.Add(time.Second + time.Nanosecond)) {
-			t.Fatal("clock advance")
-		}
+		require(t, f.clock.Now().Equal(at.Add(time.Second+time.Nanosecond)), "clock advance")
 	})
 }
-
 func TestStateCoreAcceptance(t *testing.T) {
 	t.Run("B00_config_fails_closed", configCases)
 	t.Run("B01_verified_packets_only", admissionCases)
 	t.Run("B02_tenant_and_subject_isolation", isolationCases)
 	t.Run("B03_correlation_reserved_before_publish", dispatchCases)
+	t.Run("B04_duplicate_submit_idempotent", duplicateCases)
+	t.Run("B05_result_before_ack_not_lost", ackCases)
+	t.Run("B06_retry_fences_attempts", retryCases)
+	t.Run("B07_cancel_result_race_one_winner", terminalCases)
+	t.Run("B08_artifacts_only_before_terminal", artifactCases)
+	t.Run("B09_size_bounds", sizeCases)
+	t.Run("B10_injected_clock_deadlines", deadlineCases)
+	t.Run("B11_error_text_canary", canaryCases)
 }
 
 // B00: section 2.5 New, including nil dispatch-ID source (R9).
@@ -385,9 +368,7 @@ func configCases(t *testing.T) {
 			tc.change(&c)
 			s, e := rs.New(c)
 			requireErr(t, e, tc.want)
-			if tc.want == nil && s == nil {
-				t.Fatal("nil scheduler")
-			}
+			require(t, !(tc.want == nil && s == nil), "nil scheduler")
 		})
 	}
 }
@@ -544,11 +525,9 @@ func isolationSubmit(f *fixture, s *rs.Scheduler, name string) {
 		r.Meta.Capability = "acceptance.other"
 	case "tenant_mirror_mismatch_records_nothing":
 		tenant = f.tenantB
-		r.JobId = "job-4"
-		want = rs.ErrInvalidJob
+		r.JobId, want = "job-4", rs.ErrInvalidJob
 	case "empty_tenant_mirror_is_accepted":
-		r.TenantId = ""
-		want = nil
+		r.TenantId, want = "", nil
 	}
 	f.clock.Advance(time.Second)
 	j, e := s.Submit(f.packet(rs.SubjectSubmit, tenant, f.clientA, r))
@@ -610,9 +589,7 @@ func dispatchCases(t *testing.T) {
 			got := []string{rs.SubjectSubmit, rs.SubjectResult, rs.SubjectProgress, rs.SubjectCancel, rs.SubjectClientCancel, rs.SubjectTerminal, rs.WorkerSubject("w-1")}
 			want := []string{"sys.job.submit", "sys.job.result", "sys.job.progress", "sys.job.cancel", "refsched.job.cancel", "refsched.job.terminal", "worker.w-1.jobs"}
 			for i := range want {
-				if got[i] != want[i] {
-					f.t.Fatalf("subject %d: %q; want %q", i, got[i], want[i])
-				}
+				require(f.t, got[i] == want[i], fmt.Sprintf("subject %d: %q; want %q", i, got[i], want[i]))
 			}
 		}, nil},
 		{"redispatch_is_refused", func(f *fixture, s *rs.Scheduler) {
@@ -642,17 +619,13 @@ func dispatchCases(t *testing.T) {
 			f.jobID = "job-2"
 			d2 := f.dispatch(s)
 			rx := regexp.MustCompile("^[0-9a-f]{32}$")
-			if !rx.MatchString(d1.Identity.GetDispatchId()) || !rx.MatchString(d2.Identity.GetDispatchId()) || d1.Identity.GetDispatchId() == d2.Identity.GetDispatchId() {
-				f.t.Fatal("default dispatch IDs must be distinct 128-bit lowercase hex")
-			}
+			require(f.t, rx.MatchString(d1.Identity.GetDispatchId()) && rx.MatchString(d2.Identity.GetDispatchId()) && d1.Identity.GetDispatchId() != d2.Identity.GetDispatchId(), "default dispatch IDs must be distinct 128-bit lowercase hex")
 		}, func(c *rs.Config) { c.NewDispatchID = nil }},
 		{"failing_dispatch_id_source_reserves_nothing", func(f *fixture, s *rs.Scheduler) {
 			before := f.submit(s)
 			f.clock.Advance(time.Second)
 			_, e := s.Dispatch(f.tenantA, f.jobID, f.workerA)
-			if e == nil {
-				f.t.Fatal("ID source failure accepted")
-			}
+			require(f.t, e != nil, "ID source failure accepted")
 			f.requireUnchanged(s, before)
 		}, func(c *rs.Config) {
 			c.NewDispatchID = func() (string, error) { return "", errors.New("test ID source failure") }
@@ -668,10 +641,732 @@ func dispatchReservation(f *fixture, s *rs.Scheduler) {
 	identity := &agentv1.DispatchIdentity{DispatchId: "dispatch-0001", Attempt: 1, AssignedWorkerId: f.workerA}
 	req := f.request(f.jobID)
 	req.Dispatch = identity
-	if d.TenantID != f.tenantA || d.JobID != f.jobID || d.Subject != "worker.worker-a.jobs" || d.Subject != rs.WorkerSubject(f.workerA) || !proto.Equal(d.Identity, identity) || !proto.Equal(d.Request, req) {
-		f.t.Fatalf("dispatch: %+v", d)
-	}
+	require(f.t, !(d.TenantID != f.tenantA || d.JobID != f.jobID || d.Subject != "worker.worker-a.jobs" || d.Subject != rs.WorkerSubject(f.workerA) || !proto.Equal(d.Identity, identity) || !proto.Equal(d.Request, req)), fmt.Sprintf("dispatch: %+v", d))
 	want := rs.Job{TenantID: f.tenantA, JobID: f.jobID, Topic: f.topicA, Capability: f.capability, Status: agentv1.JobStatus_JOB_STATUS_DISPATCHED,
 		Dispatch: identity, DispatchedAt: at, Deadline: at.Add(5 * time.Minute), UpdatedAt: at}
 	requireJob(f.t, f.get(s), want)
+}
+func namedCases(t *testing.T, names string, check func(*fixture, *rs.Scheduler, string), configure func(string, *rs.Config)) {
+	t.Helper()
+	for _, name := range strings.Fields(names) {
+		t.Run(name, func(t *testing.T) {
+			f := newFixture(t)
+			s := f.scheduler(func(c *rs.Config) {
+				if configure != nil {
+					configure(name, c)
+				}
+			})
+			check(f, s, name)
+		})
+	}
+}
+func (f *fixture) applyResult(s *rs.Scheduler, r *agentv1.JobResult, want error, status agentv1.JobStatus) rs.Job {
+	f.t.Helper()
+	j, e := s.ApplyResult(f.packet(rs.SubjectResult, f.tenantA, f.workerA, r))
+	requireErr(f.t, e, want)
+	requireStatus(f.t, j, status)
+	requireJob(f.t, j, f.get(s))
+	return j
+}
+func (f *fixture) applyProgress(s *rs.Scheduler, p *agentv1.JobProgress) rs.Job {
+	f.t.Helper()
+	j, e := s.ApplyProgress(f.packet(rs.SubjectProgress, f.tenantA, f.workerA, p))
+	requireErr(f.t, e, nil)
+	requireStatus(f.t, j, agentv1.JobStatus_JOB_STATUS_RUNNING)
+	requireJob(f.t, j, f.get(s))
+	return j
+}
+func (f *fixture) cancel(s *rs.Scheduler) rs.Job {
+	f.t.Helper()
+	j, e := s.Cancel(f.packet(rs.SubjectClientCancel, f.tenantA, f.clientA, cancelOf(f.jobID)))
+	requireErr(f.t, e, nil)
+	requireStatus(f.t, j, agentv1.JobStatus_JOB_STATUS_CANCELLED)
+	requireJob(f.t, j, f.get(s))
+	return j
+}
+func requireResult(t *testing.T, j rs.Job, r *agentv1.JobResult) {
+	t.Helper()
+	require(t, proto.Equal(j.Result, r), fmt.Sprintf("result: %v; want %v", j.Result, r))
+}
+
+// B04: section 2.5 Submit proto.Equal idempotency and Job deep-copy contract (R1).
+func duplicateCases(t *testing.T) {
+	namedCases(t, "identical_request_new_packet duplicate_after_dispatch different_context_ref_conflicts different_labels_conflicts snapshots_are_deep_copies", func(f *fixture, s *rs.Scheduler, name string) {
+		if name == "snapshots_are_deep_copies" {
+			snapshotCopies(f, s)
+			return
+		}
+		f.submit(s)
+		if name == "duplicate_after_dispatch" {
+			_, e := s.Dispatch(f.tenantA, f.jobID, f.workerA)
+			requireErr(f.t, e, nil)
+		}
+		before := f.get(s)
+		r := f.request(f.jobID)
+		var want error
+		switch name {
+		case "different_context_ref_conflicts":
+			r.ContextRef.Sha256[0] = 2
+			want = rs.ErrJobConflict
+		case "different_labels_conflicts":
+			r.Labels, want = map[string]string{"changed": "yes"}, rs.ErrJobConflict
+		}
+		f.clock.Advance(time.Second)
+		j, e := s.Submit(f.packet(rs.SubjectSubmit, f.tenantA, f.clientA, r))
+		requireErr(f.t, e, want)
+		f.requireUnchanged(s, before)
+		if want == nil {
+			requireJob(f.t, j, before)
+			requireJob(f.t, j, f.get(s))
+		}
+	}, nil)
+}
+func snapshotCopies(f *fixture, s *rs.Scheduler) {
+	d := f.dispatch(s)
+	p := progress(f.jobID, d.Identity)
+	p.ArtifactRefs = []*agentv1.ResourceRef{f.ref(1)}
+	f.applyProgress(s, p)
+	r := f.result(d.Identity, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+	f.applyResult(s, r, nil, r.Status)
+	j := f.get(s)
+	j.Dispatch.DispatchId = "changed"
+	j.Artifacts[0].Uri = "changed"
+	j.Result.ResultRef.Uri = "changed"
+	j.Artifacts = append(j.Artifacts, f.ref(9))
+	fresh := f.get(s)
+	require(f.t, !(fresh.Dispatch.GetDispatchId() != "dispatch-0001" || len(fresh.Artifacts) != 1 || fresh.Artifacts[0].GetUri() != f.ref(1).Uri || fresh.Result.GetResultRef().GetUri() != f.ref(128).Uri), "snapshot mutation leaked into stored job")
+}
+
+// B05: section 2.5 AckDispatch and R7/R8 preserve updates that precede the ack.
+func ackCases(t *testing.T) {
+	namedCases(t, "result_before_ack_is_kept progress_before_ack_is_kept ack_marks_current_dispatch ack_with_other_dispatch_id ack_with_other_attempt ack_unknown_job", func(f *fixture, s *rs.Scheduler, name string) {
+		d := f.dispatch(s)
+		if strings.Contains(name, "before_ack") {
+			var j rs.Job
+			if name == "result_before_ack_is_kept" {
+				r := f.result(d.Identity, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+				j = f.applyResult(s, r, nil, r.Status)
+				requireResult(f.t, j, r)
+			} else {
+				j = f.applyProgress(s, progress(f.jobID, d.Identity))
+			}
+			require(f.t, !j.Acked, "ack recorded before acknowledgement")
+			f.clock.Advance(time.Second)
+			requireErr(f.t, s.AckDispatch(d), nil)
+			f.requireUnchanged(s, j)
+			f.clock.Advance(31 * time.Second)
+			requireTickEmpty(f, s)
+			f.requireUnchanged(s, j)
+			return
+		}
+		if name == "ack_marks_current_dispatch" {
+			before := f.get(s)
+			before.Acked = true
+			requireErr(f.t, s.AckDispatch(d), nil)
+			requireJob(f.t, f.get(s), before)
+			requireErr(f.t, s.AckDispatch(d), nil)
+			requireJob(f.t, f.get(s), before)
+			return
+		}
+		want := rs.ErrStaleAttempt
+		d.Identity = proto.Clone(d.Identity).(*agentv1.DispatchIdentity)
+		switch name {
+		case "ack_with_other_dispatch_id":
+			d.Identity.DispatchId = "other"
+		case "ack_with_other_attempt":
+			d.Identity.Attempt++
+		case "ack_unknown_job":
+			d.JobID = "job-404"
+			want = rs.ErrJobNotFound
+		}
+		f.refused(s, want, func() error { return s.AckDispatch(d) })
+	}, nil)
+}
+
+// B06: section 2.1 retry exhaustion and section 2.5 active-identity fence (R1,R5).
+func retryCases(t *testing.T) {
+	namedCases(t, "retryable_failure_reschedules stale_progress_after_retry stale_result_after_retry future_attempt other_dispatch_id stale_ack_after_retry current_attempt_completes attempts_exhausted_is_failed single_attempt_fails_at_once fatal_failure_is_terminal", retryCheck, func(name string, c *rs.Config) {
+		if name == "attempts_exhausted_is_failed" {
+			c.Limits.MaxAttempts = 2
+		}
+		if name == "single_attempt_fails_at_once" {
+			c.Limits.MaxAttempts = 1
+		}
+	})
+}
+func retryCheck(f *fixture, s *rs.Scheduler, name string) {
+	d1 := f.run(s)
+	r := f.result(d1.Identity, agentv1.JobStatus_JOB_STATUS_FAILED_RETRYABLE)
+	r.ErrorCode = "TRANSIENT"
+	r.ErrorCodeEnum = agentv1.ErrorCode_ERROR_CODE_JOB_WORKER_UNAVAILABLE
+	if name == "fatal_failure_is_terminal" {
+		r.Status = agentv1.JobStatus_JOB_STATUS_FAILED_FATAL
+		requireResult(f.t, f.applyResult(s, r, nil, r.Status), r)
+		refuseRedispatch(f, s)
+		return
+	}
+	if name == "single_attempt_fails_at_once" {
+		j := f.applyResult(s, r, nil, agentv1.JobStatus_JOB_STATUS_FAILED)
+		requireRetryCodes(f, j)
+		return
+	}
+	j := f.applyResult(s, r, nil, agentv1.JobStatus_JOB_STATUS_SCHEDULED)
+	require(f.t, j.Result == nil, "retry retained terminal result")
+	d2, e := s.Dispatch(f.tenantA, f.jobID, f.workerA)
+	requireErr(f.t, e, nil)
+	require(f.t, proto.Equal(d2.Identity, &agentv1.DispatchIdentity{DispatchId: "dispatch-0002", Attempt: 2, AssignedWorkerId: f.workerA}), fmt.Sprintf("retry identity: %v", d2.Identity))
+	j = f.get(s)
+	requireStatus(f.t, j, agentv1.JobStatus_JOB_STATUS_DISPATCHED)
+	require(f.t, !j.Acked, "retry is already acked")
+	switch name {
+	case "retryable_failure_reschedules":
+		return
+	case "attempts_exhausted_is_failed":
+		r.Dispatch = proto.Clone(d2.Identity).(*agentv1.DispatchIdentity)
+		j = f.applyResult(s, r, nil, agentv1.JobStatus_JOB_STATUS_FAILED)
+		requireRetryCodes(f, j)
+		refuseRedispatch(f, s)
+	case "current_attempt_completes":
+		f.applyProgress(s, progress(f.jobID, d2.Identity))
+		r = f.result(d2.Identity, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+		requireResult(f.t, f.applyResult(s, r, nil, r.Status), r)
+	default:
+		retryRefusal(f, s, d1, d2, name)
+	}
+}
+func requireRetryCodes(f *fixture, j rs.Job) {
+	require(f.t, !(j.Result.GetErrorCode() != "TRANSIENT" || j.Result.GetErrorCodeEnum() != agentv1.ErrorCode_ERROR_CODE_JOB_WORKER_UNAVAILABLE), fmt.Sprintf("retry exhaustion codes: %v", j.Result))
+}
+func refuseRedispatch(f *fixture, s *rs.Scheduler) {
+	f.refused(s, rs.ErrTerminal, func() error { _, e := s.Dispatch(f.tenantA, f.jobID, f.workerA); return e })
+}
+func retryRefusal(f *fixture, s *rs.Scheduler, d1, d2 rs.Dispatch, name string) {
+	d := proto.Clone(d1.Identity).(*agentv1.DispatchIdentity)
+	if name == "future_attempt" || name == "other_dispatch_id" {
+		d = proto.Clone(d2.Identity).(*agentv1.DispatchIdentity)
+		if name == "future_attempt" {
+			d.Attempt = 3
+		} else {
+			d.DispatchId = "dispatch-9999"
+		}
+	}
+	f.refused(s, rs.ErrStaleAttempt, func() error {
+		if name == "stale_ack_after_retry" {
+			return s.AckDispatch(d1)
+		}
+		if name == "stale_progress_after_retry" {
+			_, e := s.ApplyProgress(f.packet(rs.SubjectProgress, f.tenantA, f.workerA, progress(f.jobID, d)))
+			return e
+		}
+		_, e := s.ApplyResult(f.packet(rs.SubjectResult, f.tenantA, f.workerA, f.result(d, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)))
+		return e
+	})
+}
+
+// B07: section 2.5 Cancel/terminal rules and R4; only the first terminal wins.
+func terminalCases(t *testing.T) {
+	namedCases(t, "cancel_scheduled cancel_dispatched cancel_running cancel_terminal_returns_winner result_after_cancel_is_refused repeat_of_winning_result_is_accepted conflicting_result_after_terminal worker_cancelled_on_running_job_is_refused worker_cancelled_after_client_cancel_is_accepted cancel_vs_result_race", terminalCheck, nil)
+}
+func terminalCheck(f *fixture, s *rs.Scheduler, name string) {
+	if name == "cancel_vs_result_race" {
+		for trial := 0; trial < 32; trial++ {
+			if trial > 0 {
+				f = newFixture(f.t)
+				s = f.scheduler(nil)
+			}
+			terminalRace(f, s)
+		}
+		return
+	}
+	if name == "cancel_scheduled" {
+		f.submit(s)
+		f.cancel(s)
+		return
+	}
+	if name == "cancel_dispatched" {
+		f.dispatch(s)
+		f.cancel(s)
+		return
+	}
+	terminalRunning(f, s, name)
+}
+func terminalRunning(f *fixture, s *rs.Scheduler, name string) {
+	d := f.run(s)
+	if name == "cancel_running" {
+		f.cancel(s)
+		return
+	}
+	r := f.result(d.Identity, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+	if name == "worker_cancelled_on_running_job_is_refused" {
+		r.Status = agentv1.JobStatus_JOB_STATUS_CANCELLED
+		f.refused(s, rs.ErrInvalidTransition, func() error { _, e := s.ApplyResult(f.packet(rs.SubjectResult, f.tenantA, f.workerA, r)); return e })
+		return
+	}
+	if name == "result_after_cancel_is_refused" || name == "worker_cancelled_after_client_cancel_is_accepted" {
+		f.cancel(s)
+	} else {
+		requireResult(f.t, f.applyResult(s, r, nil, r.Status), r)
+	}
+	before := f.get(s)
+	want := rs.ErrTerminal
+	if name == "repeat_of_winning_result_is_accepted" {
+		want = nil
+	}
+	if name == "conflicting_result_after_terminal" {
+		r.Status = agentv1.JobStatus_JOB_STATUS_FAILED
+	}
+	if name == "worker_cancelled_after_client_cancel_is_accepted" {
+		r.Status, want = agentv1.JobStatus_JOB_STATUS_CANCELLED, nil
+	}
+	f.clock.Advance(time.Second)
+	var j rs.Job
+	var e error
+	if name == "cancel_terminal_returns_winner" {
+		j, e = s.Cancel(f.packet(rs.SubjectClientCancel, f.tenantA, f.clientA, cancelOf(f.jobID)))
+	} else {
+		j, e = s.ApplyResult(f.packet(rs.SubjectResult, f.tenantA, f.workerA, r))
+	}
+	requireErr(f.t, e, want)
+	if name == "worker_cancelled_after_client_cancel_is_accepted" {
+		requireStatus(f.t, j, agentv1.JobStatus_JOB_STATUS_CANCELLED)
+		requireJob(f.t, j, f.get(s))
+		return
+	}
+	requireJob(f.t, j, before)
+	f.requireUnchanged(s, before)
+}
+func terminalRace(f *fixture, s *rs.Scheduler) {
+	d := f.run(s)
+	packets := make([]capsdk.VerifiedProductionPacket, 16)
+	results := make([]*agentv1.JobResult, 16)
+	for i := range packets {
+		if i < 8 {
+			c := cancelOf(f.jobID)
+			c.Reason = fmt.Sprintf("race-%d", i)
+			packets[i] = f.packet(rs.SubjectClientCancel, f.tenantA, f.clientA, c)
+		} else {
+			results[i] = f.result(d.Identity, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+			results[i].ExecutionMs = int64(i + 1)
+			packets[i] = f.packet(rs.SubjectResult, f.tenantA, f.workerA, results[i])
+		}
+	}
+	racePackets(f, s, packets, results)
+}
+func racePackets(f *fixture, s *rs.Scheduler, packets []capsdk.VerifiedProductionPacket, results []*agentv1.JobResult) {
+	out := make([]struct {
+		job rs.Job
+		err error
+	}, len(packets))
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := range packets {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			<-start
+			if i < 8 {
+				out[i].job, out[i].err = s.Cancel(packets[i])
+			} else {
+				out[i].job, out[i].err = s.ApplyResult(packets[i])
+			}
+		}(i)
+	}
+	close(start)
+	wg.Wait()
+	winner := -1
+	for i, item := range out {
+		if item.err == nil {
+			require(f.t, winner == -1, "multiple terminal winners")
+			winner = i
+		} else {
+			requireErr(f.t, item.err, rs.ErrTerminal)
+		}
+	}
+	require(f.t, winner >= 0, "no terminal winner")
+	final := f.get(s)
+	if winner < 8 {
+		requireStatus(f.t, final, agentv1.JobStatus_JOB_STATUS_CANCELLED)
+	} else {
+		requireStatus(f.t, final, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+		requireResult(f.t, final, results[winner])
+	}
+	for _, item := range out {
+		requireJob(f.t, item.job, final)
+	}
+}
+
+// B08: section 2.5 ApplyProgress appends bounded artifacts only before terminal.
+func artifactCases(t *testing.T) {
+	namedCases(t, "first_progress_without_status_starts_running progress_artifacts_append_in_order artifacts_past_max_are_refused_whole progress_after_worker_terminal progress_after_client_cancel progress_after_timeout progress_with_terminal_status_is_refused", artifactCheck, nil)
+}
+func artifactCheck(f *fixture, s *rs.Scheduler, name string) {
+	d := f.dispatch(s)
+	p := progress(f.jobID, d.Identity)
+	a1, a2, a3, a4 := f.ref(1), f.ref(2), f.ref(3), f.ref(4)
+	p.ArtifactRefs = []*agentv1.ResourceRef{a1}
+	if name == "first_progress_without_status_starts_running" {
+		p.Status = agentv1.JobStatus_JOB_STATUS_UNSPECIFIED
+	}
+	if name == "progress_after_timeout" {
+		f.clock.Advance(30 * time.Second)
+		requireTimeout(f, s)
+	} else {
+		f.applyProgress(s, p)
+	}
+	if name == "first_progress_without_status_starts_running" {
+		requireArtifacts(f, f.get(s), []*agentv1.ResourceRef{a1})
+		return
+	}
+	if name == "progress_artifacts_append_in_order" {
+		p.ArtifactRefs = []*agentv1.ResourceRef{a2, a3}
+		j := f.applyProgress(s, p)
+		requireArtifacts(f, j, []*agentv1.ResourceRef{a1, a2, a3})
+		return
+	}
+	want := rs.ErrTerminal
+	p.ArtifactRefs = []*agentv1.ResourceRef{a2}
+	switch name {
+	case "artifacts_past_max_are_refused_whole":
+		f.applyProgress(s, p)
+		p.ArtifactRefs = []*agentv1.ResourceRef{a3, a4}
+		want = rs.ErrTooManyArtifacts
+	case "progress_after_worker_terminal":
+		r := f.result(d.Identity, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+		f.applyResult(s, r, nil, r.Status)
+	case "progress_after_client_cancel":
+		f.cancel(s)
+	case "progress_with_terminal_status_is_refused":
+		p.Status = agentv1.JobStatus_JOB_STATUS_SUCCEEDED
+		want = rs.ErrInvalidTransition
+	}
+	f.refused(s, want, func() error {
+		j, e := s.ApplyProgress(f.packet(rs.SubjectProgress, f.tenantA, f.workerA, p))
+		if want == rs.ErrTerminal {
+			requireJob(f.t, j, f.get(s))
+		}
+		return e
+	})
+}
+func requireArtifacts(f *fixture, j rs.Job, want []*agentv1.ResourceRef) {
+	require(f.t, len(j.Artifacts) == len(want), fmt.Sprintf("artifacts: got %d; want %d", len(j.Artifacts), len(want)))
+	for i := range want {
+		require(f.t, proto.Equal(j.Artifacts[i], want[i]), fmt.Sprintf("artifact %d differs", i))
+	}
+}
+
+// B09: section 2.4 declared-size bounds and section 2.5 validity; identifier R3.
+func sizeCases(t *testing.T) {
+	namedCases(t, "input_at_bound_is_scheduled input_over_bound_is_denied output_at_bound_succeeds output_over_bound_fails_resource_exhausted missing_context_ref_records_nothing empty_job_id_is_invalid empty_topic_records_nothing long_ids_within_bound_are_accepted oversized_job_id_records_nothing oversized_topic_records_nothing", sizeCheck, func(name string, c *rs.Config) {
+		n := 0
+		if name == "long_ids_within_bound_are_accepted" {
+			n = 256
+		}
+		if name == "oversized_topic_records_nothing" {
+			n = 4097
+		}
+		if n > 0 {
+			rule := c.Allow[0]
+			rule.Topic = strings.Repeat("t", n)
+			c.Allow = append(c.Allow, rule)
+		}
+	})
+}
+func sizeCheck(f *fixture, s *rs.Scheduler, name string) {
+	if strings.HasPrefix(name, "output_") {
+		d := f.run(s)
+		r := f.result(d.Identity, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+		r.ResultRef.SizeBytes = 2048
+		if name == "output_at_bound_succeeds" {
+			requireResult(f.t, f.applyResult(s, r, nil, r.Status), r)
+		} else {
+			r.ResultRef.SizeBytes++
+			f.clock.Advance(time.Second)
+			j := f.applyResult(s, r, rs.ErrOutputTooLarge, agentv1.JobStatus_JOB_STATUS_FAILED)
+			require(f.t, !(j.Result.GetErrorCodeEnum() != agentv1.ErrorCode_ERROR_CODE_JOB_RESOURCE_EXHAUSTED), fmt.Sprintf("output error code: %v", j.Result))
+		}
+		return
+	}
+	r := f.request(f.jobID)
+	var want error
+	status := agentv1.JobStatus_JOB_STATUS_SCHEDULED
+	switch name {
+	case "input_at_bound_is_scheduled":
+		r.ContextRef.SizeBytes = 1024
+	case "input_over_bound_is_denied":
+		r.ContextRef.SizeBytes, want = 1025, rs.ErrInputTooLarge
+		status = agentv1.JobStatus_JOB_STATUS_DENIED
+	case "missing_context_ref_records_nothing":
+		r.ContextRef, want = nil, rs.ErrInvalidJob
+	case "empty_job_id_is_invalid":
+		r.JobId, want = "", rs.ErrInvalidJob
+	case "empty_topic_records_nothing":
+		r.Topic, want = "", rs.ErrInvalidJob
+	case "long_ids_within_bound_are_accepted":
+		r.JobId, r.Topic = strings.Repeat("j", 256), strings.Repeat("t", 256)
+	case "oversized_job_id_records_nothing":
+		r.JobId, want = strings.Repeat("j", 4097), rs.ErrInvalidJob
+	case "oversized_topic_records_nothing":
+		r.Topic, want = strings.Repeat("t", 4097), rs.ErrInvalidJob
+	}
+	f.clock.Advance(time.Second)
+	j, e := s.Submit(f.packet(rs.SubjectSubmit, f.tenantA, f.clientA, r))
+	requireErr(f.t, e, want)
+	if want == rs.ErrInvalidJob {
+		f.missing(s, f.tenantA, r.JobId)
+		return
+	}
+	requireStatus(f.t, j, status)
+	stored, e := s.Get(f.tenantA, r.JobId)
+	requireErr(f.t, e, nil)
+	requireJob(f.t, j, stored)
+	require(f.t, !(j.TenantID != f.tenantA || j.JobID != r.JobId || j.Dispatch != nil), fmt.Sprintf("submit snapshot: %+v", j))
+}
+
+// B10: section 2.5 Dispatch/Tick, using only Config.Now (R6).
+func deadlineCases(t *testing.T) {
+	namedCases(t, "dispatch_timeout_boundary progress_replaces_dispatch_timeout_with_deadline budget_deadline_is_used dispatched_job_honours_run_deadline budget_deadline_is_capped run_timeout_is_capped scheduled_job_never_times_out tick_sorts_by_tenant_then_job result_after_timeout_is_refused", deadlineCheck, func(name string, c *rs.Config) {
+		if name == "run_timeout_is_capped" {
+			c.Limits.RunTimeout = 20 * time.Minute
+		}
+	})
+}
+func requireTickEmpty(f *fixture, s *rs.Scheduler) {
+	f.t.Helper()
+	before := f.get(s)
+	if jobs := s.Tick(); len(jobs) != 0 {
+		f.t.Fatalf("unexpected Tick changes: %+v", jobs)
+	}
+	f.requireUnchanged(s, before)
+}
+func requireTimeout(f *fixture, s *rs.Scheduler) {
+	f.t.Helper()
+	jobs := s.Tick()
+	require(f.t, len(jobs) == 1, fmt.Sprintf("Tick: got %d changes; want 1", len(jobs)))
+	requireStatus(f.t, jobs[0], agentv1.JobStatus_JOB_STATUS_TIMEOUT)
+	requireJob(f.t, jobs[0], f.get(s))
+}
+func deadlineCheck(f *fixture, s *rs.Scheduler, name string) {
+	if name == "tick_sorts_by_tenant_then_job" {
+		sortedTimeouts(f, s)
+		return
+	}
+	if name == "scheduled_job_never_times_out" {
+		j := f.submit(s)
+		f.clock.Advance(24 * time.Hour)
+		requireTickEmpty(f, s)
+		f.requireUnchanged(s, j)
+		return
+	}
+	r := f.request(f.jobID)
+	deadline := 5 * time.Minute
+	switch name {
+	case "budget_deadline_is_used":
+		r.Budget = &agentv1.Budget{DeadlineMs: 60000}
+		deadline = time.Minute
+	case "dispatched_job_honours_run_deadline":
+		r.Budget = &agentv1.Budget{DeadlineMs: 10000}
+		deadline = 10 * time.Second
+	case "budget_deadline_is_capped":
+		r.Budget = &agentv1.Budget{DeadlineMs: 3600000}
+		deadline = 10 * time.Minute
+	case "run_timeout_is_capped":
+		deadline = 10 * time.Minute
+	}
+	_, e := s.Submit(f.packet(rs.SubjectSubmit, f.tenantA, f.clientA, r))
+	requireErr(f.t, e, nil)
+	at := f.clock.Now()
+	d, e := s.Dispatch(f.tenantA, f.jobID, f.workerA)
+	requireErr(f.t, e, nil)
+	j := f.get(s)
+	require(f.t, j.Deadline.Equal(at.Add(deadline)) && j.DispatchedAt.Equal(at), fmt.Sprintf("dispatch deadline: %+v", j))
+	if strings.HasSuffix(name, "is_capped") {
+		return
+	}
+	deadlineTicks(f, s, name, d)
+}
+func deadlineTicks(f *fixture, s *rs.Scheduler, name string, d rs.Dispatch) {
+	if name == "progress_replaces_dispatch_timeout_with_deadline" {
+		f.clock.Advance(10 * time.Second)
+		f.applyProgress(s, progress(f.jobID, d.Identity))
+		f.clock.Advance(21 * time.Second)
+		requireTickEmpty(f, s)
+		f.clock.Advance(5*time.Minute - 31*time.Second - time.Nanosecond)
+		requireTickEmpty(f, s)
+		f.clock.Advance(time.Nanosecond)
+		requireTimeout(f, s)
+		return
+	}
+	if name == "budget_deadline_is_used" {
+		f.clock.Advance(time.Second)
+		f.applyProgress(s, progress(f.jobID, d.Identity))
+		f.clock.Advance(59*time.Second - time.Nanosecond)
+		requireTickEmpty(f, s)
+		f.clock.Advance(time.Nanosecond)
+		requireTimeout(f, s)
+		return
+	}
+	wait := 30 * time.Second
+	if name == "dispatched_job_honours_run_deadline" {
+		wait = 10 * time.Second
+	}
+	f.clock.Advance(wait - time.Nanosecond)
+	requireTickEmpty(f, s)
+	f.clock.Advance(time.Nanosecond)
+	requireTimeout(f, s)
+	requireTickEmpty(f, s)
+	if name == "result_after_timeout_is_refused" {
+		before := f.get(s)
+		f.refused(s, rs.ErrTerminal, func() error {
+			j, e := s.ApplyResult(f.packet(rs.SubjectResult, f.tenantA, f.workerA, f.result(d.Identity, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)))
+			requireJob(f.t, j, before)
+			return e
+		})
+	}
+}
+func sortedTimeouts(f *fixture, s *rs.Scheduler) {
+	keys := []struct{ tenant, id, topic, worker string }{{f.tenantB, "job-a", f.topicB, f.workerB}, {f.tenantA, "job-z", f.topicA, f.workerA}, {f.tenantA, "job-b", f.topicA, f.workerA}}
+	for _, k := range keys {
+		r := f.request(k.id)
+		r.TenantId = k.tenant
+		r.Topic = k.topic
+		_, e := s.Submit(f.packet(rs.SubjectSubmit, k.tenant, f.clientA, r))
+		requireErr(f.t, e, nil)
+		_, e = s.Dispatch(k.tenant, k.id, k.worker)
+		requireErr(f.t, e, nil)
+	}
+	f.clock.Advance(30 * time.Second)
+	jobs := s.Tick()
+	require(f.t, len(jobs) == 3, fmt.Sprintf("Tick changed %d jobs; want 3", len(jobs)))
+	for i, k := range []int{2, 1, 0} {
+		require(f.t, !(jobs[i].TenantID != keys[k].tenant || jobs[i].JobID != keys[k].id), fmt.Sprintf("Tick sort at %d: %+v", i, jobs[i]))
+		requireStatus(f.t, jobs[i], agentv1.JobStatus_JOB_STATUS_TIMEOUT)
+		j, e := s.Get(keys[k].tenant, keys[k].id)
+		requireErr(f.t, e, nil)
+		requireJob(f.t, jobs[i], j)
+	}
+}
+
+// B11: section 2.5 bare-sentinel error text, with canaries in all request surfaces.
+func canaryCases(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		want error
+	}{
+		{"invalid_config", rs.ErrInvalidConfig}, {"unverified", rs.ErrUnverified}, {"wrong_subject", rs.ErrWrongSubject}, {"wrong_payload", rs.ErrWrongPayload},
+		{"invalid_job", rs.ErrInvalidJob}, {"denied", rs.ErrDenied}, {"input_too_large", rs.ErrInputTooLarge}, {"job_not_found", rs.ErrJobNotFound},
+		{"job_conflict", rs.ErrJobConflict}, {"invalid_transition", rs.ErrInvalidTransition}, {"terminal", rs.ErrTerminal}, {"stale_attempt", rs.ErrStaleAttempt},
+		{"wrong_worker", rs.ErrWrongWorker}, {"output_too_large", rs.ErrOutputTooLarge}, {"too_many_artifacts", rs.ErrTooManyArtifacts},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFixture(t)
+			f.tenantA, f.tenantB = "tenant-CANARY-7a", "tenant-CANARY-7b"
+			f.workerA, f.workerB = "worker-CANARY-8a", "worker-CANARY-8b"
+			f.clientA = "client-CANARY-9a"
+			f.jobID, f.topicA, f.capability = "job-CANARY-0a", "topic.CANARY.1a", "cap.CANARY.2a"
+			var err error
+			if tc.name == "invalid_config" {
+				c := f.config()
+				c.Now = nil
+				_, err = rs.New(c)
+			} else {
+				s := f.scheduler(nil)
+				err = canaryCall(f, s, tc.name)
+			}
+			requireErr(t, err, tc.want)
+			require(t, err.Error() == tc.want.Error(), fmt.Sprintf("wrapped error: %q", err))
+			needles := append([]string{"CANARY", rs.SubjectSubmit, rs.SubjectResult, rs.SubjectProgress, rs.SubjectCancel, rs.SubjectClientCancel, rs.SubjectTerminal, "worker.", "0x", "%!"}, f.secrets...)
+			for _, needle := range needles {
+				require(t, !strings.Contains(err.Error(), needle), fmt.Sprintf("error leaks canary %q", needle))
+			}
+		})
+	}
+}
+func canaryCall(f *fixture, s *rs.Scheduler, name string) error {
+	r := f.request(f.jobID)
+	switch name {
+	case "unverified", "wrong_subject", "wrong_payload", "invalid_job", "denied", "input_too_large":
+		subject := rs.SubjectSubmit
+		var body proto.Message = r
+		switch name {
+		case "wrong_subject":
+			subject = rs.SubjectProgress
+		case "wrong_payload":
+			body = &agentv1.JobResult{JobId: f.jobID, ResultPtr: "ptr-CANARY-3a", ErrorMessage: "message-CANARY-4a"}
+		case "invalid_job":
+			r.ContextRef = nil
+		case "denied":
+			r.Topic += ".denied"
+		case "input_too_large":
+			r.ContextRef.SizeBytes = 1025
+		}
+		p := f.envelope(subject, f.tenantA, f.clientA, body)
+		var v capsdk.VerifiedProductionPacket
+		if name == "unverified" {
+			var e error
+			v, e = f.tryPacket(p, "unsigned")
+			requireErr(f.t, e, capsdk.ErrMissingSignature)
+		} else {
+			var e error
+			v, e = f.tryPacket(p, "")
+			requireErr(f.t, e, nil)
+		}
+		f.clock.Advance(time.Second)
+		j, e := s.Submit(v)
+		if name == "denied" || name == "input_too_large" {
+			requireStatus(f.t, j, agentv1.JobStatus_JOB_STATUS_DENIED)
+			requireJob(f.t, j, f.get(s))
+		} else {
+			f.missing(s, f.tenantA, f.jobID)
+		}
+		return e
+	}
+	return canaryExisting(f, s, name)
+}
+func canaryExisting(f *fixture, s *rs.Scheduler, name string) error {
+	d := f.run(s)
+	r := f.result(d.Identity, agentv1.JobStatus_JOB_STATUS_SUCCEEDED)
+	if name == "terminal" {
+		f.applyResult(s, r, nil, r.Status)
+	}
+	before := f.get(s)
+	f.clock.Advance(time.Second)
+	var e error
+	switch name {
+	case "job_not_found":
+		_, e = s.Get(f.tenantB, f.jobID)
+	case "job_conflict":
+		req := f.request(f.jobID)
+		req.Labels["canary"] = "different-CANARY"
+		_, e = s.Submit(f.packet(rs.SubjectSubmit, f.tenantA, f.clientA, req))
+	case "invalid_transition":
+		_, e = s.Dispatch(f.tenantA, f.jobID, f.workerA)
+	case "terminal":
+		j, err := s.Cancel(f.packet(rs.SubjectClientCancel, f.tenantA, f.clientA, cancelOf(f.jobID)))
+		e = err
+		requireJob(f.t, j, before)
+	case "stale_attempt":
+		r.Dispatch.Attempt++
+		_, e = s.ApplyResult(f.packet(rs.SubjectResult, f.tenantA, f.workerA, r))
+	case "wrong_worker":
+		_, e = s.ApplyResult(f.packet(rs.SubjectResult, f.tenantA, f.workerB, r))
+	case "output_too_large":
+		r.ResultRef.SizeBytes = 2049
+		j, err := s.ApplyResult(f.packet(rs.SubjectResult, f.tenantA, f.workerA, r))
+		requireStatus(f.t, j, agentv1.JobStatus_JOB_STATUS_FAILED)
+		requireJob(f.t, j, f.get(s))
+		return err
+	case "too_many_artifacts":
+		p := progress(f.jobID, d.Identity)
+		p.ArtifactRefs = []*agentv1.ResourceRef{f.ref(1), f.ref(2), f.ref(3), f.ref(4)}
+		_, e = s.ApplyProgress(f.packet(rs.SubjectProgress, f.tenantA, f.workerA, p))
+	}
+	f.requireUnchanged(s, before)
+	return e
+}
+
+func require(t *testing.T, ok bool, message string) {
+	t.Helper()
+	if !ok {
+		t.Fatal(message)
+	}
 }

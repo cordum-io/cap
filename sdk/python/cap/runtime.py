@@ -2,11 +2,12 @@ import asyncio
 import hashlib
 import json
 import logging
+import math
 import os
 import secrets
 import time
 from dataclasses import dataclass, replace
-from datetime import timezone
+from datetime import datetime, timedelta, timezone
 from types import MappingProxyType
 from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Tuple, Type, TypeVar, Union
 
@@ -61,6 +62,14 @@ from cap.production_events import (
     seal_production_event,
 )
 from cap.production_validation import IdentityMismatchError, validate_identity_binding
+from cap.production_resource import validate_resource_ref_compatibility
+from cap.resource_registry import (
+    ResourceBackendUnavailableError,
+    ResourceRegistry,
+    ResourceRegistryError,
+    ResourceTooLargeError,
+    TrustedResourceContext,
+)
 from cap.validate import validate_bus_packet
 from cap.worker_trust import WorkerTrustConfig, WorkerTrustMode
 from cap.worker_trust_runtime import (
@@ -354,6 +363,14 @@ class Agent:
     """High-level runtime that manages typed job handlers, blob storage, and NATS subscriptions.
 
     Register handlers with :meth:`job`, then call :meth:`run` to start processing.
+
+    ``resource_registry`` (an operator-built :class:`cap.ResourceRegistry`) switches
+    job input and output to ResourceRefs: input comes only from
+    ``JobRequest.context_ref`` and a SUCCEEDED result carries ``result_ref``,
+    externalized to ``result_backend_id`` for ``result_ref_ttl`` seconds. Both are
+    scoped to the worker-trust tenant and the admitted job id, so :meth:`start`
+    fails closed without a worker-trust configuration (mode warn or enforce).
+    Without a registry, ``context_ptr`` and ``result_ptr`` work as before.
     """
 
     def __init__(
@@ -383,6 +400,9 @@ class Agent:
         worker_trust_renew_min_interval: float = DEFAULT_RENEW_MIN_INTERVAL,
         production_trust: Optional[ProductionTrust] = None,
         replay_store: Optional[ReplayStore] = None,
+        resource_registry: Optional[ResourceRegistry] = None,
+        result_backend_id: Optional[str] = None,
+        result_ref_ttl: float = 3600.0,
     ) -> None:
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
@@ -416,6 +436,7 @@ class Agent:
             )
         self._production_trust = _snapshot_production_trust(production_trust)
         self._replay_store = replay_store
+        self._configure_resources(resource_registry, result_backend_id, result_ref_ttl)
         Agent._initialize_lifecycle(self)
 
     def _configure_worker_trust(
@@ -431,6 +452,31 @@ class Agent:
         self._worker_trust_timeout = timeout
         self._worker_trust_retries = retries
         self._worker_trust_renew_min_interval = renew_min_interval
+
+    def _configure_resources(
+        self,
+        registry: Optional[ResourceRegistry],
+        backend_id: Optional[str],
+        ttl: float,
+    ) -> None:
+        if registry is not None and not isinstance(registry, ResourceRegistry):
+            raise ValueError("resource_registry must be a ResourceRegistry")
+        if (registry is None) != (backend_id is None):
+            raise ValueError(
+                "resource_registry and result_backend_id must be configured together"
+            )
+        if registry is not None and backend_id not in registry.backend_ids:
+            raise ValueError("result_backend_id is not an installed backend")
+        if (
+            isinstance(ttl, bool)
+            or not isinstance(ttl, (int, float))
+            or not math.isfinite(ttl)
+            or ttl <= 0
+        ):
+            raise ValueError("result_ref_ttl must be a positive number of seconds")
+        self._resource_registry = registry
+        self._result_backend_id = backend_id
+        self._result_ref_ttl = float(ttl)
 
     def _initialize_lifecycle(self) -> None:
         self._handlers: Dict[str, HandlerSpec] = {}
@@ -513,6 +559,7 @@ class Agent:
             renew_min_interval=self._worker_trust_renew_min_interval,
         )
         self._validate_production_startup()
+        self._validate_resource_startup()
         self._capability = self._build_capability_handshake()
         self._lifecycle_state = "starting"
         try:
@@ -564,7 +611,7 @@ class Agent:
             connect_fn(**connect_options),
             "nats connect",
         )
-        if self._store is None:
+        if self._store is None and self._resource_registry is None:
             self._store = RedisBlobStore(self._redis_url)
         await self._establish_worker_trust()
         self._require_trust_startup_continuity()
@@ -1119,6 +1166,26 @@ class Agent:
         if trust is None:
             raise RuntimeError("CAP-PRODUCTION trust is unavailable")
         self._session_bound_production_trust(trust)
+
+    def _validate_resource_startup(self) -> None:
+        if self._resource_registry is None:
+            return
+        settings = self._trust_settings
+        if settings is None or settings.config is None:
+            raise RuntimeError("resource registry requires worker trust configuration")
+
+    def _trusted_resource_context(
+        self,
+        req: job_pb2.JobRequest,
+        authority: Optional[ProductionEventAuthority],
+    ) -> TrustedResourceContext:
+        """The worker-trust tenant and the admitted job id; nothing comes from the ref."""
+        settings = self._trust_settings
+        config = settings.config if settings is not None else None
+        if config is None:
+            raise RuntimeError("resource registry requires worker trust configuration")
+        job_id = authority.job_id if authority is not None else req.job_id
+        return TrustedResourceContext(tenant_id=config.tenant_id, job_id=job_id)
 
     def _session_bound_production_trust(self, trust: ProductionTrust) -> ProductionTrust:
         settings = self._trust_settings

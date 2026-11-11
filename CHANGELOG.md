@@ -104,6 +104,15 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   not use it yet. The module now requires `go.opentelemetry.io/otel` and `otel/trace`
   v1.47.0; `otel/sdk` v1.47.0 is required only by tests.
 
+- **Python SDK telemetry (no wire change):** added `cap.telemetry`, an OpenTelemetry API
+  adapter for `spec/interop/trace-context.md`. It reads and writes only the lowercase
+  `traceparent` and `tracestate` NATS headers, never `baggage`, uses the W3C trace-context
+  propagator by default, and starts the contract's `publish` (PRODUCER) and `process`
+  (CONSUMER) spans with exactly its attributes and closed `error.type` values. A `None`
+  config writes no headers and starts no spans. OpenTelemetry stays optional: the module
+  imports without it, and `pip install 'cap-sdk-python[otel]'` adds
+  `opentelemetry-api>=1.41.1,<2`. The Python client and runtime do not use it yet.
+
 ## v2.17.0 — 2026-07-22
 
 - **Go SDK ResourceRef registry:** added an immutable registry of operator-installed

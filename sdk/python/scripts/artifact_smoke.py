@@ -2,6 +2,7 @@
 
 import asyncio
 import importlib
+import importlib.util
 import json
 import sys
 from datetime import datetime, timezone
@@ -29,6 +30,22 @@ for module_name in expected:
     importlib.import_module(module_name)
 for entry in filter(None, sys.path):
     assert not inside(Path(entry).resolve(), repo), entry
+
+otel_distributions = sorted(
+    name for name in (dist.metadata["Name"] or "" for dist in metadata.distributions())
+    if name.lower().startswith("opentelemetry")
+)
+assert importlib.util.find_spec("opentelemetry") is None and not otel_distributions, otel_distributions
+from cap import telemetry
+
+assert telemetry.inject_headers(None, None) is None
+assert telemetry.extract(None, {"traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"}) is None
+try:
+    telemetry.from_opentelemetry()
+except ImportError as exc:
+    assert "cap-sdk-python[otel]" in str(exc), exc
+else:
+    raise AssertionError("cap.telemetry configured without OpenTelemetry")
 
 from cap import (
     WORKER_HANDSHAKE_AUDIENCE,

@@ -15,7 +15,13 @@ from cap import (
     CAPError,
     Context,
     InMemoryBlobStore,
+    InMemoryResourceBackend,
     MetricsHook,
+    ResolvedResource,
+    ResourceBackendRegistration,
+    ResourceRegistry,
+    ResourceRegistryError,
+    TrustedResourceContext,
     WORKER_HANDSHAKE_AUDIENCE,
     WorkerHandshakeRequestOptions,
     WorkerTrustConfig,
@@ -193,3 +199,22 @@ def describe_error(error: CAPError) -> tuple[str, int, Optional[str]]:
     """Consume the typed CAP error taxonomy without stringly casting it."""
     message = str(error) or None
     return error.code, error.numeric_code, message
+
+
+def build_resource_registry() -> ResourceRegistry:
+    """Install one operator-chosen backend under an exact canonical ID."""
+    backend = InMemoryResourceBackend()
+    registration = ResourceBackendRegistration(
+        id="memory", max_bytes=1 << 20, resolver=backend, externalizer=backend
+    )
+    return ResourceRegistry([registration])
+
+
+async def resolve_job_input(registry: ResourceRegistry, ref: object) -> tuple[bytes, str]:
+    """Resolve with trusted local identity; generated protobuf refs stay opaque."""
+    trusted = TrustedResourceContext(tenant_id="orders-tenant", job_id="job-123")
+    try:
+        resolved: ResolvedResource = await registry.resolve(ref, trusted)
+    except ResourceRegistryError as error:
+        return b"", str(error)
+    return resolved.content, resolved.media_type

@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
+	"slices"
 	"time"
 	"unicode/utf8"
 
@@ -124,9 +124,9 @@ func (i *Ingress) readEnvelope(job string, res *agentv1.JobResult) *turnOutcome 
 
 var errEnvelope = errors.New("a2abridge: invalid turn-result envelope")
 
-// strictDecode closes schema objects, including duplicate/case-alias fields.
+// strictDecode requires exact schema keys, rejecting duplicates and fold aliases.
 // The required data member may itself be any JSON value (spec §4.3).
-func strictDecode(raw []byte, dst interface{}) error {
+func strictDecode(raw []byte, dst interface{}, allowed ...string) error {
 	d := json.NewDecoder(bytes.NewReader(raw))
 	d.DisallowUnknownFields()
 	if d.Decode(dst) != nil {
@@ -143,7 +143,7 @@ func strictDecode(raw []byte, dst interface{}) error {
 	for f.More() {
 		token, err := f.Token()
 		key, ok := token.(string)
-		if err != nil || !ok || seen[key] || key != strings.ToLower(key) {
+		if err != nil || !ok || seen[key] || !slices.Contains(allowed, key) {
 			return errEnvelope
 		}
 		seen[key] = true
@@ -168,7 +168,7 @@ func parseEnvelope(raw []byte) (*turnOutcome, error) {
 		Message   json.RawMessage   `json:"message"`
 		Artifacts []json.RawMessage `json:"artifacts"`
 	}
-	if strictDecode(raw, &env) != nil || env.MediaType != EnvelopeMediaType {
+	if strictDecode(raw, &env, "media_type", "a2a_state", "message", "artifacts") != nil || env.MediaType != EnvelopeMediaType {
 		return nil, errEnvelope
 	}
 	out := &turnOutcome{}
@@ -209,7 +209,7 @@ func parseMessage(raw []byte, textOnly bool) (*a2a.Message, error) {
 	var msg struct {
 		Parts []json.RawMessage `json:"parts"`
 	}
-	if strictDecode(raw, &msg) != nil {
+	if strictDecode(raw, &msg, "parts") != nil {
 		return nil, errEnvelope
 	}
 	parts, err := parseParts(msg.Parts, textOnly)
@@ -225,7 +225,7 @@ func parseArtifact(raw []byte) (*a2a.Artifact, error) {
 		Name  string            `json:"name"`
 		Parts []json.RawMessage `json:"parts"`
 	}
-	if strictDecode(raw, &a) != nil || !validID(a.ID) || utf8.RuneCountInString(a.Name) > 256 {
+	if strictDecode(raw, &a, "artifact_id", "name", "parts") != nil || !validID(a.ID) || utf8.RuneCountInString(a.Name) > 256 {
 		return nil, errEnvelope
 	}
 	parts, err := parseParts(a.Parts, false)
@@ -257,7 +257,7 @@ func parsePart(raw []byte, textOnly bool) (*a2a.Part, error) {
 		Data      json.RawMessage `json:"data"`
 		MediaType *string         `json:"media_type"`
 	}
-	if strictDecode(raw, &p) != nil {
+	if strictDecode(raw, &p, "kind", "text", "data", "media_type") != nil {
 		return nil, errEnvelope
 	}
 	var part *a2a.Part

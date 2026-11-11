@@ -10,6 +10,7 @@ from .bus import connect_nats
 from .runtime import Agent, Context, BlobStore, RedisBlobStore, InMemoryBlobStore
 from .middleware import Middleware, NextFn, logging_middleware
 from .metrics import MetricsHook, NoopMetrics
+from .outcome import JobFailure
 from .heartbeat import (
     heartbeat_payload,
     heartbeat_payload_with_memory,
@@ -159,6 +160,7 @@ __all__ = [
     "logging_middleware",
     "MetricsHook",
     "NoopMetrics",
+    "JobFailure",
     "heartbeat_payload",
     "heartbeat_payload_with_memory",
     "heartbeat_payload_with_progress",

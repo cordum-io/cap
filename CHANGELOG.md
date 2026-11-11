@@ -130,6 +130,21 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   with fixed text; backend exceptions become `ResourceBackendUnavailableError` without backend
   text. `InMemoryResourceBackend` is a test-only backend.
 
+- **cap-sdk-python typed job outcomes (behavior change, no wire change):** `cap.Agent` failure
+  results now carry spec/13 `error_code_enum` and `error_code` with a fixed `error_message`,
+  never exception text: for example `ERROR_CODE_JOB_INVALID_INPUT` with
+  `"context decode failed"`, `ERROR_CODE_JOB_NOT_FOUND` with `"context not found"`, and
+  `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` when the context or result is over its size bound.
+  Handlers and middleware can raise the new `cap.JobFailure(code, retryable=None|True|False)`
+  with an `ErrorCode` value, an application code in 1000-9999 or an upper-snake string. It
+  publishes `JOB_STATUS_FAILED`, `JOB_STATUS_FAILED_RETRYABLE` or `JOB_STATUS_FAILED_FATAL`
+  with that code and `"handler reported failure"`, and the SDK does not retry it. Other
+  handler exceptions keep `"handler failed"` and the retry policy. User-visible change: the
+  context fetch, decode, input validation and result write failures used to publish
+  exception text, for example pydantic errors or store messages. They now publish fixed text
+  (`"context fetch failed"`, `"context decode failed"`, `"input validation failed"`,
+  `"result encode failed"`, `"result write failed"`). The low-level `cap.worker` is unchanged.
+
 ## v2.17.0 — 2026-07-22
 
 - **Go SDK ResourceRef registry:** added an immutable registry of operator-installed

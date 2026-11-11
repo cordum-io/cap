@@ -8,7 +8,7 @@ import time
 from dataclasses import dataclass, replace
 from datetime import timezone
 from types import MappingProxyType
-from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Type, TypeVar, Union
+from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Tuple, Type, TypeVar, Union
 
 from google.protobuf import timestamp_pb2
 from cap.pb.cordum.agent.v1 import buspacket_pb2, handshake_pb2, job_pb2
@@ -30,6 +30,21 @@ from cap.subjects import SUBJECT_HANDSHAKE, SUBJECT_RESULT
 from cap.errors import InvalidInputError
 from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
+from cap.outcome import (
+    JobFailure,
+    _CONTEXT_DECODE_FAILED,
+    _CONTEXT_FETCH_FAILED,
+    _CONTEXT_NOT_FOUND,
+    _CONTEXT_POINTER_INVALID,
+    _CONTEXT_TOO_LARGE,
+    _HANDLER_FAILED,
+    _INPUT_INVALID,
+    _Outcome,
+    _RESULT_ENCODE_FAILED,
+    _RESULT_TOO_LARGE,
+    _RESULT_WRITE_FAILED,
+    _failure_outcome,
+)
 from cap.packet_boundary import decode_packet, finalize_packet, parse_packet
 from cap.production_signing import (
     ProductionSignatureError,
@@ -101,7 +116,7 @@ def _log_handler_failure(
 ) -> None:
     try:
         logger.warning(
-            "handler failed",
+            _HANDLER_FAILED_MESSAGE,
             extra={
                 "job_id": _bounded_log_field(request.job_id),
                 "trace_id": _bounded_log_field(packet.trace_id),
@@ -1185,40 +1200,10 @@ class Agent:
                 ctx_logger.error("blob store not initialized")
                 return
 
-            try:
-                key = key_from_pointer(req.context_ptr)
-                payload = await self._with_timeout(store.get(key), "context fetch")
-                if payload is None:
-                    raise ValueError("context not found")
-                if self._max_context_bytes is not None and len(payload) > self._max_context_bytes:
-                    raise ValueError("context exceeds max size")
-            except Exception as exc:
+            input_failure, input_data = await self._read_input(store, spec, req)
+            if input_failure is not None:
                 await self._publish_failure(
-                    ctx, req, str(exc), execution_ms=0, authority=authority
-                )
-                return
-
-            try:
-                raw = json.loads(payload.decode("utf-8"))
-            except Exception as exc:
-                await self._publish_failure(
-                    ctx,
-                    req,
-                    f"context decode failed: {exc}",
-                    execution_ms=0,
-                    authority=authority,
-                )
-                return
-
-            try:
-                input_data = self._validate_input(spec, raw)
-            except Exception as exc:
-                await self._publish_failure(
-                    ctx,
-                    req,
-                    f"input validation failed: {exc}",
-                    execution_ms=0,
-                    authority=authority,
+                    ctx, req, input_failure, execution_ms=0, authority=authority
                 )
                 return
 
@@ -1235,16 +1220,23 @@ class Agent:
                 chain = (lambda m, n: (lambda c, d: m(c, d, n)))(mw, _next)
 
             start_time = time.monotonic()
-            error: Optional[str] = None
+            failure: Optional[_Outcome] = None
             output: Any = None
             for attempt in range(spec.retries + 1):
                 try:
                     output = await chain(ctx, input_data)
                     output = self._validate_output(spec, output)
-                    error = None
+                    failure = None
+                    break
+                except JobFailure as reported:
+                    # The operator chose the outcome: publish it, never retry.
+                    failure = _failure_outcome(reported)
+                    _log_handler_failure(
+                        self._logger, packet, req, reported, attempt + 1, spec.retries + 1
+                    )
                     break
                 except Exception as exc:
-                    error = _HANDLER_FAILED_MESSAGE
+                    failure = _HANDLER_FAILED
                     _log_handler_failure(
                         self._logger,
                         packet,
@@ -1257,26 +1249,11 @@ class Agent:
                         break
 
             elapsed_ms = int((time.monotonic() - start_time) * 1000)
-            if error is not None:
+            if failure is None:
+                failure, result_ptr = await self._write_result(store, req, output)
+            if failure is not None:
                 await self._publish_failure(
-                    ctx, req, error, execution_ms=elapsed_ms, authority=authority
-                )
-                return
-
-            try:
-                result_payload = self._serialize_output(output)
-                if self._max_result_bytes is not None and len(result_payload) > self._max_result_bytes:
-                    raise ValueError("result exceeds max size")
-                result_key = f"res:{req.job_id}"
-                await self._with_timeout(store.set(result_key, result_payload), "result write")
-                result_ptr = pointer_for_key(result_key)
-            except Exception as exc:
-                await self._publish_failure(
-                    ctx,
-                    req,
-                    f"result write failed: {exc}",
-                    execution_ms=elapsed_ms,
-                    authority=authority,
+                    ctx, req, failure, execution_ms=elapsed_ms, authority=authority
                 )
                 return
 
@@ -1296,6 +1273,49 @@ class Agent:
             )
         finally:
             self._active_jobs.discard(req.job_id)
+
+    async def _read_input(
+        self, store: BlobStore, spec: HandlerSpec, req: job_pb2.JobRequest
+    ) -> Tuple[Optional[_Outcome], Any]:
+        """Fetch, decode and validate the input. Failures map to fixed table rows."""
+        try:
+            key = key_from_pointer(req.context_ptr)
+        except Exception:
+            return _CONTEXT_POINTER_INVALID, None
+        try:
+            payload = await self._with_timeout(store.get(key), "context fetch")
+            size = len(payload) if payload is not None else 0
+        except Exception:
+            return _CONTEXT_FETCH_FAILED, None
+        if payload is None:
+            return _CONTEXT_NOT_FOUND, None
+        if self._max_context_bytes is not None and size > self._max_context_bytes:
+            return _CONTEXT_TOO_LARGE, None
+        try:
+            raw = json.loads(payload.decode("utf-8"))
+        except Exception:
+            return _CONTEXT_DECODE_FAILED, None
+        try:
+            return None, self._validate_input(spec, raw)
+        except Exception:
+            return _INPUT_INVALID, None
+
+    async def _write_result(
+        self, store: BlobStore, req: job_pb2.JobRequest, output: Any
+    ) -> Tuple[Optional[_Outcome], str]:
+        """Encode and store the output; returns its pointer or a fixed table row."""
+        try:
+            result_payload = self._serialize_output(output)
+        except Exception:
+            return _RESULT_ENCODE_FAILED, ""
+        if self._max_result_bytes is not None and len(result_payload) > self._max_result_bytes:
+            return _RESULT_TOO_LARGE, ""
+        result_key = f"res:{req.job_id}"
+        try:
+            await self._with_timeout(store.set(result_key, result_payload), "result write")
+        except Exception:
+            return _RESULT_WRITE_FAILED, ""
+        return None, pointer_for_key(result_key)
 
     def _validate_input(self, spec: HandlerSpec, data: Any) -> Any:
         if spec.input_model is None:
@@ -1324,21 +1344,23 @@ class Agent:
         self,
         ctx: Context,
         req: job_pb2.JobRequest,
-        error: str,
+        outcome: _Outcome,
         execution_ms: int,
         authority: Optional[ProductionEventAuthority] = None,
     ) -> None:
         result = job_pb2.JobResult(
             job_id=req.job_id,
-            status=job_pb2.JOB_STATUS_FAILED,
-            error_message=error,
+            status=outcome.status,
+            error_code=outcome.error_code,
+            error_code_enum=outcome.error_code_enum,
+            error_message=outcome.error_message,
             worker_id=self._sender_id,
             execution_ms=execution_ms,
         )
         await self._publish_result(ctx, result, authority)
         safe_metrics_call(
             self._logger,
-            lambda: self._metrics.on_job_failed(req.job_id, error),
+            lambda: self._metrics.on_job_failed(req.job_id, outcome.error_message),
         )
 
     async def _publish_result(

@@ -12,7 +12,6 @@ package referencescheduler
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"time"
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
@@ -194,24 +193,117 @@ func (s *Scheduler) AckDispatch(d Dispatch) error {
 // ApplyProgress fences the verified worker and attempt and appends bounded artifacts
 // only before terminal, advancing DISPATCHED to RUNNING.
 func (s *Scheduler) ApplyProgress(v capsdk.VerifiedProductionPacket) (Job, error) {
-	return Job{}, ErrNotImplemented
+	p, err := admit(v, SubjectProgress)
+	if err != nil {
+		return Job{}, err
+	}
+	pr := p.GetJobProgress()
+	if pr == nil {
+		return Job{}, ErrWrongPayload
+	}
+	now := s.now()
+	return s.store.update(jobKey{v.Tenant(), pr.GetJobId()}, func(j *Job, _ *agentv1.JobRequest) (bool, error) {
+		if terminal(j.Status) {
+			return false, ErrTerminal
+		}
+		if err := fence(j, pr.GetDispatch(), v.Sender()); err != nil {
+			return false, err
+		}
+		if st := pr.GetStatus(); st != agentv1.JobStatus_JOB_STATUS_UNSPECIFIED && st != agentv1.JobStatus_JOB_STATUS_RUNNING {
+			return false, ErrInvalidTransition
+		}
+		if err := appendArtifacts(j, pr.GetArtifactRefs(), s.limits.MaxArtifacts); err != nil {
+			return false, err
+		}
+		j.Status, j.UpdatedAt = agentv1.JobStatus_JOB_STATUS_RUNNING, now
+		return true, nil
+	})
 }
 
 // ApplyResult fences the verified worker and attempt; the first terminal wins,
 // while retryable failures reschedule within MaxAttempts.
 func (s *Scheduler) ApplyResult(v capsdk.VerifiedProductionPacket) (Job, error) {
-	return Job{}, ErrNotImplemented
+	p, err := admit(v, SubjectResult)
+	if err != nil {
+		return Job{}, err
+	}
+	r := p.GetJobResult()
+	if r == nil {
+		return Job{}, ErrWrongPayload
+	}
+	now := s.now()
+	return s.store.update(jobKey{v.Tenant(), r.GetJobId()}, func(j *Job, _ *agentv1.JobRequest) (bool, error) {
+		if terminal(j.Status) {
+			// The winner's repeat, or a worker CANCELLED after a client cancel (R4), is a no-op.
+			repeat := proto.Equal(r, j.Result) || (r.GetStatus() == agentv1.JobStatus_JOB_STATUS_CANCELLED &&
+				j.Status == agentv1.JobStatus_JOB_STATUS_CANCELLED)
+			if repeat && fence(j, r.GetDispatch(), v.Sender()) == nil {
+				return false, nil
+			}
+			return false, ErrTerminal
+		}
+		if err := fence(j, r.GetDispatch(), v.Sender()); err != nil {
+			return false, err
+		}
+		switch r.GetStatus() {
+		case agentv1.JobStatus_JOB_STATUS_SUCCEEDED, agentv1.JobStatus_JOB_STATUS_FAILED,
+			agentv1.JobStatus_JOB_STATUS_FAILED_RETRYABLE, agentv1.JobStatus_JOB_STATUS_FAILED_FATAL:
+		default: // CANCELLED needs a client cancel first (R4); TIMEOUT and DENIED are the scheduler's
+			return false, ErrInvalidTransition
+		}
+		if err := appendArtifacts(j, r.GetArtifactRefs(), s.limits.MaxArtifacts); err != nil {
+			return false, err
+		}
+		j.UpdatedAt = now
+		switch {
+		case r.GetResultRef().GetSizeBytes() > s.limits.MaxOutputBytes:
+			decide(j, agentv1.JobStatus_JOB_STATUS_FAILED, agentv1.ErrorCode_ERROR_CODE_JOB_RESOURCE_EXHAUSTED)
+			return true, ErrOutputTooLarge
+		case r.GetStatus() != agentv1.JobStatus_JOB_STATUS_FAILED_RETRYABLE:
+			j.Status, j.Result = r.GetStatus(), r
+		case j.Dispatch.GetAttempt() < s.limits.MaxAttempts:
+			j.Status, j.Result = agentv1.JobStatus_JOB_STATUS_SCHEDULED, nil
+		default: // attempts exhausted: terminal FAILED keeps the worker's error codes
+			r.Status = agentv1.JobStatus_JOB_STATUS_FAILED
+			j.Status, j.Result = r.Status, r
+		}
+		return true, nil
+	})
 }
 
 // Cancel admits only the owning tenant's client cancel; a terminal winner is unchanged.
 func (s *Scheduler) Cancel(v capsdk.VerifiedProductionPacket) (Job, error) {
-	return Job{}, ErrNotImplemented
+	p, err := admit(v, SubjectClientCancel)
+	if err != nil {
+		return Job{}, err
+	}
+	c := p.GetJobCancel()
+	if c == nil {
+		return Job{}, ErrWrongPayload
+	}
+	now := s.now()
+	return s.store.update(jobKey{v.Tenant(), c.GetJobId()}, func(j *Job, _ *agentv1.JobRequest) (bool, error) {
+		if terminal(j.Status) {
+			return false, ErrTerminal
+		}
+		decide(j, agentv1.JobStatus_JOB_STATUS_CANCELLED, agentv1.ErrorCode_ERROR_CODE_UNSPECIFIED)
+		j.UpdatedAt = now
+		return true, nil
+	})
 }
 
 // Tick uses Config.Now to expire dispatch and run deadlines; changed jobs are
 // returned sorted by (TenantID, JobID).
 func (s *Scheduler) Tick() []Job {
-	return nil
+	now := s.now()
+	return s.store.sweep(func(j *Job) bool {
+		dispatched := j.Status == agentv1.JobStatus_JOB_STATUS_DISPATCHED
+		return dispatched && now.Sub(j.DispatchedAt) >= s.limits.DispatchTimeout ||
+			(dispatched || j.Status == agentv1.JobStatus_JOB_STATUS_RUNNING) && !now.Before(j.Deadline)
+	}, func(j *Job) {
+		decide(j, agentv1.JobStatus_JOB_STATUS_TIMEOUT, agentv1.ErrorCode_ERROR_CODE_JOB_TIMEOUT)
+		j.UpdatedAt = now
+	})
 }
 
 // Get returns a deep snapshot by tenant-qualified job key or ErrJobNotFound.
@@ -228,6 +320,21 @@ func admit(v capsdk.VerifiedProductionPacket, subject string) (*agentv1.BusPacke
 		return nil, ErrWrongSubject
 	}
 	return v.Packet(), nil // a deep copy this call owns
+}
+
+// fence accepts an event only from the dispatch that holds the job: the same
+// dispatch_id and attempt (else ErrStaleAttempt), sent by and naming the
+// assigned worker (else ErrWrongWorker). A rescheduled job holds no dispatch.
+func fence(j *Job, d *agentv1.DispatchIdentity, sender string) error {
+	cur := j.Dispatch
+	if j.Status == agentv1.JobStatus_JOB_STATUS_SCHEDULED || cur.GetDispatchId() != d.GetDispatchId() ||
+		cur.GetAttempt() != d.GetAttempt() {
+		return ErrStaleAttempt
+	}
+	if sender != cur.GetAssignedWorkerId() || d.GetAssignedWorkerId() != cur.GetAssignedWorkerId() {
+		return ErrWrongWorker
+	}
+	return nil
 }
 
 // runTimeout is budget.deadline_ms (RunTimeout when not positive) capped at
@@ -266,6 +373,15 @@ func terminal(st agentv1.JobStatus) bool {
 	return false
 }
 
+// appendArtifacts appends refs whole, or refuses them whole past the per-job bound.
+func appendArtifacts(j *Job, refs []*agentv1.ResourceRef, limit int) error {
+	if len(j.Artifacts)+len(refs) > limit {
+		return ErrTooManyArtifacts
+	}
+	j.Artifacts = append(j.Artifacts, refs...)
+	return nil
+}
+
 func validID(id string) bool { return id != "" && len(id) <= maxIDBytes }
 
 // validRequest bounds the job key and topic, requires context_ref, and requires
@@ -281,8 +397,3 @@ func randomDispatchID() (string, error) {
 	_, err := rand.Read(b) // never fails since Go 1.24
 	return hex.EncodeToString(b), err
 }
-
-var (
-	// ErrNotImplemented is stub only; the implementation deletes it.
-	ErrNotImplemented = errors.New("referencescheduler: not implemented")
-)

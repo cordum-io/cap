@@ -19,3 +19,4 @@ export * from "./production-replay";
 export * from "./production-resource";
 export * from "./production-events";
 export * from "./worker-trust";
+export * as telemetry from "./telemetry";

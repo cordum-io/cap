@@ -113,6 +113,14 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   imports without it, and `pip install 'cap-sdk-python[otel]'` adds
   `opentelemetry-api>=1.41.1,<2`. The Python client and runtime do not use it yet.
 
+- **Node SDK `telemetry` namespace:** `telemetry.injectHeaders`, `extract`, `startPublish`
+  and `startProcess` implement the `spec/interop/trace-context.md` contract over NATS headers:
+  only exact lowercase `traceparent` and `tracestate`, never `baggage`, extraction from an
+  empty context, and PRODUCER/CONSUMER messaging spans with the contract's attributes and
+  closed `error.type` values. The types are structural, so cap-sdk-node gains no OpenTelemetry
+  dependency: pass the OpenTelemetry API module and a `W3CTraceContextPropagator` to
+  `telemetry.fromOpenTelemetry`. The client and runtime do not call it yet.
+
 ## v2.17.0 — 2026-07-22
 
 - **Go SDK ResourceRef registry:** added an immutable registry of operator-installed

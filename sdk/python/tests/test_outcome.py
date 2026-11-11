@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import enum
+import pickle
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -10,7 +12,7 @@ import pytest
 from pydantic import BaseModel
 
 import cap
-from cap.outcome import JobFailure
+from cap.outcome import JobFailure, _failure_outcome
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cap.runtime import Agent, InMemoryBlobStore
 from cap.subjects import SUBJECT_RESULT
@@ -93,6 +95,14 @@ class TestJobFailureConstruction:
             text = str(failure) + repr(failure) + repr(failure.args)
             assert "CAP_CANARY_7D13" not in text and CANARY not in text
 
+    @pytest.mark.parametrize("retryable", [None, True, False])
+    def test_pickle_and_copy_keep_the_outcome(self, retryable):
+        failure = SubclassedFailure(E.ERROR_CODE_JOB_TIMEOUT, retryable=retryable)
+        for clone in (pickle.loads(pickle.dumps(failure)), copy.copy(failure)):
+            assert type(clone) is SubclassedFailure
+            assert (clone.code, clone.retryable, clone.status) == (200, retryable, failure.status)
+            assert _failure_outcome(clone) == _failure_outcome(failure)
+
     def test_exported(self):
         assert cap.JobFailure is JobFailure
         assert "JobFailure" in cap.__all__
@@ -171,6 +181,18 @@ class SubclassedFailure(JobFailure):
     pass
 
 
+class OverridingFailure(JobFailure):
+    # Class attributes shadow the base properties; the published outcome must not use them.
+    status = job_pb2.JOB_STATUS_SUCCEEDED
+    error_code_enum = 7
+    error_code = "free text " + CANARY
+
+
+class UninitializedFailure(JobFailure):
+    def __init__(self) -> None:  # skips JobFailure.__init__, so there is no validated outcome
+        pass
+
+
 @dataclass(frozen=True)
 class Case:
     id: str
@@ -236,6 +258,10 @@ CASES = [
          act=raises(lambda: JobFailure(4242, retryable=False))),
     Case("o-failure-subclass", (FATAL, UNSPECIFIED, "APP_ERROR", REPORTED), calls=1,
          act=raises(lambda: SubclassedFailure("APP_ERROR", retryable=False))),
+    Case("o-failure-overridden-fields", (FATAL, UNSPECIFIED, "APP_ERROR", REPORTED), calls=1,
+         act=raises(lambda: OverridingFailure("APP_ERROR", retryable=False))),
+    Case("o-failure-without-init", (FAILED, UNSPECIFIED, "", "handler failed"), calls=1,
+         act=raises(UninitializedFailure)),
     Case("p-failure-in-middleware", (FAILED, UNSPECIFIED, "FRAMEWORK_ERROR", REPORTED), calls=1,
          act=raises(lambda: JobFailure("FRAMEWORK_ERROR")), in_middleware=True),
     Case("q-success", (job_pb2.JOB_STATUS_SUCCEEDED, UNSPECIFIED, "", ""), calls=1),

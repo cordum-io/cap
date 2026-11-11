@@ -8,7 +8,8 @@ published :class:`JobResult` field.
 
 import re
 from dataclasses import dataclass
-from typing import FrozenSet, Mapping, Optional, Union
+from functools import partial
+from typing import Callable, Dict, FrozenSet, Mapping, Optional, Tuple, Union
 
 from cap.pb.cordum.agent.v1 import job_pb2
 
@@ -111,6 +112,17 @@ class JobFailure(Exception):
         super().__init__("job failure: %s" % normalized)
         self._code = normalized
         self._retryable = retryable
+        # Name-mangled so a subclass attribute cannot replace what is published.
+        self.__outcome = _Outcome(
+            _status_for(retryable),
+            normalized if isinstance(normalized, int) else _UNSPECIFIED,
+            normalized if isinstance(normalized, str) else _LEGACY_ERROR_STRINGS.get(normalized, ""),
+            _REPORTED_MESSAGE,
+        )
+
+    def __reduce__(self) -> Tuple[Callable[..., "JobFailure"], Tuple[Union[int, str]], Dict[str, object]]:
+        # The default rebuilds from args (the fixed text), which is not a valid code.
+        return partial(type(self), retryable=self._retryable), (self._code,), dict(vars(self))
 
     @property
     def code(self) -> Union[int, str]:
@@ -122,22 +134,24 @@ class JobFailure(Exception):
 
     @property
     def status(self) -> int:
-        if self._retryable is None:
-            return _STATUS_FAILED
-        return _STATUS_RETRYABLE if self._retryable else _STATUS_FATAL
+        return self.__outcome.status
 
     @property
     def error_code_enum(self) -> int:
-        return self._code if isinstance(self._code, int) else _UNSPECIFIED
+        return self.__outcome.error_code_enum
 
     @property
     def error_code(self) -> str:
-        if isinstance(self._code, str):
-            return self._code
-        return _LEGACY_ERROR_STRINGS.get(self._code, "")
+        return self.__outcome.error_code
+
+
+def _status_for(retryable: Optional[bool]) -> int:
+    if retryable is None:
+        return _STATUS_FAILED
+    return _STATUS_RETRYABLE if retryable else _STATUS_FATAL
 
 
 def _failure_outcome(failure: JobFailure) -> _Outcome:
-    return _Outcome(
-        failure.status, failure.error_code_enum, failure.error_code, _REPORTED_MESSAGE
-    )
+    """The validated outcome; a JobFailure that skipped __init__ fails closed."""
+    outcome = vars(failure).get("_JobFailure__outcome")
+    return outcome if isinstance(outcome, _Outcome) else _HANDLER_FAILED

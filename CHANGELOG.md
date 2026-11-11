@@ -92,6 +92,17 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `captraceid`, `capworkflowid`, `capstepindex`, `capparentjobid`, `traceparent` and
   `tracestate` extensions. It is a documented mapping only: no CAP SDK or Cordum component
   emits these events.
+- **Interop contract (no wire change):** added `asyncapi/cap.asyncapi.yaml`, an AsyncAPI 3.1.0
+  description of the 12 NATS subjects in the spec/09 subject table: one channel per subject
+  (`job.{pool}` parameterized), each subject's producer-to-consumer direction and delivery,
+  opaque protobuf `BusPacket` payloads named by `x-cap-proto-message`, the spec/14 reply
+  payloads of the two worker-trust request subjects, and optional `traceparent`/`tracestate`
+  headers. The deprecated `sys.worker.handshake` and `sys.worker.handshake.renew` JSON
+  subjects are listed as excluded. A new Interop Contract workflow runs
+  `tools/interop/validate.cjs` (exact pins `@asyncapi/parser` 3.6.6 and `ajv` 8.20.0) on every
+  pull request and push to main. It checks the document against spec/09, spec/14, the proto
+  files and the Go SDK subject constants, and checks the trace-context, CloudEvents and A2A
+  vectors in `spec/interop/vectors/`. No SDK behavior changes.
 - Conformance and support-tier truth: `spec/tck/coverage.json` no longer says the
   CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
   test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python

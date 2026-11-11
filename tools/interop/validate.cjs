@@ -3,7 +3,10 @@
 //
 // Checks asyncapi/cap.asyncapi.yaml against the spec/09 subject table, the
 // spec/14 worker-trust request/reply table, the messages in
-// proto/cordum/agent/v1/*.proto and the subject constants in sdk/go/*.go.
+// proto/cordum/agent/v1/*.proto and the subject constants in sdk/go/*.go,
+// then checks the trace-context, CloudEvents and A2A vectors in
+// spec/interop/vectors/ (shape, header patterns, recomputed event ids,
+// redaction, A2A TaskStates).
 //
 // Usage, from the repository root:
 //   npm ci --prefix tools/interop && node tools/interop/validate.cjs
@@ -12,6 +15,7 @@
 // passes. Every failure is printed as `FAIL <area>: <message>` and makes it
 // exit 1. It never fetches anything: a non-local $ref fails before parsing.
 
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -325,6 +329,189 @@ function checkHeaders(Ajv) {
   summary.push(`headers: ${[...schemas.values()][0]} channel messages share one headers schema (optional traceparent, tracestate)`);
 }
 
+// ---- Vectors ---------------------------------------------------------------
+
+const TRACE_VECTORS = 'spec/interop/vectors/trace-context-v1.json';
+const CE_VECTORS = 'spec/interop/vectors/cloudevents-v1.json';
+const A2A_VECTORS = 'spec/interop/vectors/a2a-v1.json';
+
+// The redaction list of spec/interop/cloudevents-mapping.md ("Redaction list"),
+// proto and JSON spellings. The vectors must list at least these.
+const REQUIRED_REDACTED = ['auth_token', 'authToken', 'signature', 'signature_metadata', 'signatureMetadata',
+  'identity', 'env', 'labels', 'error_message', 'errorMessage'];
+
+// A2A v1.0.0 specification/a2a.proto, enum TaskState (lines 186-208).
+const A2A_STATES = ['TASK_STATE_UNSPECIFIED', 'TASK_STATE_SUBMITTED', 'TASK_STATE_WORKING', 'TASK_STATE_COMPLETED',
+  'TASK_STATE_FAILED', 'TASK_STATE_CANCELED', 'TASK_STATE_INPUT_REQUIRED', 'TASK_STATE_REJECTED',
+  'TASK_STATE_AUTH_REQUIRED'];
+
+// RFC 8785 JCS. Byte-identical to canonicalize 2.1.0 for these vectors, whose
+// numbers are all 32-bit integers.
+const jcs = v => (v === null || typeof v !== 'object' ? JSON.stringify(v)
+  : Array.isArray(v) ? `[${v.map(jcs).join(',')}]`
+    : `{${Object.keys(v).sort().map(k => `${JSON.stringify(k)}:${jcs(v[k])}`).join(',')}}`);
+
+const obj = (properties, required = Object.keys(properties)) => ({ type: 'object', required, properties });
+const str = { type: 'string' };
+const SPAN_MAP = obj({ input: { type: 'object' }, span_name: str, span_kind: { enum: ['PRODUCER', 'CONSUMER'] }, attributes: { type: 'object' } });
+const TRACE_SCHEMA = obj({
+  schema_version: { const: 1 },
+  traceparent_cases: {
+    type: 'array',
+    minItems: 1,
+    items: {
+      ...obj({
+        name: { type: 'string', minLength: 1 },
+        headers: { type: 'object', additionalProperties: false, properties: { traceparent: str, tracestate: str } },
+        verdict: { enum: ['valid', 'invalid'] },
+        expected: {},
+      }),
+      if: { type: 'object', properties: { verdict: { const: 'valid' } } },
+      then: {
+        type: 'object',
+        properties: {
+          expected: obj({ trace_id: { type: 'string', pattern: '^[0-9a-f]{32}$' }, parent_id: { type: 'string', pattern: '^[0-9a-f]{16}$' }, sampled: { type: 'boolean' }, tracestate: str }),
+        },
+      },
+      else: { type: 'object', properties: { expected: { type: 'null' } } },
+    },
+  },
+  attribute_maps: obj({ publish: SPAN_MAP, process: SPAN_MAP }),
+});
+const CE_SCHEMA = obj({
+  schema_version: { const: 1 },
+  mapper_config: obj({ source: str }),
+  redacted_keys: { type: 'array', minItems: 1, uniqueItems: true, items: str },
+  cases: {
+    type: 'array',
+    minItems: 8,
+    items: obj({
+      name: { type: 'string', minLength: 1 },
+      covers: { type: 'array', items: str },
+      input: obj({ nats_subject: str, admission: { enum: ['production', 'legacy'] }, packet: { type: 'object' } }),
+      expected_cloudevent: {
+        ...obj({ id: str, source: str, specversion: { type: 'string', const: '1.0' }, type: str }),
+        propertyNames: { type: 'string', pattern: '^[a-z0-9]{1,20}$' },
+      },
+    }),
+  },
+  unmapped_cases: { type: 'array', items: obj({ name: { type: 'string', minLength: 1 }, input: { type: 'object' }, expected: { const: 'not_mapped' } }) },
+});
+
+// checkShape validates data against an inline schema and names the case of each error.
+function checkShape(area, Ajv, schema, data, lists) {
+  if (!Ajv) throw new Error('ajv is not installed');
+  const validate = new Ajv({ allErrors: true }).compile(schema);
+  if (validate(data)) return true;
+  for (const e of validate.errors) {
+    const m = /^\/(\w+)\/(\d+)(\/.*)?$/.exec(e.instancePath);
+    const item = m && lists.includes(m[1]) && Array.isArray(data[m[1]]) ? data[m[1]][Number(m[2])] : undefined;
+    const label = isObj(item) && (item.name || item.id) ? `case ${item.name || item.id}${m[3] ? ` at ${m[3]}` : ''}` : (e.instancePath || 'document');
+    const named = e.params && (e.params.additionalProperty || e.params.propertyName);
+    const extra = named ? ` (${named})` : '';
+    fail(area, `${label}: ${e.message}${extra}`);
+  }
+  return false;
+}
+
+function uniqueNames(area, items, key) {
+  const seen = new Set();
+  for (const it of items) {
+    if (seen.has(it[key])) fail(area, `case ${it[key]}: duplicate ${key}`);
+    seen.add(it[key]);
+  }
+}
+
+function checkTraceVectors(Ajv) {
+  const d = readJSON(TRACE_VECTORS);
+  if (!checkShape('trace-context', Ajv, TRACE_SCHEMA, d, ['traceparent_cases'])) return;
+  if (!ctx.hv) throw new Error('no TraceContextHeaders validator (see the headers area)');
+  const cases = d.traceparent_cases;
+  uniqueNames('trace-context', cases, 'name');
+  let checks = 0;
+  let agree = 0;
+  const expect = (c, h, want, what) => {
+    checks++;
+    if (ctx.hv(h) === want) { agree++; return; }
+    fail('trace-context', `case ${c.name}: TraceContextHeaders ${want ? 'rejects' : 'accepts'} ${what} ${JSON.stringify(h)}`);
+  };
+  for (const c of cases.filter(x => x.verdict === 'valid')) {
+    const e = c.expected;
+    const h = { traceparent: `00-${e.trace_id}-${e.parent_id}-${e.sampled ? '01' : '00'}` };
+    if (e.tracestate !== '') h.tracestate = e.tracestate;
+    expect(c, h, true, 'the producer headers');
+  }
+  for (const c of cases) {
+    const tp = c.headers.traceparent;
+    if (typeof tp === 'string' && tp.startsWith('00-')) {
+      expect(c, { traceparent: tp }, c.verdict === 'valid', `${c.verdict === 'valid' ? 'a valid' : 'an invalid'} traceparent`);
+    }
+  }
+  if (checks === 0) fail('trace-context', 'no header check ran');
+  const valid = cases.filter(c => c.verdict === 'valid').length;
+  summary.push(`trace-context vectors: ${cases.length} cases (${valid} valid, ${cases.length - valid} invalid); ${agree} header checks agree with TraceContextHeaders`);
+}
+
+function checkEventId(c) {
+  const e = c.expected_cloudevent;
+  if (c.input.admission === 'legacy') {
+    const members = {};
+    for (const k of ['type', 'subject', 'time', 'data']) if (k in e) members[k] = e[k];
+    const want = crypto.createHash('sha256').update(jcs(members), 'utf8').digest('hex');
+    if (e.id !== want) fail('cloudevents', `case ${c.name}: id ${e.id} does not equal the recomputed JCS id ${want}`);
+    return;
+  }
+  const sm = isObj(c.input.packet.signatureMetadata) ? c.input.packet.signatureMetadata : {};
+  const mid = sm.messageId;
+  const buf = typeof mid === 'string' ? Buffer.from(mid, 'base64') : Buffer.alloc(0);
+  if (buf.length !== 16 || buf.toString('base64') !== mid) {
+    fail('cloudevents', `case ${c.name}: input.packet.signatureMetadata.messageId ${mid} is not the base64 of exactly 16 bytes`);
+  } else if (e.id !== buf.toString('hex')) {
+    fail('cloudevents', `case ${c.name}: id ${e.id} does not equal the messageId hex ${buf.toString('hex')}`);
+  }
+}
+
+function checkCloudEventVectors(Ajv) {
+  const d = readJSON(CE_VECTORS);
+  const shapeOk = checkShape('cloudevents', Ajv, CE_SCHEMA, d, ['cases', 'unmapped_cases']);
+  const redacted = new Set(isObj(d) && Array.isArray(d.redacted_keys) ? d.redacted_keys : []);
+  for (const k of REQUIRED_REDACTED) if (!redacted.has(k)) fail('cloudevents', `redacted_keys is missing ${k}`);
+  if (!shapeOk) return;
+  uniqueNames('cloudevents', [...d.cases, ...d.unmapped_cases], 'name');
+  for (const c of d.cases) {
+    checkEventId(c);
+    walk(c.expected_cloudevent, [], (node, at) => {
+      for (const k of Object.keys(node)) if (redacted.has(k)) fail('cloudevents', `case ${c.name}: redacted key ${k} at ${[...at, k].join('.')}`);
+    });
+  }
+  const legacy = d.cases.filter(c => c.input.admission === 'legacy').length;
+  const production = d.cases.length - legacy;
+  if (!legacy || !production) fail('cloudevents', `need at least one legacy and one production case, found ${legacy} and ${production}`);
+  summary.push(`cloudevents vectors: ${d.cases.length} cases (${legacy} legacy JCS ids and ${production} production ids recomputed), ${d.unmapped_cases.length} unmapped cases`);
+}
+
+function checkA2AVectors() {
+  const d = readJSON(A2A_VECTORS);
+  if (d.a2a_version !== '1.0.0') fail('a2a', `a2a_version ${d.a2a_version}: TaskState list is pinned to A2A 1.0.0`);
+  if (!Array.isArray(d.cases) || d.cases.length === 0) throw new Error(`${A2A_VECTORS} has no cases`);
+  const cases = d.cases.filter(c => isObj(c) && typeof c.id === 'string' && c.id !== '');
+  if (cases.length !== d.cases.length) fail('a2a', `${d.cases.length - cases.length} case(s) have no id`);
+  uniqueNames('a2a', cases, 'id');
+  const states = new Set(A2A_STATES);
+  let bad = 0;
+  for (const c of cases) {
+    if (!states.has(c.expected_a2a_state)) { bad++; fail('a2a', `case ${c.id}: expected_a2a_state ${c.expected_a2a_state} is not an A2A 1.0 TaskState`); }
+    if (c.expected_event_order === undefined) continue;
+    if (!Array.isArray(c.expected_event_order)) { bad++; fail('a2a', `case ${c.id}: expected_event_order is not a list`); continue; }
+    c.expected_event_order.forEach((s, i) => {
+      if (states.has(s) && s !== 'TASK_STATE_UNSPECIFIED') return;
+      bad++;
+      fail('a2a', `case ${c.id}: expected_event_order[${i}] ${s} is not an emitted A2A 1.0 TaskState (the bridge never emits UNSPECIFIED)`);
+    });
+  }
+  summary.push(`a2a vectors: ${d.cases.length} cases; ${bad ? `${bad} state(s) are not` : 'every state is one of'} the 9 A2A 1.0 TaskStates`);
+}
+
 function report() {
   for (const s of summary) console.log(s);
   for (const f of failures) console.error(f);
@@ -348,6 +535,9 @@ async function main() {
     await group('subjects', checkSubjects);
     await group('headers', () => checkHeaders(Ajv));
   }
+  await group('trace-context', () => checkTraceVectors(Ajv));
+  await group('cloudevents', () => checkCloudEventVectors(Ajv));
+  await group('a2a', checkA2AVectors);
   report();
 }
 

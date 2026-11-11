@@ -774,15 +774,16 @@ func TestEnvelopeValidation(t *testing.T) {
 		return `,"artifacts":[` + strings.TrimSuffix(strings.Repeat(egArtifact+",", n), ",") + `]`
 	}
 	good := map[string][]byte{
-		"empty completed": egEnvelope("completed", ""),
-		"input required":  egEnvelope("input-required", message(egText)),
-		"auth required":   egEnvelope("auth-required", message(egText)+`,"artifacts":[]`),
-		"depth32":         egEnvelope("completed", message(data(32))),
-		"text65536":       egEnvelope("completed", message(text(65536))),
-		"eight artifacts": egEnvelope("completed", artifacts(8)),
-		"sixteen parts":   egEnvelope("completed", message(strings.TrimSuffix(strings.Repeat(egText+",", 16), ","))),
-		"media type":      egEnvelope("completed", message(`{"kind":"text","text":"ok","media_type":"text/plain"}`)),
-		"large integer":   egEnvelope("completed", message(`{"kind":"data","data":{"n":9007199254740993}}`)),
+		"empty completed":         egEnvelope("completed", ""),
+		"input required":          egEnvelope("input-required", message(egText)),
+		"auth required":           egEnvelope("auth-required", message(egText)+`,"artifacts":[]`),
+		"depth32":                 egEnvelope("completed", message(data(32))),
+		"text65536":               egEnvelope("completed", message(text(65536))),
+		"eight artifacts":         egEnvelope("completed", artifacts(8)),
+		"sixteen parts":           egEnvelope("completed", message(strings.TrimSuffix(strings.Repeat(egText+",", 16), ","))),
+		"media type":              egEnvelope("completed", message(`{"kind":"text","text":"ok","media_type":"text/plain"}`)),
+		"large integer":           egEnvelope("completed", message(`{"kind":"data","data":{"n":9007199254740993}}`)),
+		"multibyte artifact name": egEnvelope("completed", `,"artifacts":[{"artifact_id":"a","name":`+strconv.Quote(strings.Repeat("é", 256))+`,"parts":[`+egText+`]}]`),
 	}
 	for name, raw := range good {
 		t.Run(name, func(t *testing.T) {
@@ -803,6 +804,13 @@ func TestEnvelopeValidation(t *testing.T) {
 
 func egInvalidEnvelopes(message func(string) string, text, data, artifacts func(int) string) map[string][]byte {
 	return map[string][]byte{
+		"fold state":             []byte(strings.Replace(string(egEnvelope("completed", "")), "a2a_state", "a2a_\u017ftate", 1)),
+		"fold duplicate state":   egEnvelope("completed", ",\"a2a_\u017ftate\":\"input-required\""+message(egText)),
+		"fold message":           egEnvelope("input-required", strings.Replace(message(egText), "message", "me\u017f\u017fage", 1)),
+		"fold message parts":     egEnvelope("completed", strings.Replace(message(egText), "parts", "part\u017f", 1)),
+		"fold artifact parts":    egEnvelope("completed", strings.Replace(artifacts(1), "parts", "part\u017f", 1)),
+		"fold artifacts":         egEnvelope("completed", strings.Replace(artifacts(1), "artifacts", "artifact\u017f", 1)),
+		"invalid UTF-8 text":     egEnvelope("completed", message(`{"kind":"text","text":"`+string([]byte{0xff})+`"}`)),
 		"case alias":             []byte(strings.Replace(string(egEnvelope("completed", "")), "media_type", "MEDIA_TYPE", 1)),
 		"duplicate field":        egEnvelope("completed", `,"a2a_state":"completed"`),
 		"wrong type":             []byte(`{"media_type":"bad","a2a_state":"completed"}`),
@@ -837,7 +845,7 @@ func egInvalidEnvelopes(message func(string) string, text, data, artifacts func(
 }
 
 func TestSucceededWithoutValidEnvelopeFails(t *testing.T) {
-	for _, mode := range []string{"wrong pointer", "reader error", "oversize", "missing"} {
+	for _, mode := range []string{"wrong pointer", "reader error", "oversize", "missing", "fold state"} {
 		t.Run(mode, func(t *testing.T) {
 			h := newEgHarness(t)
 			id, job := h.start(t, "key-alice", "msg-1")
@@ -854,6 +862,8 @@ func TestSucceededWithoutValidEnvelopeFails(t *testing.T) {
 				h.results.Store("res:"+job, []byte(strings.Repeat("x", 262145)))
 			case "missing":
 				h.results.Delete("res:" + job)
+			case "fold state":
+				h.results.Store("res:"+job, []byte(strings.Replace(string(egEnvelope("completed", "")), "a2a_state", "a2a_\u017ftate", 1)))
 			}
 			h.ing.deliver(capsdk.SubjectResult, raw)
 			h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateFailed)

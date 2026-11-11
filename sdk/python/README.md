@@ -216,10 +216,11 @@ asyncio.run(agent.run())
 
 - In both `run_worker()` and the high-level `Agent`, an ordinary handler
   `Exception` produces exactly one `JOB_STATUS_FAILED` result with the generic
-  external message `handler failed`. Diagnostics use bounded, newline-safe
-  identifiers and the exception type without exposing exception text. Logging
-  and metrics hooks are best-effort and cannot block the terminal result; the
-  worker remains available for later jobs.
+  external message `handler failed`. In the `Agent`, a `cap.JobFailure`
+  publishes its own status and code instead (see below). Diagnostics use
+  bounded, newline-safe identifiers and the exception type without exposing
+  exception text. Logging and metrics hooks are best-effort and cannot block
+  the terminal result; the worker remains available for later jobs.
 - `asyncio.CancelledError`, `KeyboardInterrupt`, and `SystemExit` remain control
   flow and are not converted into job results.
 - Cancelling `run_worker()` drains its NATS connection before exit.
@@ -231,6 +232,62 @@ asyncio.run(agent.run())
   (30 seconds by default), and later stages are still attempted after a timeout.
   Pass `None` only to opt out of deadlines; zero and negative values are
   rejected. Repeated or concurrent calls share the same cleanup operation.
+
+#### Typed failures and error codes
+
+In an `Agent` handler or middleware, raise `cap.JobFailure` to publish a
+spec/13 failure code instead of `handler failed`:
+
+```python
+from cap import JobFailure
+
+@agent.job("job.summarize", input_model=Input, output_model=Output)
+async def summarize(ctx: Context, data: Input) -> Output:
+    if not data.prompt:
+        raise JobFailure("EMPTY_PROMPT", retryable=False)
+    return Output(summary=data.prompt[:140])
+```
+
+- An `int` code sets `error_code_enum`. It must be an `ErrorCode` value other
+  than `ERROR_CODE_UNSPECIFIED`, or an application code in 1000-9999.
+  `error_code` stays empty, except for the spec/13 legacy strings:
+  - `ERROR_CODE_JOB_TIMEOUT`: `TIMEOUT`;
+  - `ERROR_CODE_SAFETY_DENIED`: `DENIED`;
+  - `ERROR_CODE_JOB_PERMISSION_DENIED`: `PERMISSION_DENIED`.
+- A `str` code such as `"FRAMEWORK_ERROR"` sets `error_code` and leaves
+  `error_code_enum` at `ERROR_CODE_UNSPECIFIED`. It must match
+  `[A-Z][A-Z0-9_]{0,63}`. Any other code or `retryable` value, `bool` codes
+  included, raises `TypeError` or `ValueError` when the `JobFailure` is built;
+  inside a handler, that error is an ordinary exception.
+- `retryable` selects the status:
+  - `retryable=None` (the default): `JOB_STATUS_FAILED`;
+  - `retryable=True`: `JOB_STATUS_FAILED_RETRYABLE`;
+  - `retryable=False`: `JOB_STATUS_FAILED_FATAL`.
+- `error_message` is always `handler reported failure`, and the metrics hook's
+  `on_job_failed` gets the same text. The exception's arguments, its cause and
+  the input are never published.
+- The SDK never retries after a `JobFailure`: it publishes that outcome at
+  once, whatever `retries` says. An ordinary exception, an `output_model`
+  validation error included, still runs the handler up to `retries + 1` times
+  and then publishes `handler failed`.
+- The low-level `run_worker()` is unchanged. Its handlers build their own
+  `JobResult`, and a `JobFailure` raised there is an ordinary exception.
+
+Failures the `Agent` detects itself publish `JOB_STATUS_FAILED` with an empty
+`error_code` and fixed text, never exception text, input bytes or pointer text:
+
+| Condition | `error_code_enum` | `error_message` |
+|---|---|---|
+| `context_ptr` is not a valid pointer | `ERROR_CODE_JOB_INVALID_INPUT` | `context pointer invalid` |
+| context fetch raised or timed out | `ERROR_CODE_UNSPECIFIED` | `context fetch failed` |
+| no context blob at the pointer | `ERROR_CODE_JOB_NOT_FOUND` | `context not found` |
+| context over `max_context_bytes` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `context exceeds max size` |
+| context is not UTF-8 JSON | `ERROR_CODE_JOB_INVALID_INPUT` | `context decode failed` |
+| `input_model` rejects the input | `ERROR_CODE_JOB_INVALID_INPUT` | `input validation failed` |
+| handler, middleware or `output_model` raised on every attempt | `ERROR_CODE_UNSPECIFIED` | `handler failed` |
+| output is not JSON-serializable | `ERROR_CODE_UNSPECIFIED` | `result encode failed` |
+| result over `max_result_bytes` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `result exceeds max size` |
+| result write raised or timed out | `ERROR_CODE_UNSPECIFIED` | `result write failed` |
 
 ### Middleware
 

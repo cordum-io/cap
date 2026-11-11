@@ -4,6 +4,15 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
+## Unreleased
+
+- **Go SDK trace propagation (no wire change):** `client.Client.Telemetry` and
+  `runtime.Agent.Telemetry` (`*telemetry.Config`, nil = off) send W3C
+  `traceparent`/`tracestate` NATS headers on job submit and result, and record the
+  `publish`/`process` spans of `spec/interop/trace-context.md`. The runtime extracts
+  trace context only after admission or validation, exposes the process span through
+  `Context.TraceContext()`, and gives a rejected packet no span. `baggage` is never sent.
+
 ## Development
 
 - **cordum-guard closes governance bypasses (security, behavior change).**
@@ -101,8 +110,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `traceparent` and `tracestate` NATS headers, never `baggage`, uses the W3C trace-context
   propagator by default, and starts the contract's `publish` (PRODUCER) and `process`
   (CONSUMER) spans with exactly its attributes and closed `error.type` values. A nil
-  `*telemetry.Config` writes no headers and starts no spans. The Go client and runtime do
-  not use it yet. The module now requires `go.opentelemetry.io/otel` and `otel/trace`
+  `*telemetry.Config` writes no headers and starts no spans. The module now requires
+  `go.opentelemetry.io/otel` and `otel/trace`
   v1.47.0; `otel/sdk` v1.47.0 is required only by tests.
 
 - **Python SDK telemetry (no wire change):** added `cap.telemetry`, an OpenTelemetry API

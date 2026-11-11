@@ -449,6 +449,54 @@ agent := &runtime.Agent{
 The `trace_id` is propagated through all log and metrics calls for distributed tracing correlation.
 
 
+### Trace context (W3C / OpenTelemetry)
+
+Tags: observability, tracing, NATS.
+
+Set the optional `Telemetry` field on both `client.Client` and `runtime.Agent`:
+
+```go
+// tp is your OpenTelemetry trace.TracerProvider; nc is your *nats.Conn.
+tel := &telemetry.Config{TracerProvider: tp}
+c := &client.Client{NATS: nc, Telemetry: tel}
+agent := &runtime.Agent{NATS: nc, Telemetry: tel}
+runtime.Register(agent, "job.echo", func(ctx runtime.Context, in Input) (Output, error) {
+    childCtx, span := tp.Tracer("my-worker").Start(ctx.TraceContext(), "handle")
+    defer span.End()
+    return handle(childCtx, in)
+})
+// Configure packet signing, trust, storage and lifecycle as usual before use.
+```
+
+Import `telemetry` from `github.com/cordum-io/cap/v2/sdk/go/telemetry`. A nil
+`Propagator` means W3C TraceContext only, never the global propagator. A nil
+`Telemetry` config is the off switch: no trace headers and no spans, preserving
+the existing transport behavior. `Context{}.TraceContext()` is always non-nil.
+
+Only lowercase `traceparent` and `tracestate` NATS headers are sent, never
+`baggage`. Headers are outside the signed packet bytes: they are untrusted
+correlation hints, never authority for tenant, principal, key, policy or approval.
+Extraction happens only after CAP-PRODUCTION admission or legacy validation.
+Rejected packets get no span; invalid traceparent values do not reject the job
+and start a new root process span. `ctx.TraceContext()` exposes that process
+span to handlers. The result header identifies its own publish span, a child
+of the process span, not the process span itself.
+
+The submit span records the caller's `trace_id` as `messaging.message.conversation_id`.
+Process and result spans record it only for production-admitted packets, never
+for unauthenticated legacy correlation IDs. This is distinct from the W3C trace-id.
+
+Headers require `PublishMsg`, as provided by `*nats.Conn`. Custom
+`runtime.NATSConn` or `client.Publisher` implementations without it remain
+compatible: telemetry-enabled publish paths still record spans but cannot send
+headers. Exported package-level `client.Submit` and `client.SubmitUnsigned`
+always use nil telemetry and send no trace context.
+
+This integration does not cover `worker.Worker`, `ManagedWorker`, heartbeat,
+handshake, progress, cancel or `Client.Subscribe`. See the
+[trace-context contract](../../spec/interop/trace-context.md) for the carrier,
+span and trust rules.
+
 ## Notes
 - The protobuf `go_package` is `github.com/cordum-io/cap/v2/cordum/agent/v1`.
 - Swap the NATS adapter if you prefer another bus; only `bus/` needs to change.

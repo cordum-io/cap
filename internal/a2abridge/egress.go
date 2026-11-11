@@ -1,14 +1,31 @@
 package a2abridge
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"time"
+	"unicode/utf8"
 
+	"github.com/a2aproject/a2a-go/v2/a2a"
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
 )
+
+// EnvelopeMediaType identifies the strict turn-result grammar in spec §4.
+const EnvelopeMediaType = "application/vnd.cordum.cap.a2a-turn-result.v1+json"
+const maxEnvelopeBytes = 262144
+
+// ResultReader reads result storage. Implementations must return when ctx ends,
+// fail without reading a value larger than maxBytes, and support concurrent use.
+type ResultReader interface {
+	ReadResult(ctx context.Context, key string, maxBytes int) ([]byte, error)
+}
 
 // ProductionTrustFunc returns the CAP-PRODUCTION trust store for one audience
 // (the subject), tenant (the task's, never the packet's) and sender, or false
@@ -33,6 +50,9 @@ var egressSubjects = [...]string{capsdk.SubjectResult, capsdk.SubjectDLQ, capsdk
 func (i *Ingress) Start(sub Subscriber) (stop func() error, err error) {
 	if sub == nil {
 		return nil, errors.New("a2abridge: Start needs a Subscriber")
+	}
+	if i.results == nil {
+		return nil, errors.New("a2abridge: Start needs Results")
 	}
 	if i.trust == nil && len(i.resultKeys) == 0 && !i.unsigned {
 		return nil, errors.New("a2abridge: Start needs ProductionTrust, ResultKeys or AllowUnsignedDev")
@@ -67,13 +87,191 @@ func (i *Ingress) deliver(subject string, raw []byte) {
 	switch p := pkt.GetPayload().(type) {
 	case *agentv1.BusPacket_JobResult:
 		if subject == capsdk.SubjectResult || subject == capsdk.SubjectDLQ {
-			i.store.applyResult(p.JobResult.GetJobId(), p.JobResult.GetStatus(), now)
+			job := p.JobResult.GetJobId()
+			if p.JobResult.GetStatus() == agentv1.JobStatus_JOB_STATUS_SUCCEEDED {
+				if turn, ok := i.store.reserveResult(job); ok {
+					out := i.readEnvelope(job, p.JobResult)
+					i.store.commitResult(job, turn, out, i.now().UTC())
+				}
+			} else {
+				i.store.applyResult(job, p.JobResult.GetStatus(), now)
+			}
 		}
 	case *agentv1.BusPacket_JobProgress:
 		if subject == capsdk.SubjectProgress {
 			i.store.applyProgress(p.JobProgress.GetJobId(), p.JobProgress.GetStatus(), now)
 		}
 	}
+}
+
+func (i *Ingress) readEnvelope(job string, res *agentv1.JobResult) *turnOutcome {
+	if i.results == nil || res.GetResultPtr() != "redis://res:"+job {
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	raw, err := i.results.ReadResult(ctx, "res:"+job, maxEnvelopeBytes)
+	if err != nil || ctx.Err() != nil || len(raw) > maxEnvelopeBytes {
+		return nil
+	}
+	out, err := parseEnvelope(raw)
+	if err != nil {
+		return nil
+	}
+	return out
+}
+
+var errEnvelope = errors.New("a2abridge: invalid turn-result envelope")
+
+// strictDecode closes each schema object and rejects trailing data and null
+// members. The required data member may itself be any JSON value (spec §4.3).
+func strictDecode(raw []byte, dst interface{}) error {
+	d := json.NewDecoder(bytes.NewReader(raw))
+	d.DisallowUnknownFields()
+	if d.Decode(dst) != nil {
+		return errEnvelope
+	}
+	if _, err := d.Token(); err != io.EOF {
+		return errEnvelope
+	}
+	var fields map[string]json.RawMessage
+	if json.Unmarshal(raw, &fields) != nil || fields == nil {
+		return errEnvelope
+	}
+	for key, value := range fields {
+		if key != "data" && bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+			return errEnvelope
+		}
+	}
+	return nil
+}
+
+func parseEnvelope(raw []byte) (*turnOutcome, error) {
+	if len(raw) > maxEnvelopeBytes || !utf8.Valid(raw) {
+		return nil, errEnvelope
+	}
+	var env struct {
+		MediaType string            `json:"media_type"`
+		State     string            `json:"a2a_state"`
+		Message   json.RawMessage   `json:"message"`
+		Artifacts []json.RawMessage `json:"artifacts"`
+	}
+	if strictDecode(raw, &env) != nil || env.MediaType != EnvelopeMediaType {
+		return nil, errEnvelope
+	}
+	out := &turnOutcome{}
+	switch env.State {
+	case "completed":
+		out.state = a2a.TaskStateCompleted
+	case "input-required":
+		out.state = a2a.TaskStateInputRequired
+	case "auth-required":
+		out.state = a2a.TaskStateAuthRequired
+	default:
+		return nil, errEnvelope
+	}
+	textOnly := out.state == a2a.TaskStateAuthRequired
+	if len(env.Artifacts) > 8 || textOnly && len(env.Artifacts) != 0 {
+		return nil, errEnvelope
+	}
+	if env.Message != nil {
+		var msg struct {
+			Parts []json.RawMessage `json:"parts"`
+		}
+		if strictDecode(env.Message, &msg) != nil {
+			return nil, errEnvelope
+		}
+		parts, err := parseParts(msg.Parts, textOnly)
+		if err != nil {
+			return nil, errEnvelope
+		}
+		out.message = a2a.NewMessage(a2a.MessageRoleAgent, parts...)
+	} else if out.state != a2a.TaskStateCompleted {
+		return nil, errEnvelope
+	}
+	for _, rawArtifact := range env.Artifacts {
+		artifact, err := parseArtifact(rawArtifact)
+		if err != nil {
+			return nil, errEnvelope
+		}
+		out.artifacts = append(out.artifacts, artifact)
+	}
+	return out, nil
+}
+
+func parseArtifact(raw []byte) (*a2a.Artifact, error) {
+	var a struct {
+		ID    string            `json:"artifact_id"`
+		Name  string            `json:"name"`
+		Parts []json.RawMessage `json:"parts"`
+	}
+	if strictDecode(raw, &a) != nil || !validID(a.ID) || utf8.RuneCountInString(a.Name) > 256 {
+		return nil, errEnvelope
+	}
+	parts, err := parseParts(a.Parts, false)
+	if err != nil {
+		return nil, errEnvelope
+	}
+	return &a2a.Artifact{ID: a2a.ArtifactID(a.ID), Name: a.Name, Parts: parts}, nil
+}
+
+func parseParts(raw []json.RawMessage, textOnly bool) (a2a.ContentParts, error) {
+	if len(raw) < 1 || len(raw) > maxParts {
+		return nil, errEnvelope
+	}
+	parts := make(a2a.ContentParts, 0, len(raw))
+	for _, item := range raw {
+		part, err := parsePart(item, textOnly)
+		if err != nil {
+			return nil, errEnvelope
+		}
+		parts = append(parts, part)
+	}
+	return parts, nil
+}
+
+func parsePart(raw []byte, textOnly bool) (*a2a.Part, error) {
+	var p struct {
+		Kind      string          `json:"kind"`
+		Text      *string         `json:"text"`
+		Data      json.RawMessage `json:"data"`
+		MediaType *string         `json:"media_type"`
+	}
+	if strictDecode(raw, &p) != nil {
+		return nil, errEnvelope
+	}
+	var part *a2a.Part
+	switch p.Kind {
+	case "text":
+		if p.Text == nil || p.Data != nil || len(*p.Text) > maxTextBytes {
+			return nil, errEnvelope
+		}
+		part = a2a.NewTextPart(*p.Text)
+	case "data":
+		if textOnly || p.Text != nil || p.Data == nil {
+			return nil, errEnvelope
+		}
+		var compact bytes.Buffer
+		if json.Compact(&compact, p.Data) != nil || compact.Len() > maxDataBytes || jsonDepth(p.Data) > maxDataDepth {
+			return nil, errEnvelope
+		}
+		var value interface{}
+		d := json.NewDecoder(bytes.NewReader(p.Data))
+		d.UseNumber()
+		if d.Decode(&value) != nil {
+			return nil, errEnvelope
+		}
+		part = a2a.NewDataPart(value)
+	default:
+		return nil, errEnvelope
+	}
+	if p.MediaType != nil {
+		if len(*p.MediaType) > maxMediaTypeLen || !mediaTypeRe.MatchString(*p.MediaType) {
+			return nil, errEnvelope
+		}
+		part.MediaType = *p.MediaType
+	}
+	return part, nil
 }
 
 // verify returns the packet only when it passes the configured mode and

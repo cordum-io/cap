@@ -1,0 +1,376 @@
+asyncapi: 3.1.0
+info:
+  title: Cordum Agent Protocol (CAP) NATS transport
+  version: '1.0.0'
+  description: |
+    Machine-readable description of the CAP NATS subjects. The version above
+    is the version of this document, not of an SDK release.
+
+    - The channels, payloads, directions and delivery modes come from the
+      subject table in spec/09-transport-profile.md. tools/interop/validate.cjs
+      checks this document against that table, spec/14, the proto files and
+      the Go SDK subject constants in the Interop Contract workflow.
+    - Every NATS message body is a protobuf-serialized
+      cordum.agent.v1.BusPacket (spec/02-envelope-buspacket.md).
+    - x-cap-proto-message names the BusPacket payload-oneof message that the
+      subject carries. For sys.job.dlq and sys.workflow.event it names
+      BusPacket itself, because those subjects may carry any payload.
+    - Operations are written from the producing role's side. x-cap-direction
+      and x-cap-delivery copy the Direction and Delivery cells of the spec/09
+      table verbatim.
+    - The optional traceparent and tracestate headers follow
+      spec/interop/trace-context.md: exact lowercase keys, outside the signed
+      bytes, never authority, and no baggage.
+    - The optional job.<pool>.result echo in spec/03 is not a spec/09 subject
+      and has no channel.
+    - This document adds no SDK behavior.
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+defaultContentType: application/x-protobuf
+servers:
+  nats:
+    host: '{host}'
+    protocol: nats
+    description: A NATS server carrying CAP traffic (spec/09 NATS profile).
+    variables:
+      host:
+        default: 'localhost:4222'
+        description: NATS host and port. Deployment-specific.
+    bindings:
+      nats: {}
+channels:
+  sysJobSubmit:
+    address: sys.job.submit
+    description: Job submission (spec/09 subject table).
+    messages:
+      jobRequest:
+        $ref: '#/components/messages/JobRequest'
+  sysJobResult:
+    address: sys.job.result
+    description: Job results (spec/09 subject table).
+    messages:
+      jobResult:
+        $ref: '#/components/messages/JobResult'
+  sysHeartbeat:
+    address: sys.heartbeat
+    description: Worker heartbeats, broadcast without a queue group (spec/09 subject table and NATS profile).
+    messages:
+      heartbeat:
+        $ref: '#/components/messages/Heartbeat'
+  sysAlert:
+    address: sys.alert
+    description: System alerts (spec/09 subject table).
+    messages:
+      systemAlert:
+        $ref: '#/components/messages/SystemAlert'
+  sysJobProgress:
+    address: sys.job.progress
+    description: Job progress updates (spec/09 subject table).
+    messages:
+      jobProgress:
+        $ref: '#/components/messages/JobProgress'
+  sysJobCancel:
+    address: sys.job.cancel
+    description: Job cancellation (spec/09 subject table).
+    messages:
+      jobCancel:
+        $ref: '#/components/messages/JobCancel'
+  sysJobDlq:
+    address: sys.job.dlq
+    description: Dead-letter queue for packets the scheduler could not process (spec/09 subject table).
+    messages:
+      busPacket:
+        $ref: '#/components/messages/BusPacket'
+  sysWorkflowEvent:
+    address: sys.workflow.event
+    description: Workflow orchestration events (spec/09 subject table).
+    messages:
+      busPacket:
+        $ref: '#/components/messages/BusPacket'
+  sysHandshake:
+    address: sys.handshake
+    description: Legacy capability advertisement, broadcast without a queue group (spec/09 subject table and NATS profile).
+    messages:
+      handshake:
+        $ref: '#/components/messages/Handshake'
+  sysWorkerHandshakeChallenge:
+    address: sys.worker.handshake.challenge
+    description: Authenticated worker trust, challenge phase, over core NATS request/reply (spec/09 subject table, spec/14). Never persisted in JetStream.
+    messages:
+      workerHandshakeChallengeRequest:
+        $ref: '#/components/messages/WorkerHandshakeChallengeRequest'
+  sysWorkerHandshakeAuthenticate:
+    address: sys.worker.handshake.authenticate
+    description: Authenticated worker trust, authenticate phase, over core NATS request/reply (spec/09 subject table, spec/14). Never persisted in JetStream.
+    messages:
+      workerHandshakeAuthenticate:
+        $ref: '#/components/messages/WorkerHandshakeAuthenticate'
+  jobPool:
+    address: 'job.{pool}'
+    description: Job dispatch to a worker pool (spec/09 subject table and NATS profile).
+    parameters:
+      pool:
+        description: Application-defined pool name (spec/09). Workers in a pool share load through a NATS queue group.
+    messages:
+      jobRequest:
+        $ref: '#/components/messages/JobRequest'
+operations:
+  sendSysJobSubmit:
+    action: send
+    channel:
+      $ref: '#/channels/sysJobSubmit'
+    messages:
+      - $ref: '#/channels/sysJobSubmit/messages/jobRequest'
+    summary: The Gateway publishes a JobRequest for the Scheduler.
+    x-cap-direction: Gateway -> Scheduler
+    x-cap-delivery: durable when required
+  sendSysJobResult:
+    action: send
+    channel:
+      $ref: '#/channels/sysJobResult'
+    messages:
+      - $ref: '#/channels/sysJobResult/messages/jobResult'
+    summary: A Worker publishes a JobResult for the Scheduler.
+    x-cap-direction: Worker -> Scheduler
+    x-cap-delivery: durable when required
+  sendSysHeartbeat:
+    action: send
+    channel:
+      $ref: '#/channels/sysHeartbeat'
+    messages:
+      - $ref: '#/channels/sysHeartbeat/messages/heartbeat'
+    summary: A Worker broadcasts a Heartbeat to every Scheduler.
+    x-cap-direction: Worker -> Schedulers
+    x-cap-delivery: broadcast
+  sendSysAlert:
+    action: send
+    channel:
+      $ref: '#/channels/sysAlert'
+    messages:
+      - $ref: '#/channels/sysAlert/messages/systemAlert'
+    summary: Any component broadcasts a SystemAlert to the Controllers.
+    x-cap-direction: Any -> Controllers
+    x-cap-delivery: broadcast
+  sendSysJobProgress:
+    action: send
+    channel:
+      $ref: '#/channels/sysJobProgress'
+    messages:
+      - $ref: '#/channels/sysJobProgress/messages/jobProgress'
+    summary: A Worker publishes a JobProgress for the Scheduler.
+    x-cap-direction: Worker -> Scheduler
+    x-cap-delivery: profile-specific
+  sendSysJobCancel:
+    action: send
+    channel:
+      $ref: '#/channels/sysJobCancel'
+    messages:
+      - $ref: '#/channels/sysJobCancel/messages/jobCancel'
+    summary: The Scheduler publishes a JobCancel for a Worker.
+    x-cap-direction: Scheduler -> Worker
+    x-cap-delivery: profile-specific
+  sendSysJobDlq:
+    action: send
+    channel:
+      $ref: '#/channels/sysJobDlq'
+    messages:
+      - $ref: '#/channels/sysJobDlq/messages/busPacket'
+    summary: The Scheduler publishes a dead-lettered BusPacket to the DLQ.
+    x-cap-direction: Scheduler -> DLQ
+    x-cap-delivery: durable
+  sendSysWorkflowEvent:
+    action: send
+    channel:
+      $ref: '#/channels/sysWorkflowEvent'
+    messages:
+      - $ref: '#/channels/sysWorkflowEvent/messages/busPacket'
+    summary: The Orchestrator publishes a workflow-event BusPacket for the Scheduler.
+    x-cap-direction: Orchestrator -> Scheduler
+    x-cap-delivery: profile-specific
+  sendSysHandshake:
+    action: send
+    channel:
+      $ref: '#/channels/sysHandshake'
+    messages:
+      - $ref: '#/channels/sysHandshake/messages/handshake'
+    summary: A component broadcasts a legacy capability Handshake to the Schedulers and Controllers.
+    x-cap-direction: Component -> Schedulers/Controllers
+    x-cap-delivery: broadcast, legacy capability only
+  sendSysWorkerHandshakeChallenge:
+    action: send
+    channel:
+      $ref: '#/channels/sysWorkerHandshakeChallenge'
+    messages:
+      - $ref: '#/channels/sysWorkerHandshakeChallenge/messages/workerHandshakeChallengeRequest'
+    summary: A Worker sends a WorkerHandshakeChallengeRequest to the Scheduler.
+    description: >-
+      The Scheduler replies with BusPacket{WorkerHandshakeChallenge}, named by
+      x-cap-reply-proto-message. The reply goes only to the reply inbox of the
+      NATS request (spec/09 "Authenticated worker trust") and is not a channel.
+    x-cap-direction: Worker -> Scheduler
+    x-cap-delivery: core request/reply only
+    x-cap-reply-proto-message: cordum.agent.v1.WorkerHandshakeChallenge
+  sendSysWorkerHandshakeAuthenticate:
+    action: send
+    channel:
+      $ref: '#/channels/sysWorkerHandshakeAuthenticate'
+    messages:
+      - $ref: '#/channels/sysWorkerHandshakeAuthenticate/messages/workerHandshakeAuthenticate'
+    summary: A Worker sends a WorkerHandshakeAuthenticate to the Scheduler.
+    description: >-
+      The Scheduler replies with BusPacket{WorkerHandshakeResult}, named by
+      x-cap-reply-proto-message. The reply goes only to the reply inbox of the
+      NATS request (spec/09 "Authenticated worker trust") and is not a channel.
+    x-cap-direction: Worker -> Scheduler
+    x-cap-delivery: core request/reply only
+    x-cap-reply-proto-message: cordum.agent.v1.WorkerHandshakeResult
+  sendJobPool:
+    action: send
+    channel:
+      $ref: '#/channels/jobPool'
+    messages:
+      - $ref: '#/channels/jobPool/messages/jobRequest'
+    summary: The Scheduler dispatches a JobRequest to one Worker in the pool.
+    x-cap-direction: Scheduler -> Workers
+    x-cap-delivery: queue group
+components:
+  schemas:
+    TraceContextHeaders:
+      type: object
+      description: >-
+        Optional W3C Trace Context headers (spec/interop/trace-context.md).
+        Keys are exact lowercase. Values are untrusted and never authority. A
+        producer emits version 00. Baggage is not part of this contract.
+      properties:
+        traceparent:
+          type: string
+          description: W3C traceparent as a producer emits it, version 00, with non-zero trace and parent ids.
+          pattern: '^00-(?!0{32})[0-9a-f]{32}-(?!0{16})[0-9a-f]{16}-[0-9a-f]{2}$'
+        tracestate:
+          type: string
+          description: W3C tracestate, a list of 1 to 32 key=value members.
+          pattern: '^(?:[a-z][a-z0-9_*/-]{0,255}|[a-z0-9][a-z0-9_*/-]{0,240}@[a-z][a-z0-9_*/-]{0,13})=[\x20-\x2b\x2d-\x3c\x3e-\x7e]{0,255}[\x21-\x2b\x2d-\x3c\x3e-\x7e](?:[ \t]*,[ \t]*(?:[a-z][a-z0-9_*/-]{0,255}|[a-z0-9][a-z0-9_*/-]{0,240}@[a-z][a-z0-9_*/-]{0,13})=[\x20-\x2b\x2d-\x3c\x3e-\x7e]{0,255}[\x21-\x2b\x2d-\x3c\x3e-\x7e]){0,31}$'
+  messages:
+    JobRequest:
+      name: JobRequest
+      title: Job request
+      contentType: application/x-protobuf
+      headers:
+        $ref: '#/components/schemas/TraceContextHeaders'
+      payload:
+        type: string
+        format: binary
+        description: protobuf-serialized cordum.agent.v1.BusPacket whose payload is job_request.
+      x-cap-proto-message: cordum.agent.v1.JobRequest
+    JobResult:
+      name: JobResult
+      title: Job result
+      contentType: application/x-protobuf
+      headers:
+        $ref: '#/components/schemas/TraceContextHeaders'
+      payload:
+        type: string
+        format: binary
+        description: protobuf-serialized cordum.agent.v1.BusPacket whose payload is job_result.
+      x-cap-proto-message: cordum.agent.v1.JobResult
+    Heartbeat:
+      name: Heartbeat
+      title: Heartbeat
+      contentType: application/x-protobuf
+      headers:
+        $ref: '#/components/schemas/TraceContextHeaders'
+      payload:
+        type: string
+        format: binary
+        description: protobuf-serialized cordum.agent.v1.BusPacket whose payload is heartbeat.
+      x-cap-proto-message: cordum.agent.v1.Heartbeat
+    SystemAlert:
+      name: SystemAlert
+      title: System alert
+      contentType: application/x-protobuf
+      headers:
+        $ref: '#/components/schemas/TraceContextHeaders'
+      payload:
+        type: string
+        format: binary
+        description: protobuf-serialized cordum.agent.v1.BusPacket whose payload is alert.
+      x-cap-proto-message: cordum.agent.v1.SystemAlert
+    JobProgress:
+      name: JobProgress
+      title: Job progress
+      contentType: application/x-protobuf
+      headers:
+        $ref: '#/components/schemas/TraceContextHeaders'
+      payload:
+        type: string
+        format: binary
+        description: protobuf-serialized cordum.agent.v1.BusPacket whose payload is job_progress.
+      x-cap-proto-message: cordum.agent.v1.JobProgress
+    JobCancel:
+      name: JobCancel
+      title: Job cancel
+      contentType: application/x-protobuf
+      headers:
+        $ref: '#/components/schemas/TraceContextHeaders'
+      payload:
+        type: string
+        format: binary
+        description: protobuf-serialized cordum.agent.v1.BusPacket whose payload is job_cancel.
+      x-cap-proto-message: cordum.agent.v1.JobCancel
+    BusPacket:
+      name: BusPacket
+      title: Bus packet
+      contentType: application/x-protobuf
+      headers:
+        $ref: '#/components/schemas/TraceContextHeaders'
+      payload:
+        type: string
+        format: binary
+        description: protobuf-serialized cordum.agent.v1.BusPacket with any payload.
+      x-cap-proto-message: cordum.agent.v1.BusPacket
+    Handshake:
+      name: Handshake
+      title: Legacy capability handshake
+      contentType: application/x-protobuf
+      headers:
+        $ref: '#/components/schemas/TraceContextHeaders'
+      payload:
+        type: string
+        format: binary
+        description: protobuf-serialized cordum.agent.v1.BusPacket whose payload is handshake.
+      x-cap-proto-message: cordum.agent.v1.Handshake
+    WorkerHandshakeChallengeRequest:
+      name: WorkerHandshakeChallengeRequest
+      title: Worker trust challenge request
+      contentType: application/x-protobuf
+      headers:
+        $ref: '#/components/schemas/TraceContextHeaders'
+      payload:
+        type: string
+        format: binary
+        description: protobuf-serialized cordum.agent.v1.BusPacket whose payload is worker_handshake_challenge_request.
+      x-cap-proto-message: cordum.agent.v1.WorkerHandshakeChallengeRequest
+    WorkerHandshakeAuthenticate:
+      name: WorkerHandshakeAuthenticate
+      title: Worker trust authenticate request
+      contentType: application/x-protobuf
+      headers:
+        $ref: '#/components/schemas/TraceContextHeaders'
+      payload:
+        type: string
+        format: binary
+        description: protobuf-serialized cordum.agent.v1.BusPacket whose payload is worker_handshake_authenticate.
+      x-cap-proto-message: cordum.agent.v1.WorkerHandshakeAuthenticate
+x-cap-excluded-subjects:
+  - subject: sys.worker.handshake
+    reason: >-
+      Deprecated constant WorkerHandshakeSubject (sdk/go/legacy_handshake.go:14)
+      of the retired JSON codec, which runtime transports never publish.
+      spec/14:110 says it is not a CAP trust-handshake subject.
+  - subject: sys.worker.handshake.renew
+    reason: >-
+      Deprecated constant WorkerHandshakeRenewSubject
+      (sdk/go/legacy_handshake.go:17) of the retired JSON codec, which runtime
+      transports never publish. spec/14:110 says it is not a CAP
+      trust-handshake subject.

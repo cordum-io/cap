@@ -26,8 +26,16 @@ CANARY = "private-backend-canary-do-not-leak"
 
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch):
+    connect, connect_ex, socketpair = socket.socket.connect, socket.socket.connect_ex, socket.socketpair
     def forbidden(*args, **kwargs):
         raise AssertionError("network forbidden")
+    def wakeup_pair(*args, **kwargs):
+        # Windows implements asyncio's private wakeup pipe with loopback sockets.
+        with monkeypatch.context() as local:
+            local.setattr(socket.socket, "connect", connect)
+            local.setattr(socket.socket, "connect_ex", connect_ex)
+            return socketpair(*args, **kwargs)
+    monkeypatch.setattr(socket, "socketpair", wakeup_pair)
     monkeypatch.setattr(socket.socket, "connect", forbidden)
     monkeypatch.setattr(socket.socket, "connect_ex", forbidden)
 
@@ -40,6 +48,14 @@ def _ref(content=CONTENT, **changes):
                   media_type="application/json", purpose="job-input", expires_at=stamp)
     fields.update(changes)
     return ResourceRef(**fields)
+
+
+def test_network_trap_rejects_outbound_connections():
+    with socket.socket() as sock:
+        with pytest.raises(AssertionError, match="network forbidden"):
+            sock.connect(("127.0.0.1", 9))
+        with pytest.raises(AssertionError, match="network forbidden"):
+            sock.connect_ex(("127.0.0.1", 9))
 
 
 class _Stub:

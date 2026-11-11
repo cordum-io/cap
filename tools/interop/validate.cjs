@@ -184,12 +184,21 @@ async function checkAsyncapi(Parser) {
   const external = refs.filter(r => !r.startsWith('#'));
   if (external.length) throw new Error(`${DOC}: non-local $ref ${external.join(', ')} refused before parsing; nothing was fetched`);
   if (!Parser) throw new Error('@asyncapi/parser is not installed');
-  const { diagnostics, extras } = await new Parser().parse(text, { source: DOC });
+  // Second gate: resolvers that run before the parser's file/http/https readers
+  // and answer every non-local ref with an empty document, so nothing is read.
+  const refused = [];
+  const refuse = schema => ({ schema, order: 1, read: uri => { refused.push(String(uri)); return '{}'; } });
+  const parser = new Parser({ __unstable: { resolver: { resolvers: ['file', 'http', 'https'].map(refuse) } } });
+  const { diagnostics, extras } = await parser.parse(text, { source: DOC });
+  for (const uri of refused) fail('asyncapi', `non-local $ref ${uri} refused; nothing was fetched`);
   const bad = diagnostics.filter(d => d.severity === 0 || d.severity === 1);
   for (const d of bad) fail('asyncapi', `${d.code} at ${(d.path || []).join('.')}: ${d.message}`);
   const raw = extras && extras.document && extras.document.data;
   if (!isObj(raw)) throw new Error(`${DOC}: the parser returned no raw document`);
   ctx.raw = raw;
+  walk(raw, [], (node, at) => {
+    if ('$ref' in node && !(typeof node.$ref === 'string' && node.$ref.startsWith('#'))) fail('asyncapi', `${at.join('.')}: non-local $ref ${node.$ref}`);
+  });
   if (raw.asyncapi !== '3.1.0') fail('asyncapi', `${DOC} declares asyncapi ${raw.asyncapi}, want 3.1.0`);
   const pins = readJSON('tools/interop/package.json').dependencies;
   const installed = {};

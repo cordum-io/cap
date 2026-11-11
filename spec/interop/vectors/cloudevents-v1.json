@@ -1,0 +1,653 @@
+{
+  "schema_version": 1,
+  "spec": "spec/interop/cloudevents-mapping.md",
+  "description": "CloudEvents 1.0 mapping vectors for CAP job progress, job result, alert and workflow-event packets. Each case gives the NATS subject, the admission mode, the received headers and an admitted packet in proto3 JSON, and the CloudEvent a conforming mapper produces. Mapping starts after admission or validation, so these are not signing or admission vectors. Every id, time, data and extension value was derived by a reference mapper, and every legacy id was recomputed with two independent RFC 8785 implementations.",
+  "sources": {
+    "cloudevents_spec": "https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md",
+    "cloudevents_json_format": "https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/formats/json-format.md",
+    "cloudevents_distributed_tracing": "https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/extensions/distributed-tracing.md",
+    "jcs": "RFC 8785 (JSON Canonicalization Scheme)",
+    "proto3_json": "https://protobuf.dev/programming-guides/json/",
+    "trace_context_vectors": "spec/interop/vectors/trace-context-v1.json",
+    "verified_with": {
+      "protobuf": "protobuf (python) 6.33.6 json_format, CAP python stubs from CAP commit 85097a10b8b77876107e0a2569b271dfa2fd6c98",
+      "rfc8785": "rfc8785 (python) 0.1.4",
+      "canonicalize": "canonicalize (npm) 2.1.0"
+    }
+  },
+  "mapper_config": {
+    "source": "https://cap.example/clusters/dev"
+  },
+  "redacted_keys": [
+    "auth_token",
+    "authToken",
+    "signature",
+    "signature_metadata",
+    "signatureMetadata",
+    "identity",
+    "env",
+    "labels",
+    "error_message",
+    "errorMessage"
+  ],
+  "cases": [
+    {
+      "name": "progress-legacy-traced",
+      "covers": [
+        "progress",
+        "legacy_id",
+        "trace_extensions"
+      ],
+      "input": {
+        "nats_subject": "sys.job.progress",
+        "admission": "legacy",
+        "headers": {
+          "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+          "tracestate": "rojo=00f067aa0ba902b7,congo=t61rcWkgMzE"
+        },
+        "packet": {
+          "traceId": "trace-9d21",
+          "senderId": "worker-echo-1",
+          "createdAt": "2026-10-17T12:00:00.500Z",
+          "protocolVersion": 1,
+          "jobProgress": {
+            "jobId": "job-42",
+            "stepId": "step-2",
+            "percent": 40,
+            "message": "indexed 40 of 100 files",
+            "status": "JOB_STATUS_RUNNING",
+            "artifactPtrs": [
+              "art:fake/job-42/log-1"
+            ],
+            "dispatch": {
+              "dispatchId": "disp-0001",
+              "attempt": "1",
+              "assignedWorkerId": "worker-echo-1"
+            }
+          }
+        }
+      },
+      "expected_cloudevent": {
+        "specversion": "1.0",
+        "type": "io.cordum.cap.job.progress.v1",
+        "source": "https://cap.example/clusters/dev",
+        "id": "00a2d42c64eb1979dafcc3d3e5382a92a25e8e25347685edc5e0f42a2a738425",
+        "subject": "job/job-42",
+        "time": "2026-10-17T12:00:00.500Z",
+        "datacontenttype": "application/json",
+        "captraceid": "trace-9d21",
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "tracestate": "rojo=00f067aa0ba902b7,congo=t61rcWkgMzE",
+        "data": {
+          "jobId": "job-42",
+          "stepId": "step-2",
+          "percent": 40,
+          "message": "indexed 40 of 100 files",
+          "artifactPtrs": [
+            "art:fake/job-42/log-1"
+          ],
+          "status": "JOB_STATUS_RUNNING",
+          "dispatch": {
+            "dispatchId": "disp-0001",
+            "attempt": "1",
+            "assignedWorkerId": "worker-echo-1"
+          }
+        }
+      }
+    },
+    {
+      "name": "result-succeeded-production",
+      "covers": [
+        "result_succeeded",
+        "production_id",
+        "redaction",
+        "job_context"
+      ],
+      "input": {
+        "nats_subject": "sys.job.result",
+        "admission": "production",
+        "originating_job_request": {
+          "jobId": "job-42",
+          "topic": "job.echo",
+          "workflowId": "wf-nightly-build",
+          "stepIndex": 2,
+          "parentJobId": "job-41",
+          "env": {
+            "run_id": "run-7f3a",
+            "tenant_id": "tenant-a"
+          },
+          "labels": {
+            "_source": "workflow",
+            "run_id": "run-7f3a"
+          }
+        },
+        "packet": {
+          "traceId": "trace-b4c8",
+          "senderId": "worker-echo-1",
+          "createdAt": "2026-10-17T12:00:05Z",
+          "protocolVersion": 1,
+          "signatureMetadata": {
+            "profileVersion": "cap-production-v1",
+            "algorithm": "ECDSA-P256-SHA256",
+            "messageId": "ASNFZ4mrze/+3LqYdlQyEA==",
+            "audience": "sys.job.result",
+            "expiresAt": "2026-10-17T12:05:00Z",
+            "keyId": "key-worker-echo-1"
+          },
+          "identity": {
+            "tenantId": "tenant-a",
+            "principalId": "principal-1",
+            "actorId": "worker-echo-1"
+          },
+          "signature": "cGxhY2Vob2xkZXItc2lnbmF0dXJlLW5vdC1yZWFs",
+          "jobResult": {
+            "jobId": "job-42",
+            "status": "JOB_STATUS_SUCCEEDED",
+            "resultPtr": "res:fake/job-42",
+            "workerId": "worker-echo-1",
+            "executionMs": "1500",
+            "dispatch": {
+              "dispatchId": "disp-0001",
+              "attempt": "1",
+              "assignedWorkerId": "worker-echo-1"
+            },
+            "identity": {
+              "tenantId": "tenant-a",
+              "principalId": "principal-1",
+              "actorId": "worker-echo-1"
+            },
+            "resultRef": {
+              "resolverId": "resolver-local",
+              "uri": "resource://store.example/job-42/result",
+              "sha256": "+qnozJVYl57yk1SG2h1ufXyT3rr1/VmTxdx0FG8fZ5k=",
+              "mediaType": "application/json",
+              "sizeBytes": "2048",
+              "purpose": "job-result"
+            }
+          }
+        }
+      },
+      "expected_cloudevent": {
+        "specversion": "1.0",
+        "type": "io.cordum.cap.job.result.v1",
+        "source": "https://cap.example/clusters/dev",
+        "id": "0123456789abcdeffedcba9876543210",
+        "subject": "job/job-42",
+        "time": "2026-10-17T12:00:05Z",
+        "datacontenttype": "application/json",
+        "captraceid": "trace-b4c8",
+        "capworkflowid": "wf-nightly-build",
+        "capstepindex": 2,
+        "capparentjobid": "job-41",
+        "data": {
+          "jobId": "job-42",
+          "status": "JOB_STATUS_SUCCEEDED",
+          "resultPtr": "res:fake/job-42",
+          "workerId": "worker-echo-1",
+          "executionMs": "1500",
+          "dispatch": {
+            "dispatchId": "disp-0001",
+            "attempt": "1",
+            "assignedWorkerId": "worker-echo-1"
+          },
+          "resultRef": {
+            "resolverId": "resolver-local",
+            "uri": "resource://store.example/job-42/result",
+            "sha256": "+qnozJVYl57yk1SG2h1ufXyT3rr1/VmTxdx0FG8fZ5k=",
+            "mediaType": "application/json",
+            "sizeBytes": "2048",
+            "purpose": "job-result"
+          }
+        }
+      }
+    },
+    {
+      "name": "result-failed-legacy-redacted",
+      "covers": [
+        "result_failed",
+        "redaction",
+        "legacy_id"
+      ],
+      "input": {
+        "nats_subject": "sys.job.result",
+        "admission": "legacy",
+        "packet": {
+          "traceId": "trace-31ab",
+          "senderId": "worker-echo-2",
+          "createdAt": "2026-10-17T12:10:00Z",
+          "protocolVersion": 1,
+          "authToken": "fake-auth-token-do-not-use",
+          "signature": "cGxhY2Vob2xkZXItc2lnbmF0dXJlLW5vdC1yZWFs",
+          "jobResult": {
+            "jobId": "job-43",
+            "status": "JOB_STATUS_FAILED",
+            "workerId": "worker-echo-2",
+            "executionMs": "30000",
+            "errorCode": "job_timeout",
+            "errorMessage": "deadline exceeded calling https://internal.example/hook with token fake-secret-123",
+            "errorCodeEnum": "ERROR_CODE_JOB_TIMEOUT",
+            "identity": {
+              "tenantId": "tenant-a",
+              "principalId": "principal-2"
+            }
+          }
+        }
+      },
+      "expected_cloudevent": {
+        "specversion": "1.0",
+        "type": "io.cordum.cap.job.result.v1",
+        "source": "https://cap.example/clusters/dev",
+        "id": "d0442a65ff3617d7b112238cdc96f192d34fda21baf557aecf4059e7e8ede506",
+        "subject": "job/job-43",
+        "time": "2026-10-17T12:10:00Z",
+        "datacontenttype": "application/json",
+        "captraceid": "trace-31ab",
+        "data": {
+          "jobId": "job-43",
+          "status": "JOB_STATUS_FAILED",
+          "workerId": "worker-echo-2",
+          "executionMs": "30000",
+          "errorCode": "job_timeout",
+          "errorCodeEnum": "ERROR_CODE_JOB_TIMEOUT"
+        }
+      }
+    },
+    {
+      "name": "alert-legacy",
+      "covers": [
+        "alert",
+        "redaction",
+        "legacy_id"
+      ],
+      "input": {
+        "nats_subject": "sys.alert",
+        "admission": "legacy",
+        "packet": {
+          "traceId": "trace-77aa",
+          "senderId": "monitor-1",
+          "createdAt": "2026-10-17T14:00:00.5+02:00",
+          "protocolVersion": 1,
+          "alert": {
+            "severity": "ALERT_SEVERITY_WARNING",
+            "message": "queue depth above threshold",
+            "errorCodeEnum": "ERROR_CODE_JOB_RESOURCE_EXHAUSTED",
+            "sourceComponent": "scheduler",
+            "details": {
+              "pool": "job.echo",
+              "labels": "team=fake",
+              "auth_token": "fake-auth-token-do-not-use"
+            },
+            "traceId": "trace-77aa"
+          }
+        }
+      },
+      "expected_cloudevent": {
+        "specversion": "1.0",
+        "type": "io.cordum.cap.alert.v1",
+        "source": "https://cap.example/clusters/dev",
+        "id": "5bf5cd99ed5364e58cb047ae444e0c2c2beb337d0cb290b3fa39a5f3efe02f25",
+        "time": "2026-10-17T12:00:00.500Z",
+        "datacontenttype": "application/json",
+        "captraceid": "trace-77aa",
+        "data": {
+          "message": "queue depth above threshold",
+          "severity": "ALERT_SEVERITY_WARNING",
+          "errorCodeEnum": "ERROR_CODE_JOB_RESOURCE_EXHAUSTED",
+          "sourceComponent": "scheduler",
+          "details": {
+            "pool": "job.echo"
+          },
+          "traceId": "trace-77aa"
+        }
+      }
+    },
+    {
+      "name": "workflow-event-cordum-notify",
+      "covers": [
+        "workflow_event",
+        "legacy_id"
+      ],
+      "input": {
+        "nats_subject": "sys.workflow.event",
+        "admission": "legacy",
+        "packet": {
+          "traceId": "run-7f3a",
+          "senderId": "workflow-engine",
+          "createdAt": "2026-10-17T12:00:03.123456789Z",
+          "protocolVersion": 1,
+          "alert": {
+            "severity": "ALERT_SEVERITY_INFO",
+            "message": "release notes published",
+            "sourceComponent": "workflow-engine",
+            "details": {
+              "channel": "release",
+              "step": "notify-release"
+            },
+            "traceId": "run-7f3a"
+          }
+        }
+      },
+      "expected_cloudevent": {
+        "specversion": "1.0",
+        "type": "io.cordum.cap.workflow.event.v1",
+        "source": "https://cap.example/clusters/dev",
+        "id": "a49ae3aab6d7e4f7f48249a41446c6a1546c1ab8c24a063be7fddaf6b0f264a0",
+        "subject": "workflow/run-7f3a",
+        "time": "2026-10-17T12:00:03.123456789Z",
+        "datacontenttype": "application/json",
+        "captraceid": "run-7f3a",
+        "data": {
+          "message": "release notes published",
+          "severity": "ALERT_SEVERITY_INFO",
+          "sourceComponent": "workflow-engine",
+          "details": {
+            "channel": "release",
+            "step": "notify-release"
+          },
+          "traceId": "run-7f3a"
+        }
+      }
+    },
+    {
+      "name": "progress-unverified-metadata",
+      "covers": [
+        "progress",
+        "legacy_id"
+      ],
+      "input": {
+        "nats_subject": "sys.job.progress",
+        "admission": "legacy",
+        "packet": {
+          "traceId": "trace-5e60",
+          "senderId": "worker-echo-1",
+          "createdAt": "2026-10-17T12:20:00Z",
+          "protocolVersion": 1,
+          "signatureMetadata": {
+            "profileVersion": "cap-production-v1",
+            "algorithm": "ECDSA-P256-SHA256",
+            "messageId": "ASNFZ4mrze/+3LqYdlQyEA==",
+            "audience": "sys.job.progress",
+            "expiresAt": "2026-10-17T12:25:00Z",
+            "keyId": "key-unknown"
+          },
+          "jobProgress": {
+            "jobId": "job-44",
+            "percent": 10,
+            "message": "d\u00e9marrage \"phase 1\"\n\u2713 \ud834\udd1e\u0007",
+            "status": "JOB_STATUS_RUNNING"
+          }
+        }
+      },
+      "expected_cloudevent": {
+        "specversion": "1.0",
+        "type": "io.cordum.cap.job.progress.v1",
+        "source": "https://cap.example/clusters/dev",
+        "id": "fd7c6389787072a8400ab26c183940bac70da0e424e2598017d33f70a86baa05",
+        "subject": "job/job-44",
+        "time": "2026-10-17T12:20:00Z",
+        "datacontenttype": "application/json",
+        "captraceid": "trace-5e60",
+        "data": {
+          "jobId": "job-44",
+          "percent": 10,
+          "message": "d\u00e9marrage \"phase 1\"\n\u2713 \ud834\udd1e\u0007",
+          "status": "JOB_STATUS_RUNNING"
+        }
+      }
+    },
+    {
+      "name": "progress-invalid-traceparent",
+      "covers": [
+        "progress",
+        "trace_extensions"
+      ],
+      "input": {
+        "nats_subject": "sys.job.progress",
+        "admission": "legacy",
+        "headers": {
+          "traceparent": "00-4BF92F3577B34DA6A3CE929D0E0E4736-00f067aa0ba902b7-01"
+        },
+        "packet": {
+          "traceId": "trace-a1f3",
+          "senderId": "worker-echo-1",
+          "createdAt": "2026-10-17T12:30:00Z",
+          "protocolVersion": 1,
+          "jobProgress": {
+            "jobId": "job-45",
+            "percent": 55,
+            "message": "halfway",
+            "status": "JOB_STATUS_RUNNING"
+          }
+        }
+      },
+      "expected_cloudevent": {
+        "specversion": "1.0",
+        "type": "io.cordum.cap.job.progress.v1",
+        "source": "https://cap.example/clusters/dev",
+        "id": "a260096bbb7940d450f8db80f3e2409e81d00674c61e2370767a9b60180210b1",
+        "subject": "job/job-45",
+        "time": "2026-10-17T12:30:00Z",
+        "datacontenttype": "application/json",
+        "captraceid": "trace-a1f3",
+        "data": {
+          "jobId": "job-45",
+          "percent": 55,
+          "message": "halfway",
+          "status": "JOB_STATUS_RUNNING"
+        }
+      }
+    },
+    {
+      "name": "result-baggage-dropped",
+      "covers": [
+        "result_succeeded",
+        "trace_extensions",
+        "legacy_id"
+      ],
+      "input": {
+        "nats_subject": "sys.job.result",
+        "admission": "legacy",
+        "headers": {
+          "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-00",
+          "baggage": "userId=alice"
+        },
+        "packet": {
+          "traceId": "trace-c3d9",
+          "senderId": "worker-echo-3",
+          "createdAt": "2026-10-17T12:40:00Z",
+          "protocolVersion": 1,
+          "jobResult": {
+            "jobId": "job-46",
+            "status": "JOB_STATUS_SUCCEEDED",
+            "workerId": "worker-echo-3",
+            "executionMs": "900",
+            "resultPtr": "res:fake/job-46"
+          }
+        }
+      },
+      "expected_cloudevent": {
+        "specversion": "1.0",
+        "type": "io.cordum.cap.job.result.v1",
+        "source": "https://cap.example/clusters/dev",
+        "id": "2332e116ee26f64249e7e74d2307ff1dc51bcff5bd1040117d66e641062be110",
+        "subject": "job/job-46",
+        "time": "2026-10-17T12:40:00Z",
+        "datacontenttype": "application/json",
+        "captraceid": "trace-c3d9",
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-00",
+        "data": {
+          "jobId": "job-46",
+          "status": "JOB_STATUS_SUCCEEDED",
+          "resultPtr": "res:fake/job-46",
+          "workerId": "worker-echo-3",
+          "executionMs": "900"
+        }
+      }
+    },
+    {
+      "name": "progress-future-version",
+      "covers": [
+        "progress",
+        "trace_extensions"
+      ],
+      "input": {
+        "nats_subject": "sys.job.progress",
+        "admission": "legacy",
+        "headers": {
+          "traceparent": "cc-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01-what-the-future-will-be-like"
+        },
+        "packet": {
+          "traceId": "trace-d7e2",
+          "senderId": "worker-echo-1",
+          "createdAt": "2026-10-17T12:50:00Z",
+          "protocolVersion": 1,
+          "jobProgress": {
+            "jobId": "job-47",
+            "percent": 90,
+            "status": "JOB_STATUS_RUNNING"
+          }
+        }
+      },
+      "expected_cloudevent": {
+        "specversion": "1.0",
+        "type": "io.cordum.cap.job.progress.v1",
+        "source": "https://cap.example/clusters/dev",
+        "id": "b71d763f03306776b3f811492a2c92246770e65ce1fb3c00ed9d3087f6e3e788",
+        "subject": "job/job-47",
+        "time": "2026-10-17T12:50:00Z",
+        "datacontenttype": "application/json",
+        "captraceid": "trace-d7e2",
+        "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+        "data": {
+          "jobId": "job-47",
+          "percent": 90,
+          "status": "JOB_STATUS_RUNNING"
+        }
+      }
+    },
+    {
+      "name": "progress-tracestate-without-traceparent",
+      "covers": [
+        "progress",
+        "trace_extensions"
+      ],
+      "input": {
+        "nats_subject": "sys.job.progress",
+        "admission": "legacy",
+        "headers": {
+          "tracestate": "rojo=00f067aa0ba902b7,congo=t61rcWkgMzE"
+        },
+        "packet": {
+          "traceId": "trace-e8f4",
+          "senderId": "worker-echo-1",
+          "createdAt": "2026-10-17T13:00:00Z",
+          "protocolVersion": 1,
+          "jobProgress": {
+            "jobId": "job-48",
+            "percent": 95,
+            "status": "JOB_STATUS_RUNNING"
+          }
+        }
+      },
+      "expected_cloudevent": {
+        "specversion": "1.0",
+        "type": "io.cordum.cap.job.progress.v1",
+        "source": "https://cap.example/clusters/dev",
+        "id": "461733a76564313c472b7b49480e107845c79982fd50a767f2e3d3f4825dc6e3",
+        "subject": "job/job-48",
+        "time": "2026-10-17T13:00:00Z",
+        "datacontenttype": "application/json",
+        "captraceid": "trace-e8f4",
+        "data": {
+          "jobId": "job-48",
+          "percent": 95,
+          "status": "JOB_STATUS_RUNNING"
+        }
+      }
+    }
+  ],
+  "unmapped_cases": [
+    {
+      "name": "alert-on-audit-export",
+      "input": {
+        "nats_subject": "sys.audit.export",
+        "admission": "legacy",
+        "packet": {
+          "traceId": "trace-aud1",
+          "senderId": "audit-publisher",
+          "createdAt": "2026-10-17T13:10:00Z",
+          "protocolVersion": 1,
+          "alert": {
+            "severity": "ALERT_SEVERITY_INFO",
+            "message": "{\"event_type\":\"fake.event\"}",
+            "sourceComponent": "audit-export",
+            "details": {
+              "event_type": "fake.event",
+              "tenant_id": "tenant-a"
+            }
+          }
+        }
+      },
+      "expected": "not_mapped",
+      "reason": "A SystemAlert on sys.audit.export is not one of the four mapped (subject, payload) pairs."
+    },
+    {
+      "name": "job-request-on-submit",
+      "input": {
+        "nats_subject": "sys.job.submit",
+        "admission": "legacy",
+        "packet": {
+          "traceId": "trace-sub1",
+          "senderId": "api-gateway",
+          "createdAt": "2026-10-17T13:10:00Z",
+          "protocolVersion": 1,
+          "jobRequest": {
+            "jobId": "job-50",
+            "topic": "job.echo",
+            "tenantId": "tenant-a"
+          }
+        }
+      },
+      "expected": "not_mapped",
+      "reason": "A JobRequest is not a mapped payload kind."
+    },
+    {
+      "name": "progress-empty-job-id",
+      "input": {
+        "nats_subject": "sys.job.progress",
+        "admission": "legacy",
+        "packet": {
+          "traceId": "trace-emp1",
+          "senderId": "worker-echo-1",
+          "createdAt": "2026-10-17T13:10:00Z",
+          "protocolVersion": 1,
+          "jobProgress": {
+            "percent": 5
+          }
+        }
+      },
+      "expected": "not_mapped",
+      "reason": "Legacy validation does not check JobProgress, so the mapper MUST reject an empty job_id itself: subject must be non-empty."
+    },
+    {
+      "name": "result-on-progress-subject",
+      "input": {
+        "nats_subject": "sys.job.progress",
+        "admission": "legacy",
+        "packet": {
+          "traceId": "trace-mis1",
+          "senderId": "worker-echo-1",
+          "createdAt": "2026-10-17T13:10:00Z",
+          "protocolVersion": 1,
+          "jobResult": {
+            "jobId": "job-51",
+            "status": "JOB_STATUS_SUCCEEDED",
+            "workerId": "worker-echo-1"
+          }
+        }
+      },
+      "expected": "not_mapped",
+      "reason": "A JobResult on sys.job.progress is not a mapped (subject, payload) pair."
+    }
+  ]
+}

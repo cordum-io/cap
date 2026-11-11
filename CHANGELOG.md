@@ -122,6 +122,14 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   dependency: pass the OpenTelemetry API module and a `W3CTraceContextPropagator` to
   `telemetry.fromOpenTelemetry`. The client and runtime do not call it yet.
 
+- **cap-sdk-python ResourceRef registry:** `cap.ResourceRegistry` ports Go
+  `NewResourceRegistry`. Operators install named backends with `ResourceBackendRegistration`.
+  `resolve()` and `externalize()` enforce generic production bounds, backend byte limits,
+  expiry before and after backend calls, media type, size and SHA-256. Tenant and job identity
+  come only from `TrustedResourceContext`. Failures are typed `ResourceRegistryError` values
+  with fixed text; backend exceptions become `ResourceBackendUnavailableError` without backend
+  text. `InMemoryResourceBackend` is a test-only backend.
+
 ## v2.17.0 — 2026-07-22
 
 - **Go SDK ResourceRef registry:** added an immutable registry of operator-installed

@@ -2,7 +2,7 @@ module github.com/cordum-io/cap/v2/tools/govulncheck
 
 go 1.26.0
 
-toolchain go1.26.10
+toolchain go1.26.11
 
 tool golang.org/x/vuln/cmd/govulncheck
 

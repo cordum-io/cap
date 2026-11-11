@@ -1,6 +1,7 @@
-// Package a2abridge is an A2A 1.0 JSON-RPC ingress. It turns authenticated
-// SendMessage calls into signed CAP JobRequests on sys.job.submit, as fixed by
-// spec/interop/a2a-mapping.md. Results, resume and cancel are not handled here.
+// Package a2abridge is an A2A 1.0 JSON-RPC bridge, as fixed by
+// spec/interop/a2a-mapping.md. It turns authenticated SendMessage calls into
+// signed CAP JobRequests on sys.job.submit, and Start applies verified results,
+// DLQ outcomes and progress back to the tasks. Resume and cancel come later.
 package a2abridge
 
 import (
@@ -89,6 +90,13 @@ type Config struct {
 	Rand io.Reader
 	// Now supplies timestamps. Nil means time.Now.
 	Now func() time.Time
+	// ResultKeys maps each trusted sender_id of a result, DLQ or progress
+	// packet (workers, and cordum-scheduler for sys.job.dlq) to its legacy
+	// signing key. A packet must carry a valid signature by its sender's key.
+	ResultKeys map[string]*ecdsa.PublicKey
+	// ProductionTrust verifies packets under CAP-PRODUCTION instead. It
+	// cannot be combined with ResultKeys.
+	ProductionTrust ProductionTrustFunc
 }
 
 type keyEntry struct {
@@ -109,6 +117,9 @@ type Ingress struct {
 	randMu   sync.Mutex
 	rand     io.Reader
 	now      func() time.Time
+	// resultKeys and trust verify egress packets; see Start.
+	resultKeys map[string]*ecdsa.PublicKey
+	trust      ProductionTrustFunc
 }
 
 var _ a2asrv.RequestHandler = (*Ingress)(nil)
@@ -134,6 +145,9 @@ func New(cfg Config) (*Ingress, error) {
 	if cfg.SigningKey == nil && !cfg.AllowUnsignedDev {
 		return nil, errors.New("a2abridge: SigningKey is required unless AllowUnsignedDev is set")
 	}
+	if err := checkResultKeys(cfg); err != nil {
+		return nil, err
+	}
 	maxTasks := cfg.MaxTasks
 	if maxTasks == 0 {
 		maxTasks = defaultMaxTasks
@@ -145,7 +159,7 @@ func New(cfg Config) (*Ingress, error) {
 		keys: keys, topic: cfg.Topic, sender: cfg.SenderID,
 		signer: cfg.SigningKey, unsigned: cfg.AllowUnsignedDev,
 		pub: cfg.Publisher, inputs: cfg.Inputs, store: newStore(maxTasks),
-		rand: cfg.Rand, now: cfg.Now,
+		rand: cfg.Rand, now: cfg.Now, resultKeys: cfg.ResultKeys, trust: cfg.ProductionTrust,
 	}
 	if ing.rand == nil {
 		ing.rand = rand.Reader
@@ -180,6 +194,23 @@ func parseKeys(in map[string]Identity) ([]keyEntry, error) {
 	// Map keys are unique and the lowercase check removes case variants, so
 	// no two entries share a hash.
 	return keys, nil
+}
+
+// checkResultKeys fails closed on a malformed verification config. A mode is
+// not required here, so an ingress-only Config stays valid; Start requires one.
+func checkResultKeys(cfg Config) error {
+	if cfg.ProductionTrust != nil && len(cfg.ResultKeys) > 0 {
+		return errors.New("a2abridge: set ProductionTrust or ResultKeys, not both")
+	}
+	for sender, key := range cfg.ResultKeys {
+		if sender == "" || key == nil || key.X == nil || key.Y == nil {
+			return errors.New("a2abridge: each ResultKeys entry needs a sender_id and a public key")
+		}
+		if _, err := key.ECDH(); err != nil {
+			return fmt.Errorf("a2abridge: ResultKeys[%q] is not a valid public key", sender)
+		}
+	}
+	return nil
 }
 
 func checkLabel(name, v string) error {

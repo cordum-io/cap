@@ -6,12 +6,14 @@ import copy
 import enum
 import pickle
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import pytest
 from pydantic import BaseModel
 
 import cap
+from cap import outcome as outcome_module
 from cap.outcome import JobFailure, _failure_outcome
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cap.runtime import Agent, InMemoryBlobStore
@@ -362,3 +364,32 @@ class TestRuntimeFailureTable:
         results = asyncio.run(scenario())
         assert (results["job-a"].status, results["job-a"].error_code) == (FAILED, "FRAMEWORK_ERROR")
         assert (results["job-b"].status, results["job-b"].error_code_enum) == (RETRYABLE, 203)
+
+
+README = Path(__file__).resolve().parents[1] / "README.md"
+
+
+def readme_lines_with(*needles: str) -> List[str]:
+    lines = README.read_text(encoding="utf-8").splitlines()
+    return [line for line in lines if all(needle in line for needle in needles)]
+
+
+class TestReadmeDocumentsOutcomes:
+    """The package README states what is published; a new table row needs its README row."""
+
+    def test_every_failure_table_row(self):
+        table = [v for v in vars(outcome_module).values() if isinstance(v, outcome_module._Outcome)]
+        assert len(table) == 10  # the SDK failure table
+        for row in table:
+            code = "`%s`" % job_pb2.ErrorCode.Name(row.error_code_enum)
+            assert readme_lines_with("|", code, "`%s`" % row.error_message), row
+
+    @pytest.mark.parametrize("retryable", [None, True, False])
+    def test_job_failure_status(self, retryable):
+        status = "`%s`" % job_pb2.JobStatus.Name(JobFailure("X", retryable=retryable).status)
+        assert readme_lines_with("`retryable=%s`" % retryable, status)
+
+    def test_job_failure_codes_and_message(self):
+        assert readme_lines_with("`%s`" % _failure_outcome(JobFailure("X")).error_message)
+        for number, text in outcome_module._LEGACY_ERROR_STRINGS.items():
+            assert readme_lines_with("`%s`" % job_pb2.ErrorCode.Name(number), "`%s`" % text)

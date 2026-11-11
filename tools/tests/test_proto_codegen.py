@@ -316,7 +316,16 @@ class ProtoCodegenTest(unittest.TestCase):
         assert match is not None
         msrv = match.group(1)
         self.assertEqual(msrv, "1.88")
-        self.assertIn(f"dtolnay/rust-toolchain@{msrv}.0", workflow)
+        pin = "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8"
+        self.assertIn(pin, workflow)
+        self.assertRegex(
+            workflow,
+            re.escape(pin)
+            + r" # v1\r?\n\s+with:\r?\n\s+toolchain: "
+            + re.escape(f"{msrv}.0")
+            + r"\r?\n",
+        )
+        self.assertNotIn(f"dtolnay/rust-toolchain@{msrv}.0", workflow)
 
 
 if __name__ == "__main__":

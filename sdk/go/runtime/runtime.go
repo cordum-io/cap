@@ -405,6 +405,9 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 	if req == nil || req.GetJobId() == "" {
 		return
 	}
+	// Trace headers are untrusted hints; read only after admission or validation.
+	traceCtx, span := a.startProcessSpan(msg, spec.topic, packet)
+	defer span.End()
 
 	a.Metrics.OnJobReceived(req.GetJobId(), req.GetTopic())
 
@@ -413,20 +416,23 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 		"trace_id", packet.GetTraceId(),
 		"topic", req.GetTopic(),
 	)
-	ctx := Context{Job: req, Packet: packet, Logger: ctxLogger}
+	ctx := Context{Job: req, Packet: packet, Logger: ctxLogger, traceCtx: traceCtx}
 
 	payload, err := a.fetchContext(req.GetContextPtr())
 	if err != nil {
+		span.Fail(telemetry.ErrorTypeOther)
 		a.publishFailure(ctx, req, err.Error(), 0)
 		return
 	}
 	if a.MaxContextBytes > 0 && len(payload) > a.MaxContextBytes {
+		span.Fail(telemetry.ErrorTypeOther)
 		a.publishFailure(ctx, req, "context exceeds max size", 0)
 		return
 	}
 
 	input, err := spec.decode(payload)
 	if err != nil {
+		span.Fail(telemetry.ErrorTypeOther)
 		a.publishFailure(ctx, req, capsdk.NewInvalidInputError(err.Error()).Error(), 0)
 		return
 	}
@@ -445,21 +451,25 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 
 	execMs := time.Since(start).Milliseconds()
 	if failure != nil {
+		span.Fail(telemetry.ErrorTypeHandlerFailed)
 		a.publishFailure(ctx, req, failure.Error(), execMs)
 		return
 	}
 
 	resultPayload, err := spec.encode(output)
 	if err != nil {
+		span.Fail(telemetry.ErrorTypeOther)
 		a.publishFailure(ctx, req, fmt.Sprintf("result encode failed: %v", err), execMs)
 		return
 	}
 	if a.MaxResultBytes > 0 && len(resultPayload) > a.MaxResultBytes {
+		span.Fail(telemetry.ErrorTypeOther)
 		a.publishFailure(ctx, req, "result exceeds max size", execMs)
 		return
 	}
 	resultKey := fmt.Sprintf("res:%s", req.GetJobId())
 	if err := a.storeResult(resultKey, resultPayload); err != nil {
+		span.Fail(telemetry.ErrorTypeOther)
 		a.publishFailure(ctx, req, fmt.Sprintf("result write failed: %v", err), execMs)
 		return
 	}
@@ -474,6 +484,19 @@ func (a *Agent) handleMessage(msg *nats.Msg, spec handlerSpec) {
 	}
 	a.Metrics.OnJobCompleted(req.GetJobId(), execMs, "SUCCEEDED")
 	a.publishResult(ctx, result)
+}
+
+func (a *Agent) startProcessSpan(msg *nats.Msg, topic string, packet *agentv1.BusPacket) (context.Context, *telemetry.Span) {
+	if a.Telemetry == nil {
+		return context.Background(), nil
+	}
+	process := telemetry.Process{Subject: msg.Subject, Pool: topic, QueueGroup: topic, Creation: a.Telemetry.Extract(msg.Header)}
+	if a.productionAdmissionEnabled() {
+		process.ProductionVerified = true
+		process.MessageID = packet.GetSignatureMetadata().GetMessageId()
+		process.ConversationID = packet.GetTraceId()
+	}
+	return a.Telemetry.StartProcess(context.Background(), process)
 }
 
 func (a *Agent) fetchContext(ptr string) ([]byte, error) {
@@ -552,7 +575,7 @@ func (a *Agent) publishResult(ctx Context, result *agentv1.JobResult) {
 		ctx.Logger.Error("failed encoding packet", "error", err)
 		return
 	}
-	if err := a.NATS.Publish(capsdk.SubjectResult, data); err != nil {
+	if err := a.publishResultData(ctx, data); err != nil {
 		ctx.Logger.Error("publish failed", "error", err)
 		return
 	}
@@ -561,6 +584,28 @@ func (a *Agent) publishResult(ctx Context, result *agentv1.JobResult) {
 			ctx.Logger.Warn("flush timeout after result publish", "error", err)
 		}
 	}
+}
+
+func (a *Agent) publishResultData(ctx Context, data []byte) error {
+	if a.Telemetry == nil {
+		return a.NATS.Publish(capsdk.SubjectResult, data)
+	}
+	conversationID := ""
+	if a.productionAdmissionEnabled() {
+		conversationID = ctx.Packet.GetTraceId()
+	}
+	spanCtx, span := a.Telemetry.StartPublish(ctx.TraceContext(), telemetry.Publish{Subject: capsdk.SubjectResult, ConversationID: conversationID})
+	defer span.End()
+	var err error
+	if publisher, ok := a.NATS.(interface{ PublishMsg(*nats.Msg) error }); ok {
+		err = publisher.PublishMsg(&nats.Msg{Subject: capsdk.SubjectResult, Data: data, Header: a.Telemetry.InjectHeaders(spanCtx, nil)})
+	} else {
+		err = a.NATS.Publish(capsdk.SubjectResult, data)
+	}
+	if err != nil {
+		span.Fail(telemetry.ErrorTypeTransportPublishFailed)
+	}
+	return err
 }
 
 func (a *Agent) ioContext() (context.Context, context.CancelFunc) {

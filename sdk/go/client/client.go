@@ -70,7 +70,7 @@ func (c *Client) Submit(ctx context.Context, req *agentv1.JobRequest, traceID, s
 	if err != nil {
 		return fmt.Errorf("marshal packet: %w", err)
 	}
-	return c.NATS.Publish(capsdk.SubjectSubmit, data)
+	return publishSubmit(ctx, c.NATS, c.Telemetry, traceID, data)
 }
 
 // Subscribe subscribes to a subject and handles incoming packets.
@@ -181,5 +181,27 @@ func submit(ctx context.Context, pub Publisher, req *agentv1.JobRequest, traceID
 	if err != nil {
 		return fmt.Errorf("marshal packet: %w", err)
 	}
-	return pub.Publish(capsdk.SubjectSubmit, data)
+	return publishSubmit(ctx, pub, nil, traceID, data)
+}
+
+type msgPublisher interface {
+	PublishMsg(*nats.Msg) error
+}
+
+func publishSubmit(ctx context.Context, pub Publisher, tel *telemetry.Config, traceID string, data []byte) error {
+	if tel == nil {
+		return pub.Publish(capsdk.SubjectSubmit, data)
+	}
+	spanCtx, span := tel.StartPublish(ctx, telemetry.Publish{Subject: capsdk.SubjectSubmit, ConversationID: traceID})
+	defer span.End()
+	var err error
+	if publisher, ok := pub.(msgPublisher); ok {
+		err = publisher.PublishMsg(&nats.Msg{Subject: capsdk.SubjectSubmit, Data: data, Header: tel.InjectHeaders(spanCtx, nil)})
+	} else {
+		err = pub.Publish(capsdk.SubjectSubmit, data)
+	}
+	if err != nil {
+		span.Fail(telemetry.ErrorTypeTransportPublishFailed)
+	}
+	return err
 }

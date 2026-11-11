@@ -415,6 +415,7 @@ class TestAgentTraceContextRealNATS(unittest.IsolatedAsyncioTestCase):
         assert process.parent is not None
         self.assertTrue(process.parent.is_remote)
         self.assertEqual(submit.context.span_id, process.parent.span_id)
+        self.assertEqual(submit.context.trace_id, process.context.trace_id)
         self.assertEqual([submit.context.span_id], [link.context.span_id for link in process.links])
         self.assertEqual({"traceparent"}, set(result.headers or {}))
         result_trace, result_parent = _header_ids(result.headers["traceparent"])

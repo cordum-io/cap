@@ -407,6 +407,7 @@ class TestReadmeDocumentsOutcomes:
         table = [v for v in vars(outcome_module).values() if isinstance(v, outcome_module._Outcome)]
         assert len(table) == 10  # the SDK failure table
         for row in table:
+            assert (row.status, row.error_code) == (FAILED, ""), row  # as the README's table intro says
             code = "`%s`" % job_pb2.ErrorCode.Name(row.error_code_enum)
             assert readme_lines_with("|", code, "`%s`" % row.error_message), row
 

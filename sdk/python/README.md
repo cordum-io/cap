@@ -236,7 +236,9 @@ asyncio.run(agent.run())
 #### Typed failures and error codes
 
 In an `Agent` handler or middleware, raise `cap.JobFailure` to publish a
-spec/13 failure code instead of `handler failed`:
+[spec/13](https://github.com/cordum-io/cap/blob/main/spec/13-error-codes.md)
+error code instead of `handler failed`. For example, the handler above can
+reject an empty prompt:
 
 ```python
 from cap import JobFailure
@@ -268,8 +270,8 @@ async def summarize(ctx: Context, data: Input) -> Output:
   the input are never published.
 - The SDK never retries after a `JobFailure`: it publishes that outcome at
   once, whatever `retries` says. An ordinary exception, an `output_model`
-  validation error included, still runs the handler up to `retries + 1` times
-  and then publishes `handler failed`.
+  validation error included, still runs the handler up to `retries + 1` times;
+  if every attempt fails, the result is `handler failed`.
 - The low-level `run_worker()` is unchanged. Its handlers build their own
   `JobResult`, and a `JobFailure` raised there is an ordinary exception.
 

@@ -32,10 +32,36 @@ type taskRecord struct {
 	// turnDone is set when the current turn's job reached a terminal
 	// JobStatus: the first terminal result wins and later events are ignored.
 	turnDone bool
+	// changed is closed and replaced on every visible change; see notify.
+	changed chan struct{}
+	// prev is what release restores when a resume's input or publish fails.
+	prev *turnUndo
 }
 
-// clone returns a deep copy, so no caller shares memory with the store.
+// maxTurns bounds the turns of one task (spec §3).
+const maxTurns = 64
+
+// turnUndo is the interrupted turn a resume replaced; history and events are lengths.
+type turnUndo struct {
+	jobID           string
+	state           a2a.TaskState
+	statusMsg       *a2a.Message
+	statusAt        time.Time
+	history, events int
+}
+
+// notify wakes every waiter by closing rec.changed and making a new one.
+func notify(rec *taskRecord) {
+	if rec.changed != nil {
+		close(rec.changed)
+	}
+	rec.changed = make(chan struct{})
+}
+
+// clone returns a deep copy, so no caller shares memory with the store. The
+// copy carries neither the undo record nor the change channel.
 func (r taskRecord) clone() taskRecord {
+	r.prev, r.changed = nil, nil
 	parts := make([]turnPart, len(r.parts))
 	for i, p := range r.parts {
 		if p.Text != nil {
@@ -180,6 +206,7 @@ func (s *store) reserve(id Identity, idemKey string, digest [32]byte, fresh task
 		return taskRecord{}, false, a2a.ErrInternalError
 	}
 	rec := fresh.clone()
+	rec.changed = make(chan struct{})
 	appendStatus(&rec, rec.created)
 	s.tasks[key] = &rec
 	s.turns[idemKey] = turnRef{key: key, turn: rec.turn, digest: digest}
@@ -187,8 +214,51 @@ func (s *store) reserve(id Identity, idemKey string, digest [32]byte, fresh task
 	return rec.clone(), true, nil
 }
 
-// release undoes a reservation whose publish failed. It deletes the task only
-// while the released turn is still the task's current turn.
+// reserveTurn opens turn N+1 of an interrupted task before any I/O, in one
+// compare-and-set: INPUT_REQUIRED or AUTH_REQUIRED becomes SUBMITTED with the
+// new job indexed and msg in history. A known key returns the task
+// (created=false). A task in flight, settling, terminal or at maxTurns is
+// UNSUPPORTED_OPERATION. parentJobID is turn N's job.
+func (s *store) reserveTurn(id Identity, taskID, idemKey string, digest [32]byte, contextID, jobID string,
+	msg *a2a.Message, now time.Time) (snap taskRecord, parentJobID string, created bool, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if ref, ok := s.turns[idemKey]; ok {
+		rec, live := s.tasks[ref.key]
+		switch {
+		case ref.digest != digest:
+			return taskRecord{}, "", false, invalid("messageId was already used with different parts")
+		case !live: // unreachable: release removes the key with its task
+			return taskRecord{}, "", false, a2a.ErrInternalError
+		}
+		return rec.clone(), "", false, nil
+	}
+	key := taskKey{tenant: id.Tenant, principal: id.Principal, id: taskID}
+	rec, ok := s.tasks[key]
+	switch {
+	case !ok:
+		return taskRecord{}, "", false, a2a.ErrTaskNotFound
+	case contextID != "" && contextID != rec.contextID:
+		return taskRecord{}, "", false, invalid("contextId does not match the task")
+	case rec.state != a2a.TaskStateInputRequired && rec.state != a2a.TaskStateAuthRequired || rec.turn >= maxTurns:
+		return taskRecord{}, "", false, a2a.ErrUnsupportedOperation
+	}
+	rec.prev = &turnUndo{jobID: rec.jobID, state: rec.state, statusMsg: rec.statusMsg, statusAt: rec.statusAt,
+		history: len(rec.history), events: len(rec.events)}
+	parentJobID = rec.jobID
+	rec.turn, rec.jobID, rec.turnDone = rec.turn+1, jobID, false
+	msg.TaskID, msg.ContextID = a2a.TaskID(rec.id), rec.contextID
+	rec.history = append(rec.history, msg)
+	s.turns[idemKey] = turnRef{key: key, turn: rec.turn, digest: digest}
+	s.jobs[jobID] = jobRef{key: key, turn: rec.turn}
+	setState(rec, a2a.TaskStateSubmitted, nil, now)
+	return rec.clone(), parentJobID, true, nil
+}
+
+// release undoes a reservation whose input write or publish failed, only while
+// the released turn is still current. Turn 1 deletes the task. A later turn
+// restores the interrupted turn exactly, unless a result already settled it
+// (turnDone): that commit must never be stranded.
 func (s *store) release(idemKey string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -197,22 +267,40 @@ func (s *store) release(idemKey string) {
 		return
 	}
 	delete(s.turns, idemKey)
-	if rec, ok := s.tasks[ref.key]; ok && rec.turn == ref.turn {
+	rec, ok := s.tasks[ref.key]
+	switch {
+	case !ok || rec.turn != ref.turn:
+	case ref.turn == 1:
+		notify(rec)
 		delete(s.tasks, ref.key)
 		delete(s.jobs, rec.jobID)
+	case !rec.turnDone && rec.prev != nil:
+		p := rec.prev
+		delete(s.jobs, rec.jobID)
+		rec.turn, rec.jobID, rec.state, rec.statusMsg, rec.statusAt = rec.turn-1, p.jobID, p.state, p.statusMsg, p.statusAt
+		rec.history, rec.events = rec.history[:p.history], rec.events[:p.events]
+		rec.turnDone, rec.prev = true, nil
+		notify(rec)
 	}
 }
 
 // get returns a deep copy of the caller's task. A foreign or unknown id takes
 // the same single lookup and reports false.
 func (s *store) get(id Identity, taskID string) (taskRecord, bool) {
+	rec, _, ok := s.watch(id, taskID)
+	return rec, ok
+}
+
+// watch is get plus the channel the task's next change closes, both from one
+// locked lookup, so a waiter cannot miss a change between reading and waiting.
+func (s *store) watch(id Identity, taskID string) (taskRecord, <-chan struct{}, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	rec, ok := s.tasks[taskKey{tenant: id.Tenant, principal: id.Principal, id: taskID}]
 	if !ok {
-		return taskRecord{}, false
+		return taskRecord{}, nil, false
 	}
-	return rec.clone(), true
+	return rec.clone(), rec.changed, true
 }
 
 // exists reports whether the caller owns taskID.
@@ -236,7 +324,8 @@ func appendStatus(rec *taskRecord, now time.Time) {
 		ContextID: rec.contextID, Status: a2a.TaskStatus{State: rec.state, Message: rec.statusMsg, Timestamp: &now}})
 }
 
-// setState moves rec to state with one status event, only on a change.
+// setState moves rec to state with one status event, only on a change, and
+// notifies the waiters.
 func setState(rec *taskRecord, state a2a.TaskState, msg *a2a.Message, now time.Time) bool {
 	if rec.state == state && msg == nil {
 		return false
@@ -244,6 +333,7 @@ func setState(rec *taskRecord, state a2a.TaskState, msg *a2a.Message, now time.T
 	rec.state = state
 	rec.statusMsg = msg
 	appendStatus(rec, now)
+	notify(rec)
 	return true
 }
 

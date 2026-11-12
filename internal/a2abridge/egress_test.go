@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -52,10 +53,12 @@ type egSent struct {
 	pkt     *agentv1.BusPacket
 }
 
-// egPublisher records every (subject, raw, decoded BusPacket).
+// egPublisher records every (subject, raw, decoded BusPacket). When fail
+// returns an error, the publish fails and records nothing.
 type egPublisher struct {
 	mu   sync.Mutex
 	sent []egSent
+	fail func(subject string) error
 }
 
 func (p *egPublisher) Publish(subject string, data []byte) error {
@@ -65,7 +68,24 @@ func (p *egPublisher) Publish(subject string, data []byte) error {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	if p.fail != nil {
+		if err := p.fail(subject); err != nil {
+			return err
+		}
+	}
 	p.sent = append(p.sent, egSent{subject: subject, raw: slices.Clone(data), pkt: pkt})
+	return nil
+}
+
+// request returns the published packet whose JobRequest runs job, or nil.
+func (p *egPublisher) request(job string) *agentv1.BusPacket {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	for _, s := range p.sent {
+		if s.subject == capsdk.SubjectSubmit && s.pkt.GetJobRequest().GetJobId() == job {
+			return s.pkt
+		}
+	}
 	return nil
 }
 
@@ -90,17 +110,29 @@ func (p *egPublisher) lastJob() string {
 	return p.sent[len(p.sent)-1].pkt.GetJobRequest().GetJobId()
 }
 
-// egInputs is a mutex map.
-type egInputs struct{ sync.Map }
+// egInputs is a mutex map. When fail is set, a write fails and stores nothing.
+type egInputs struct {
+	sync.Map
+	fail error
+}
 
 func (f *egInputs) PutTurnInput(_ context.Context, key string, data []byte) error {
+	if f.fail != nil {
+		return f.fail
+	}
 	f.Store(key, slices.Clone(data))
 	return nil
+}
+
+func (f *egInputs) count() (n int) {
+	f.Range(func(any, any) bool { n++; return true })
+	return n
 }
 
 type egHarness struct {
 	ing                   *Ingress
 	pub                   *egPublisher
+	in                    *egInputs
 	results               *egResults
 	worker, sched, bridge *ecdsa.PrivateKey
 }
@@ -122,7 +154,7 @@ func egKey(t *testing.T) *ecdsa.PrivateKey {
 // egConfig is a valid Config with ResultKeys {worker-1, cordum-scheduler}.
 func egConfig(t *testing.T) (*egHarness, Config) {
 	t.Helper()
-	h := &egHarness{pub: &egPublisher{}, results: &egResults{}, worker: egKey(t), sched: egKey(t), bridge: egKey(t)}
+	h := &egHarness{pub: &egPublisher{}, in: &egInputs{}, results: &egResults{}, worker: egKey(t), sched: egKey(t), bridge: egKey(t)}
 	keys := map[string]Identity{}
 	for k, id := range egIdents {
 		sum := sha256.Sum256([]byte(k))
@@ -130,7 +162,7 @@ func egConfig(t *testing.T) (*egHarness, Config) {
 	}
 	return h, Config{
 		APIKeys: keys, Topic: "job.a2a.agent", SenderID: "a2a-bridge", SigningKey: h.bridge,
-		Publisher: h.pub, Inputs: &egInputs{}, Results: h.results,
+		Publisher: h.pub, Inputs: h.in, Results: h.results,
 		Rand: mathrandv2.NewChaCha8([32]byte{9}), Now: func() time.Time { return egNow },
 		ResultKeys: map[string]*ecdsa.PublicKey{egWorker: &h.worker.PublicKey, egSched: &h.sched.PublicKey},
 	}
@@ -422,6 +454,16 @@ func TestStartAndNewFailClosed(t *testing.T) {
 			}
 		})
 	}
+	// MaxBlockingWait: 0 is the 60 s default, otherwise 1 s to 300 s (spec §6).
+	waits := map[time.Duration]bool{-time.Second: false, 999 * time.Millisecond: false, 301 * time.Second: false,
+		0: true, time.Second: true, 300 * time.Second: true}
+	for wait, ok := range waits {
+		_, cfg := egConfig(t)
+		cfg.MaxBlockingWait = wait
+		if _, err := New(cfg); (err == nil) != ok {
+			t.Fatalf("New with MaxBlockingWait %s: err %v, want accepted %v", wait, err, ok)
+		}
+	}
 }
 
 // egEventually polls cond for at most 5 s.
@@ -511,6 +553,7 @@ var egVectorsInScope = []string{
 	"late-conflicting-result", "progress-after-terminal", "invalid-envelope-credential-field",
 	"invalid-envelope-auth-data-part", "missing-envelope", "send-to-terminal-task",
 	"cross-tenant-get-task", "cross-principal-get-task",
+	"input-required-resume-completed", "auth-required-resume-completed",
 }
 
 type egVecTurn struct {
@@ -592,8 +635,8 @@ func TestVectorsAllCases(t *testing.T) {
 	for _, c := range file.Cases {
 		byID[c.ID] = c
 	}
-	if len(egVectorsInScope) != 26 {
-		t.Fatalf("%d vectors in scope, want 26", len(egVectorsInScope))
+	if len(egVectorsInScope) != 28 {
+		t.Fatalf("%d vectors in scope, want 28", len(egVectorsInScope))
 	}
 	for _, id := range egVectorsInScope {
 		c, ok := byID[id]
@@ -615,9 +658,14 @@ func (h *egHarness) egReplay(t *testing.T, c egVecCase, owner string) (a2a.TaskI
 		st := agentv1.JobStatus(v)
 		switch {
 		case ev.Kind == "submit_published":
-			got, err := h.send(owner, egVecMessage(t, c.Turns[sent], task))
+			// Turn N sends turns[N-1]; task_ref "same" names the turn-1 task.
+			published, _ := h.pub.counts()
+			got, err := h.send(owner, egVecMessage(t, c.Turns[ev.Turn-1], task))
 			if err != nil {
 				t.Fatalf("turn %d: %v", ev.Turn, err)
+			}
+			if now, _ := h.pub.counts(); now != published+1 {
+				t.Fatalf("turn %d published %d JobRequests, want 1", ev.Turn, now-published)
 			}
 			task, jobs[ev.Turn], sent = got.ID, h.pub.lastJob(), sent+1
 		case !known:
@@ -1002,4 +1050,328 @@ func TestEnvelopeReadTimeoutSettlesFailed(t *testing.T) {
 		t.Fatalf("read timeout took %s", elapsed)
 	}
 	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateFailed)
+}
+
+// egSubscriber lets Start succeed without NATS; tests that use it never call stop.
+type egSubscriber struct{}
+
+func (egSubscriber) Subscribe(string, nats.MsgHandler) (*nats.Subscription, error) {
+	return &nats.Subscription{}, nil
+}
+
+// egJobOf is the job id of the turn that messageID opens on taskID ("" for turn 1).
+func egJobOf(tenant, principal string, taskID a2a.TaskID, messageID string) string {
+	return "a2a-" + idempotencyKey(tenant, principal, string(taskID), messageID)
+}
+
+func egIs(t *testing.T, err, target error) {
+	t.Helper()
+	if !errors.Is(err, target) {
+		t.Fatalf("err = %v, want %v", err, target)
+	}
+}
+
+// resume sends one text message from caller to taskID, with ReturnImmediately.
+func (h *egHarness) resume(caller string, taskID a2a.TaskID, messageID, contextID, text string) (*a2a.Task, error) {
+	return h.send(caller, &a2a.Message{ID: messageID, Role: a2a.MessageRoleUser, TaskID: taskID,
+		ContextID: contextID, Parts: a2a.ContentParts{a2a.NewTextPart(text)}})
+}
+
+// interrupt ends job's turn with an input-required or auth-required envelope
+// that carries a one-part agent message, and returns the delivered result.
+func (h *egHarness) interrupt(t *testing.T, job, state string) []byte {
+	t.Helper()
+	raw := h.resultEnvelope(t, job, egEnvelope(state, `,"message":{"parts":[`+egText+`]}`))
+	h.ing.deliver(capsdk.SubjectResult, raw)
+	return raw
+}
+
+// published asserts the exact JobRequest count and stored-input count.
+func (h *egHarness) published(t *testing.T, requests, inputs int) {
+	t.Helper()
+	if got, _ := h.pub.counts(); got != requests || h.in.count() != inputs {
+		t.Fatalf("%d JobRequests and %d inputs; want %d and %d", got, h.in.count(), requests, inputs)
+	}
+}
+
+func (h *egHarness) task(t *testing.T, id a2a.TaskID) *a2a.Task {
+	t.Helper()
+	got, err := h.ing.GetTask(egAs("key-alice"), &a2a.GetTaskRequest{ID: id})
+	egOK(t, err)
+	return got
+}
+
+func TestResumeOpensNextTurnWithParentAndStep(t *testing.T) {
+	h := newEgHarness(t)
+	id, job1 := h.start(t, "key-alice", "msg-1")
+	turn1 := h.interrupt(t, job1, "input-required")
+	before := h.task(t, id)
+	_, err := h.resume("key-alice", id, "msg-2", "other-context", "From SFO")
+	egIs(t, err, a2a.ErrInvalidParams)
+	for _, key := range []string{"key-bob", "key-mallory"} {
+		_, err = h.resume(key, id, "msg-2", "", "From SFO")
+		egIs(t, err, a2a.ErrTaskNotFound)
+	}
+	h.published(t, 1, 1)
+	got, err := h.resume("key-alice", id, "msg-2", "", "From SFO")
+	egOK(t, err)
+	key := idempotencyKey("tenant-a", "alice", string(id), "msg-2")
+	job2 := egJobOf("tenant-a", "alice", id, "msg-2")
+	pkt := h.pub.request(job2)
+	if err := capsdk.VerifyPacketSignature(pkt, &h.bridge.PublicKey); err != nil {
+		t.Fatalf("turn 2 signature: %v", err)
+	}
+	jr := pkt.GetJobRequest()
+	fields := []string{jr.GetJobId(), jr.GetParentJobId(), jr.GetWorkflowId(), jr.GetTopic(), jr.GetContextPtr(),
+		jr.GetTenantId(), jr.GetPrincipalId(), jr.GetMeta().GetTenantId(), jr.GetMeta().GetActorId(),
+		jr.GetMeta().GetIdempotencyKey(), pkt.GetSenderId(), pkt.GetTraceId()}
+	want := []string{job2, job1, string(id), "job.a2a.agent", "redis://ctx:" + job2,
+		"tenant-a", "alice", "tenant-a", "alice", key, "a2a-bridge", string(id)}
+	if !slices.Equal(fields, want) || jr.GetStepIndex() != 2 {
+		t.Fatalf("turn 2 JobRequest step %d\n got %q\nwant %q", jr.GetStepIndex(), fields, want)
+	}
+	v, _ := h.in.Load("ctx:" + job2)
+	input, _ := v.([]byte)
+	wantInput := `{"task_id":"` + string(id) + `","context_id":"` + before.ContextID +
+		`","turn":2,"message_id":"msg-2","parts":[{"kind":"text","text":"From SFO"}]}`
+	if string(input) != wantInput {
+		t.Fatalf("turn 2 input\n got %s\nwant %s", input, wantInput)
+	}
+	task := h.task(t, id)
+	msg2 := &a2a.Message{ID: "msg-2", ContextID: before.ContextID, TaskID: id, Role: a2a.MessageRoleUser,
+		Parts: a2a.ContentParts{a2a.NewTextPart("From SFO")}}
+	if !reflect.DeepEqual(got, task) || task.Status.State != a2a.TaskStateSubmitted || task.Status.Message != nil ||
+		len(task.History) != 3 || !reflect.DeepEqual(task.History[:2], before.History) || !reflect.DeepEqual(task.History[2], msg2) {
+		t.Fatalf("resumed task %+v", task)
+	}
+	// Turn 1's job is no longer current: its result and progress change nothing.
+	rec, _ := h.ing.store.get(egIdents["key-alice"], string(id))
+	h.ing.deliver(capsdk.SubjectResult, turn1)
+	h.ing.deliver(capsdk.SubjectProgress, h.progress(t, job1, egRunning))
+	if again, _ := h.ing.store.get(egIdents["key-alice"], string(id)); len(again.events) != len(rec.events) {
+		t.Fatalf("turn 1 packets changed turn 2: %d events, want %d", len(again.events), len(rec.events))
+	}
+	if retry, err := h.resume("key-alice", id, "msg-2", "", "From SFO"); err != nil || retry.ID != id {
+		t.Fatalf("retried msg-2: %v", err)
+	}
+	h.published(t, 2, 2)
+	egResumeRefused(t, h, id, "msg-3")
+	h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job2, egComplete("completed")))
+	egResumeRefused(t, h, id, "msg-4")
+	h.published(t, 2, 2)
+	if len(h.task(t, id).Artifacts) != 1 {
+		t.Fatal("turn 2 artifact missing")
+	}
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired,
+		a2a.TaskStateSubmitted, a2a.TaskStateCompleted)
+}
+
+// egResumeRefused asserts that msgID to a busy or terminal task is refused
+// before its input is written.
+func egResumeRefused(t *testing.T, h *egHarness, id a2a.TaskID, msgID string) {
+	t.Helper()
+	_, err := h.resume("key-alice", id, msgID, "", "more")
+	egIs(t, err, a2a.ErrUnsupportedOperation)
+	if _, ok := h.in.Load("ctx:" + egJobOf("tenant-a", "alice", id, msgID)); ok {
+		t.Fatalf("%s wrote an input", msgID)
+	}
+}
+
+func TestResumeStopsAtSixtyFourTurns(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	h.interrupt(t, job, "input-required")
+	for turn := 2; turn <= 64; turn++ {
+		msgID := "msg-" + strconv.Itoa(turn)
+		_, err := h.resume("key-alice", id, msgID, "", "more")
+		egOK(t, err)
+		next := egJobOf("tenant-a", "alice", id, msgID)
+		if jr := h.pub.request(next).GetJobRequest(); jr.GetStepIndex() != int32(turn) || jr.GetParentJobId() != job {
+			t.Fatalf("turn %d: step_index %d parent %q, want parent %q", turn, jr.GetStepIndex(), jr.GetParentJobId(), job)
+		}
+		job = next
+		h.interrupt(t, job, "input-required")
+	}
+	_, err := h.resume("key-alice", id, "msg-65", "", "more")
+	egIs(t, err, a2a.ErrUnsupportedOperation)
+	h.published(t, 64, 64)
+	if st := h.state("key-alice", id); st != a2a.TaskStateInputRequired {
+		t.Fatalf("after the refused 65th turn the task is %s", st)
+	}
+}
+
+func TestFailedResumePublishRestoresInterruptedTurn(t *testing.T) {
+	var tick atomic.Int64 // every timestamp differs, so a restore must keep the old one
+	h := newEgHarness(t, func(c *Config) {
+		c.Now = func() time.Time { return egNow.Add(time.Duration(tick.Add(1)) * time.Second) }
+	})
+	id, job1 := h.start(t, "key-alice", "msg-1")
+	h.interrupt(t, job1, "input-required")
+	before := h.task(t, id)
+	job2, boom := egJobOf("tenant-a", "alice", id, "msg-2"), errors.New("boom")
+	for _, mode := range []string{"input", "publish"} {
+		h.in.fail, h.pub.fail = nil, nil
+		if mode == "input" {
+			h.in.fail = boom
+		} else {
+			h.pub.fail = func(subject string) error {
+				if subject == capsdk.SubjectSubmit {
+					return boom
+				}
+				return nil
+			}
+		}
+		_, err := h.resume("key-alice", id, "msg-2", "", "From SFO")
+		egIs(t, err, a2a.ErrInternalError)
+		h.ing.store.mu.Lock()
+		rec := h.ing.store.tasks[taskKey{tenant: "tenant-a", principal: "alice", id: string(id)}]
+		turn, job := rec.turn, rec.jobID
+		h.ing.store.mu.Unlock()
+		if _, indexed := h.ing.store.owner(job2); turn != 1 || job != job1 || indexed {
+			t.Fatalf("%s failure left turn %d job %q, job 2 indexed %v", mode, turn, job, indexed)
+		}
+		h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job2, egComplete("completed")))
+		if after := h.task(t, id); !reflect.DeepEqual(after, before) {
+			t.Fatalf("%s failure did not restore the task\n got %+v\nwant %+v", mode, after, before)
+		}
+		if requests, _ := h.pub.counts(); requests != 1 {
+			t.Fatalf("%s failure: %d JobRequests, want 1", mode, requests)
+		}
+	}
+	h.in.fail, h.pub.fail = nil, nil
+	_, err := h.resume("key-alice", id, "msg-2", "", "From SFO")
+	egOK(t, err)
+	if jr := h.pub.request(job2).GetJobRequest(); jr.GetStepIndex() != 2 || jr.GetParentJobId() != job1 {
+		t.Fatalf("retry: step_index %d parent %q", jr.GetStepIndex(), jr.GetParentJobId())
+	}
+	h.published(t, 2, 2)
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateSubmitted)
+	// A result that settles the new turn before the publish reports failure
+	// wins: release must not restore over it.
+	id2, job := h.start(t, "key-alice", "msg-a")
+	h.interrupt(t, job, "input-required")
+	won := h.resultEnvelope(t, egJobOf("tenant-a", "alice", id2, "msg-b"), egComplete("completed"))
+	h.pub.fail = func(string) error { h.ing.deliver(capsdk.SubjectResult, won); return boom }
+	_, err = h.resume("key-alice", id2, "msg-b", "", "go")
+	egIs(t, err, a2a.ErrInternalError)
+	h.want(t, "key-alice", id2, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired,
+		a2a.TaskStateSubmitted, a2a.TaskStateCompleted)
+}
+
+func TestConcurrentResumesOpenOneTurn(t *testing.T) {
+	h := newEgHarness(t)
+	id, job1 := h.start(t, "key-alice", "msg-1")
+	h.interrupt(t, job1, "input-required")
+	gate, errs := make(chan struct{}), make(chan error, 16)
+	for n := 2; n <= 17; n++ {
+		go func() {
+			<-gate
+			_, err := h.resume("key-alice", id, "msg-"+strconv.Itoa(n), "", "go")
+			errs <- err
+		}()
+	}
+	close(gate)
+	won := 0
+	for range 16 {
+		select {
+		case err := <-errs:
+			if err == nil {
+				won++
+			} else if !errors.Is(err, a2a.ErrUnsupportedOperation) {
+				t.Fatalf("concurrent resume: %v", err)
+			}
+		case <-time.After(5 * time.Second):
+			t.Fatal("timed out waiting for the concurrent resumes")
+		}
+	}
+	inputs := 0
+	for n := 2; n <= 17; n++ {
+		if _, ok := h.in.Load("ctx:" + egJobOf("tenant-a", "alice", id, "msg-"+strconv.Itoa(n))); ok {
+			inputs++
+		}
+	}
+	if won != 1 || inputs != 1 {
+		t.Fatalf("%d resumes won and %d turn-2 inputs written; want 1 and 1", won, inputs)
+	}
+	h.published(t, 2, 2)
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateSubmitted)
+}
+
+type egCall struct {
+	task *a2a.Task
+	took time.Duration
+	err  error
+}
+
+// call runs SendMessage in the background; a nil cfg is a default blocking call.
+func (h *egHarness) call(ctx context.Context, m *a2a.Message, cfg *a2a.SendMessageConfig) <-chan egCall {
+	out := make(chan egCall, 1)
+	go func() {
+		start := time.Now()
+		res, err := h.ing.SendMessage(ctx, &a2a.SendMessageRequest{Message: m, Config: cfg})
+		task, _ := res.(*a2a.Task)
+		if err == nil && task == nil {
+			err = errors.New("SendMessage did not return a task")
+		}
+		out <- egCall{task: task, took: time.Since(start), err: err}
+	}()
+	return out
+}
+
+// egAwait waits at most 5 s for a call that returns state within [least, most].
+func egAwait(t *testing.T, ch <-chan egCall, state a2a.TaskState, least, most time.Duration) *a2a.Task {
+	t.Helper()
+	select {
+	case c := <-ch:
+		if c.err != nil || c.task.Status.State != state || c.took < least || c.took > most {
+			t.Fatalf("call: err %v task %+v took %s; want %s in [%s, %s]", c.err, c.task, c.took, state, least, most)
+		}
+		return c.task
+	case <-time.After(5 * time.Second):
+		t.Fatalf("timed out waiting for a %s call", state)
+	}
+	return nil
+}
+
+func TestBlockingSendMessageWaitsForTheTurn(t *testing.T) {
+	h := newEgHarness(t, func(c *Config) { c.MaxBlockingWait = time.Second })
+	// settle < MaxBlockingWait: a waiter that missed the change returns only at the cap.
+	alice, quick, settle := egAs("key-alice"), 500*time.Millisecond, 900*time.Millisecond
+	msg := func(msgID string, taskID a2a.TaskID) *a2a.Message {
+		return &a2a.Message{ID: msgID, Role: a2a.MessageRoleUser, TaskID: taskID,
+			Parts: a2a.ContentParts{a2a.NewTextPart("Book me a flight")}}
+	}
+	published := func(job string) {
+		egEventually(t, "JobRequest "+job, func() bool { return h.pub.request(job) != nil })
+	}
+	// Before Start nothing can settle a turn, so a default call returns at once.
+	egAwait(t, h.call(alice, msg("msg-1", ""), nil), a2a.TaskStateSubmitted, 0, quick)
+	_, err := h.ing.Start(egSubscriber{})
+	egOK(t, err)
+	pending, job := h.call(alice, msg("msg-2", ""), nil), egJobOf("tenant-a", "alice", "", "msg-2")
+	published(job)
+	h.ing.deliver(capsdk.SubjectProgress, h.progress(t, job, egRunning))
+	h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job, egComplete("completed")))
+	if got := egAwait(t, pending, a2a.TaskStateCompleted, 0, settle); len(got.Artifacts) != 1 {
+		t.Fatal("blocking call lost the artifact")
+	}
+	immediate := &a2a.SendMessageConfig{ReturnImmediately: true}
+	egAwait(t, h.call(alice, msg("msg-3", ""), immediate), a2a.TaskStateSubmitted, 0, quick)
+	egAwait(t, h.call(alice, msg("msg-4", ""), nil), a2a.TaskStateSubmitted, time.Second, 5*time.Second)
+	// An interrupted turn settles the call; a default resume waits for turn 2.
+	pending, job = h.call(alice, msg("msg-5", ""), nil), egJobOf("tenant-a", "alice", "", "msg-5")
+	published(job)
+	h.interrupt(t, job, "input-required")
+	task := egAwait(t, pending, a2a.TaskStateInputRequired, 0, settle)
+	pending, job = h.call(alice, msg("msg-6", task.ID), nil), egJobOf("tenant-a", "alice", task.ID, "msg-6")
+	published(job)
+	h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job, egComplete("completed")))
+	egAwait(t, pending, a2a.TaskStateCompleted, 0, settle)
+	// ctx ends a wait long before MaxBlockingWait, with the task and no error.
+	slow := newEgHarness(t, func(c *Config) { c.MaxBlockingWait = 300 * time.Second })
+	_, err = slow.ing.Start(egSubscriber{})
+	egOK(t, err)
+	ctx, cancel := context.WithTimeout(alice, 100*time.Millisecond)
+	defer cancel()
+	egAwait(t, slow.call(ctx, msg("msg-1", ""), nil), a2a.TaskStateSubmitted, 50*time.Millisecond, 2*time.Second)
 }

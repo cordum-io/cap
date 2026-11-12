@@ -116,8 +116,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `traceparent` and `tracestate` NATS headers, never `baggage`, uses the W3C trace-context
   propagator by default, and starts the contract's `publish` (PRODUCER) and `process`
   (CONSUMER) spans with exactly its attributes and closed `error.type` values. A nil
-  `*telemetry.Config` writes no headers and starts no spans. The Go client and runtime do
-  not use it yet. The module now requires `go.opentelemetry.io/otel` and `otel/trace`
+  `*telemetry.Config` writes no headers and starts no spans. The module now requires
+  `go.opentelemetry.io/otel` and `otel/trace`
   v1.47.0; `otel/sdk` v1.47.0 is required only by tests.
 
 - **Python SDK telemetry (no wire change):** added `cap.telemetry`, an OpenTelemetry API
@@ -127,7 +127,7 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   (CONSUMER) spans with exactly its attributes and closed `error.type` values. A `None`
   config writes no headers and starts no spans. OpenTelemetry stays optional: the module
   imports without it, and `pip install 'cap-sdk-python[otel]'` adds
-  `opentelemetry-api>=1.41.1,<2`. The Python client and runtime do not use it yet.
+  `opentelemetry-api>=1.41.1,<2`.
 
 - **Node SDK `telemetry` namespace:** `telemetry.injectHeaders`, `extract`, `startPublish`
   and `startProcess` implement the `spec/interop/trace-context.md` contract over NATS headers:
@@ -135,7 +135,32 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   empty context, and PRODUCER/CONSUMER messaging spans with the contract's attributes and
   closed `error.type` values. The types are structural, so cap-sdk-node gains no OpenTelemetry
   dependency: pass the OpenTelemetry API module and a `W3CTraceContextPropagator` to
-  `telemetry.fromOpenTelemetry`. The client and runtime do not call it yet.
+  `telemetry.fromOpenTelemetry`.
+
+- **Go SDK trace propagation (no wire change):** `client.Client.Telemetry` and
+  `runtime.Agent.Telemetry` (`*telemetry.Config`, nil = off) send W3C
+  `traceparent`/`tracestate` NATS headers on job submit and result, and record the
+  `publish`/`process` spans of `spec/interop/trace-context.md`. The runtime extracts
+  trace context only after admission or validation, exposes the process span through
+  `Context.TraceContext()`, and gives a rejected packet no span. `baggage` is never sent.
+
+- **Python SDK trace propagation (no wire change):** `submit_job(..., telemetry=)` and
+  `Agent(telemetry=)` carry W3C trace context through a job round trip over NATS. The client
+  sends its `publish sys.job.submit` span in the `traceparent` and `tracestate` headers. The
+  Agent reads them only after CAP-PRODUCTION admission or legacy validation, runs the handler
+  under a `process` span exposed as `Context.otel_context`, and sends the
+  `publish sys.job.result` span's context with the result. Without `telemetry` nothing
+  changes: no headers and no spans. `run_worker`, heartbeats and the handshake are not
+  instrumented.
+
+- **Node SDK trace propagation (no wire change):** `submitJob(..., { telemetry })`
+  and `new Agent({ telemetry })` carry W3C trace context through a job round trip
+  over NATS. The client sends its `publish sys.job.submit` span in the lowercase
+  `traceparent`/`tracestate` headers. The Agent reads them only after CAP-PRODUCTION
+  admission or legacy validation, exposes the process span as `Context.otelContext`
+  (not made active), and sends the result's own `publish sys.job.result` span context.
+  Without `telemetry`, no headers or spans are added. `startWorker`, heartbeats and
+  the handshake are not instrumented.
 
 ## v2.17.0 — 2026-07-22
 

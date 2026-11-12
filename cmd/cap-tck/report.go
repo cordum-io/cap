@@ -403,11 +403,18 @@ func writeOutput(dir, name string, data []byte) (err error) {
 		return fmt.Errorf("%w: %q is not a relative path inside --out-dir", errUnsafeOutput, name)
 	}
 	name = filepath.Clean(name)
-	root, err := os.OpenRoot(dir)
+	scope, err := os.OpenRoot(dir)
 	if err != nil {
 		return err
 	}
+	defer scope.Close()
+	// Pin the parent so renaming it during a failed write cannot strand a temp.
+	root, err := scope.OpenRoot(filepath.Dir(name))
+	if err != nil {
+		return fmt.Errorf("%w: %v", errUnsafeOutput, err)
+	}
 	defer root.Close()
+	name = filepath.Base(name)
 	if fi, lerr := root.Lstat(name); lerr == nil && !fi.Mode().IsRegular() {
 		return fmt.Errorf("%w: %s exists and is not a regular file", errUnsafeOutput, name)
 	} else if lerr != nil && !errors.Is(lerr, fs.ErrNotExist) {

@@ -609,3 +609,35 @@ func TestOutputConcurrentWriters(t *testing.T) {
 		t.Fatal("temp file left behind")
 	}
 }
+
+func TestOutputCleanupAfterParentRename(t *testing.T) {
+	dir := t.TempDir()
+	sub, moved := filepath.Join(dir, "sub"), filepath.Join(dir, "moved")
+	if err := os.Mkdir(sub, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	putFile(t, filepath.Join(sub, "result"), []byte("old"))
+	original, injected := writeTemp, errors.New("write failed after parent renamed")
+	t.Cleanup(func() { writeTemp = original })
+	var renameErr error
+	writeTemp = func(w io.Writer, b []byte) error {
+		if _, err := w.Write(b[:1]); err != nil {
+			return err
+		}
+		renameErr = os.Rename(sub, moved)
+		if renameErr != nil {
+			return renameErr
+		}
+		return injected
+	}
+	err := writeOutput(dir, "sub/result", []byte("new"))
+	if renameErr != nil && runtime.GOOS == "windows" {
+		t.Skipf("Windows denies rename of open directory: %v", renameErr)
+	}
+	if !errors.Is(err, injected) {
+		t.Fatalf("writeOutput = %v", err)
+	}
+	if !reflect.DeepEqual(dirNames(t, moved), []string{"result"}) || string(fileBytes(t, filepath.Join(moved, "result"))) != "old" {
+		t.Fatal("parent rename left a temp or changed target")
+	}
+}

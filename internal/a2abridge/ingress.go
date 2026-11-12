@@ -427,7 +427,10 @@ func (i *Ingress) GetTask(ctx context.Context, req *a2a.GetTaskRequest) (*a2a.Ta
 
 // task renders a record as the A2A Task the caller sees.
 func (r taskRecord) task() *a2a.Task {
-	created := r.created
+	statusAt := r.statusAt
+	if statusAt.IsZero() {
+		statusAt = r.created
+	}
 	parts := make(a2a.ContentParts, 0, len(r.parts))
 	for _, p := range r.parts {
 		part := &a2a.Part{MediaType: p.MediaType}
@@ -443,7 +446,7 @@ func (r taskRecord) task() *a2a.Task {
 	msg := &a2a.Message{ID: r.messageID, ContextID: r.contextID, TaskID: a2a.TaskID(r.id),
 		Role: a2a.MessageRoleUser, Parts: parts}
 	return &a2a.Task{ID: a2a.TaskID(r.id), ContextID: r.contextID,
-		Status:  a2a.TaskStatus{State: r.state, Timestamp: &created, Message: r.statusMsg},
+		Status:  a2a.TaskStatus{State: r.state, Timestamp: &statusAt, Message: r.statusMsg},
 		History: append([]*a2a.Message{msg}, r.history...), Artifacts: r.artifacts}
 }
 

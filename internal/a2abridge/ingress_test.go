@@ -734,6 +734,80 @@ func TestSendWithPushConfigIsRejected(t *testing.T) {
 	}
 }
 
+func TestGetTaskTimestampTransitions(t *testing.T) {
+	now := fixedTime
+	h := newHarness(t, func(c *Config) { c.Now = func() time.Time { return now } })
+	created := h.mustSend(t, as("key-alice"), textMsg("timestamp", "hello"))
+	job := h.pub.packets(t)[0].GetJobRequest().GetJobId()
+	t1, t2, t3 := now.Add(time.Second), now.Add(2*time.Second), now.Add(3*time.Second)
+	cases := []struct {
+		name            string
+		at, wantAt      time.Time
+		status          agentv1.JobStatus
+		result, changed bool
+		state           a2a.TaskState
+		events          int
+	}{
+		{"created", now, now, agentv1.JobStatus_JOB_STATUS_UNSPECIFIED, false, false, a2a.TaskStateSubmitted, 1},
+		{"working", t1, t1, agentv1.JobStatus_JOB_STATUS_RUNNING, false, true, a2a.TaskStateWorking, 2},
+		{"duplicate working", t1.Add(time.Millisecond), t1, agentv1.JobStatus_JOB_STATUS_RUNNING, false, false, a2a.TaskStateWorking, 2},
+		{"failed", t2, t2, agentv1.JobStatus_JOB_STATUS_FAILED, true, true, a2a.TaskStateFailed, 3},
+		{"progress after terminal", t3, t2, agentv1.JobStatus_JOB_STATUS_RUNNING, false, false, a2a.TaskStateFailed, 3},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			now = c.at
+			if c.status != agentv1.JobStatus_JOB_STATUS_UNSPECIFIED {
+				apply := h.ing.store.applyProgress
+				if c.result {
+					apply = h.ing.store.applyResult
+				}
+				if changed := apply(job, c.status, now); changed != c.changed {
+					t.Fatalf("changed = %v, want %v", changed, c.changed)
+				}
+			}
+			wantTaskTimestamp(t, h, created.ID, c.state, c.wantAt, c.events)
+		})
+	}
+	if created.Status.Timestamp == nil || !created.Status.Timestamp.Equal(fixedTime) {
+		t.Fatalf("creation snapshot changed: %v", created.Status.Timestamp)
+	}
+}
+
+func wantTaskTimestamp(t *testing.T, h *harness, id a2a.TaskID, state a2a.TaskState, want time.Time, events int) {
+	t.Helper()
+	got, err := h.ing.GetTask(as("key-alice"), &a2a.GetTaskRequest{ID: id})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Status.State != state || got.Status.Timestamp == nil || !got.Status.Timestamp.Equal(want) {
+		t.Fatalf("GetTask status = %+v, want %s at %v", got.Status, state, want)
+	}
+	rec, ok := h.ing.store.get(testIdents["key-alice"], string(id))
+	if !ok || len(rec.events) != events {
+		t.Fatalf("stored = %v, events = %d, want %d", ok, len(rec.events), events)
+	}
+	last, ok := rec.events[len(rec.events)-1].(*a2a.TaskStatusUpdateEvent)
+	if !ok || last.Status.State != state || last.Status.Timestamp == nil || !last.Status.Timestamp.Equal(*got.Status.Timestamp) {
+		t.Fatalf("last status event = %+v, differs from GetTask status %+v", last, got.Status)
+	}
+	// Neither a rendered task nor an event snapshot may mutate the store.
+	*got.Status.Timestamp = time.Time{}
+	*last.Status.Timestamp = time.Time{}
+	fresh, err := h.ing.GetTask(as("key-alice"), &a2a.GetTaskRequest{ID: id})
+	if err != nil || fresh.Status.Timestamp == nil || !fresh.Status.Timestamp.Equal(want) {
+		t.Fatalf("snapshot mutation changed GetTask: %+v, err = %v", fresh, err)
+	}
+}
+
+func TestTaskTimestampFallsBackToCreation(t *testing.T) {
+	rec := taskRecord{created: fixedTime}
+	got := rec.task()
+	if got.Status.Timestamp == nil || !got.Status.Timestamp.Equal(fixedTime) {
+		t.Fatalf("timestamp = %v, want %v", got.Status.Timestamp, fixedTime)
+	}
+}
+
 // ---- DoD-5: parts validation ----
 
 func nested(depth int) any {

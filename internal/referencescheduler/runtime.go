@@ -81,16 +81,18 @@ func NewRuntime(opts RuntimeOptions) (*Runtime, error) {
 		live: make(map[jobKey]*agentv1.IdentityBinding), pending: make(map[jobKey]bool), cursor: make(map[string]int)}, nil
 }
 
-// Run serves once; cancellation closes transport and joins every callback and tick.
+// Run serves once; cancellation or permanent transport loss joins all runtime work.
 func (r *Runtime) Run(ctx context.Context) error {
 	if ctx == nil || !r.started.CompareAndSwap(false, true) {
 		return ErrInvalidConfig
 	}
 	var err error
-	if r.nc, err = dial(r.opts.Config); err != nil {
+	closed := make(chan struct{})
+	if r.nc, err = dial(r.opts.Config, func(*nats.Conn) { close(closed) }); err != nil {
 		return ErrRuntimeTransport
 	}
-	defer r.drain()
+	ctx, cancel := context.WithCancel(ctx)
+	defer func() { cancel(); r.drain() }()
 	for _, subject := range []string{SubjectSubmit, SubjectProgress, SubjectResult, SubjectClientCancel, capsdk.WorkerHandshakeChallengeSubject, capsdk.WorkerHandshakeAuthenticateSubject} {
 		sub, err := r.nc.Subscribe(subject, r.guarded(ctx, subject))
 		if err != nil {
@@ -105,7 +107,14 @@ func (r *Runtime) Run(ctx context.Context) error {
 	r.goroutines.Add(1)
 	go r.tickLoop(ctx)
 	close(r.ready)
-	<-ctx.Done()
+	select {
+	case <-ctx.Done():
+	case <-closed:
+		if ctx.Err() == nil {
+			r.opts.Logger.Warn("refsched: transport closed", "reason", ErrRuntimeTransport.Error())
+			return ErrRuntimeTransport
+		}
+	}
 	return nil
 }
 func (r *Runtime) Ready() <-chan struct{} { return r.ready }

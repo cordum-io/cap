@@ -547,6 +547,7 @@ func TestRuntime_PendingProgressRetryAndPublishFailure(t *testing.T) {
 		t.Fatal("retry attempt")
 	}
 	rtEventually(t, func() bool { j, _ := f.r.core.Get("t1", "job"); return j.Acked })
+	f.cancel() // This test closes transport deliberately, not as an outage.
 	f.r.nc.Close()
 	// Direct handler only here: exercise a failed outbound write on the closed connection.
 	raw := adSign(t, f.keys["c1"], rtPacket(t, "c1", "", SubjectSubmit, "fail-publish"))
@@ -607,7 +608,7 @@ func TestRuntime_DialIgnoresAdvertisedEndpoints(t *testing.T) {
 	defer trap.Close()
 	connected := make(chan net.Conn, 1)
 	go rtAdvertise(primary, trap, connected)
-	nc, err := dial(&ResolvedConfig{NATSURL: "nats://" + primary.Addr().String()})
+	nc, err := dial(&ResolvedConfig{NATSURL: "nats://" + primary.Addr().String()}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

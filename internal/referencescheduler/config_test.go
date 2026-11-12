@@ -190,6 +190,32 @@ func cfPlain(url string, dev bool) cfMut {
 	})
 }
 
+// NATS splits raw commas before parsing URLs, even inside user info, paths,
+// queries or fragments. Resolve supports one endpoint, with or without TLS.
+func cfURLListCases() []cfCase {
+	remote := ",nats://" + cfCanary + ":password@203.0.113.1:4222"
+	var cases []cfCase
+	for _, tc := range []struct{ name, url string }{
+		{"ordinary", "nats://127.0.0.1:4222" + remote},
+		{"path", "nats://127.0.0.1:4222/" + remote},
+		{"query", "nats://127.0.0.1:4222?servers=" + remote},
+		{"fragment", "nats://127.0.0.1:4222#" + remote},
+		{"ipv6 path", "nats://[::1]:4222/" + remote},
+		{"localhost query", "nats://localhost:4222?servers=" + remote},
+		{"username", "nats://user," + cfCanary + "@127.0.0.1:4222"},
+		{"password", "nats://user:" + cfCanary + ",password@127.0.0.1:4222"},
+		{"leading", ",nats://127.0.0.1:4222"},
+		{"trailing", "nats://127.0.0.1:4222/,"},
+	} {
+		cases = append(cases,
+			cfCase{"raw comma plaintext " + tc.name, cfPlain(tc.url, true), rs.ErrConfigNATSURL},
+			cfCase{"raw comma tls " + tc.name, cfSet(func(c *rs.RuntimeConfig) {
+				c.NATSURL = strings.ReplaceAll(tc.url, "nats://", "tls://")
+			}), rs.ErrConfigNATSURL})
+	}
+	return cases
+}
+
 func cfTLSCases() []cfCase {
 	dir := func(get func(c *rs.RuntimeConfig) *string) cfMut {
 		return func(_ *testing.T, c *rs.RuntimeConfig, e cfEnv) { *get(c) = e.dir }
@@ -322,7 +348,8 @@ func cfPolicyCases() []cfCase {
 }
 
 func cfCases() []cfCase {
-	return append(append(append(cfTLSCases(), cfSchedulerCases()...), cfWorkerCases()...), cfPolicyCases()...)
+	cases := append(cfTLSCases(), cfURLListCases()...)
+	return append(append(append(cases, cfSchedulerCases()...), cfWorkerCases()...), cfPolicyCases()...)
 }
 
 func cfApply(t *testing.T, tc cfCase) rs.RuntimeConfig {
@@ -430,12 +457,16 @@ func TestRuntimeConfig_LoopbackIsParsedHost(t *testing.T) {
 		want error
 	}{
 		{"nats://127.0.0.1:4222", nil}, {"nats://[::1]:4222", nil}, {"nats://localhost:4222", nil},
+		{"nats://user:p%2Cass@localhost:4222", nil}, // escaped commas do not split endpoints
+		{"nats://localhost:4222/path%2Cname", nil},
+		{"nats://localhost:4222?name=one%2Ctwo", nil},
+		{"nats://localhost:4222#one%2Ctwo", nil},
 		{"nats://127.0.0.1.evil.example:4222", rs.ErrConfigPlaintextRemote},
 		{"nats://localhost.evil.example:4222", rs.ErrConfigPlaintextRemote},
 		{"nats://127.0.0.1@evil.example:4222", rs.ErrConfigPlaintextRemote},
 		{"nats://evil.example:4222/localhost", rs.ErrConfigPlaintextRemote},
-		{"nats://127.0.0.1:4222,nats://evil.example:4222", rs.ErrConfigPlaintextRemote}, // a server list is not loopback
-		{"nats://localhost:4222,nats://evil.example:4222", rs.ErrConfigPlaintextRemote},
+		{"nats://127.0.0.1:4222,nats://evil.example:4222", rs.ErrConfigNATSURL}, // server lists are not supported
+		{"nats://localhost:4222,nats://evil.example:4222", rs.ErrConfigNATSURL},
 		{"nats://0.0.0.0:4222", rs.ErrConfigPlaintextRemote},
 		{"nats://10.0.0.5:4222", rs.ErrConfigPlaintextRemote},
 	} {

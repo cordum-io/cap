@@ -21,6 +21,7 @@ type taskRecord struct {
 	turn                            int
 	state                           a2a.TaskState
 	created                         time.Time
+	statusAt                        time.Time
 	parts                           []turnPart
 	artifacts                       []*a2a.Artifact
 	history                         []*a2a.Message // after the initial user message in parts
@@ -230,6 +231,7 @@ func (s *store) size() int {
 
 // appendStatus records rec's current state as one status event.
 func appendStatus(rec *taskRecord, now time.Time) {
+	rec.statusAt = now
 	rec.events = append(rec.events, &a2a.TaskStatusUpdateEvent{TaskID: a2a.TaskID(rec.id),
 		ContextID: rec.contextID, Status: a2a.TaskStatus{State: rec.state, Message: rec.statusMsg, Timestamp: &now}})
 }

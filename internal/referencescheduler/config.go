@@ -25,7 +25,7 @@ import (
 
 // Config sentinels are bare: nothing wraps a path, file content or key bytes.
 var (
-	// ErrConfigNATSURL rejects an empty, unparseable or non-nats/tls URL.
+	// ErrConfigNATSURL rejects an empty, unparseable, non-nats/tls or server-list URL.
 	ErrConfigNATSURL = errors.New("referencescheduler: invalid NATS URL")
 	// ErrConfigTLSCA rejects a missing, unreadable or empty CA bundle.
 	ErrConfigTLSCA = errors.New("referencescheduler: invalid TLS CA")
@@ -60,6 +60,7 @@ var (
 )
 
 // RuntimeConfig is the file-level runtime configuration; paths name PEM files.
+// NATSURL names a single endpoint, never a comma-separated server list.
 type RuntimeConfig struct {
 	NATSURL                                                    string
 	TLSCAFile, TLSCertFile, TLSKeyFile                         string
@@ -123,6 +124,11 @@ type ResolvedConfig struct {
 // Resolve validates the configuration and returns it with parsed keys, or a
 // bare ErrConfig* sentinel. It reads files but never logs.
 func (c RuntimeConfig) Resolve() (*ResolvedConfig, error) {
+	// NATS splits raw commas before URL parsing, even in paths or credentials.
+	// Reject lists before granting a plaintext exemption to the parsed host.
+	if strings.Contains(c.NATSURL, ",") {
+		return nil, ErrConfigNATSURL
+	}
 	u, err := url.Parse(c.NATSURL)
 	if err != nil || (u.Scheme != "nats" && u.Scheme != "tls") || u.Hostname() == "" {
 		return nil, ErrConfigNATSURL

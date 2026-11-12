@@ -1,0 +1,11 @@
+{
+  "name": "cap-interop-validator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pinned validator for asyncapi/cap.asyncapi.yaml and the spec/interop vectors.",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@asyncapi/parser": "3.6.6",
+    "ajv": "8.20.0"
+  }
+}

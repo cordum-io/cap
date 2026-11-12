@@ -152,6 +152,7 @@ func trIssueSession(t *testing.T, f *trFixture) *capsdk.WorkerHandshakeSession {
 func TestIssuer_RoundTripWithSDKWorker(t *testing.T) {
 	f := trNew(t)
 	first := trIssueSession(t, f)
+	trActive(t, f, first.ExpiresAt)
 	s, ok := f.i.Session(f.client.WorkerID, first.Token)
 	if !ok || s.WorkerID != "worker" || s.TenantID != "tenant" || s.AgentID != "agent" || !s.ExpiresAt.Equal(first.ExpiresAt) {
 		t.Fatal("session identity or expiry mismatch")
@@ -159,8 +160,10 @@ func TestIssuer_RoundTripWithSDKWorker(t *testing.T) {
 	if _, ok = f.i.Session("other", first.Token); ok {
 		t.Fatal("cross-worker session accepted")
 	}
+	f.now = f.now.Add(time.Second)
 	auth, v := trAuth(t, f, trRenew, first.Token)
 	second := trFinish(t, f, auth, v)
+	trActive(t, f, second.ExpiresAt)
 	if second.Token == first.Token {
 		t.Fatal("renewal did not rotate token")
 	}
@@ -174,6 +177,17 @@ func TestIssuer_RoundTripWithSDKWorker(t *testing.T) {
 		t.Fatal("unexpected token lengths")
 	}
 	t.Logf("issue token length=%d; renew token length=%d", len(first.Token), len(second.Token))
+}
+
+func trActive(t *testing.T, f *trFixture, expires time.Time) {
+	t.Helper()
+	s, ok := f.i.Active("worker")
+	if !ok || s.WorkerID != "worker" || s.TenantID != "tenant" || s.AgentID != "agent" || !s.ExpiresAt.Equal(expires) {
+		t.Fatal("active session identity or expiry mismatch")
+	}
+	if _, ok := f.i.Active("unknown"); ok {
+		t.Fatal("unknown worker active")
+	}
 }
 
 func TestIssuer_AuthenticateIsSingleUse(t *testing.T) {
@@ -355,6 +369,17 @@ func TestIssuer_Bounds(t *testing.T) {
 		}
 	})
 	t.Run("challenge_cap_and_eviction", trChallengeBounds)
+	t.Run("active_expiry", func(t *testing.T) {
+		f := trNew(t)
+		trIssueSession(t, f)
+		f.now = f.now.Add(f.cfg.SessionTTL)
+		if _, ok := f.i.Active("worker"); ok {
+			t.Fatal("expired worker active")
+		}
+		if len(f.i.sessions) != 0 || len(f.i.tokens) != 0 {
+			t.Fatal("Active did not evict expired session")
+		}
+	})
 	t.Run("session_supersession_and_expiry", func(t *testing.T) {
 		f := trNew(t)
 		first, second := trIssueSession(t, f), trIssueSession(t, f)

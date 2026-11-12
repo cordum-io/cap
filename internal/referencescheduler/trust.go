@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"io"
@@ -200,7 +201,132 @@ func (i *Issuer) signReply(p *agentv1.BusPacket) ([]byte, error) {
 }
 
 // HandleAuthenticate returns a signed result or a bare sentinel (drop).
-func (i *Issuer) HandleAuthenticate(raw []byte) ([]byte, error) { return nil, ErrHandshakeRefused }
+func (i *Issuer) HandleAuthenticate(raw []byte) ([]byte, error) {
+	p, err := issuerDecode(raw)
+	if err != nil {
+		return nil, err
+	}
+	a := p.GetWorkerHandshakeAuthenticate()
+	if a == nil {
+		return nil, ErrHandshakeRefused
+	}
+	w, ok := i.workers[a.Challenge.WorkerId]
+	if !ok || capsdk.VerifyTrustHandshake(p, map[string]*ecdsa.PublicKey{w.ProofKeyID: w.ProofKey}) != nil {
+		return nil, ErrHandshakeRefused
+	}
+	reply, err := i.authenticate(p)
+	if err != nil {
+		return nil, err
+	}
+	encoded, err := i.signReply(reply)
+	if err != nil && reply.AuthToken != "" {
+		i.mu.Lock()
+		i.removeSession(reply.AuthToken)
+		i.mu.Unlock()
+	}
+	return encoded, err
+}
+
+func (i *Issuer) authenticate(p *agentv1.BusPacket) (*agentv1.BusPacket, error) {
+	// ponytail: one process-wide critical section; HA needs shared atomic authority.
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	now := i.cfg.Now()
+	c := p.GetWorkerHandshakeAuthenticate().Challenge
+	r := &agentv1.WorkerHandshakeResult{Challenge: c, IssuedAt: timestamppb.New(now), RejectionReason: i.checkAuthenticate(p, now)}
+	reply := i.packet(c.TraceId, now)
+	reply.Payload = &agentv1.BusPacket_WorkerHandshakeResult{WorkerHandshakeResult: r}
+	if r.RejectionReason != 0 {
+		return reply, nil
+	}
+	delete(i.challenges, c.ChallengeId)
+	token, err := i.mint(c.WorkerId, now)
+	if err != nil {
+		return nil, ErrHandshakeRefused
+	}
+	reply.AuthToken, r.Accepted = token, true
+	r.TokenExpiresAt = timestamppb.New(i.sessions[token].ExpiresAt)
+	return reply, nil
+}
+
+// checkAuthenticate runs only with mu held; failures do not consume a live challenge.
+func (i *Issuer) checkAuthenticate(p *agentv1.BusPacket, now time.Time) agentv1.WorkerHandshakeRejectionReason {
+	if !issuerWithinSkew(p.CreatedAt, now) {
+		return agentv1.WorkerHandshakeRejectionReason_WORKER_HANDSHAKE_REJECTION_REASON_CLOCK_SKEW
+	}
+	c := p.GetWorkerHandshakeAuthenticate().Challenge
+	live, ok := i.challenges[c.ChallengeId]
+	if !ok {
+		return agentv1.WorkerHandshakeRejectionReason_WORKER_HANDSHAKE_REJECTION_REASON_REPLAY_DETECTED
+	}
+	if !proto.Equal(live, c) {
+		return agentv1.WorkerHandshakeRejectionReason_WORKER_HANDSHAKE_REJECTION_REASON_AUTHENTICATION_FAILED
+	}
+	if !now.Before(live.ExpiresAt.AsTime()) {
+		delete(i.challenges, c.ChallengeId)
+		return agentv1.WorkerHandshakeRejectionReason_WORKER_HANDSHAKE_REJECTION_REASON_CHALLENGE_EXPIRED
+	}
+	if c.Purpose == agentv1.WorkerHandshakePurpose_WORKER_HANDSHAKE_PURPOSE_RENEW {
+		if _, ok := i.liveSession(c.WorkerId, p.AuthToken, now); !ok {
+			return agentv1.WorkerHandshakeRejectionReason_WORKER_HANDSHAKE_REJECTION_REASON_SESSION_INVALID
+		}
+	}
+	return agentv1.WorkerHandshakeRejectionReason_WORKER_HANDSHAKE_REJECTION_REASON_UNSPECIFIED
+}
+
+// mint runs only with mu held, after consuming the challenge.
+func (i *Issuer) mint(worker string, now time.Time) (string, error) {
+	random := make([]byte, 32)
+	if _, err := io.ReadFull(rand.Reader, random); err != nil {
+		return "", ErrHandshakeRefused
+	}
+	token := base64.RawURLEncoding.EncodeToString(random)
+	if _, exists := i.sessions[token]; exists {
+		return "", ErrHandshakeRefused
+	}
+	for old, s := range i.sessions {
+		if !now.Before(s.ExpiresAt) {
+			i.removeSession(old)
+		}
+	}
+	i.removeSession(i.tokens[worker])
+	w := i.workers[worker]
+	i.sessions[token] = Session{worker, w.TenantID, w.AgentID, now.Add(i.cfg.SessionTTL)}
+	i.tokens[worker] = token
+	return token, nil
+}
+
+func (i *Issuer) removeSession(token string) {
+	if s, ok := i.sessions[token]; ok {
+		delete(i.sessions, token)
+		if i.tokens[s.WorkerID] == token {
+			delete(i.tokens, s.WorkerID)
+		}
+	}
+}
+
+func (i *Issuer) liveSession(worker, token string, now time.Time) (Session, bool) {
+	s, ok := i.sessions[token]
+	if ok && !now.Before(s.ExpiresAt) {
+		i.removeSession(token)
+		return Session{}, false
+	}
+	if !ok || s.WorkerID != worker {
+		return Session{}, false
+	}
+	return s, true
+}
 
 // Session resolves only a live token belonging to the requested worker.
-func (i *Issuer) Session(workerID, token string) (Session, bool) { return Session{}, false }
+func (i *Issuer) Session(workerID, token string) (Session, bool) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	return i.liveSession(workerID, token, i.cfg.Now())
+}
+
+// Active returns a worker's current live session without revealing its token.
+func (i *Issuer) Active(workerID string) (Session, bool) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	return i.liveSession(workerID, i.tokens[workerID], i.cfg.Now())
+}

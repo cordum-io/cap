@@ -79,7 +79,7 @@ class TestRuntimeLifecycle(unittest.IsolatedAsyncioTestCase):
         close_task = asyncio.create_task(agent.close())
 
         try:
-            await nats.wait_for_drains(2, TIMEOUT)
+            await nats.wait_for_drains(3, TIMEOUT)  # Includes the cancel subscription.
             self.assertFalse(close_task.done())
             self.assertEqual(0, nats.connection_drain_count)
             self.assertEqual(0, store.close_count)

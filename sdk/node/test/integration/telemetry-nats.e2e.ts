@@ -159,7 +159,9 @@ describe("Node trace propagation over real NATS", function () {
     assert.deepEqual(r.seen, [process.spanContext()]);
     assert.equal(process.parentSpanContext?.spanId, submit.spanContext().spanId);
     assert.equal(process.parentSpanContext?.isRemote, true);
-    assert.deepEqual(process.links.map((link) => link.context), [{ ...submit.spanContext(), isRemote: true }]);
+    assert.deepEqual(process.links.map(({ context }) => [context.traceId, context.spanId, context.traceFlags, context.isRemote]),
+      [[submit.spanContext().traceId, submit.spanContext().spanId, submit.spanContext().traceFlags, true]]);
+    assert.equal(process.links[0].context.traceState?.serialize(), submit.spanContext().traceState?.serialize());
     assert.equal(publish.spanContext().traceId, submit.spanContext().traceId);
     assert.equal(publish.parentSpanContext?.spanId, process.spanContext().spanId);
     assert.equal(results[0].headers?.get("traceparent"), `00-${submit.spanContext().traceId}-${publish.spanContext().spanId}-01`);

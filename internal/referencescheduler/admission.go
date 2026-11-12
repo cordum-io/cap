@@ -33,7 +33,8 @@ var (
 
 // Admitter runs CAP-PRODUCTION admission for inbound client and worker
 // packets. It is transport-free and never logs; its fields are read-only after
-// NewAdmitter, so Admit is safe for concurrent use when the replay store is.
+// NewAdmitter, so Admit is safe for concurrent use when the replay store and
+// the clock are.
 type Admitter struct {
 	maxBytes int
 	clients  map[string]ResolvedClient

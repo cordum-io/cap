@@ -165,6 +165,9 @@ func adSignatureCases() []adCase {
 		{"tenant mismatch", ErrAdmitSignature, func(t *testing.T, f *adFixture) (string, []byte) {
 			return SubjectResult, adSign(t, f.workerKey, adPacket(t, adWorker, "t2", f.token, SubjectResult, "job"))
 		}},
+		{"client tenant mismatch", ErrAdmitSignature, func(t *testing.T, f *adFixture) (string, []byte) {
+			return SubjectSubmit, adSign(t, f.clientKey, adPacket(t, adClient, "t2", "", SubjectSubmit, "job"))
+		}},
 	}
 }
 
@@ -364,9 +367,12 @@ func TestNewAdmitter_RejectsNil(t *testing.T) {
 
 func TestNewAdmitter_SnapshotsIdentities(t *testing.T) {
 	f := adNew(t)
-	raw := adClientRaw(t, f, SubjectSubmit)
+	client, worker := adClientRaw(t, f, SubjectSubmit), adWorkerRaw(t, f, f.token)
 	f.cfg.Clients[adClient].SigningKeys[adKeyID] = &trKey(t).PublicKey
+	f.cfg.Workers[adWorker].SigningKeys[adKeyID] = &trKey(t).PublicKey
 	delete(f.cfg.Clients, adClient)
+	delete(f.cfg.Workers, adWorker)
 	f.cfg.MaxPacketBytes = 1
-	adAdmitted(t, f, SubjectSubmit, raw, adClient, "tenant")
+	adAdmitted(t, f, SubjectSubmit, client, adClient, "tenant")
+	adAdmitted(t, f, SubjectResult, worker, adWorker, "tenant")
 }

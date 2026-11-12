@@ -5,8 +5,8 @@ package referencescheduler
 
 import (
 	"context"
-	"errors"
 	"log/slog"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -27,14 +27,20 @@ type RuntimeStats struct{ Dropped, CoreCalls, Published uint64 }
 
 // Runtime is a single-replica, process-lifetime scheduler.
 type Runtime struct {
-	opts       RuntimeOptions
-	core       *Scheduler
-	issuer     *Issuer
-	admit      *Admitter
-	ready      chan struct{}
-	nc         *nats.Conn
-	subs       []*nats.Subscription
-	goroutines atomic.Int64
+	opts                      RuntimeOptions
+	core                      *Scheduler
+	issuer                    *Issuer
+	admit                     *Admitter
+	ready                     chan struct{}
+	nc                        *nats.Conn
+	subs                      []*nats.Subscription
+	goroutines                atomic.Int64
+	dropped, calls, published atomic.Uint64
+	started                   atomic.Bool
+	gate                      sync.Mutex
+	closing                   bool
+	wg                        sync.WaitGroup
+	sem                       chan struct{}
 }
 
 func NewRuntime(opts RuntimeOptions) (*Runtime, error) {
@@ -42,6 +48,9 @@ func NewRuntime(opts RuntimeOptions) (*Runtime, error) {
 		return nil, ErrInvalidConfig
 	}
 	c := opts.Config
+	if c.MaxConcurrency <= 0 || c.MaxLiveJobs <= 0 {
+		return nil, ErrInvalidConfig
+	}
 	core, err := New(Config{Limits: c.Limits, Allow: c.Allow, Now: opts.Now})
 	if err != nil {
 		return nil, err
@@ -62,12 +71,59 @@ func NewRuntime(opts RuntimeOptions) (*Runtime, error) {
 	if opts.Logger == nil {
 		opts.Logger = slog.Default()
 	}
-	return &Runtime{opts: opts, core: core, issuer: issuer, admit: admit, ready: make(chan struct{})}, nil
+	return &Runtime{opts: opts, core: core, issuer: issuer, admit: admit, ready: make(chan struct{}), sem: make(chan struct{}, c.MaxConcurrency)}, nil
 }
 
-func (r *Runtime) Run(context.Context) error {
-	return errors.New("referencescheduler: runtime not implemented")
+// Run serves once; cancellation closes transport and joins every callback and tick.
+func (r *Runtime) Run(ctx context.Context) error {
+	if ctx == nil || !r.started.CompareAndSwap(false, true) {
+		return ErrInvalidConfig
+	}
+	var err error
+	if r.nc, err = dial(r.opts.Config); err != nil {
+		return ErrRuntimeTransport
+	}
+	defer r.drain()
+	for _, subject := range []string{SubjectSubmit, SubjectProgress, SubjectResult, SubjectClientCancel, capsdk.WorkerHandshakeChallengeSubject, capsdk.WorkerHandshakeAuthenticateSubject} {
+		sub, err := r.nc.Subscribe(subject, r.guarded(ctx, subject))
+		if err != nil {
+			return ErrRuntimeTransport
+		}
+		r.subs = append(r.subs, sub)
+	}
+	if err = r.nc.FlushTimeout(time.Second); err != nil {
+		return ErrRuntimeTransport
+	}
+	r.wg.Add(1)
+	r.goroutines.Add(1)
+	go r.tickLoop(ctx)
+	close(r.ready)
+	<-ctx.Done()
+	return nil
 }
 func (r *Runtime) Ready() <-chan struct{} { return r.ready }
-func (r *Runtime) Stats() RuntimeStats    { return RuntimeStats{} }
-func (r *Runtime) tickOnce()              {}
+func (r *Runtime) Stats() RuntimeStats {
+	return RuntimeStats{r.dropped.Load(), r.calls.Load(), r.published.Load()}
+}
+func (r *Runtime) tickOnce() {}
+
+func (r *Runtime) tickLoop(ctx context.Context) {
+	defer r.wg.Done()
+	defer r.goroutines.Add(-1)
+	ticker := time.NewTicker(r.opts.TickEvery)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			r.tickOnce()
+		}
+	}
+}
+
+func (r *Runtime) packet(subject string, raw []byte) {
+	if _, err := r.admit.Admit(subject, raw); err != nil {
+		r.drop(subject, err)
+	}
+}

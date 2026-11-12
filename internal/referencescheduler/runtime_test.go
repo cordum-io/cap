@@ -568,22 +568,7 @@ func TestRuntime_DialIgnoresAdvertisedEndpoints(t *testing.T) {
 	}
 	defer trap.Close()
 	connected := make(chan net.Conn, 1)
-	go func() {
-		c, err := primary.Accept()
-		if err != nil {
-			return
-		}
-		fmt.Fprintf(c, "INFO {\"server_id\":\"test\",\"version\":\"2.12.6\",\"proto\":1,\"max_payload\":65536,\"connect_urls\":[%q]}\r\n", trap.Addr().String())
-		scanner := bufio.NewScanner(c)
-		for scanner.Scan() {
-			if scanner.Text() == "PING" {
-				fmt.Fprint(c, "PONG\r\n")
-				connected <- c
-				return
-			}
-		}
-		c.Close()
-	}()
+	go rtAdvertise(primary, trap, connected)
 	nc, err := dial(&ResolvedConfig{NATSURL: "nats://" + primary.Addr().String()})
 	if err != nil {
 		t.Fatal(err)
@@ -608,4 +593,21 @@ func TestRuntime_DialIgnoresAdvertisedEndpoints(t *testing.T) {
 		c.Close()
 		t.Fatal("dialed advertised endpoint")
 	}
+}
+
+func rtAdvertise(primary, trap net.Listener, connected chan<- net.Conn) {
+	c, err := primary.Accept()
+	if err != nil {
+		return
+	}
+	fmt.Fprintf(c, "INFO {\"server_id\":\"test\",\"version\":\"2.12.6\",\"proto\":1,\"max_payload\":65536,\"connect_urls\":[%q]}\r\n", trap.Addr().String())
+	scanner := bufio.NewScanner(c)
+	for scanner.Scan() {
+		if scanner.Text() == "PING" {
+			fmt.Fprint(c, "PONG\r\n")
+			connected <- c
+			return
+		}
+	}
+	c.Close()
 }

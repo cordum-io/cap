@@ -8,6 +8,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 - **cap-sdk-python: `validate_resource_ref` compares ResourceRef expiry at nanosecond precision (bug fix).** `Timestamp.ToDatetime()` truncated to microseconds, rejecting references expiring 1 ns after validation while Go accepted them. Exact `(seconds, nanos)` comparison now matches Go `AsTime().After(now)`, range validation mirrors Go `CheckValid`, and aware validation times at the edges of `datetime` no longer raise `OverflowError`.
 
+
+- **cap-sdk-python: `cap.testing.MockNATS` can start worker-trust Agents (bug fix).** `connect` accepts the `reconnected_cb`/`disconnected_cb` options the Agent passes when worker trust is `warn` or `enforce`, and `request` raises `asyncio.TimeoutError` (no responders). `create_test_agent(worker_trust_mode="warn", ...)` therefore starts without a session instead of failing with `TypeError`, and `enforce` fails closed with `WorkerTrustRuntimeError`.
 - **cordum-guard closes governance bypasses (security, behavior change).**
   - Verdicts: the client now reads the gateway's protojson names
     (`DECISION_TYPE_REQUIRE_HUMAN`, ...). Previously every real verdict, DENY included, parsed

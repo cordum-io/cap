@@ -177,7 +177,7 @@ async def test_echo():
 
 - `run_handler(handler, input, **options)` — runs a single handler invocation and returns the `JobResult`.
 - `create_test_agent(**options)` — returns `(agent, mock_nats, store)` pre-wired with `MockNATS` + `InMemoryBlobStore`.
-- `MockNATS` — in-memory NATS mock for custom test setups.
+- `MockNATS` — in-memory NATS mock for custom test setups. It accepts the worker-trust `reconnected_cb`/`disconnected_cb` connect options (stored as attributes) and answers every `request` with `asyncio.TimeoutError`, recorded in `requests`, so `create_test_agent(worker_trust_mode="warn", worker_trust=cfg)` starts without a session while `"enforce"` fails closed.
 
 ## Runtime (High-Level SDK)
 The runtime hides NATS/Redis plumbing and gives you typed handlers.

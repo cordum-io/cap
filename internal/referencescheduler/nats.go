@@ -32,12 +32,6 @@ func dial(cfg *ResolvedConfig) (*nats.Conn, error) {
 
 func (r *Runtime) guarded(ctx context.Context, subject string) nats.MsgHandler {
 	return func(m *nats.Msg) {
-		select {
-		case r.sem <- struct{}{}:
-		case <-ctx.Done():
-			return
-		}
-		defer func() { <-r.sem }()
 		r.gate.Lock()
 		if r.closing || ctx.Err() != nil {
 			r.gate.Unlock()
@@ -48,6 +42,15 @@ func (r *Runtime) guarded(ctx context.Context, subject string) nats.MsgHandler {
 		r.gate.Unlock()
 		defer r.wg.Done()
 		defer r.goroutines.Add(-1)
+		select {
+		case r.sem <- struct{}{}:
+		case <-ctx.Done():
+			return
+		}
+		defer func() { <-r.sem }()
+		if ctx.Err() != nil {
+			return
+		}
 		r.handle(subject, m)
 	}
 }
@@ -101,6 +104,7 @@ func (r *Runtime) drain() {
 	r.gate.Lock()
 	r.closing = true
 	r.gate.Unlock()
+	// Teardown errors cannot retain transport: always close and join, even after disconnect.
 	for _, sub := range r.subs {
 		_ = sub.Unsubscribe()
 	}

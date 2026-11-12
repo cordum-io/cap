@@ -15,7 +15,7 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-// RuntimeOptions requires resolved configuration and a concurrency-safe clock.
+// RuntimeOptions requires immutable resolved configuration and a concurrency-safe clock.
 type RuntimeOptions struct {
 	Config    *ResolvedConfig
 	Now       func() time.Time

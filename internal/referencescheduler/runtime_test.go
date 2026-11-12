@@ -4,11 +4,16 @@
 package referencescheduler
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"reflect"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -57,7 +62,7 @@ func rtConfig(t *testing.T) *rtFixture {
 
 func (f *rtFixture) clock() time.Time { return time.Unix(0, f.now.Load()) }
 
-func rtStart(t *testing.T) *rtFixture {
+func rtStart(t *testing.T, tick ...time.Duration) *rtFixture {
 	t.Helper()
 	f := rtConfig(t)
 	srv, err := tck.StartEmbeddedNATS()
@@ -83,6 +88,9 @@ func rtStart(t *testing.T) *rtFixture {
 	f.r, err = NewRuntime(RuntimeOptions{Config: f.cfg, Now: f.clock, TickEvery: time.Hour, Logger: slog.New(slog.NewTextHandler(io.Discard, nil))})
 	if err != nil {
 		t.Fatal(err)
+	}
+	if len(tick) != 0 {
+		f.r.opts.TickEvery = tick[0]
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	f.cancel, f.done = cancel, make(chan error, 1)
@@ -360,6 +368,28 @@ func TestRuntime_TickPublishesTimeout(t *testing.T) {
 	}
 }
 
+func TestRuntime_TickLoopPublishesTimeout(t *testing.T) {
+	f := rtStart(t, time.Millisecond)
+	rtHandshake(t, f, "w1")
+	rtDispatch(t, f, "job")
+	f.now.Add(int64(11 * time.Second))
+	if p := rtReceive(t, f, SubjectTerminal); p.GetJobResult().Status != agentv1.JobStatus_JOB_STATUS_TIMEOUT {
+		t.Fatal("ticker did not expire job")
+	}
+}
+
+func TestRuntime_RoundRobin(t *testing.T) {
+	f := rtStart(t)
+	rtHandshake(t, f, "w1")
+	rtHandshake(t, f, "w3")
+	for i, worker := range []string{"w3", "w1"} {
+		rtSend(t, f, SubjectSubmit, rtPacket(t, "c1", "", SubjectSubmit, fmt.Sprint(i)))
+		if p := rtReceive(t, f, WorkerSubject(worker)); p.GetJobRequest().Dispatch.AssignedWorkerId != worker {
+			t.Fatal("round robin")
+		}
+	}
+}
+
 func TestRuntime_ClientCancel(t *testing.T) {
 	f := rtStart(t)
 	rtHandshake(t, f, "w1")
@@ -400,5 +430,182 @@ func TestNewRuntime_InvalidOptions(t *testing.T) {
 		if r, err := NewRuntime(opts); r != nil || err != ErrInvalidConfig {
 			t.Fatalf("%v %v", r, err)
 		}
+	}
+}
+
+type rtBlockedLog struct {
+	slog.Handler
+	entered, release chan struct{}
+}
+
+func (h rtBlockedLog) Handle(context.Context, slog.Record) error {
+	h.entered <- struct{}{}
+	<-h.release
+	return nil
+}
+
+func TestRuntime_DrainJoinsBlockedCallbacks(t *testing.T) {
+	f := rtStart(t)
+	h := rtBlockedLog{slog.NewTextHandler(io.Discard, nil), make(chan struct{}, 6), make(chan struct{})}
+	f.r.opts.Logger = slog.New(h) // Before any test packet; no callback reads it yet.
+	t.Cleanup(func() {
+		select {
+		case <-h.release:
+		default:
+			close(h.release)
+		}
+	})
+	for _, subject := range []string{SubjectSubmit, SubjectProgress, SubjectResult, SubjectClientCancel} {
+		rtRaw(t, f, subject, []byte("bad"))
+	}
+	for range 4 {
+		select {
+		case <-h.entered:
+		case <-time.After(time.Second):
+			t.Fatal("callback did not enter")
+		}
+	}
+	// The remaining two subscription callbacks must wait for the bounded semaphore.
+	rtRaw(t, f, capsdk.WorkerHandshakeChallengeSubject, []byte("bad"))
+	rtRaw(t, f, capsdk.WorkerHandshakeAuthenticateSubject, []byte("bad"))
+	rtEventually(t, func() bool { return f.r.goroutines.Load() == 7 }) // tick + six callbacks, including two waiters
+	f.cancel()
+	rtEventually(t, func() bool { return f.r.nc.IsClosed() })
+	select {
+	case <-f.done:
+		f.done = nil
+		t.Fatal("Run returned before callbacks exited")
+	case <-time.After(50 * time.Millisecond):
+	}
+	if f.r.goroutines.Load() != 4 {
+		t.Fatal("callback concurrency bound")
+	}
+	close(h.release)
+	rtStop(t, f)
+	if f.r.goroutines.Load() != 0 {
+		t.Fatal("callback leak")
+	}
+}
+
+func TestRuntime_PendingProgressRetryAndPublishFailure(t *testing.T) {
+	f := rtStart(t)
+	rtSend(t, f, SubjectSubmit, rtPacket(t, "c1", "", SubjectSubmit, "job"))
+	rtEventually(t, func() bool { j, _ := f.r.core.Get("t1", "job"); return j.JobID != "" })
+	token := rtHandshake(t, f, "w1")
+	f.r.tickOnce()
+	d := rtReceive(t, f, WorkerSubject("w1"))
+	progress := rtPacket(t, "w1", token, SubjectProgress, "job")
+	progress.GetJobProgress().Dispatch = clone(d.GetJobRequest().Dispatch)
+	rtSend(t, f, SubjectProgress, progress)
+	rtEventually(t, func() bool {
+		j, _ := f.r.core.Get("t1", "job")
+		return j.Status == agentv1.JobStatus_JOB_STATUS_RUNNING
+	})
+	p := rtResult(t, d, token)
+	p.GetJobResult().Status = agentv1.JobStatus_JOB_STATUS_FAILED_RETRYABLE
+	rtSend(t, f, SubjectResult, p)
+	d = rtReceive(t, f, WorkerSubject("w1"))
+	if d.GetJobRequest().Dispatch.Attempt != 2 {
+		t.Fatal("retry attempt")
+	}
+	rtEventually(t, func() bool { j, _ := f.r.core.Get("t1", "job"); return j.Acked })
+	f.r.nc.Close()
+	// Direct handler only here: exercise a failed outbound write on the closed connection.
+	raw := adSign(t, f.keys["c1"], rtPacket(t, "c1", "", SubjectSubmit, "fail-publish"))
+	f.r.packet(SubjectSubmit, raw)
+	j, err := f.r.core.Get("t1", "fail-publish")
+	if err != nil || j.Acked || j.Status != agentv1.JobStatus_JOB_STATUS_DISPATCHED {
+		t.Fatal("failed publish acked", err)
+	}
+}
+
+func TestRuntime_ErrorPathsAndSecretFreeLogs(t *testing.T) {
+	f := rtStart(t)
+	var log bytes.Buffer
+	f.r.opts.Logger = slog.New(slog.NewTextHandler(&log, nil))
+	rtRaw(t, f, SubjectSubmit, []byte("secret-payload-canary"))
+	rtEventually(t, func() bool { return f.r.Stats().Dropped == 1 })
+	if strings.Contains(log.String(), "canary") || strings.Count(log.String(), "packet dropped") != 1 {
+		t.Fatal("unsafe drop log", log.String())
+	}
+	if err := f.r.Run(context.Background()); err != ErrInvalidConfig {
+		t.Fatal("Run reused", err)
+	}
+	if err := f.r.publishSigned(SubjectTerminal, nil, func(*agentv1.BusPacket) {}); err != ErrRuntimePublish {
+		t.Fatal(err)
+	}
+	c := rtConfig(t)
+	c.cfg.NATSURL = "://invalid-canary"
+	r, err := NewRuntime(RuntimeOptions{Config: c.cfg, Now: c.clock, TickEvery: time.Second})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = r.Run(context.Background()); err != ErrRuntimeTransport {
+		t.Fatal("transport error not sanitized", err)
+	}
+	select {
+	case <-r.Ready():
+		t.Fatal("ready after failed dial")
+	default:
+	}
+	for _, change := range []func(){func() { c.cfg.Limits.MaxAttempts = 0 }, func() { c.cfg.Limits.MaxAttempts = 1; c.cfg.ChallengeTTL = 0 }, func() { c.cfg.MaxConcurrency = 0 }} {
+		change()
+		if r, err := NewRuntime(RuntimeOptions{Config: c.cfg, Now: c.clock, TickEvery: time.Second}); r != nil || err != ErrInvalidConfig {
+			t.Fatal("invalid child config", err)
+		}
+	}
+}
+
+func TestRuntime_DialIgnoresAdvertisedEndpoints(t *testing.T) {
+	primary, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer primary.Close()
+	trap, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer trap.Close()
+	connected := make(chan net.Conn, 1)
+	go func() {
+		c, err := primary.Accept()
+		if err != nil {
+			return
+		}
+		fmt.Fprintf(c, "INFO {\"server_id\":\"test\",\"version\":\"2.12.6\",\"proto\":1,\"max_payload\":65536,\"connect_urls\":[%q]}\r\n", trap.Addr().String())
+		scanner := bufio.NewScanner(c)
+		for scanner.Scan() {
+			if scanner.Text() == "PING" {
+				fmt.Fprint(c, "PONG\r\n")
+				connected <- c
+				return
+			}
+		}
+		c.Close()
+	}()
+	nc, err := dial(&ResolvedConfig{NATSURL: "nats://" + primary.Addr().String()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer nc.Close()
+	if len(nc.DiscoveredServers()) != 0 {
+		t.Fatal("accepted unvalidated endpoint")
+	}
+	var c net.Conn
+	select {
+	case c = <-connected:
+	case <-time.After(time.Second):
+		t.Fatal("fake NATS handshake")
+	}
+	primary.Close()
+	c.Close()
+	rtEventually(t, nc.IsClosed)
+	if err := trap.(*net.TCPListener).SetDeadline(time.Now().Add(time.Millisecond)); err != nil {
+		t.Fatal(err)
+	}
+	if c, err := trap.Accept(); err == nil {
+		c.Close()
+		t.Fatal("dialed advertised endpoint")
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"log/slog"
+	"maps"
 	"math/big"
 	"strings"
 	"testing"
@@ -324,12 +325,11 @@ func trRefusalRun(t *testing.T, tc trRefusal) {
 		if tc.renew == "expired" {
 			token = trIssueSession(t, f).Token
 			f.now = f.now.Add(f.cfg.SessionTTL)
-			f.i.Session("worker", token)
 		}
 		p, _ = trAuth(t, f, purpose, token)
 		handle = f.i.HandleAuthenticate
 	}
-	before := len(f.i.sessions)
+	before := maps.Clone(f.i.sessions)
 	if tc.change != nil {
 		tc.change(t, f, p)
 	}
@@ -348,8 +348,10 @@ func trRefusalRun(t *testing.T, tc trRefusal) {
 			t.Fatal("rejection correlation changed")
 		}
 	}
-	if len(f.i.sessions) != before {
-		t.Fatal("refusal minted session")
+	for token, s := range f.i.sessions {
+		if s != before[token] {
+			t.Fatal("refusal minted or changed session")
+		}
 	}
 }
 
@@ -369,6 +371,7 @@ func TestIssuer_Bounds(t *testing.T) {
 		}
 	})
 	t.Run("challenge_cap_and_eviction", trChallengeBounds)
+	t.Run("invalid_packets", trInvalidPackets)
 	t.Run("active_expiry", func(t *testing.T) {
 		f := trNew(t)
 		trIssueSession(t, f)
@@ -435,6 +438,10 @@ func TestIssuer_ErrorsCarryNoSecrets(t *testing.T) {
 	trBadSignature(t, f, p)
 	raw, err = f.i.HandleChallenge(trMarshal(t, p))
 	trDrop(t, raw, err, ErrHandshakeRefused)
+	r.ProofKeyId = "CANARY-key"
+	trSign(t, f, p)
+	raw, err = f.i.HandleChallenge(trMarshal(t, p))
+	trDrop(t, raw, err, ErrHandshakeRefused)
 	auth, _ := trAuth(t, f, trRenew, "CANARY-token")
 	trBadSignature(t, f, auth)
 	raw, err = f.i.HandleAuthenticate(trMarshal(t, auth))
@@ -442,6 +449,72 @@ func TestIssuer_ErrorsCarryNoSecrets(t *testing.T) {
 	if strings.Contains(err.Error(), "CANARY") || logs.Len() != 0 {
 		t.Fatal("secret or unexpected log output")
 	}
+}
+
+func trInvalidPackets(t *testing.T) {
+	f := trNew(t)
+	auth, _ := trAuth(t, f, trIssue, "")
+	for _, handle := range []func([]byte) ([]byte, error){f.i.HandleChallenge, f.i.HandleAuthenticate} {
+		for _, raw := range [][]byte{nil, {}, {255}} {
+			out, err := handle(raw)
+			trDrop(t, out, err, ErrHandshakeRefused)
+		}
+	}
+	out, err := f.i.HandleChallenge(trMarshal(t, auth))
+	trDrop(t, out, err, ErrHandshakeRefused)
+	out, err = f.i.HandleAuthenticate(trMarshal(t, trRequest(t, f, trIssue)))
+	trDrop(t, out, err, ErrHandshakeRefused)
+}
+
+func TestIssuer_FailuresLeaveNoAuthority(t *testing.T) {
+	for _, phase := range []string{"challenge", "authenticate"} {
+		for _, failure := range []string{"entropy", "sign", "encode"} {
+			t.Run(phase+"/"+failure, func(t *testing.T) { trReplyFailure(t, phase, failure) })
+		}
+	}
+}
+
+func trReplyFailure(t *testing.T, phase, failure string) {
+	f := trNew(t)
+	p := trRequest(t, f, trIssue)
+	handle := f.i.HandleChallenge
+	if phase == "authenticate" {
+		p, _ = trAuth(t, f, trIssue, "")
+		handle = f.i.HandleAuthenticate
+	}
+	raw := trMarshal(t, p)
+	switch failure {
+	case "entropy":
+		old := rand.Reader
+		rand.Reader = bytes.NewReader(nil)
+		defer func() { rand.Reader = old }()
+	case "sign":
+		f.i.cfg.ServerKey = nil
+	case "encode":
+		f.i.cfg.SchedulerID = strings.Repeat("S", capsdk.WorkerHandshakeMaxPacketSize)
+	}
+	out, err := handle(raw)
+	trDrop(t, out, err, ErrHandshakeRefused)
+	if len(f.i.sessions) != 0 || len(f.i.tokens) != 0 || len(f.i.challenges) != 0 {
+		t.Fatal("failed exchange retained authority")
+	}
+}
+
+func TestIssuer_ConfigSnapshotAndNonconsumingRejection(t *testing.T) {
+	f := trNew(t)
+	f.cfg.ServerKey.D.SetInt64(0) // Must not alter the issuer's private key snapshot.
+	f.cfg.Workers[0].AgentID = "altered"
+	auth, v := trAuth(t, f, trIssue, "")
+	original := proto.Clone(auth).(*agentv1.BusPacket)
+	auth.GetWorkerHandshakeAuthenticate().Challenge.TenantId = "altered"
+	trSign(t, f, auth)
+	raw, err := f.i.HandleAuthenticate(trMarshal(t, auth))
+	p := trDecode(t, f, raw, err)
+	if p.GetWorkerHandshakeResult().RejectionReason != trAuthFailed {
+		t.Fatal("tamper was not rejected")
+	}
+	s := trFinish(t, f, original, v)
+	trActive(t, f, s.ExpiresAt)
 }
 
 func TestNewIssuer_RejectsInvalidConfig(t *testing.T) {

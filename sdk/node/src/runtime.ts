@@ -1,6 +1,7 @@
 import {
   connect,
   Events,
+  type MsgHdrs,
   NatsConnection,
   Subscription,
   SubscriptionOptions,
@@ -25,6 +26,10 @@ import {
   type ProductionEventAuthority,
 } from "./production-events";
 import { validateBusPacket } from "./validate";
+import {
+  ErrorType, extract, injectHeaders, startProcess, startPublish,
+  type Context as TelemetryContext, type StartedSpan, type TelemetryConfig,
+} from "./telemetry";
 import * as crypto from "crypto";
 import {
   RuntimeWorkerTrust,
@@ -127,6 +132,9 @@ export interface Context {
   log: Logger;
   jobId: string;
   traceId: string;
+  /** Holds this job's process span when telemetry is configured. Not made active:
+   * pass it as the parent context of your own spans. Undefined otherwise. */
+  otelContext?: TelemetryContext;
 }
 
 type Handler<TIn, TOut> = (ctx: Context, data: TIn) => Promise<TOut> | TOut;
@@ -173,6 +181,9 @@ export interface AgentOptions {
    * preserves existing legacy/handshake-mode behavior unchanged. */
   productionTrust?: ProductionTrustStore;
   replayStore?: ReplayStore;
+  /** Extracts only after admission or validation; exposes the process context to
+   * handlers and sends each result's publish span headers. Undefined changes nothing. */
+  telemetry?: TelemetryConfig;
 }
 
 /** Per-handler options for {@link Agent.job}. */
@@ -262,6 +273,7 @@ export class Agent {
   private readonly workerTrustOptions: RuntimeTrustOptions;
   private readonly productionTrust?: ProductionTrustStore;
   private readonly replayStore?: ReplayStore;
+  private readonly telemetry?: TelemetryConfig;
   private readonly handlers = new Map<string, HandlerSpec>();
   private readonly middlewares: Middleware[] = [];
   private nc?: NatsConnection;
@@ -319,6 +331,7 @@ export class Agent {
     }
     this.productionTrust = snapshotProductionTrust(options.productionTrust);
     this.replayStore = options.replayStore;
+    this.telemetry = options.telemetry;
   }
 
   private productionEnabled(): boolean {
@@ -854,6 +867,9 @@ export class Agent {
       ? freezeProductionAuthority(req)
       : undefined;
 
+    // Trace headers are untrusted hints: read only after admission or validation,
+    // and never used for identity or policy.
+    const processSpan = this.startProcessSpan(msg, spec, packet);
     this.activeJobCount += 1;
     try {
       this.metrics.onJobReceived(req.jobId, req.topic);
@@ -864,6 +880,7 @@ export class Agent {
         log: withContextLogger(this.logger, { jobId: req.jobId, traceId: packet.traceId, topic: req.topic }),
         jobId: req.jobId,
         traceId: packet.traceId,
+        otelContext: processSpan.context,
       };
 
       let payload: Buffer | null = null;
@@ -877,6 +894,7 @@ export class Agent {
           throw new Error("context exceeds max size");
         }
       } catch (err) {
+        processSpan.span.fail(ErrorType.OTHER);
         await this.publishFailure(ctx, req, err instanceof Error ? err.message : String(err), 0, authority);
         return;
       }
@@ -885,6 +903,7 @@ export class Agent {
       try {
         raw = JSON.parse(payload.toString("utf-8"));
       } catch (err) {
+        processSpan.span.fail(ErrorType.OTHER);
         await this.publishFailure(ctx, req, `context decode failed: ${err}`, 0, authority);
         return;
       }
@@ -893,6 +912,7 @@ export class Agent {
       try {
         inputData = spec.inputSchema ? spec.inputSchema.parse(raw) : raw;
       } catch (err) {
+        processSpan.span.fail(ErrorType.OTHER);
         await this.publishFailure(ctx, req, `input validation failed: ${err}`, 0, authority);
         return;
       }
@@ -923,6 +943,7 @@ export class Agent {
 
       const elapsedMs = Date.now() - start;
       if (error) {
+        processSpan.span.fail(ErrorType.HANDLER_FAILED);
         await this.publishFailure(ctx, req, error, elapsedMs, authority);
         return;
       }
@@ -940,11 +961,31 @@ export class Agent {
         this.metrics.onJobCompleted(req.jobId, elapsedMs, "SUCCEEDED");
         await this.publishResult(ctx, req, resultPtr, elapsedMs, {}, authority);
       } catch (err) {
+        processSpan.span.fail(ErrorType.OTHER);
         await this.publishFailure(ctx, req, `result write failed: ${err}`, elapsedMs, authority);
       }
     } finally {
+      processSpan.span.end();
       this.activeJobCount = Math.max(0, this.activeJobCount - 1);
     }
+  }
+
+  private startProcessSpan(
+    msg: { subject: string; headers?: MsgHdrs }, spec: HandlerSpec,
+    packet: { traceId?: string; signatureMetadata?: { messageId?: Uint8Array } },
+  ): StartedSpan {
+    const config = this.telemetry;
+    if (config === undefined) return startProcess(undefined, { subject: msg.subject });
+    const production = this.productionEnabled();
+    // A NATS callback may inherit an ambient span from subscription setup.
+    // Only the sender's context can parent this process, so explicitly start at root.
+    return startProcess(config, {
+      subject: msg.subject, pool: spec.topic, queueGroup: spec.topic,
+      productionVerified: production,
+      messageId: production ? packet.signatureMetadata?.messageId : undefined,
+      conversationId: production ? packet.traceId : undefined,
+      creation: extract(config, msg.headers),
+    }, config.api.ROOT_CONTEXT);
   }
 
   private serializeOutput(data: any): Buffer {
@@ -1022,6 +1063,31 @@ export class Agent {
     } else {
       data = encodeOutboundPacket(this.busPacketType, out, this.privateKey);
     }
+    if (this.telemetry !== undefined) {
+      await this.publishTracedResult(this.nc, this.telemetry, ctx, data);
+      return;
+    }
     await (this.nc.publish(SUBJECT_RESULT, data) as any);
+  }
+
+  private async publishTracedResult(
+    nc: NatsConnection, config: TelemetryConfig, ctx: Context, data: Uint8Array,
+  ): Promise<void> {
+    // A legacy packet's trace_id is unauthenticated (spec/10).
+    const started = startPublish(config, {
+      subject: SUBJECT_RESULT,
+      conversationId: this.productionEnabled() ? ctx.packet.traceId : undefined,
+    }, ctx.otelContext ?? config.api.ROOT_CONTEXT);
+    try {
+      const headers = injectHeaders(config, undefined, started.context);
+      try {
+        await (nc.publish(SUBJECT_RESULT, data, { headers }) as unknown);
+      } catch (error) {
+        started.span.fail(ErrorType.TRANSPORT_PUBLISH_FAILED);
+        throw error;
+      }
+    } finally {
+      started.span.end();
+    }
   }
 }

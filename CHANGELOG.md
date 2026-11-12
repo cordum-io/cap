@@ -13,6 +13,15 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   trace context only after admission or validation, exposes the process span through
   `Context.TraceContext()`, and gives a rejected packet no span. `baggage` is never sent.
 
+- **Node SDK trace propagation (no wire change):** `submitJob(..., { telemetry })`
+  and `new Agent({ telemetry })` carry W3C trace context through a job round trip
+  over NATS. The client sends its `publish sys.job.submit` span in the lowercase
+  `traceparent`/`tracestate` headers. The Agent reads them only after CAP-PRODUCTION
+  admission or legacy validation, exposes the process span as `Context.otelContext`
+  (not made active), and sends the result's own `publish sys.job.result` span context.
+  Without `telemetry`, no headers or spans are added. `startWorker`, heartbeats and
+  the handshake are not instrumented.
+
 ## Development
 
 - **cordum-guard closes governance bypasses (security, behavior change).**
@@ -129,7 +138,7 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   empty context, and PRODUCER/CONSUMER messaging spans with the contract's attributes and
   closed `error.type` values. The types are structural, so cap-sdk-node gains no OpenTelemetry
   dependency: pass the OpenTelemetry API module and a `W3CTraceContextPropagator` to
-  `telemetry.fromOpenTelemetry`. The client and runtime do not call it yet.
+  `telemetry.fromOpenTelemetry`.
 
 - **Python SDK trace propagation (no wire change):** `submit_job(..., telemetry=)` and
   `Agent(telemetry=)` carry W3C trace context through a job round trip over NATS. The client

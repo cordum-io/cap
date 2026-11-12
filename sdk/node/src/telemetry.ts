@@ -12,8 +12,6 @@
  *   validation has accepted the packet.
  * - An undefined {@link TelemetryConfig} is the off switch: no headers, no
  *   extraction and no spans.
- * - The client and runtime do not call this module yet.
- *
  * The types are structural, so this package has no OpenTelemetry dependency: pass
  * the OpenTelemetry JS API module and a W3C propagator to {@link fromOpenTelemetry}.
  */

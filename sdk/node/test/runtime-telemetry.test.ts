@@ -50,6 +50,7 @@ interface RuntimeHarness {
   trust: object;
   onMessage(message: { data: Uint8Array; subject: string; headers?: MsgHdrs }, spec: {
     topic: string; retries: number; handler(ctx: Context): Promise<object>;
+    inputSchema?: { parse(value: unknown): unknown };
   }): Promise<void>;
 }
 async function runtime(config?: telemetry.TelemetryConfig, options: AgentOptions = {}) {
@@ -69,7 +70,7 @@ async function runtime(config?: telemetry.TelemetryConfig, options: AgentOptions
   })).finish();
   const message = { data, subject: "job.test", headers: carrier() };
   const seen: Array<telemetry.Context | undefined> = [];
-  const spec = { topic: "job.test", retries: 0, async handler(ctx: Context) {
+  const spec: Parameters<RuntimeHarness["onMessage"]>[1] = { topic: "job.test", retries: 0, async handler(ctx: Context) {
     seen.push(ctx.otelContext);
     return { ok: true };
   } };
@@ -86,6 +87,46 @@ function assertResult(harness: RuntimeHarness, process: ReadableSpan, publish: R
   assert.ok(output);
   assert.equal(output.get("traceparent"), `00-${publish.spanContext().traceId}-${publish.spanContext().spanId}-01`);
   assert.deepEqual(output.keys(), ["traceparent"]);
+}
+
+async function assertOtherFailures(): Promise<void> {
+  for (const failure of ["fetch", "size", "decode", "validation", "write"]) {
+    const t = tracing();
+    const r = await runtime(t.config, failure === "size" ? { maxContextBytes: 1 } : {});
+    const reject = () => { throw new Error(`${failure} failed`); };
+    if (failure === "fetch") r.store.get = async () => reject();
+    if (failure === "decode") await r.store.set("ctx:job-1", Buffer.from("not json"));
+    if (failure === "validation") r.spec.inputSchema = { parse: reject };
+    if (failure === "write") r.store.set = async () => reject();
+    await r.harness.onMessage(r.message, r.spec);
+    assert.equal(t.exporter.getFinishedSpans().length, 2, failure);
+    const process = span(t.exporter, "process job.test");
+    assert.equal(process.attributes["error.type"], "_OTHER", failure);
+    assert.equal(process.status.code, api.SpanStatusCode.ERROR, failure);
+    assertResult(r.harness, process, span(t.exporter, "publish sys.job.result"));
+  }
+}
+
+async function assertPropagatorFailures(): Promise<void> {
+  const t = tracing();
+  const config = telemetry.fromOpenTelemetry(api, {
+    fields: () => t.propagator.fields(),
+    extract: (context, value, getter) => t.propagator.extract(context, value, getter),
+    inject: () => { throw new Error("broken propagator"); },
+  }, t.provider);
+  const r = await runtime(config);
+  await assert.rejects(submitJob(r.harness.nc.connection(), { jobId: "j", topic: "job.test" }, "trace-j", "client", undefined, "", { telemetry: config }), /broken propagator/);
+  await assert.rejects(r.harness.onMessage(r.message, r.spec), /broken propagator/);
+  assert.deepEqual(r.harness.nc.calls, []);
+  assert.equal(t.exporter.getFinishedSpans().length, 4);
+  assert.equal(span(t.exporter, "publish sys.job.submit").attributes["error.type"], undefined);
+  const brokenExtract = telemetry.fromOpenTelemetry(api, {
+    ...config.propagator, extract: () => { throw new Error("broken extraction"); },
+  }, t.provider);
+  const rejected = await runtime(brokenExtract);
+  await assert.rejects(rejected.harness.onMessage(rejected.message, rejected.spec), /broken extraction/);
+  assert.deepEqual(rejected.seen, []);
+  assert.equal(t.exporter.getFinishedSpans().length, 4);
 }
 
 describe("Node runtime telemetry", () => {
@@ -136,6 +177,7 @@ describe("Node runtime telemetry", () => {
     assert.equal(packet.jobResult.status, "JOB_STATUS_FAILED");
     assert.equal(packet.jobResult.errorMessage, "boom");
     assertResult(r.harness, process, publish);
+    await assertOtherFailures();
   });
 
   it("sends no headers and records nothing without telemetry", async () => {
@@ -201,5 +243,6 @@ describe("Node runtime telemetry", () => {
     const process = span(t.exporter, "process job.test");
     assert.equal(process.attributes["error.type"], "_OTHER");
     assert.equal(process.parentSpanContext, undefined);
+    await assertPropagatorFailures();
   });
 });

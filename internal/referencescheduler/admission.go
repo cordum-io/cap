@@ -8,7 +8,9 @@ import (
 	"maps"
 	"time"
 
+	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
+	"google.golang.org/protobuf/proto"
 )
 
 // Admission sentinels are bare: none wraps packet bytes, identities or keys.
@@ -30,7 +32,8 @@ var (
 )
 
 // Admitter runs CAP-PRODUCTION admission for inbound client and worker
-// packets. It is transport-free, never logs and holds no lock of its own.
+// packets. It is transport-free and never logs; its fields are read-only after
+// NewAdmitter, so Admit is safe for concurrent use when the replay store is.
 type Admitter struct {
 	maxBytes int
 	clients  map[string]ResolvedClient
@@ -59,7 +62,89 @@ func NewAdmitter(cfg *ResolvedConfig, issuer *Issuer, replay capsdk.ReplayStore,
 	return a, nil
 }
 
-// Admit is not implemented yet (RED stub).
+type admitRole uint8
+
+const (
+	admitClient admitRole = iota + 1
+	admitWorker
+)
+
+func admitRoleOf(subject string) (admitRole, bool) {
+	switch subject {
+	case SubjectSubmit, SubjectClientCancel:
+		return admitClient, true
+	case SubjectProgress, SubjectResult:
+		return admitWorker, true
+	}
+	return 0, false
+}
+
+// Admit admits one inbound packet received on subject. In order it checks the
+// subject's role, the size bound, an unverified peek at sender_id and
+// auth_token only, the sender against local config (a worker also needs a live
+// issuer session, which supplies its tenant), CAP-PRODUCTION verification with
+// the subject as audience, and finally fail-closed replay admission. Every
+// failure returns an unverified zero value and one bare ErrAdmit* sentinel;
+// ErrAdmitDuplicate marks an exact redelivery that the caller drops as a no-op.
 func (a *Admitter) Admit(subject string, raw []byte) (capsdk.VerifiedProductionPacket, error) {
-	return capsdk.VerifiedProductionPacket{}, ErrAdmitSubject
+	var none capsdk.VerifiedProductionPacket
+	role, ok := admitRoleOf(subject)
+	if !ok {
+		return none, ErrAdmitSubject
+	}
+	if len(raw) > a.maxBytes {
+		return none, ErrAdmitTooLarge
+	}
+	var peek agentv1.BusPacket
+	if proto.Unmarshal(raw, &peek) != nil {
+		return none, ErrAdmitMalformed
+	}
+	sender, token := peek.GetSenderId(), peek.GetAuthToken()
+	trust, ok := a.trustFor(role, subject, sender, token)
+	if !ok {
+		return none, ErrAdmitSender
+	}
+	v, err := capsdk.VerifyTrustedProductionPacket(raw, trust)
+	if err != nil {
+		return none, ErrAdmitSignature
+	}
+	if role == admitWorker && v.SessionToken() != token {
+		return none, ErrAdmitSender
+	}
+	return a.admitReplay(subject, v)
+}
+
+// trustFor builds the trust input locally: the audience is the actual subject,
+// and tenant and keys come from config or, for a worker, its live session.
+func (a *Admitter) trustFor(role admitRole, subject, sender, token string) (capsdk.ProductionTrustStore, bool) {
+	trust := capsdk.ProductionTrustStore{Audience: subject, Sender: sender, Now: a.now}
+	if role == admitClient {
+		c, ok := a.clients[sender]
+		trust.Tenant, trust.PublicKeys = c.TenantID, c.SigningKeys
+		return trust, ok
+	}
+	w, ok := a.workers[sender]
+	if !ok {
+		return trust, false
+	}
+	s, live := a.issuer.Session(sender, token)
+	trust.Tenant, trust.PublicKeys = s.TenantID, w.SigningKeys
+	return trust, live
+}
+
+// admitReplay consults the replay store only after verification. Any error, a
+// conflict included, or an unknown outcome fails closed.
+func (a *Admitter) admitReplay(subject string, v capsdk.VerifiedProductionPacket) (capsdk.VerifiedProductionPacket, error) {
+	digest := v.SignedBodyDigest()
+	expires := v.Packet().GetSignatureMetadata().GetExpiresAt().AsTime()
+	out, err := a.replay.Admit(v.Tenant(), subject, v.Sender(), v.MessageID(), digest[:], expires)
+	switch {
+	case err != nil:
+		return capsdk.VerifiedProductionPacket{}, ErrAdmitReplay
+	case out == capsdk.ReplayOutcomeDuplicate:
+		return capsdk.VerifiedProductionPacket{}, ErrAdmitDuplicate
+	case out != capsdk.ReplayOutcomeFirst:
+		return capsdk.VerifiedProductionPacket{}, ErrAdmitReplay
+	}
+	return v, nil
 }

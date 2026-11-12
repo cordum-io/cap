@@ -136,7 +136,7 @@ class TestAgentTrustStartup(unittest.IsolatedAsyncioTestCase):
         try:
             self.assertEqual("", agent.session_token)
             self.assertTrue(agent._trust_admitting)
-            self.assertEqual(2, len(agent._subscriptions))
+            self.assertEqual(3, len(agent._subscriptions))  # Includes plain cancel subscription.
         finally:
             await agent.close()
 
@@ -276,7 +276,7 @@ class TestAgentTrustRenewal(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(agent._trust_admitting)
             self.assertIsNotNone(agent._heartbeat_task)
             self.assertTrue(agent._worker_trust.renewal_running)
-            self.assertEqual(2, len(agent._subscriptions))
+            self.assertEqual(3, len(agent._subscriptions))  # Includes plain cancel subscription.
         finally:
             await agent.close()
 

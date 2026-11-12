@@ -89,7 +89,7 @@ class TestRuntimeLifecycle(unittest.IsolatedAsyncioTestCase):
             await nats.wait_for_result(TIMEOUT)
             await asyncio.wait_for(close_task, TIMEOUT)
 
-        self.assertEqual(2, len(nats.handles))
+        self.assertEqual(3, len(nats.handles))  # Includes the plain cancel subscription.
         self.assertTrue(all(handle.drain_count == 1 for handle in nats.handles))
         handler_finish = events.index("handler-finish")
         self.assertTrue(all(events.index("sub-drain:" + handle.subject) < handler_finish
@@ -117,7 +117,7 @@ class TestRuntimeLifecycle(unittest.IsolatedAsyncioTestCase):
         await asyncio.wait_for(asyncio.gather(agent.close(), agent.close()), TIMEOUT)
         await asyncio.wait_for(agent.close(), TIMEOUT)
 
-        self.assertEqual(2, len(nats.handles))
+        self.assertEqual(3, len(nats.handles))  # Includes the plain cancel subscription.
         self.assertTrue(all(handle.drain_count == 1 for handle in nats.handles))
         self.assertEqual(1, nats.connection_drain_count)
         self.assertEqual(1, store.close_count)
@@ -274,7 +274,7 @@ class TestRuntimeLifecycle(unittest.IsolatedAsyncioTestCase):
                 await asyncio.wait_for(run_task, TIMEOUT)
 
         self.assertEqual(1, nats.result_count())
-        self.assertEqual(2, len(nats.handles))
+        self.assertEqual(3, len(nats.handles))  # Includes the plain cancel subscription.
         self.assertTrue(all(handle.drain_count == 1 for handle in nats.handles))
         self.assertEqual(1, nats.connection_drain_count)
         self.assertEqual(1, store.close_count)

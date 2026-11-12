@@ -207,7 +207,7 @@ class TestWorkerTrustRealNATS(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(["challenge", "authenticate"], responder.events)
             self.assertEqual("python-real-nats-session", handshake.auth_token)
             self.assertEqual([TOPIC], list(handshake.handshake.ready_topics))
-            self.assertEqual(2, len(agent._subscriptions))
+            self.assertEqual(3, len(agent._subscriptions))  # Includes plain cancel subscription.
             await asyncio.wait_for(handled.wait(), timeout=5)
         finally:
             await agent.close()

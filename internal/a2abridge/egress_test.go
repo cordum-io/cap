@@ -1472,7 +1472,11 @@ func egGate(t *testing.T, failure error) (func() error, <-chan struct{}, func())
 			return nil
 		}
 		close(entered)
-		egWait(t, gate, "publish gate release")
+		select {
+		case <-gate:
+		case <-time.After(5 * time.Second):
+			return errors.New("publish gate release timed out")
+		}
 		return failure
 	}, entered, release
 }
@@ -1650,6 +1654,11 @@ func egFailedResumeCancel(t *testing.T, mode string) {
 		h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateCanceled)
 		return
 	}
+	egRetryAndCancel(t, h, id, mode, a, cancelRelease)
+}
+
+func egRetryAndCancel(t *testing.T, h *egHarness, id a2a.TaskID, mode string, a <-chan egCall, cancelRelease func()) {
+	t.Helper()
 	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired)
 	message := "msg-3"
 	if mode == "same-message-retry-ignores-stale-grace" {

@@ -73,6 +73,7 @@ func (i *Ingress) Start(sub Subscriber) (stop func() error, err error) {
 		}
 		subs = append(subs, s)
 	}
+	i.started.Store(true) // only now can a turn settle, so SendMessage may wait
 	return stop, nil
 }
 

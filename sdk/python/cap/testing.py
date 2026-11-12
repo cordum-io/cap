@@ -18,6 +18,9 @@ class MockNATS:
     def __init__(self) -> None:
         self.subscriptions: Dict[str, Any] = {}
         self._published: 'Optional["asyncio.Queue[Tuple[str, bytes]]"]' = None
+        self.requests: List[Tuple[str, bytes]] = []
+        self.reconnected_cb: Optional[Callable[[], Awaitable[None]]] = None
+        self.disconnected_cb: Optional[Callable[[], Awaitable[None]]] = None
 
     @property
     def published(self) -> "asyncio.Queue[Tuple[str, bytes]]":
@@ -32,8 +35,30 @@ class MockNATS:
     async def subscribe(self, subject: str, queue: str = "", cb: Any = None) -> None:
         self.subscriptions[subject] = cb
 
-    async def connect(self, servers: str, name: str) -> "MockNATS":
+    async def connect(
+        self,
+        servers: str,
+        name: str,
+        *,
+        reconnected_cb: Optional[Callable[[], Awaitable[None]]] = None,
+        disconnected_cb: Optional[Callable[[], Awaitable[None]]] = None,
+    ) -> "MockNATS":
+        """Accept the options Agent passes when worker trust is warn or enforce.
+
+        The callbacks are stored so tests can await them to simulate reconnects.
+        """
+        self.reconnected_cb = reconnected_cb
+        self.disconnected_cb = disconnected_cb
         return self
+
+    async def request(self, subject: str, data: bytes = b"", timeout: float = 0.5) -> Any:
+        """Record the request, then time out: the in-memory bus has no responders.
+
+        A timeout is an operational transport failure, so worker trust in warn
+        mode continues without a session and enforce mode fails closed.
+        """
+        self.requests.append((subject, data))
+        raise asyncio.TimeoutError(f"MockNATS has no responder for {subject}")
 
     async def drain(self) -> None:
         return None

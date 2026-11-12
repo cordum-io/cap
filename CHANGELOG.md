@@ -4,24 +4,6 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
-## Unreleased
-
-- **Go SDK trace propagation (no wire change):** `client.Client.Telemetry` and
-  `runtime.Agent.Telemetry` (`*telemetry.Config`, nil = off) send W3C
-  `traceparent`/`tracestate` NATS headers on job submit and result, and record the
-  `publish`/`process` spans of `spec/interop/trace-context.md`. The runtime extracts
-  trace context only after admission or validation, exposes the process span through
-  `Context.TraceContext()`, and gives a rejected packet no span. `baggage` is never sent.
-
-- **Node SDK trace propagation (no wire change):** `submitJob(..., { telemetry })`
-  and `new Agent({ telemetry })` carry W3C trace context through a job round trip
-  over NATS. The client sends its `publish sys.job.submit` span in the lowercase
-  `traceparent`/`tracestate` headers. The Agent reads them only after CAP-PRODUCTION
-  admission or legacy validation, exposes the process span as `Context.otelContext`
-  (not made active), and sends the result's own `publish sys.job.result` span context.
-  Without `telemetry`, no headers or spans are added. `startWorker`, heartbeats and
-  the handshake are not instrumented.
-
 ## Development
 
 - **cordum-guard closes governance bypasses (security, behavior change).**
@@ -140,6 +122,13 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   dependency: pass the OpenTelemetry API module and a `W3CTraceContextPropagator` to
   `telemetry.fromOpenTelemetry`.
 
+- **Go SDK trace propagation (no wire change):** `client.Client.Telemetry` and
+  `runtime.Agent.Telemetry` (`*telemetry.Config`, nil = off) send W3C
+  `traceparent`/`tracestate` NATS headers on job submit and result, and record the
+  `publish`/`process` spans of `spec/interop/trace-context.md`. The runtime extracts
+  trace context only after admission or validation, exposes the process span through
+  `Context.TraceContext()`, and gives a rejected packet no span. `baggage` is never sent.
+
 - **Python SDK trace propagation (no wire change):** `submit_job(..., telemetry=)` and
   `Agent(telemetry=)` carry W3C trace context through a job round trip over NATS. The client
   sends its `publish sys.job.submit` span in the `traceparent` and `tracestate` headers. The
@@ -148,6 +137,15 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `publish sys.job.result` span's context with the result. Without `telemetry` nothing
   changes: no headers and no spans. `run_worker`, heartbeats and the handshake are not
   instrumented.
+
+- **Node SDK trace propagation (no wire change):** `submitJob(..., { telemetry })`
+  and `new Agent({ telemetry })` carry W3C trace context through a job round trip
+  over NATS. The client sends its `publish sys.job.submit` span in the lowercase
+  `traceparent`/`tracestate` headers. The Agent reads them only after CAP-PRODUCTION
+  admission or legacy validation, exposes the process span as `Context.otelContext`
+  (not made active), and sends the result's own `publish sys.job.result` span context.
+  Without `telemetry`, no headers or spans are added. `startWorker`, heartbeats and
+  the handshake are not instrumented.
 
 ## v2.17.0 — 2026-07-22
 

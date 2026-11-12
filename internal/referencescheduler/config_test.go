@@ -307,6 +307,7 @@ func cfPolicyCases() []cfCase {
 		{"topic worker unknown", topics(map[string][]string{"topicA": {"ghost"}}), rs.ErrConfigTopicWorker},
 		{"allowed topic without a worker list", topics(nil), rs.ErrConfigTopicWorker},
 		{"allowed topic with an empty worker list", topics(map[string][]string{"topicA": {}}), rs.ErrConfigTopicWorker},
+		{"allowed topic served only by a foreign-tenant worker", cfSet(func(c *rs.RuntimeConfig) { c.Workers[0].TenantID = "t2" }), rs.ErrConfigTopicWorker},
 	}
 	return append(cases,
 		bound("max packet bytes zero", func(c *rs.RuntimeConfig) { c.MaxPacketBytes = 0 }),

@@ -3,7 +3,10 @@ package referencescheduler
 import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
+	"io"
 	"math/big"
 	"strings"
 	"sync"
@@ -11,6 +14,8 @@ import (
 
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // TrustedWorker is one configured worker's handshake trust entry.
@@ -99,7 +104,100 @@ func issuerCopyKey(k *ecdsa.PublicKey) *ecdsa.PublicKey {
 }
 
 // HandleChallenge returns a signed challenge or a bare sentinel (drop).
-func (i *Issuer) HandleChallenge(raw []byte) ([]byte, error) { return nil, ErrHandshakeRefused }
+func (i *Issuer) HandleChallenge(raw []byte) ([]byte, error) {
+	p, err := issuerDecode(raw)
+	if err != nil {
+		return nil, err
+	}
+	r := p.GetWorkerHandshakeChallengeRequest()
+	if r == nil {
+		return nil, ErrHandshakeRefused
+	}
+	w, ok := i.workers[r.WorkerId]
+	if !ok || capsdk.VerifyTrustHandshake(p, map[string]*ecdsa.PublicKey{w.ProofKeyID: w.ProofKey}) != nil {
+		return nil, ErrHandshakeRefused
+	}
+	now := i.cfg.Now()
+	if r.Audience != i.cfg.Audience || !issuerWithinSkew(p.CreatedAt, now) {
+		return nil, ErrHandshakeRefused
+	}
+	c, err := i.newChallenge(r, w, now)
+	if err != nil || !i.storeChallenge(c, now) {
+		return nil, ErrHandshakeRefused
+	}
+	reply := i.packet(c.TraceId, now)
+	reply.Payload = &agentv1.BusPacket_WorkerHandshakeChallenge{WorkerHandshakeChallenge: c}
+	encoded, err := i.signReply(reply)
+	if err != nil {
+		i.mu.Lock()
+		delete(i.challenges, c.ChallengeId)
+		i.mu.Unlock()
+	}
+	return encoded, err
+}
+
+func issuerDecode(raw []byte) (*agentv1.BusPacket, error) {
+	if len(raw) > capsdk.WorkerHandshakeMaxPacketSize {
+		return nil, ErrHandshakeTooLarge
+	}
+	p, err := capsdk.UnmarshalWorkerTrustPacket(raw)
+	if err != nil || capsdk.ValidateWorkerTrustPacket(p) != nil {
+		return nil, ErrHandshakeRefused
+	}
+	return p, nil
+}
+
+func issuerWithinSkew(created *timestamppb.Timestamp, now time.Time) bool {
+	delta := created.AsTime().Sub(now)
+	return delta >= -capsdk.WorkerHandshakeMaxSkew && delta <= capsdk.WorkerHandshakeMaxSkew
+}
+
+func (i *Issuer) newChallenge(r *agentv1.WorkerHandshakeChallengeRequest, w TrustedWorker, now time.Time) (*agentv1.WorkerHandshakeChallenge, error) {
+	random := make([]byte, 16+capsdk.WorkerHandshakeNonceSize)
+	if _, err := io.ReadFull(rand.Reader, random); err != nil {
+		return nil, ErrHandshakeRefused
+	}
+	return &agentv1.WorkerHandshakeChallenge{
+		ChallengeId: hex.EncodeToString(random[:16]), ServerNonce: random[16:],
+		RequestId: r.RequestId, TraceId: r.TraceId, WorkerId: r.WorkerId,
+		ProofKeyId: r.ProofKeyId, ProofAlgorithm: r.ProofAlgorithm, Audience: r.Audience,
+		Purpose: r.Purpose, ClientNonce: append([]byte(nil), r.ClientNonce...),
+		ProtocolVersion: r.ProtocolVersion, SdkVersion: r.SdkVersion,
+		AgentId: w.AgentID, TenantId: w.TenantID, ServerKeyId: i.cfg.ServerKeyID,
+		IssuedAt: timestamppb.New(now), ExpiresAt: timestamppb.New(now.Add(i.cfg.ChallengeTTL)),
+	}, nil
+}
+
+func (i *Issuer) storeChallenge(c *agentv1.WorkerHandshakeChallenge, now time.Time) bool {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+	for id, live := range i.challenges {
+		if !now.Before(live.ExpiresAt.AsTime()) {
+			delete(i.challenges, id)
+		}
+	}
+	if len(i.challenges) >= i.cfg.MaxChallenges || i.challenges[c.ChallengeId] != nil {
+		return false
+	}
+	i.challenges[c.ChallengeId] = proto.Clone(c).(*agentv1.WorkerHandshakeChallenge)
+	return true
+}
+
+func (i *Issuer) packet(trace string, now time.Time) *agentv1.BusPacket {
+	return &agentv1.BusPacket{TraceId: trace, SenderId: i.cfg.SchedulerID,
+		CreatedAt: timestamppb.New(now), ProtocolVersion: capsdk.WorkerHandshakeProtocolVersion}
+}
+
+func (i *Issuer) signReply(p *agentv1.BusPacket) ([]byte, error) {
+	if capsdk.SignTrustHandshake(p, i.cfg.ServerKey) != nil || capsdk.ValidateWorkerTrustPacket(p) != nil {
+		return nil, ErrHandshakeRefused
+	}
+	raw, err := capsdk.MarshalWorkerTrustPacket(p)
+	if err != nil {
+		return nil, ErrHandshakeRefused
+	}
+	return raw, nil
+}
 
 // HandleAuthenticate returns a signed result or a bare sentinel (drop).
 func (i *Issuer) HandleAuthenticate(raw []byte) ([]byte, error) { return nil, ErrHandshakeRefused }

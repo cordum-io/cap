@@ -6,6 +6,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **Python Agent cancellation and deadlines:** honours fenced `sys.job.cancel` and per-job deadlines (`FAILED` / `ERROR_CODE_JOB_TIMEOUT` / `TIMEOUT`), with `Context.deadline`, `Context.cancelled` and `Agent(max_deadline)`.
+
 - **cordum-guard closes governance bypasses (security, behavior change).**
   - Verdicts: the client now reads the gateway's protojson names
     (`DECISION_TYPE_REQUIRE_HUMAN`, ...). Previously every real verdict, DENY included, parsed

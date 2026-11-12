@@ -434,6 +434,8 @@ func TestRuntimeConfig_LoopbackIsParsedHost(t *testing.T) {
 		{"nats://localhost.evil.example:4222", rs.ErrConfigPlaintextRemote},
 		{"nats://127.0.0.1@evil.example:4222", rs.ErrConfigPlaintextRemote},
 		{"nats://evil.example:4222/localhost", rs.ErrConfigPlaintextRemote},
+		{"nats://127.0.0.1:4222,nats://evil.example:4222", rs.ErrConfigPlaintextRemote}, // a server list is not loopback
+		{"nats://localhost:4222,nats://evil.example:4222", rs.ErrConfigPlaintextRemote},
 		{"nats://0.0.0.0:4222", rs.ErrConfigPlaintextRemote},
 		{"nats://10.0.0.5:4222", rs.ErrConfigPlaintextRemote},
 	} {

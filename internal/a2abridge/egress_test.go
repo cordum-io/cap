@@ -1246,6 +1246,16 @@ func TestFailedResumePublishRestoresInterruptedTurn(t *testing.T) {
 	}
 	h.published(t, 2, 2)
 	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateSubmitted)
+	// A result that settles the new turn before the publish reports failure
+	// wins: release must not restore over it.
+	id2, job := h.start(t, "key-alice", "msg-a")
+	h.interrupt(t, job, "input-required")
+	won := h.resultEnvelope(t, egJobOf("tenant-a", "alice", id2, "msg-b"), egComplete("completed"))
+	h.pub.fail = func(string) error { h.ing.deliver(capsdk.SubjectResult, won); return boom }
+	_, err = h.resume("key-alice", id2, "msg-b", "", "go")
+	egIs(t, err, a2a.ErrInternalError)
+	h.want(t, "key-alice", id2, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired,
+		a2a.TaskStateSubmitted, a2a.TaskStateCompleted)
 }
 
 func TestConcurrentResumesOpenOneTurn(t *testing.T) {
@@ -1325,7 +1335,8 @@ func egAwait(t *testing.T, ch <-chan egCall, state a2a.TaskState, least, most ti
 
 func TestBlockingSendMessageWaitsForTheTurn(t *testing.T) {
 	h := newEgHarness(t, func(c *Config) { c.MaxBlockingWait = time.Second })
-	alice, quick, bound := egAs("key-alice"), 500*time.Millisecond, 5*time.Second
+	// settle < MaxBlockingWait: a waiter that missed the change returns only at the cap.
+	alice, quick, settle := egAs("key-alice"), 500*time.Millisecond, 900*time.Millisecond
 	msg := func(msgID string, taskID a2a.TaskID) *a2a.Message {
 		return &a2a.Message{ID: msgID, Role: a2a.MessageRoleUser, TaskID: taskID,
 			Parts: a2a.ContentParts{a2a.NewTextPart("Book me a flight")}}
@@ -1341,21 +1352,21 @@ func TestBlockingSendMessageWaitsForTheTurn(t *testing.T) {
 	published(job)
 	h.ing.deliver(capsdk.SubjectProgress, h.progress(t, job, egRunning))
 	h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job, egComplete("completed")))
-	if got := egAwait(t, pending, a2a.TaskStateCompleted, 0, bound); len(got.Artifacts) != 1 {
+	if got := egAwait(t, pending, a2a.TaskStateCompleted, 0, settle); len(got.Artifacts) != 1 {
 		t.Fatal("blocking call lost the artifact")
 	}
 	immediate := &a2a.SendMessageConfig{ReturnImmediately: true}
 	egAwait(t, h.call(alice, msg("msg-3", ""), immediate), a2a.TaskStateSubmitted, 0, quick)
-	egAwait(t, h.call(alice, msg("msg-4", ""), nil), a2a.TaskStateSubmitted, time.Second, bound)
+	egAwait(t, h.call(alice, msg("msg-4", ""), nil), a2a.TaskStateSubmitted, time.Second, 5*time.Second)
 	// An interrupted turn settles the call; a default resume waits for turn 2.
 	pending, job = h.call(alice, msg("msg-5", ""), nil), egJobOf("tenant-a", "alice", "", "msg-5")
 	published(job)
 	h.interrupt(t, job, "input-required")
-	task := egAwait(t, pending, a2a.TaskStateInputRequired, 0, bound)
+	task := egAwait(t, pending, a2a.TaskStateInputRequired, 0, settle)
 	pending, job = h.call(alice, msg("msg-6", task.ID), nil), egJobOf("tenant-a", "alice", task.ID, "msg-6")
 	published(job)
 	h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job, egComplete("completed")))
-	egAwait(t, pending, a2a.TaskStateCompleted, 0, bound)
+	egAwait(t, pending, a2a.TaskStateCompleted, 0, settle)
 	// ctx ends a wait long before MaxBlockingWait, with the task and no error.
 	slow := newEgHarness(t, func(c *Config) { c.MaxBlockingWait = 300 * time.Second })
 	_, err = slow.ing.Start(egSubscriber{})

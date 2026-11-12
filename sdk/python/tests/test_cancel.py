@@ -290,7 +290,8 @@ def test_completion_cancel_deadline_race_has_one_terminal_result():
     asyncio.run(run())
 
 
-@pytest.mark.parametrize("maximum", [0, -1, float("nan"), float("inf"), True, "1"])
+@pytest.mark.parametrize("maximum", [0, -1, float("nan"), float("inf"), True, "1",
+                                     pytest.param(10**400, id="overflow")])
 def test_invalid_agent_maximum(maximum):
     with pytest.raises(ValueError):
         Agent(max_deadline=maximum)

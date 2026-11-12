@@ -10,13 +10,13 @@ Closing drains cancel subscriptions. cap.worker.run_worker is unchanged.
 import asyncio
 import math
 import threading
+from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Protocol
 
 from cap.errors import MalformedPacketError
 from cap.outcome import _Outcome, _enum_number, _error_code
 from cap.packet_boundary import parse_packet
-from cap.pb.cordum.agent.v1.job_pb2 import DispatchIdentity, JobCancel
 
 _JOB_TIMEOUT = _Outcome(_enum_number("JobStatus", "JOB_STATUS_FAILED"),
                         _error_code("JOB_TIMEOUT"), "TIMEOUT", "job deadline exceeded")
@@ -24,10 +24,23 @@ _JOB_CANCELLED = _Outcome(_enum_number("JobStatus", "JOB_STATUS_CANCELLED"),
                           _error_code("UNSPECIFIED"), "", "job cancelled")
 
 
+class _Dispatch(Protocol):
+    def SerializeToString(self, *, deterministic: bool = False) -> bytes: ...
+
+
+class _Cancel(Protocol):
+    # Generated protobuf messages have no stubs. Describe only the read surface.
+    @property
+    def job_id(self) -> str: ...
+
+    @property
+    def dispatch(self) -> _Dispatch: ...
+
+
 @dataclass(eq=False)
 class RunningAttempt:
     job_id: str
-    dispatch: DispatchIdentity
+    dispatch: _Dispatch
     stopped: threading.Event = field(default_factory=threading.Event)
     requested: asyncio.Event = field(default_factory=asyncio.Event)
 
@@ -36,9 +49,8 @@ class CancelRegistry:
     def __init__(self) -> None:
         self._running: Dict[str, List[RunningAttempt]] = {}
 
-    def register(self, job_id: str, dispatch: DispatchIdentity) -> RunningAttempt:
-        snapshot = DispatchIdentity()
-        snapshot.CopyFrom(dispatch)
+    def register(self, job_id: str, dispatch: _Dispatch) -> RunningAttempt:
+        snapshot = deepcopy(dispatch)
         attempt = RunningAttempt(job_id, snapshot)  # Called inside the running loop.
         self._running.setdefault(job_id, []).append(attempt)
         return attempt
@@ -52,7 +64,7 @@ class CancelRegistry:
     def is_running(self, job_id: str) -> bool:
         return job_id in self._running
 
-    def apply(self, cancel: JobCancel) -> int:
+    def apply(self, cancel: _Cancel) -> int:
         matched = 0
         for attempt in self._running.get(cancel.job_id, ()):
             if attempt.dispatch == cancel.dispatch:
@@ -72,10 +84,15 @@ def peek_cancel_job_id(payload: bytes) -> str:
 def validate_max_deadline(value: Optional[float]) -> Optional[float]:
     if value is None:
         return None
-    if (isinstance(value, bool) or not isinstance(value, (int, float))
-            or value <= 0 or not math.isfinite(value)):
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
         raise ValueError("max_deadline must be positive and finite, or None")
-    return float(value)
+    try:
+        value = float(value)
+    except OverflowError as exc:
+        raise ValueError("max_deadline must be positive and finite, or None") from exc
+    if not math.isfinite(value):
+        raise ValueError("max_deadline must be positive and finite, or None")
+    return value
 
 
 def handler_deadline(start: float, deadline_ms: int, maximum: Optional[float]) -> Optional[float]:

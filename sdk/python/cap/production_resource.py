@@ -17,6 +17,13 @@ MAX_RESOURCE_PURPOSE_BYTES = 128
 MAX_RESOURCE_SIZE_BYTES = 1 << 30
 MAX_LEGACY_REDIS_KEY_BYTES = 1024
 
+_EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
+# google.protobuf.Timestamp range: 0001-01-01T00:00:00Z through
+# 9999-12-31T23:59:59.999999999Z, exactly Go timestamppb.CheckValid.
+_MIN_TIMESTAMP_SECONDS = -62_135_596_800
+_MAX_TIMESTAMP_SECONDS = 253_402_300_799
+_NANOS_PER_SECOND = 1_000_000_000
+
 _ID_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 _PURPOSE_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._:-]*$")
 _MEDIA_PATTERN = re.compile(r"^[a-z0-9][a-z0-9!#$&^_.+-]*/[a-z0-9][a-z0-9!#$&^_.+-]*$")
@@ -107,13 +114,15 @@ def _validate_expiry(ref: ResourceRef, now: datetime) -> None:
         raise ResourceRefValidationError("validation time must be timezone-aware")
     if not ref.HasField("expires_at"):
         raise ResourceRefValidationError("resource expiry is required")
-    if ref.expires_at.nanos < 0 or ref.expires_at.nanos >= 1_000_000_000:
+    seconds, nanos = ref.expires_at.seconds, ref.expires_at.nanos
+    if not (_MIN_TIMESTAMP_SECONDS <= seconds <= _MAX_TIMESTAMP_SECONDS
+            and 0 <= nanos < _NANOS_PER_SECOND):
         raise ResourceRefValidationError("resource expiry timestamp is invalid")
-    try:
-        expiry = ref.expires_at.ToDatetime(tzinfo=timezone.utc)
-    except (OverflowError, ValueError) as exc:
-        raise ResourceRefValidationError("resource expiry timestamp is invalid") from exc
-    if expiry <= now.astimezone(timezone.utc):
+    # ToDatetime truncates nanoseconds; aware subtraction avoids astimezone's
+    # overflow at datetime.min/max. timedelta normalizes to floor seconds with
+    # non-negative subseconds, so this is exact like Go AsTime().After(now).
+    elapsed = now - _EPOCH
+    if (seconds, nanos) <= (elapsed.days * 86_400 + elapsed.seconds, elapsed.microseconds * 1_000):
         raise ResourceRefValidationError("resource expiry is not in the future")
 
 

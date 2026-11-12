@@ -172,7 +172,7 @@ func cfValid(t *testing.T) (rs.RuntimeConfig, cfEnv) {
 		Workers:      []rs.WorkerEntry{worker("w1", "a1"), worker("w2", "a2")},
 		Clients:      []rs.ClientEntry{{SenderID: "c1", TenantID: "t1", SigningKeyFiles: map[string]string{"c1-sign": pub("c1-sign")}}},
 		Allow:        []rs.AllowRule{{TenantID: "t1", Topic: "topicA", Capability: "capA"}},
-		TopicWorkers: map[string][]string{"topicA": {"w1"}},
+		TopicWorkers: map[string][]string{"topicA": {"w1"}, "topicB": {"w2"}}, // topicB is listed but not allowed
 		Limits: rs.Limits{
 			MaxInputBytes: 1 << 20, MaxOutputBytes: 1 << 20, MaxArtifacts: 8, MaxAttempts: 3,
 			DispatchTimeout: time.Minute, RunTimeout: time.Minute, MaxRunTimeout: time.Hour,
@@ -210,6 +210,9 @@ func cfTLSCases() []cfCase {
 		{"cert missing", rm(cert), rs.ErrConfigTLSCert},
 		{"cert unreadable", dir(cert), rs.ErrConfigTLSCert},
 		{"cert not pem", junk(cert), rs.ErrConfigTLSCert},
+		{"cert block with corrupt der", func(t *testing.T, c *rs.RuntimeConfig, _ cfEnv) {
+			cfWrite(t, c.TLSCertFile, "CERTIFICATE", []byte("garbage"))
+		}, rs.ErrConfigTLSCert},
 		{"key missing", rm(key), rs.ErrConfigTLSKey},
 		{"key unreadable", dir(key), rs.ErrConfigTLSKey},
 		{"key not pem", junk(key), rs.ErrConfigTLSKey},
@@ -307,6 +310,7 @@ func cfPolicyCases() []cfCase {
 		{"topic worker unknown", topics(map[string][]string{"topicA": {"ghost"}}), rs.ErrConfigTopicWorker},
 		{"allowed topic without a worker list", topics(nil), rs.ErrConfigTopicWorker},
 		{"allowed topic with an empty worker list", topics(map[string][]string{"topicA": {}}), rs.ErrConfigTopicWorker},
+		{"unknown worker on a topic that is not allowed", topics(map[string][]string{"topicA": {"w1"}, "topicB": {"ghost"}}), rs.ErrConfigTopicWorker},
 		{"allowed topic served only by a foreign-tenant worker", cfSet(func(c *rs.RuntimeConfig) { c.Workers[0].TenantID = "t2" }), rs.ErrConfigTopicWorker},
 	}
 	return append(cases,
@@ -487,10 +491,10 @@ func TestRuntimeConfig_ResolveCompleteAndCopies(t *testing.T) {
 	// The result must not alias the caller's slices or maps.
 	c.Allow[0].Topic = "mutated"
 	c.TopicWorkers["topicA"][0] = "w2"
-	c.TopicWorkers["topicB"] = []string{"w2"}
+	c.TopicWorkers["topicC"] = []string{"w2"}
 	c.Workers[0].SigningKeyFiles["extra"] = "x"
 	delete(c.Clients[0].SigningKeyFiles, "c1-sign")
-	if got.Allow[0].Topic != "topicA" || got.TopicWorkers["topicA"][0] != "w1" || len(got.TopicWorkers) != 1 ||
+	if got.Allow[0].Topic != "topicA" || got.TopicWorkers["topicA"][0] != "w1" || got.TopicWorkers["topicB"][0] != "w2" || len(got.TopicWorkers) != 2 ||
 		len(got.Workers["w1"].SigningKeys) != 1 || len(got.Clients["c1"].SigningKeys) != 1 {
 		t.Fatalf("the resolved config changed when the input was mutated: %+v", got)
 	}

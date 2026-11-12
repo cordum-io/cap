@@ -17,6 +17,7 @@ import (
 )
 
 var (
+	ErrRuntimeCapacity  = errors.New("referencescheduler: lifetime job limit")
 	ErrRuntimeTransport = errors.New("referencescheduler: transport unavailable")
 	ErrRuntimePublish   = errors.New("referencescheduler: publish failed")
 )

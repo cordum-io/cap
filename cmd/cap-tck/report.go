@@ -269,8 +269,8 @@ func reportSign(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
-// signReport signs report with the key in keyPath and zeroes every buffer that
-// held key bytes before it returns.
+// signReport clears its DER and Ed25519 key buffers before returning. Copies
+// internal to x509/asn1 or the Go runtime cannot be reliably erased here.
 func signReport(report []byte, keyPath string) ([]byte, error) {
 	der, err := readPEM(keyPath, "PRIVATE KEY")
 	if err != nil {
@@ -318,6 +318,7 @@ func verifyReport(reportPath, sigPath, pubPath string) (publicreport.Report, err
 	if err != nil {
 		return publicreport.Report{}, err
 	}
+	defer clear(der)
 	k, err := x509.ParsePKIXPublicKey(der)
 	if err != nil {
 		return publicreport.Report{}, fmt.Errorf("%w: %v", errKeyFile, err)
@@ -326,6 +327,7 @@ func verifyReport(reportPath, sigPath, pubPath string) (publicreport.Report, err
 	if !ok {
 		return publicreport.Report{}, errNotEd25519
 	}
+	defer clear(pub)
 	return publicreport.Verify(b, sig, pub)
 }
 
@@ -378,6 +380,10 @@ func readPEM(path, blockType string) ([]byte, error) {
 		return nil, err
 	}
 	defer clear(raw)
+	// pem.Decode skips leading non-PEM text and malformed blocks; refuse both.
+	if !bytes.HasPrefix(bytes.TrimSpace(raw), []byte("-----BEGIN "+blockType+"-----")) || bytes.Count(raw, []byte("-----BEGIN ")) != 1 {
+		return nil, fmt.Errorf("%w: want one %q block", errKeyFile, blockType)
+	}
 	block, rest := pem.Decode(raw)
 	if block == nil || block.Type != blockType || len(block.Headers) > 0 || len(bytes.TrimSpace(rest)) > 0 {
 		if block != nil {

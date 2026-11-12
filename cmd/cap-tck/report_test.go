@@ -206,6 +206,9 @@ func TestReadPEMO6(t *testing.T) {
 		{"wrong-type", pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: []byte("der")}), errKeyFile},
 		{"two-blocks", append(bytes.Clone(good), good...), errKeyFile},
 		{"trailing", append(bytes.Clone(good), []byte("junk")...), errKeyFile},
+		{"leading-garbage", append([]byte("junk\n"), good...), errKeyFile},
+		{"malformed-prefix", append([]byte("-----BEGIN PRIVATE KEY-----\n???\n-----END PRIVATE KEY-----\n"), good...), errKeyFile},
+		{"leading-whitespace", append([]byte(" \n"), good...), nil},
 		{"headers", pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Headers: map[string]string{"X": "Y"}, Bytes: []byte("der")}), errKeyFile},
 		{"not-pem", []byte("not a PEM"), errKeyFile},
 		{"empty", nil, errKeyFile},
@@ -584,5 +587,25 @@ func TestReportUsageC5(t *testing.T) {
 	usage(&mainHelp)
 	if !strings.Contains(mainHelp.String(), "cap-tck report") || regexp.MustCompile(`(?i)certified|compliant|official`).Match(mainHelp.Bytes()) {
 		t.Fatal("main help")
+	}
+}
+
+func TestOutputConcurrentWriters(t *testing.T) {
+	dir := t.TempDir()
+	results := make(chan error, 8)
+	for i := range 8 {
+		go func() { results <- writeOutput(dir, "result", bytes.Repeat([]byte{byte('a' + i)}, 8192)) }()
+	}
+	for range 8 {
+		if err := <-results; err != nil {
+			t.Fatal(err)
+		}
+	}
+	b := fileBytes(t, filepath.Join(dir, "result"))
+	if len(b) != 8192 || b[0] < 'a' || b[0] > 'h' || !bytes.Equal(b, bytes.Repeat(b[:1], 8192)) {
+		t.Fatal("partial/mixed output")
+	}
+	if !reflect.DeepEqual(dirNames(t, dir), []string{"result"}) {
+		t.Fatal("temp file left behind")
 	}
 }

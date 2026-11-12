@@ -25,6 +25,7 @@ import (
 	"github.com/a2aproject/a2a-go/v2/a2asrv"
 	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
+	"github.com/cordum-io/cap/v2/sdk/go/client"
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
@@ -56,9 +57,10 @@ type egSent struct {
 // egPublisher records every (subject, raw, decoded BusPacket). When fail
 // returns an error, the publish fails and records nothing.
 type egPublisher struct {
-	mu   sync.Mutex
-	sent []egSent
-	fail func(subject string) error
+	mu      sync.Mutex
+	sent    []egSent
+	fail    func(subject string) error
+	forward client.Publisher
 }
 
 func (p *egPublisher) Publish(subject string, data []byte) error {
@@ -67,13 +69,19 @@ func (p *egPublisher) Publish(subject string, data []byte) error {
 		return err
 	}
 	p.mu.Lock()
-	defer p.mu.Unlock()
-	if p.fail != nil {
-		if err := p.fail(subject); err != nil {
+	fail, forward := p.fail, p.forward
+	p.mu.Unlock()
+	if fail != nil {
+		if err := fail(subject); err != nil {
 			return err
 		}
 	}
+	p.mu.Lock()
 	p.sent = append(p.sent, egSent{subject: subject, raw: slices.Clone(data), pkt: pkt})
+	p.mu.Unlock()
+	if forward != nil {
+		return forward.Publish(subject, data)
+	}
 	return nil
 }
 
@@ -135,6 +143,10 @@ type egHarness struct {
 	in                    *egInputs
 	results               *egResults
 	worker, sched, bridge *ecdsa.PrivateKey
+	graceMu               sync.Mutex
+	callbacks             []func()
+	graced                chan struct{}
+	vectorCancel          <-chan egCall
 }
 
 func egOK(t *testing.T, err error) {
@@ -179,6 +191,13 @@ func newEgHarness(t *testing.T, mutate ...func(*Config)) *egHarness {
 		t.Fatalf("New: %v", err)
 	}
 	h.ing = ing
+	h.graced = make(chan struct{}, 64)
+	ing.afterFunc = func(_ time.Duration, f func()) {
+		h.graceMu.Lock()
+		h.callbacks = append(h.callbacks, sync.OnceFunc(f))
+		h.graceMu.Unlock()
+		h.graced <- struct{}{}
+	}
 	return h
 }
 
@@ -464,6 +483,18 @@ func TestStartAndNewFailClosed(t *testing.T) {
 			t.Fatalf("New with MaxBlockingWait %s: err %v, want accepted %v", wait, err, ok)
 		}
 	}
+	for grace, ok := range map[time.Duration]bool{-time.Second: false, 999 * time.Millisecond: false,
+		61 * time.Second: false, 0: true, time.Second: true, 60 * time.Second: true} {
+		_, cfg := egConfig(t)
+		cfg.CancelGrace = grace
+		ing, err := New(cfg)
+		if (err == nil) != ok {
+			t.Fatalf("CancelGrace %s: %v, accepted=%v", grace, err, ok)
+		}
+		if ok && (ing.grace != grace && !(grace == 0 && ing.grace == 30*time.Second)) {
+			t.Fatal("wrong grace")
+		}
+	}
 }
 
 // egEventually polls cond for at most 5 s.
@@ -521,6 +552,7 @@ func TestEgressOverRealNATS(t *testing.T) {
 	h.want(t, "key-alice", id1, a2a.TaskStateSubmitted, a2a.TaskStateWorking, a2a.TaskStateFailed)
 	h.want(t, "key-alice", id2, a2a.TaskStateSubmitted, a2a.TaskStateRejected)
 	egCompletedOverNATS(t, h, publish)
+	egCancelOverNATS(t, h, nc, pc, publish)
 	egOK(t, stop())
 	for _, s := range subs.subs {
 		if s.IsValid() {
@@ -540,20 +572,6 @@ func egCompletedOverNATS(t *testing.T, h *egHarness, publish func(string, []byte
 		return err == nil && got.Status.State == a2a.TaskStateCompleted && len(got.Artifacts) == 1
 	})
 	h.want(t, "key-alice", id3, a2a.TaskStateSubmitted, a2a.TaskStateWorking, a2a.TaskStateCompleted)
-}
-
-// egVectorsInScope is slice 1's partition of a2a-v1.json (task-9c57b30d,
-// comment-4cf9f90b). Slices 2-4 extend it; the last slice runs all 34.
-var egVectorsInScope = []string{
-	"status-pending", "status-scheduled", "status-dispatched", "status-running", "status-failed-retryable",
-	"status-failed", "status-failed-fatal", "status-timeout", "status-denied-rejected",
-	"oversize-part-count-rejected", "url-part-rejected", "duplicate-message-id", "send-to-busy-task",
-	"unknown-task-get-task",
-	"status-succeeded-completed", "input-required", "auth-required", "duplicate-result",
-	"late-conflicting-result", "progress-after-terminal", "invalid-envelope-credential-field",
-	"invalid-envelope-auth-data-part", "missing-envelope", "send-to-terminal-task",
-	"cross-tenant-get-task", "cross-principal-get-task",
-	"input-required-resume-completed", "auth-required-resume-completed",
 }
 
 type egVecTurn struct {
@@ -591,6 +609,7 @@ type egVecCase struct {
 var egVecErrors = map[string]error{
 	"":                           nil,
 	"TASK_NOT_FOUND":             a2a.ErrTaskNotFound,
+	"TASK_NOT_CANCELABLE":        a2a.ErrTaskNotCancelable,
 	"UNSUPPORTED_OPERATION":      a2a.ErrUnsupportedOperation,
 	"CONTENT_TYPE_NOT_SUPPORTED": a2a.ErrUnsupportedContentType,
 	"INVALID_PARAMS":             a2a.ErrInvalidParams,
@@ -631,19 +650,11 @@ func TestVectorsAllCases(t *testing.T) {
 		Cases []egVecCase `json:"cases"`
 	}
 	egOK(t, json.Unmarshal(raw, &file))
-	byID := map[string]egVecCase{}
+	if len(file.Cases) != 34 {
+		t.Fatalf("%d vectors, want 34", len(file.Cases))
+	}
 	for _, c := range file.Cases {
-		byID[c.ID] = c
-	}
-	if len(egVectorsInScope) != 28 {
-		t.Fatalf("%d vectors in scope, want 28", len(egVectorsInScope))
-	}
-	for _, id := range egVectorsInScope {
-		c, ok := byID[id]
-		if !ok {
-			t.Fatalf("vector %q is not in a2a-v1.json", id)
-		}
-		t.Run(id, func(t *testing.T) { egRunVector(t, c) })
+		t.Run(c.ID, func(t *testing.T) { egRunVector(t, c) })
 	}
 }
 
@@ -668,6 +679,11 @@ func (h *egHarness) egReplay(t *testing.T, c egVecCase, owner string) (a2a.TaskI
 				t.Fatalf("turn %d published %d JobRequests, want 1", ev.Turn, now-published)
 			}
 			task, jobs[ev.Turn], sent = got.ID, h.pub.lastJob(), sent+1
+		case ev.Kind == "cancel_published":
+			h.vectorCancel = h.cancel(t, egAs(egKeyFor(t, c.Caller)), task)
+			h.waitGraces(t, 1)
+		case ev.Kind == "cancel_grace_expired":
+			h.fireGraces()
 		case !known:
 			t.Fatalf("unknown job_status %q", ev.JobStatus)
 		case ev.Kind == "progress":
@@ -705,8 +721,14 @@ func egRunVector(t *testing.T, c egVecCase) {
 		t.Fatalf("unmapped expected_error %q", c.ExpectedError)
 	}
 	task, sent := h.egReplay(t, c, owner)
+	cancel := h.vectorCancel
 	var err error
 	switch {
+	case c.A2ACall != nil && c.A2ACall.Method == "CancelTask":
+		if cancel == nil {
+			cancel = h.cancel(t, egAs(caller), task)
+		}
+		err = egCancelReply(t, cancel).err
 	case c.A2ACall != nil && c.A2ACall.Method == "SendMessage":
 		var got *a2a.Task
 		if got, err = h.send(caller, egVecMessage(t, c.Turns[sent], task)); err == nil && task == "" {
@@ -733,7 +755,7 @@ func egRunVector(t *testing.T, c egVecCase) {
 		t.Fatalf("status events %v, want %v", order, c.ExpectedEventOrder)
 	}
 	req, cancels := h.pub.counts()
-	if req != c.ExpectedPublishes.JobRequest || cancels != c.ExpectedPublishes.JobCancel || cancels != 0 {
+	if req != c.ExpectedPublishes.JobRequest || cancels != c.ExpectedPublishes.JobCancel {
 		t.Fatalf("publishes: %d JobRequests, %d JobCancels; want %+v", req, cancels, c.ExpectedPublishes)
 	}
 }
@@ -981,7 +1003,7 @@ func TestDuplicateInterruptedResultAppliesOnce(t *testing.T) {
 }
 
 func TestFirstTerminalIsReservedBeforeTheEnvelopeRead(t *testing.T) {
-	for _, mode := range []string{"dlq-during-read", "reader-error-still-wins"} {
+	for _, mode := range []string{"dlq-during-read", "reader-error-still-wins", "grace-during-read"} {
 		t.Run(mode, func(t *testing.T) {
 			h := newEgHarness(t)
 			id, job := h.start(t, "key-alice", "msg-1")
@@ -989,10 +1011,16 @@ func TestFirstTerminalIsReservedBeforeTheEnvelopeRead(t *testing.T) {
 			if mode == "reader-error-still-wins" {
 				h.results.err = errors.New("read failed")
 			}
+			var cancel <-chan egCall
+			if mode == "grace-during-read" {
+				cancel = h.cancel(t, egAs("key-alice"), id)
+				h.waitGraces(t, 1)
+			}
 			raw := h.resultEnvelope(t, job, egComplete("completed"))
 			done := make(chan struct{})
 			go func() { h.ing.deliver(capsdk.SubjectResult, raw); close(done) }()
 			egWait(t, h.results.entered, "envelope read")
+			h.fireGraces()
 			h.ing.deliver(capsdk.SubjectDLQ, h.dlq(t, job, agentv1.JobStatus_JOB_STATUS_DENIED))
 			h.ing.deliver(capsdk.SubjectProgress, h.progress(t, job, egRunning))
 			h.want(t, "key-alice", id, a2a.TaskStateSubmitted)
@@ -1009,6 +1037,9 @@ func TestFirstTerminalIsReservedBeforeTheEnvelopeRead(t *testing.T) {
 				t.Fatal("wrong event/artifact count")
 			}
 			egArtifactOrder(t, rec.events)
+			if cancel != nil {
+				egIs(t, egCancelReply(t, cancel).err, a2a.ErrTaskNotCancelable)
+			}
 		})
 	}
 }
@@ -1331,6 +1362,363 @@ func egAwait(t *testing.T, ch <-chan egCall, state a2a.TaskState, least, most ti
 		t.Fatalf("timed out waiting for a %s call", state)
 	}
 	return nil
+}
+
+func (h *egHarness) graces() []func() {
+	h.graceMu.Lock()
+	defer h.graceMu.Unlock()
+	return slices.Clone(h.callbacks)
+}
+
+func (h *egHarness) fireGrace(n int) { h.graces()[n]() }
+func (h *egHarness) fireGraces() {
+	for _, f := range h.graces() {
+		f()
+	}
+}
+
+func (h *egHarness) waitGraces(t *testing.T, n int) {
+	t.Helper()
+	for len(h.graces()) < n {
+		egWait(t, h.graced, "cancel grace scheduled")
+	}
+	if len(h.graces()) != n {
+		t.Fatalf("graces=%d, want %d", len(h.graces()), n)
+	}
+}
+
+func (h *egHarness) cancels() []*agentv1.BusPacket {
+	h.pub.mu.Lock()
+	defer h.pub.mu.Unlock()
+	var out []*agentv1.BusPacket
+	for _, s := range h.pub.sent {
+		if s.subject == capsdk.SubjectCancel && s.pkt.GetJobCancel() != nil {
+			out = append(out, s.pkt)
+		}
+	}
+	return out
+}
+
+func (h *egHarness) wantCancels(t *testing.T, id a2a.TaskID, jobs ...string) {
+	t.Helper()
+	pkts := h.cancels()
+	if len(pkts) != len(jobs) {
+		t.Fatalf("JobCancels=%d, want %d", len(pkts), len(jobs))
+	}
+	for n, p := range pkts {
+		egOK(t, capsdk.ValidateBusPacket(p))
+		egOK(t, capsdk.VerifyPacketSignature(p, &h.bridge.PublicKey))
+		if p.TraceId != string(id) || p.SenderId != "a2a-bridge" || p.GetJobCancel().JobId != jobs[n] ||
+			p.GetJobCancel().RequestedBy != "alice" || p.GetJobCancel().Reason != "a2a CancelTask" {
+			t.Fatalf("bad cancel: %v", p)
+		}
+	}
+}
+
+func egAsync(fn func() (*a2a.Task, error)) <-chan egCall {
+	out := make(chan egCall, 1)
+	go func() { task, err := fn(); out <- egCall{task: task, err: err} }()
+	return out
+}
+
+func (h *egHarness) cancel(t *testing.T, ctx context.Context, id a2a.TaskID) <-chan egCall {
+	t.Helper()
+	ctx, stop := context.WithCancel(ctx)
+	t.Cleanup(stop) // no deadline: a stranded waiter must fail the bounded assertion
+	return egAsync(func() (*a2a.Task, error) { return h.ing.CancelTask(ctx, &a2a.CancelTaskRequest{ID: id}) })
+}
+
+func egCancelReply(t *testing.T, ch <-chan egCall) egCall {
+	t.Helper()
+	select {
+	case c := <-ch:
+		return c
+	case <-time.After(5 * time.Second):
+		t.Fatal("timed out waiting for CancelTask/resume reply")
+	}
+	return egCall{}
+}
+
+func egCanceled(t *testing.T, ch <-chan egCall, state a2a.TaskState) {
+	t.Helper()
+	c := egCancelReply(t, ch)
+	egOK(t, c.err)
+	if c.task == nil || c.task.Status.State != state {
+		t.Fatalf("task=%v, want %s", c.task, state)
+	}
+}
+
+func (h *egHarness) joinCancel(t *testing.T, id a2a.TaskID) <-chan egCall {
+	t.Helper()
+	step, _, _, attempt, abort, err := h.ing.store.requestCancel(egIdents["key-alice"], string(id), egNow)
+	egOK(t, err)
+	if step != cancelWait || attempt == 0 || abort == nil {
+		t.Fatal("not joining the pending attempt")
+	}
+	ctx, stop := context.WithCancel(context.Background())
+	t.Cleanup(stop)
+	return egAsync(func() (*a2a.Task, error) { return h.ing.awaitCancel(ctx, egIdents["key-alice"], string(id), abort) })
+}
+
+// egGate blocks the first call only, with bounded waits and cleanup on failed assertions.
+func egGate(t *testing.T, failure error) (func() error, <-chan struct{}, func()) {
+	t.Helper()
+	entered, gate := make(chan struct{}), make(chan struct{})
+	release := sync.OnceFunc(func() { close(gate) })
+	t.Cleanup(release)
+	var calls atomic.Int32
+	return func() error {
+		if calls.Add(1) != 1 {
+			return nil
+		}
+		close(entered)
+		egWait(t, gate, "publish gate release")
+		return failure
+	}, entered, release
+}
+
+func TestCancelPublishesOneSignedJobCancel(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	h.ing.deliver(capsdk.SubjectProgress, h.progress(t, job, egRunning))
+	gate, entered, release := egGate(t, nil)
+	h.pub.fail = func(s string) error {
+		if s == capsdk.SubjectCancel {
+			return gate()
+		}
+		return nil
+	}
+	a := h.cancel(t, egAs("key-alice"), id)
+	egWait(t, entered, "first cancel publish")
+	b := h.joinCancel(t, id)
+	release()
+	h.waitGraces(t, 1)
+	h.wantCancels(t, id, job)
+	c := h.cancel(t, egAs("key-alice"), id)
+	h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job, egComplete("completed")))
+	for _, ch := range []<-chan egCall{a, b, c} {
+		egIs(t, egCancelReply(t, ch).err, a2a.ErrTaskNotCancelable)
+	}
+	h.fireGraces()
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateWorking, a2a.TaskStateCompleted)
+	h.wantCancels(t, id, job)
+	h.waitGraces(t, 1)
+}
+
+func TestCancelGraceAndInterruptedAndTerminal(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	c := h.cancel(t, egAs("key-alice"), id)
+	h.waitGraces(t, 1)
+	h.fireGraces()
+	egCanceled(t, c, a2a.TaskStateCanceled)
+	h.ing.deliver(capsdk.SubjectResult, h.result(t, job, agentv1.JobStatus_JOB_STATUS_CANCELLED))
+	h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job, egComplete("completed")))
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateCanceled)
+	id2, job2 := h.start(t, "key-alice", "msg-2")
+	h.interrupt(t, job2, "input-required")
+	egCanceled(t, h.cancel(t, egAs("key-alice"), id2), a2a.TaskStateCanceled)
+	h.want(t, "key-alice", id2, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateCanceled)
+	egIs(t, egCancelReply(t, h.cancel(t, egAs("key-alice"), id2)).err, a2a.ErrTaskNotCancelable)
+	for _, key := range []string{"key-mallory", "key-bob"} {
+		egIs(t, egCancelReply(t, h.cancel(t, egAs(key), id)).err, a2a.ErrTaskNotFound)
+	}
+	egIs(t, egCancelReply(t, h.cancel(t, egAs("key-alice"), "unknown")).err, a2a.ErrTaskNotFound)
+	_, err := h.ing.CancelTask(egAs("key-alice"), nil)
+	egIs(t, err, a2a.ErrTaskNotFound)
+	h.wantCancels(t, id, job)
+	h.waitGraces(t, 1)
+}
+
+func TestCancelPublishFailureCanBeRetried(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	var calls atomic.Int32
+	h.pub.fail = func(s string) error {
+		if s == capsdk.SubjectCancel && calls.Add(1) == 1 {
+			return errors.New("publish failed")
+		}
+		return nil
+	}
+	egIs(t, egCancelReply(t, h.cancel(t, egAs("key-alice"), id)).err, a2a.ErrInternalError)
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted)
+	h.wantCancels(t, id)
+	h.waitGraces(t, 0)
+	retry := h.cancel(t, egAs("key-alice"), id)
+	h.waitGraces(t, 1)
+	h.ing.deliver(capsdk.SubjectResult, h.result(t, job, agentv1.JobStatus_JOB_STATUS_CANCELLED))
+	egCanceled(t, retry, a2a.TaskStateCanceled)
+	h.wantCancels(t, id, job)
+}
+
+func TestCancelOutlivesItsCaller(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	h.ing.deliver(capsdk.SubjectProgress, h.progress(t, job, egRunning))
+	ctx, stop := context.WithCancel(egAs("key-alice"))
+	defer stop()
+	c := h.cancel(t, ctx, id)
+	h.waitGraces(t, 1)
+	stop()
+	egCanceled(t, c, a2a.TaskStateWorking)
+	h.interrupt(t, job, "input-required")
+	h.fireGraces()
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateWorking, a2a.TaskStateInputRequired, a2a.TaskStateCanceled)
+	h.wantCancels(t, id, job)
+}
+
+func TestPendingCancelEndsAnInterruptedTurn(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	c := h.cancel(t, egAs("key-alice"), id)
+	h.waitGraces(t, 1)
+	h.interrupt(t, job, "input-required")
+	egCanceled(t, c, a2a.TaskStateCanceled)
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateCanceled)
+	h.wantCancels(t, id, job)
+}
+
+func TestCancelJoinerOfFailedPublishGetsInternal(t *testing.T) {
+	h := newEgHarness(t)
+	id, job := h.start(t, "key-alice", "msg-1")
+	gate, entered, release := egGate(t, errors.New("publish failed"))
+	h.pub.fail = func(s string) error {
+		if s == capsdk.SubjectCancel {
+			return gate()
+		}
+		return nil
+	}
+	a := h.cancel(t, egAs("key-alice"), id)
+	egWait(t, entered, "first cancel publish")
+	b := h.joinCancel(t, id)
+	release()
+	for _, c := range []<-chan egCall{a, b} {
+		egIs(t, egCancelReply(t, c).err, a2a.ErrInternalError)
+	}
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted)
+	h.wantCancels(t, id)
+	h.waitGraces(t, 0)
+	c := h.cancel(t, egAs("key-alice"), id)
+	h.waitGraces(t, 1)
+	h.fireGraces()
+	egCanceled(t, c, a2a.TaskStateCanceled)
+	h.wantCancels(t, id, job)
+}
+
+func TestCancelDuringFailedResumeCancelsTheRestoredTurn(t *testing.T) {
+	for _, mode := range []string{"waiter-cancels-restored-turn", "stale-attempt-is-cleared",
+		"stale-failure-cannot-abort-a-new-attempt", "same-message-retry-ignores-stale-grace"} {
+		t.Run(mode, func(t *testing.T) { egFailedResumeCancel(t, mode) })
+	}
+}
+
+func egFailedResumeCancel(t *testing.T, mode string) {
+	t.Helper()
+	h := newEgHarness(t)
+	id, job1 := h.start(t, "key-alice", "msg-1")
+	h.interrupt(t, job1, "input-required")
+	submit, entered, release := egGate(t, errors.New("resume failed"))
+	failed, cancelEntered, cancelRelease := egGate(t, errors.New("stale cancel failed"))
+	h.pub.fail = func(s string) error {
+		if s == capsdk.SubjectSubmit {
+			return submit()
+		}
+		if s == capsdk.SubjectCancel && mode == "stale-failure-cannot-abort-a-new-attempt" {
+			return failed()
+		}
+		return nil
+	}
+	r := egAsync(func() (*a2a.Task, error) { return h.resume("key-alice", id, "msg-2", "", "resume") })
+	egWait(t, entered, "resume publish")
+	ctx, stop := context.WithCancel(egAs("key-alice"))
+	defer stop()
+	a := h.cancel(t, ctx, id)
+	if mode == "stale-failure-cannot-abort-a-new-attempt" {
+		egWait(t, cancelEntered, "old cancel publish")
+	} else {
+		h.waitGraces(t, 1)
+		h.wantCancels(t, id, egJobOf("tenant-a", "alice", id, "msg-2"))
+		if mode != "waiter-cancels-restored-turn" {
+			stop()
+			egCanceled(t, a, a2a.TaskStateSubmitted)
+		}
+	}
+	release()
+	egIs(t, egCancelReply(t, r).err, a2a.ErrInternalError)
+	if mode == "waiter-cancels-restored-turn" {
+		egCanceled(t, a, a2a.TaskStateCanceled)
+		h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateCanceled)
+		return
+	}
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired)
+	message := "msg-3"
+	if mode == "same-message-retry-ignores-stale-grace" {
+		message = "msg-2"
+	}
+	_, err := h.resume("key-alice", id, message, "", "resume")
+	egOK(t, err)
+	job := egJobOf("tenant-a", "alice", id, message)
+	rec, _ := h.ing.store.get(egIdents["key-alice"], string(id))
+	if rec.turn != 2 || rec.jobID != job {
+		t.Fatalf("wrong retry turn/job: %d/%s", rec.turn, rec.jobID)
+	}
+	egNewAttempt(t, h, id, job, mode, a, cancelRelease)
+}
+
+func egNewAttempt(t *testing.T, h *egHarness, id a2a.TaskID, job, mode string, a <-chan egCall, release func()) {
+	t.Helper()
+	ctx, stop := context.WithCancel(egAs("key-alice"))
+	defer stop()
+	b := h.cancel(t, ctx, id)
+	if mode == "stale-failure-cannot-abort-a-new-attempt" {
+		h.waitGraces(t, 1)
+		release()
+		egIs(t, egCancelReply(t, a).err, a2a.ErrInternalError)
+		select {
+		case c := <-b:
+			t.Fatalf("new successful attempt aborted: %+v", c)
+		default:
+		}
+		h.fireGraces()
+		egCanceled(t, b, a2a.TaskStateCanceled)
+		h.wantCancels(t, id, job)
+	} else {
+		h.waitGraces(t, 2)
+		stop()
+		egCanceled(t, b, a2a.TaskStateSubmitted)
+		h.wantCancels(t, id, egJobOf("tenant-a", "alice", id, "msg-2"), job)
+		h.fireGrace(0)
+		h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateSubmitted)
+		h.fireGrace(1)
+	}
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateSubmitted, a2a.TaskStateCanceled)
+}
+
+func egCancelOverNATS(t *testing.T, h *egHarness, nc, pc *nats.Conn, publish func(string, []byte)) {
+	t.Helper()
+	h.pub.forward = nc
+	sub, err := pc.SubscribeSync(capsdk.SubjectCancel)
+	egOK(t, err)
+	defer sub.Unsubscribe()
+	egOK(t, pc.Flush())
+	id, job := h.start(t, "key-alice", "msg-4")
+	c := h.cancel(t, egAs("key-alice"), id)
+	msg, err := sub.NextMsg(5 * time.Second)
+	egOK(t, err)
+	pkt := &agentv1.BusPacket{}
+	egOK(t, proto.Unmarshal(msg.Data, pkt))
+	egOK(t, capsdk.VerifyPacketSignature(pkt, &h.bridge.PublicKey))
+	if pkt.GetJobCancel().GetJobId() != job {
+		t.Fatalf("wrong NATS cancel: %v", pkt)
+	}
+	publish(capsdk.SubjectResult, h.result(t, job, agentv1.JobStatus_JOB_STATUS_CANCELLED))
+	egCanceled(t, c, a2a.TaskStateCanceled)
+	egOK(t, nc.Flush())
+	egOK(t, pc.Flush())
+	if n, err := sub.Delivered(); err != nil || n != 1 {
+		t.Fatalf("delivered=%d: %v", n, err)
+	}
+	h.wantCancels(t, id, job)
 }
 
 func TestBlockingSendMessageWaitsForTheTurn(t *testing.T) {

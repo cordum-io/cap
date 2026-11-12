@@ -27,6 +27,8 @@ func dispatch(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return cmdList(args[1:], stdout, stderr)
 	case "matrix":
 		return cmdMatrix(args[1:], stdout, stderr)
+	case "report":
+		return cmdReport(args[1:], stdout, stderr)
 	case "__adapter":
 		return runRefAdapter(args[1:], stdin, stdout)
 	case "-h", "--help", "help":
@@ -46,6 +48,7 @@ Usage:
   cap-tck run    --suite <path> --adapter 'label=argv0|arg1|...' [--profile core] [--json -] [--junit out.xml]
   cap-tck matrix --suite <path> --adapter A --adapter B [--profile core]
   cap-tck list   --suite <path> [--profile core]
+  cap-tck report project|sign|verify|badge  (see 'cap-tck report --help')
 
 An adapter is an external process speaking adapter-v1 (see spec/tck/adapter-v1.md).
 The built-in reference adapter (cap-tck __adapter --role worker) tests the harness

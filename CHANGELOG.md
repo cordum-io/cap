@@ -6,6 +6,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **TCK public reports:** new `cap-tck report` subcommands. `project` turns a `cap-tck run --json` report into a public report (`cap-public-report/v1`), taking its required cases and scenario manifest digest from the scenario files the run used. `sign` and `verify` use an Ed25519 key you supply (PKCS#8 / PKIX PEM) and a detached raw 64-byte signature. `badge` writes a fixed SVG, for a PASS report only. All four run offline with no telemetry, never create or store keys, and write 0600 files confined to `--out-dir`.
+
 - **cap-sdk-python: `validate_resource_ref` compares ResourceRef expiry at nanosecond precision (bug fix).** `Timestamp.ToDatetime()` truncated to microseconds, rejecting references expiring 1 ns after validation while Go accepted them. Exact `(seconds, nanos)` comparison now matches Go `AsTime().After(now)`, range validation mirrors Go `CheckValid`, and aware validation times at the edges of `datetime` no longer raise `OverflowError`.
 
 

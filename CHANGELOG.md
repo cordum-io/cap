@@ -6,6 +6,10 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- The Go SDK, Node SDK and Python SDK checks in `ci.yml` also run on `merge_group` events;
+  no check's content changed. Enabling the merge queue remains a maintainer ruleset change
+  (task-324398d5).
+
 - **cordum-guard closes governance bypasses (security, behavior change).**
   - Verdicts: the client now reads the gateway's protojson names
     (`DECISION_TYPE_REQUIRE_HUMAN`, ...). Previously every real verdict, DENY included, parsed

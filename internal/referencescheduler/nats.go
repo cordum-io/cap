@@ -22,8 +22,8 @@ var (
 	ErrRuntimePublish   = errors.New("referencescheduler: publish failed")
 )
 
-func dial(cfg *ResolvedConfig) (*nats.Conn, error) {
-	opts := []nats.Option{nats.Name("cap-reference-scheduler"), nats.Timeout(2 * time.Second), nats.MaxReconnects(3), nats.ReconnectWait(time.Second), nats.IgnoreDiscoveredServers()}
+func dial(cfg *ResolvedConfig, onClose nats.ConnHandler) (*nats.Conn, error) {
+	opts := []nats.Option{nats.Name("cap-reference-scheduler"), nats.Timeout(2 * time.Second), nats.MaxReconnects(3), nats.ReconnectWait(time.Second), nats.IgnoreDiscoveredServers(), nats.ClosedHandler(onClose)}
 	if cfg.TLS != nil {
 		opts = append(opts, nats.Secure(cfg.TLS))
 	}

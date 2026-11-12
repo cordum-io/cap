@@ -30,6 +30,7 @@ type rtFixture struct {
 	r      *Runtime
 	cfg    *ResolvedConfig
 	nc     *nats.Conn
+	srv    *tck.EmbeddedNATS
 	subs   map[string]*nats.Subscription
 	keys   map[string]*ecdsa.PrivateKey
 	now    atomic.Int64
@@ -70,6 +71,7 @@ func rtStart(t *testing.T, tick ...time.Duration) *rtFixture {
 		t.Fatal(err)
 	}
 	t.Cleanup(srv.Close)
+	f.srv = srv
 	f.cfg.NATSURL = srv.URL()
 	f.nc, err = nats.Connect(srv.URL())
 	if err != nil {
@@ -487,6 +489,42 @@ func TestRuntime_DrainJoinsBlockedCallbacks(t *testing.T) {
 	}
 }
 
+func TestRuntime_PermanentConnectionLossDrains(t *testing.T) {
+	f := rtStart(t)
+	var log bytes.Buffer
+	f.r.opts.Logger = slog.New(slog.NewTextHandler(&log, nil))
+	// Keep a real subscription callback waiting on the concurrency bound.
+	for range cap(f.r.sem) {
+		f.r.sem <- struct{}{}
+	}
+	rtRaw(t, f, SubjectSubmit, []byte("secret-payload-canary"))
+	rtEventually(t, func() bool { return f.r.goroutines.Load() == 2 })
+	f.srv.Close()
+	select {
+	case err := <-f.done:
+		f.done = nil
+		if err != ErrRuntimeTransport {
+			t.Fatalf("connection loss: got %v, want ErrRuntimeTransport", err)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("Run did not return after permanent connection loss")
+	}
+	if !f.r.nc.IsClosed() || f.r.goroutines.Load() != 0 {
+		t.Fatal("connection or runtime goroutine survived transport loss")
+	}
+	for _, sub := range f.r.subs {
+		if sub.IsValid() {
+			t.Fatal("subscription survived transport loss")
+		}
+	}
+	if got := log.String(); strings.Count(got, "\n") != 1 || !strings.Contains(got, `msg="refsched: transport closed" reason="referencescheduler: transport unavailable"`) || strings.Contains(got, "canary") || strings.Contains(got, f.cfg.NATSURL) {
+		t.Fatalf("unsafe transport log: %q", got)
+	}
+	if got := f.r.Stats(); got != (RuntimeStats{}) {
+		t.Fatalf("waiting callback ran after transport loss: %+v", got)
+	}
+}
+
 func TestRuntime_PendingProgressRetryAndPublishFailure(t *testing.T) {
 	f := rtStart(t)
 	rtSend(t, f, SubjectSubmit, rtPacket(t, "c1", "", SubjectSubmit, "job"))
@@ -509,6 +547,7 @@ func TestRuntime_PendingProgressRetryAndPublishFailure(t *testing.T) {
 		t.Fatal("retry attempt")
 	}
 	rtEventually(t, func() bool { j, _ := f.r.core.Get("t1", "job"); return j.Acked })
+	f.cancel() // This test closes transport deliberately, not as an outage.
 	f.r.nc.Close()
 	// Direct handler only here: exercise a failed outbound write on the closed connection.
 	raw := adSign(t, f.keys["c1"], rtPacket(t, "c1", "", SubjectSubmit, "fail-publish"))
@@ -569,7 +608,7 @@ func TestRuntime_DialIgnoresAdvertisedEndpoints(t *testing.T) {
 	defer trap.Close()
 	connected := make(chan net.Conn, 1)
 	go rtAdvertise(primary, trap, connected)
-	nc, err := dial(&ResolvedConfig{NATSURL: "nats://" + primary.Addr().String()})
+	nc, err := dial(&ResolvedConfig{NATSURL: "nats://" + primary.Addr().String()}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

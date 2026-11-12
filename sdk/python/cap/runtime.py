@@ -8,7 +8,7 @@ import time
 from dataclasses import dataclass, replace
 from datetime import timezone
 from types import MappingProxyType
-from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Type, TypeVar, Union
+from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Tuple, Type, TypeVar, Union
 
 from google.protobuf import timestamp_pb2
 from cap.pb.cordum.agent.v1 import buspacket_pb2, handshake_pb2, job_pb2
@@ -26,6 +26,17 @@ except Exception:  # pragma: no cover - optional until runtime used
     ValidationError = Exception
 
 
+from cap.telemetry import (
+    ErrorType,
+    MessagingSpan,
+    Process,
+    Publish,
+    TelemetryConfig,
+    extract,
+    inject_headers,
+    start_process,
+    start_publish,
+)
 from cap.subjects import SUBJECT_HANDSHAKE, SUBJECT_RESULT
 from cap.errors import InvalidInputError
 from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
@@ -114,6 +125,16 @@ def _log_handler_failure(
         )
     except Exception:
         pass
+
+
+def _empty_otel_context() -> Any:
+    """Return a new, empty OpenTelemetry context.
+
+    Called only when telemetry is configured, so OpenTelemetry is installed.
+    """
+    from opentelemetry.context import Context as OtelContext
+
+    return OtelContext()
 
 
 class BlobStore(Protocol):
@@ -304,6 +325,10 @@ class Context:
     job: job_pb2.JobRequest
     packet: buspacket_pb2.BusPacket
     logger: logging.LoggerAdapter
+    # The OpenTelemetry context holding the job's process span when the Agent
+    # has telemetry configured, else None. It is never made current: pass it
+    # as ``context=`` to start child spans.
+    otel_context: Optional[Any] = None
 
     @property
     def job_id(self) -> str:
@@ -368,6 +393,7 @@ class Agent:
         worker_trust_renew_min_interval: float = DEFAULT_RENEW_MIN_INTERVAL,
         production_trust: Optional[ProductionTrust] = None,
         replay_store: Optional[ReplayStore] = None,
+        telemetry: Optional[TelemetryConfig] = None,
     ) -> None:
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
@@ -401,6 +427,8 @@ class Agent:
             )
         self._production_trust = _snapshot_production_trust(production_trust)
         self._replay_store = replay_store
+        # W3C trace context (cap.telemetry); None sends no headers and starts no spans.
+        self._telemetry = telemetry
         Agent._initialize_lifecycle(self)
 
     def _configure_worker_trust(
@@ -1148,6 +1176,8 @@ class Agent:
         spec: HandlerSpec,
         packet: Optional[buspacket_pb2.BusPacket] = None,
     ) -> None:
+        # Only _on_direct_msg passes a decoded packet.
+        direct = packet is not None
         if packet is None:
             packet = self._decode_admitted_packet(
                 msg.data, getattr(msg, "subject", None)
@@ -1161,6 +1191,10 @@ class Agent:
         authority = (
             freeze_production_authority(req) if self._production_enabled() else None
         )
+        # Trace headers are untrusted correlation hints. They are read only
+        # here, after admission or validation, and never used for identity
+        # or policy. Nothing between this call and the try below may raise.
+        otel_context, span = self._start_process_span(msg, spec, packet, direct)
 
         self._active_jobs.add(req.job_id)
         try:
@@ -1178,7 +1212,7 @@ class Agent:
                     "sender_id": _bounded_log_field(packet.sender_id),
                 },
             )
-            ctx = Context(job=req, packet=packet, logger=ctx_logger)
+            ctx = Context(job=req, packet=packet, logger=ctx_logger, otel_context=otel_context)
 
             store = self._store
             if store is None:
@@ -1193,6 +1227,7 @@ class Agent:
                 if self._max_context_bytes is not None and len(payload) > self._max_context_bytes:
                     raise ValueError("context exceeds max size")
             except Exception as exc:
+                span.fail(ErrorType.OTHER)
                 await self._publish_failure(
                     ctx, req, str(exc), execution_ms=0, authority=authority
                 )
@@ -1201,6 +1236,7 @@ class Agent:
             try:
                 raw = json.loads(payload.decode("utf-8"))
             except Exception as exc:
+                span.fail(ErrorType.OTHER)
                 await self._publish_failure(
                     ctx,
                     req,
@@ -1213,6 +1249,7 @@ class Agent:
             try:
                 input_data = self._validate_input(spec, raw)
             except Exception as exc:
+                span.fail(ErrorType.OTHER)
                 await self._publish_failure(
                     ctx,
                     req,
@@ -1258,6 +1295,7 @@ class Agent:
 
             elapsed_ms = int((time.monotonic() - start_time) * 1000)
             if error is not None:
+                span.fail(ErrorType.HANDLER_FAILED)
                 await self._publish_failure(
                     ctx, req, error, execution_ms=elapsed_ms, authority=authority
                 )
@@ -1271,6 +1309,7 @@ class Agent:
                 await self._with_timeout(store.set(result_key, result_payload), "result write")
                 result_ptr = pointer_for_key(result_key)
             except Exception as exc:
+                span.fail(ErrorType.OTHER)
                 await self._publish_failure(
                     ctx,
                     req,
@@ -1295,7 +1334,34 @@ class Agent:
                 ),
             )
         finally:
+            span.end()
             self._active_jobs.discard(req.job_id)
+
+    def _start_process_span(
+        self,
+        msg: Any,
+        spec: HandlerSpec,
+        packet: buspacket_pb2.BusPacket,
+        direct: bool,
+    ) -> Tuple[Optional[Any], MessagingSpan]:
+        telemetry = self._telemetry
+        if telemetry is None:
+            return None, MessagingSpan()
+        production = self._production_enabled()
+        process = Process(
+            subject=getattr(msg, "subject", "") or "",
+            pool=spec.topic,
+            # The direct worker.<id>.jobs subject is a plain subscription.
+            queue_group="" if direct else spec.topic,
+            production_verified=production,
+            message_id=bytes(packet.signature_metadata.message_id) if production else b"",
+            conversation_id=packet.trace_id if production else "",
+            creation=extract(telemetry, getattr(msg, "headers", None)),
+        )
+        # An explicit empty parent: nats-py callbacks inherit the context that
+        # was current at connect time, and a span there must never become the
+        # job's parent. The sender's context is the parent and is linked.
+        return start_process(telemetry, process, _empty_otel_context())
 
     def _validate_input(self, spec: HandlerSpec, data: Any) -> Any:
         if spec.input_model is None:
@@ -1390,10 +1456,31 @@ class Agent:
             )
             raw = outgoing.SerializeToString(deterministic=True)
 
-        await self._with_timeout(
-            self._nc.publish(SUBJECT_RESULT, raw),
-            "result publish",
+        telemetry = self._telemetry
+        if telemetry is None:
+            await self._with_timeout(
+                self._nc.publish(SUBJECT_RESULT, raw),
+                "result publish",
+            )
+            return
+        # A legacy trace_id is unauthenticated (spec/10), so it is not recorded.
+        conversation_id = ctx.packet.trace_id if self._production_enabled() else ""
+        span_context, span = start_publish(
+            telemetry,
+            Publish(subject=SUBJECT_RESULT, conversation_id=conversation_id),
+            ctx.otel_context if ctx.otel_context is not None else _empty_otel_context(),
         )
+        headers = inject_headers(telemetry, None, span_context)
+        try:
+            await self._with_timeout(
+                self._nc.publish(SUBJECT_RESULT, raw, headers=headers),
+                "result publish",
+            )
+        except Exception:
+            span.fail(ErrorType.TRANSPORT_PUBLISH_FAILED)
+            raise
+        finally:
+            span.end()
 
     async def _with_timeout(self, coro: Awaitable[TAny], label: str) -> TAny:
         if self._io_timeout is None:

@@ -231,8 +231,11 @@ func TestConfigKeysAndUnsigned(t *testing.T) {
 			e := `{"sha256":"` + hashOf("x") + `","tenant":"t","principal":"p"}`
 			env["CAP_A2A_API_KEYS_FILE"] = writeFile(t, filepath.Join(t.TempDir(), "k.json"), "["+e+","+e+"]")
 		}},
-		{"cert without key", "CAP_A2A_TLS_KEY_FILE", func(_ *testing.T, env map[string]string) {
+		{"cert without key", "must be set together", func(_ *testing.T, env map[string]string) {
 			delete(env, "CAP_A2A_TLS_KEY_FILE")
+		}},
+		{"key without cert", "must be set together", func(_ *testing.T, env map[string]string) {
+			delete(env, "CAP_A2A_TLS_CERT_FILE")
 		}},
 		{"two topics", "CAP_A2A_TOPIC", func(_ *testing.T, env map[string]string) { env["CAP_A2A_TOPIC"] = "job.a,job.b" }},
 		{"input TTL range", "CAP_A2A_INPUT_TTL", func(_ *testing.T, env map[string]string) { env["CAP_A2A_INPUT_TTL"] = "30s" }},

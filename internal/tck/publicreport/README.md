@@ -107,3 +107,46 @@ re-encoded copy.
   function limits its input, and decoding is linear in it.
 - **Derive `RequiredCaseIDs` from the scenario files** whose digest is
   `ScenarioManifestSha256`.
+
+## Signing, verification and badges (cap-tck report)
+
+```go
+func Sign(report []byte, key ed25519.PrivateKey) ([]byte, error)
+func Verify(report, sig []byte, pub ed25519.PublicKey) (Report, error)
+func Badge(report []byte) ([]byte, error)
+```
+
+`Sign` validates before signing. The detached signature is the raw 64-byte
+Ed25519 (RFC 8032, pure) signature over the exact canonical bytes, with no
+envelope or prehash. `Verify` checks the signature before validating the report.
+Errors match `ErrBadKey`, `ErrBadSignature`, `ErrSignatureMismatch`, or the
+validation sentinels above; failures return no signature or the zero report.
+
+The CLI takes caller-supplied PKCS#8 `PRIVATE KEY` and PKIX `PUBLIC KEY` PEM
+files. It never creates, uploads or stores keys, and clears the key buffers it
+holds after use (Go and its parsers cannot guarantee erasure of internal copies).
+OpenSSL 3 can verify the same signature offline:
+
+```sh
+openssl pkeyutl -verify -pubin -inkey pub.pem -rawin -in report.json -sigfile report.sig
+```
+
+`Badge` returns a fixed SVG only for a valid PASS report with profile `core` or
+`cap-production`; otherwise it returns nil and `ErrBadgeVerdict`,
+`ErrBadgeProfile`, or a validation error. Only constant allowlist values reach
+the SVG, never report text. A signature or badge is not an endorsement.
+
+`cap-tck report project` derives required ids from scenarios whose `required`
+is true and whose profile **and role** match the source run. Its case ids must
+equal all scenario ids for that profile (other roles appear as N/A). Its
+manifest digest is SHA-256 over sorted sha256sum-format lines for every direct
+`*.json` file, hashing file bytes after CRLF-to-LF folding. For LF files:
+
+```sh
+cd DIR && export LC_ALL=C && sha256sum -- *.json | sha256sum
+```
+
+All four subcommands run offline, without telemetry. See `cap-tck report --help`
+for flags. Output paths are relative to `--out-dir` (default `.`); final
+symlinks, directories and escaping paths are refused. Outputs use mode 0600
+through a same-directory temporary file and rename, cleaned up on failure.

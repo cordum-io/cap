@@ -72,6 +72,8 @@ class TestTestingUtilities(unittest.IsolatedAsyncioTestCase):
             ))
             await mock.subscriptions["job.telemetry"](SimpleNamespace(
                 data=packet.SerializeToString(deterministic=True),
+                # Keep the incoming W3C flags stable across OTel SDK versions.
+                headers={"traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"},
             ))
             while True:
                 subject, raw = await asyncio.wait_for(mock.published.get(), timeout=5)

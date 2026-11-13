@@ -16,6 +16,7 @@ import (
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
 	"github.com/nats-io/nats.go"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // EnvelopeMediaType identifies the strict turn-result grammar in spec §4.
@@ -43,6 +44,27 @@ var _ Subscriber = (*nats.Conn)(nil)
 // egressSubjects carry the packets that move a turn (spec §2.1): worker
 // results, scheduler-side outcomes such as DENIED, and progress hints.
 var egressSubjects = [...]string{capsdk.SubjectResult, capsdk.SubjectDLQ, capsdk.SubjectProgress}
+
+// publishCancel mirrors client.submit's signed deterministic packet envelope.
+// The caller's identity and the store, never the request, select principal/job.
+func (i *Ingress) publishCancel(id Identity, taskID, job string) error {
+	if i.signer == nil && !i.unsigned {
+		return errors.New("a2abridge: cancel signing key required")
+	}
+	pkt := &agentv1.BusPacket{TraceId: taskID, SenderId: i.sender, CreatedAt: timestamppb.New(i.now()),
+		ProtocolVersion: capsdk.DefaultProtocolVersion, Payload: &agentv1.BusPacket_JobCancel{
+			JobCancel: &agentv1.JobCancel{JobId: job, Reason: "a2a CancelTask", RequestedBy: id.Principal}}}
+	if i.signer != nil {
+		if err := capsdk.SignPacket(pkt, i.signer); err != nil {
+			return err
+		}
+	}
+	raw, err := capsdk.MarshalDeterministic(pkt)
+	if err != nil {
+		return err
+	}
+	return i.pub.Publish(capsdk.SubjectCancel, raw)
+}
 
 // Start subscribes to results, DLQ outcomes and progress, and applies each
 // verified packet to its task. It fails closed without a Subscriber, Results or a

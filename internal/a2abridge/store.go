@@ -36,6 +36,10 @@ type taskRecord struct {
 	changed chan struct{}
 	// prev is what release restores when a resume's input or publish fails.
 	prev *turnUndo
+	// A publish failure alone closes cancelAbort; release never closes it.
+	cancelTurn    int
+	cancelAttempt uint64
+	cancelAbort   chan struct{}
 }
 
 // maxTurns bounds the turns of one task (spec §3).
@@ -174,11 +178,12 @@ type jobRef struct {
 // evicts and is not durable: a durable store and terminal-task expiry are out
 // of scope (spec §6 and the egress slice).
 type store struct {
-	mu    sync.Mutex
-	max   int
-	tasks map[taskKey]*taskRecord
-	turns map[string]turnRef
-	jobs  map[string]jobRef
+	cancelSeq uint64 // monotonically allocated under mu; survives turn release
+	mu        sync.Mutex
+	max       int
+	tasks     map[taskKey]*taskRecord
+	turns     map[string]turnRef
+	jobs      map[string]jobRef
 }
 
 func newStore(max int) *store {
@@ -280,6 +285,7 @@ func (s *store) release(idemKey string) {
 		rec.turn, rec.jobID, rec.state, rec.statusMsg, rec.statusAt = rec.turn-1, p.jobID, p.state, p.statusMsg, p.statusAt
 		rec.history, rec.events = rec.history[:p.history], rec.events[:p.events]
 		rec.turnDone, rec.prev = true, nil
+		rec.cancelTurn, rec.cancelAttempt, rec.cancelAbort = 0, 0, nil
 		notify(rec)
 	}
 }
@@ -459,4 +465,63 @@ func (s *store) commitResult(job string, turn int, out *turnOutcome, now time.Ti
 		rec.history = append(rec.history, msg)
 	}
 	setState(rec, out.state, msg, now)
+	if rec.cancelTurn == rec.turn && (out.state == a2a.TaskStateInputRequired || out.state == a2a.TaskStateAuthRequired) {
+		setState(rec, a2a.TaskStateCanceled, nil, now)
+	}
+}
+
+type cancelStep int
+
+const (
+	cancelPublish cancelStep = iota
+	cancelWait
+	cancelDone
+)
+
+// requestCancel reserves or joins an attempt. A settling result is still in
+// flight: its reserved winner, not the cancel's grace, will finish the task.
+func (s *store) requestCancel(id Identity, taskID string, now time.Time) (step cancelStep, snap taskRecord, jobID string, attempt uint64, abort <-chan struct{}, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	rec, ok := s.tasks[taskKey{tenant: id.Tenant, principal: id.Principal, id: taskID}]
+	switch {
+	case !ok:
+		return 0, taskRecord{}, "", 0, nil, a2a.ErrTaskNotFound
+	case rec.state.Terminal():
+		return 0, taskRecord{}, "", 0, nil, a2a.ErrTaskNotCancelable
+	case rec.state == a2a.TaskStateInputRequired || rec.state == a2a.TaskStateAuthRequired:
+		setState(rec, a2a.TaskStateCanceled, nil, now)
+		return cancelDone, rec.clone(), "", 0, nil, nil
+	case rec.cancelTurn == rec.turn:
+		return cancelWait, rec.clone(), rec.jobID, rec.cancelAttempt, rec.cancelAbort, nil
+	}
+	s.cancelSeq++
+	rec.cancelAttempt, rec.cancelTurn, rec.cancelAbort = s.cancelSeq, rec.turn, make(chan struct{})
+	return cancelPublish, rec.clone(), rec.jobID, rec.cancelAttempt, rec.cancelAbort, nil
+}
+
+// cancelFailed wakes only this attempt's joiners; a stale failure cannot
+// abort a successful later attempt, even on a retry of the same message.
+func (s *store) cancelFailed(id Identity, taskID string, attempt uint64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	rec, ok := s.tasks[taskKey{tenant: id.Tenant, principal: id.Principal, id: taskID}]
+	if !ok || attempt == 0 || rec.cancelAttempt != attempt {
+		return
+	}
+	close(rec.cancelAbort)
+	rec.cancelTurn, rec.cancelAttempt, rec.cancelAbort = 0, 0, nil
+	notify(rec)
+}
+
+// expireCancel cannot defeat a reserved result or an unrelated attempt.
+func (s *store) expireCancel(id Identity, taskID string, attempt uint64, now time.Time) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	rec, ok := s.tasks[taskKey{tenant: id.Tenant, principal: id.Principal, id: taskID}]
+	if !ok || attempt == 0 || rec.cancelAttempt != attempt || rec.turnDone || rec.state.Terminal() {
+		return
+	}
+	rec.turnDone = true
+	setState(rec, a2a.TaskStateCanceled, nil, now)
 }

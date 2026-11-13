@@ -3,7 +3,8 @@
 // signed CAP JobRequests on sys.job.submit, and Start applies verified results,
 // DLQ outcomes and progress back to the tasks. A message with a taskId resumes
 // an interrupted task, and after Start a SendMessage without returnImmediately
-// waits a bounded time for its turn to settle. CancelTask comes later.
+// waits a bounded time for its turn to settle. CancelTask publishes a signed
+// JobCancel and waits for the winning result or a bounded cancellation grace.
 package a2abridge
 
 import (
@@ -106,6 +107,9 @@ type Config struct {
 	// waits, after Start, for its turn to end or be interrupted (spec §6).
 	// 0 means 60 s; otherwise it must be 1 s to 300 s.
 	MaxBlockingWait time.Duration
+	// CancelGrace bounds how long a published cancel waits for a result.
+	// 0 means 30 s; otherwise it must be 1 s to 60 s.
+	CancelGrace time.Duration
 }
 
 type keyEntry struct {
@@ -113,7 +117,7 @@ type keyEntry struct {
 	id   Identity
 }
 
-// Ingress implements a2asrv.RequestHandler for SendMessage and GetTask.
+// Ingress implements a2asrv.RequestHandler for SendMessage, GetTask and CancelTask.
 type Ingress struct {
 	keys     []keyEntry
 	topic    string
@@ -131,6 +135,8 @@ type Ingress struct {
 	resultKeys map[string]*ecdsa.PublicKey
 	trust      ProductionTrustFunc
 	maxWait    time.Duration
+	grace      time.Duration
+	afterFunc  func(time.Duration, func())
 	// started is set once Start has subscribed: only then can a turn settle.
 	started atomic.Bool
 }
@@ -175,11 +181,19 @@ func New(cfg Config) (*Ingress, error) {
 	if maxWait < time.Second || maxWait > 300*time.Second {
 		return nil, errors.New("a2abridge: MaxBlockingWait must be 1s-300s")
 	}
+	grace := cfg.CancelGrace
+	if grace == 0 {
+		grace = 30 * time.Second
+	}
+	if grace < time.Second || grace > 60*time.Second {
+		return nil, errors.New("a2abridge: CancelGrace must be 1s-60s")
+	}
 	ing := &Ingress{
 		keys: keys, topic: cfg.Topic, sender: cfg.SenderID,
 		signer: cfg.SigningKey, unsigned: cfg.AllowUnsignedDev,
 		pub: cfg.Publisher, inputs: cfg.Inputs, results: cfg.Results, store: newStore(maxTasks),
 		rand: cfg.Rand, now: cfg.Now, resultKeys: cfg.ResultKeys, trust: cfg.ProductionTrust, maxWait: maxWait,
+		grace: grace, afterFunc: func(d time.Duration, f func()) { time.AfterFunc(d, f) },
 	}
 	if ing.rand == nil {
 		ing.rand = rand.Reader
@@ -664,9 +678,95 @@ func (i *Ingress) ListTasks(ctx context.Context, _ *a2a.ListTasksRequest) (*a2a.
 	return nil, i.deny(ctx, a2a.ErrUnsupportedOperation)
 }
 
-// CancelTask is not supported by the ingress; the egress slice owns it.
-func (i *Ingress) CancelTask(ctx context.Context, _ *a2a.CancelTaskRequest) (*a2a.Task, error) {
-	return nil, i.deny(ctx, a2a.ErrUnsupportedOperation)
+// CancelTask cancels only a task owned by the authenticated caller.
+func (i *Ingress) CancelTask(ctx context.Context, req *a2a.CancelTaskRequest) (*a2a.Task, error) {
+	id, err := i.authenticate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if req == nil {
+		return nil, a2a.ErrTaskNotFound
+	}
+	taskID := string(req.ID)
+	rec, attempt, abort, done, err := i.startCancel(id, taskID)
+	if err != nil {
+		return nil, err
+	}
+	if done {
+		return rec.task(), nil
+	}
+	return i.awaitCancel(ctx, id, taskID, attempt, abort)
+}
+
+// startCancel ensures every new attempt has exactly one publisher, including
+// a waiter whose attempt a release superseded. It returns the attempt the
+// caller now waits on: the new one it published, the joined one, or 0 when
+// the cancel is already done.
+func (i *Ingress) startCancel(id Identity, taskID string) (taskRecord, uint64, <-chan struct{}, bool, error) {
+	step, rec, job, attempt, abort, err := i.store.requestCancel(id, taskID, i.now().UTC())
+	if err != nil {
+		return taskRecord{}, 0, nil, false, err
+	}
+	if step == cancelPublish {
+		if err := i.publishCancel(id, taskID, job); err != nil {
+			i.store.cancelFailed(id, taskID, attempt)
+			return taskRecord{}, 0, nil, false, a2a.ErrInternalError
+		}
+		i.afterFunc(i.grace, func() { i.store.expireCancel(id, taskID, attempt, i.now().UTC()) })
+	}
+	return rec, attempt, abort, step == cancelDone, nil
+}
+
+// awaitCancel decides by state before checking the attempt's abort: release
+// restores an interrupted turn without aborting the callers waiting on it.
+// A waiter re-applies the cancel to the current turn when it sees that
+// restored state, or when its attempt is no longer current while its abort
+// is still open: only release clears an attempt without closing its abort,
+// and a resume may already have replaced the restored turn.
+func (i *Ingress) awaitCancel(ctx context.Context, id Identity, taskID string, attempt uint64, abort <-chan struct{}) (*a2a.Task, error) {
+	for {
+		rec, changed, ok := i.store.watch(id, taskID)
+		switch {
+		case !ok:
+			return nil, a2a.ErrTaskNotFound
+		case rec.state == a2a.TaskStateCanceled:
+			return rec.task(), nil
+		case rec.state.Terminal():
+			return nil, a2a.ErrTaskNotCancelable
+		case rec.state == a2a.TaskStateInputRequired || rec.state == a2a.TaskStateAuthRequired,
+			rec.cancelAttempt != attempt && !closed(abort):
+			next, nextAttempt, nextAbort, done, err := i.startCancel(id, taskID)
+			if err != nil {
+				return nil, err
+			}
+			if done {
+				return next.task(), nil
+			}
+			attempt, abort = nextAttempt, nextAbort
+			continue
+		case closed(abort):
+			return nil, a2a.ErrInternalError
+		}
+		select {
+		case <-changed:
+		case <-abort:
+		case <-ctx.Done():
+			if current, ok := i.store.get(id, taskID); ok {
+				return current.task(), nil
+			}
+			return nil, a2a.ErrTaskNotFound
+		}
+	}
+}
+
+// closed reports, without blocking, whether ch is closed.
+func closed(ch <-chan struct{}) bool {
+	select {
+	case <-ch:
+		return true
+	default:
+		return false
+	}
 }
 
 // SubscribeToTask is not supported (no streaming in v1).

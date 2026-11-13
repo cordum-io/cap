@@ -1065,7 +1065,8 @@ func TestUnsupportedMethodsAuthenticateFirst(t *testing.T) {
 		"CancelTask": {func(ctx context.Context) error {
 			_, e := h.ing.CancelTask(ctx, &a2a.CancelTaskRequest{ID: "a2a-task-x"})
 			return e
-		}, a2a.ErrUnsupportedOperation},
+			// Egress implements CancelTask; the authenticated task is unknown.
+		}, a2a.ErrTaskNotFound},
 		"SubscribeToTask": {func(ctx context.Context) error {
 			return first(h.ing.SubscribeToTask(ctx, &a2a.SubscribeToTaskRequest{ID: "a2a-task-x"}))
 		}, a2a.ErrUnsupportedOperation},

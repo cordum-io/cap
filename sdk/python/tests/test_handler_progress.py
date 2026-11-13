@@ -290,8 +290,11 @@ def test_artifact_externalize_failure_has_no_context(mode):
             caught.append((exc.error_code_enum, exc.__cause__, exc.__context__))
         return {}
 
-    run = asyncio.run(drive(handler, backend=EventBackend(fail=mode == "backend"),
-                            blob=mode == "missing", max_bytes=4 if mode == "size" else 1024))
+    async def scenario():
+        return await drive(handler, backend=EventBackend(fail=mode == "backend"),
+                           blob=mode == "missing", max_bytes=4 if mode == "size" else 1024)
+
+    run = asyncio.run(scenario())
     assert caught == [(201, None, None)]
     assert_failure(run, "artifact exceeds max size" if mode == "size" else "artifact write failed")
 
@@ -386,14 +389,14 @@ def test_direct_terminal_publish_closes_hooks():
     async def scenario():
         nats, agent = RecordingNATS(), Agent(worker_trust_mode="off")
         agent._nc = nats
-        packet = buspacket_pb2.BusPacket(job_request=E.JobRequest(job_id=JOB_ID))
+        packet = buspacket_pb2.BusPacket(trace_id="trace-" + JOB_ID, job_request=E.JobRequest(job_id=JOB_ID))
 
         async def publish(marker):
             await agent._publish_progress(packet, marker, None)
 
         ctx = Context(job=packet.job_request, packet=packet, logger=logging.LoggerAdapter(logging.getLogger(), {}),
                       _events=_JobEvents(publish, None, 8, 1024))
-        await agent._publish_result(ctx, E.JobResult(job_id=JOB_ID, status=SUCCEEDED))
+        await agent._publish_result(ctx, E.JobResult(job_id=JOB_ID, status=SUCCEEDED, worker_id="cap-runtime"))
         assert await ctx.report_progress("late") is None
         assert [s for s, _ in nats.published] == [SUBJECT_RESULT]
 

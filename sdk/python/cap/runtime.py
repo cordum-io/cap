@@ -6,7 +6,7 @@ import math
 import os
 import secrets
 import time
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from types import MappingProxyType
 from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Tuple, Type, TypeVar, Union
@@ -27,7 +27,8 @@ except Exception:  # pragma: no cover - optional until runtime used
     ValidationError = Exception
 
 
-from cap.subjects import SUBJECT_HANDSHAKE, SUBJECT_RESULT
+from cap.subjects import SUBJECT_HANDSHAKE, SUBJECT_PROGRESS, SUBJECT_RESULT
+from cap.job_events import ARTIFACT_PURPOSE_PREFIX, _JobEvents, check_artifact, check_marker
 from cap.errors import InvalidInputError
 from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
@@ -72,7 +73,7 @@ from cap.resource_registry import (
     ResourceTooLargeError,
     TrustedResourceContext,
 )
-from cap.validate import validate_bus_packet
+from cap.validate import MAX_REPEATED_FIELD_SIZE, validate_bus_packet
 from cap.worker_trust import WorkerTrustConfig, WorkerTrustMode
 from cap.worker_trust_runtime import (
     DEFAULT_RENEW_MIN_INTERVAL,
@@ -332,6 +333,33 @@ class Context:
     job: job_pb2.JobRequest
     packet: buspacket_pb2.BusPacket
     logger: logging.LoggerAdapter
+    _events: Optional[_JobEvents] = field(default=None, repr=False, compare=False)
+
+    async def report_progress(self, marker: str) -> None:
+        """Await a RUNNING JobProgress with message=marker (1-256 printable UTF-8 bytes).
+
+        Calls publish in order, sealed for sys.job.progress in production; I/O
+        errors propagate. Async handlers on the event-loop thread only. A call
+        that runs after the handler's final attempt ended is dropped. Closed or
+        unbound contexts validate but do no I/O; run_worker is unchanged.
+        """
+        check_marker(marker)
+        if self._events is not None:
+            await self._events.progress(marker)
+
+    async def attach_artifact(self, name: str, media_type: str, content: bytes) -> None:
+        """Externalize bytes through the registry as job-artifact:<name>.
+
+        Name matches [a-z0-9][a-z0-9._-]{0,63}; media type is canonical (127-byte
+        max), content nonempty bytes. Per-attempt count/byte bounds and write
+        failures latch RESOURCE_EXHAUSTED and raise JobFailure even if caught.
+        Only SUCCEEDED carries refs, in call order; retries reset refs. Await
+        on the event-loop thread, not from a sync handler. Closed/unbound hooks
+        validate but do nothing; a call after the final attempt ended is dropped.
+        """
+        check_artifact(name, media_type, content)
+        if self._events is not None:
+            await self._events.artifact(name, media_type, content)
 
     @property
     def job_id(self) -> str:
@@ -375,6 +403,9 @@ class Agent:
     scoped to the worker-trust tenant and the admitted job id, so :meth:`start`
     fails closed without a worker-trust configuration (mode warn or enforce).
     Without a registry, ``context_ptr`` and ``result_ptr`` work as before.
+    ``max_artifacts`` (default 8, 0..1000) and ``max_artifact_bytes`` (default
+    2 MiB, positive) bound each attempt's artifacts. Only SUCCEEDED carries
+    their refs. Bounds and writes fail closed with RESOURCE_EXHAUSTED.
     """
 
     def __init__(
@@ -407,6 +438,8 @@ class Agent:
         resource_registry: Optional[ResourceRegistry] = None,
         result_backend_id: Optional[str] = None,
         result_ref_ttl: float = 3600.0,
+        max_artifacts: int = 8,
+        max_artifact_bytes: int = 2 * 1024 * 1024,
     ) -> None:
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
@@ -441,6 +474,11 @@ class Agent:
         self._production_trust = _snapshot_production_trust(production_trust)
         self._replay_store = replay_store
         self._configure_resources(resource_registry, result_backend_id, result_ref_ttl)
+        if type(max_artifacts) is not int or not 0 <= max_artifacts <= MAX_REPEATED_FIELD_SIZE:
+            raise ValueError("max_artifacts must be an int from 0 to 1000")
+        if type(max_artifact_bytes) is not int or max_artifact_bytes <= 0:
+            raise ValueError("max_artifact_bytes must be a positive int")
+        self._max_artifacts, self._max_artifact_bytes = max_artifacts, max_artifact_bytes
         Agent._initialize_lifecycle(self)
 
     def _configure_worker_trust(
@@ -1247,6 +1285,12 @@ class Agent:
         authority = (
             freeze_production_authority(req) if self._production_enabled() else None
         )
+        events = _JobEvents(
+            lambda marker: self._publish_progress(packet, marker, authority),
+            (lambda name, media, content: self._externalize_artifact(req, authority, name, media, content))
+            if self._resource_registry is not None else None,
+            self._max_artifacts, self._max_artifact_bytes,
+        )
 
         self._active_jobs.add(req.job_id)
         try:
@@ -1264,7 +1308,7 @@ class Agent:
                     "sender_id": _bounded_log_field(packet.sender_id),
                 },
             )
-            ctx = Context(job=req, packet=packet, logger=ctx_logger)
+            ctx = Context(job=req, packet=packet, logger=ctx_logger, _events=events)
 
             registry = self._resource_registry
             store = self._store
@@ -1299,36 +1343,45 @@ class Agent:
             start_time = time.monotonic()
             failure: Optional[_Outcome] = None
             output: Any = None
-            for attempt in range(spec.retries + 1):
-                try:
-                    output = await chain(ctx, input_data)
-                    output = self._validate_output(spec, output)
-                    failure = None
-                    break
-                except JobFailure as reported:
-                    # The operator chose the outcome: publish it, never retry.
-                    failure = _failure_outcome(reported)
-                    _log_handler_failure(
-                        self._logger, packet, req, reported, attempt + 1, spec.retries + 1
-                    )
-                    break
-                except Exception as exc:
-                    failure = _HANDLER_FAILED
-                    _log_handler_failure(
-                        self._logger,
-                        packet,
-                        req,
-                        exc,
-                        attempt + 1,
-                        spec.retries + 1,
-                    )
-                    if attempt >= spec.retries:
+            try:
+                for attempt in range(spec.retries + 1):
+                    events.begin_attempt()
+                    try:
+                        output = await chain(ctx, input_data)
+                        output = self._validate_output(spec, output)
+                        failure = None
                         break
+                    except JobFailure as reported:
+                        # The operator chose the outcome: publish it, never retry.
+                        failure = _failure_outcome(reported)
+                        _log_handler_failure(
+                            self._logger, packet, req, reported, attempt + 1, spec.retries + 1
+                        )
+                        break
+                    except Exception as exc:
+                        failure = _HANDLER_FAILED
+                        _log_handler_failure(
+                            self._logger,
+                            packet,
+                            req,
+                            exc,
+                            attempt + 1,
+                            spec.retries + 1,
+                        )
+                        if attempt >= spec.retries:
+                            break
+            finally:
+                events.close()  # invocation exit: before this coroutine yields completion
+
+            refs = events.refs()
+            if events.failure is not None:
+                failure = events.failure
 
             elapsed_ms = int((time.monotonic() - start_time) * 1000)
             result = job_pb2.JobResult(
                 job_id=req.job_id,
                 status=job_pb2.JOB_STATUS_SUCCEEDED,
+                artifact_refs=refs,
                 worker_id=self._sender_id,
                 execution_ms=elapsed_ms,
             )
@@ -1355,6 +1408,7 @@ class Agent:
                 ),
             )
         finally:
+            events.close()
             self._active_jobs.discard(req.job_id)
 
     async def _read_input(
@@ -1431,6 +1485,22 @@ class Agent:
         if self._max_result_bytes is not None and len(result_payload) > self._max_result_bytes:
             return _RESULT_TOO_LARGE, b""
         return None, result_payload
+
+    async def _externalize_artifact(
+        self, req: job_pb2.JobRequest, authority: Optional[ProductionEventAuthority],
+        name: str, media_type: str, content: bytes,
+    ) -> object:
+        registry = self._resource_registry
+        if registry is None:
+            raise RuntimeError("artifact registry is unavailable")
+        return await self._with_timeout(
+            registry.externalize(
+                self._result_backend_id, content, media_type=media_type,
+                purpose=ARTIFACT_PURPOSE_PREFIX + name,
+                expires_at=datetime.now(timezone.utc) + timedelta(seconds=self._result_ref_ttl),
+                trusted=self._trusted_resource_context(req, authority),
+            ), "artifact externalize",
+        )
 
     async def _externalize_result(
         self, registry: ResourceRegistry, trusted: TrustedResourceContext, output: Any
@@ -1524,6 +1594,8 @@ class Agent:
         result: job_pb2.JobResult,
         authority: Optional[ProductionEventAuthority] = None,
     ) -> None:
+        if ctx._events is not None:
+            ctx._events.close()
         if self._nc is None:
             ctx.logger.error("NATS not initialized")
             return
@@ -1536,14 +1608,44 @@ class Agent:
         bound_result.CopyFrom(result)
         if authority is not None:
             bind_production_event(bound_result, authority)
+        packet = self._event_envelope(ctx.packet)
+        packet.job_result.CopyFrom(bound_result)
+        raw = self._event_wire(packet, authority, SUBJECT_RESULT)
+        await self._with_timeout(self._nc.publish(SUBJECT_RESULT, raw), "result publish")
+
+    async def _publish_progress(
+        self, request: buspacket_pb2.BusPacket, marker: str,
+        authority: Optional[ProductionEventAuthority],
+    ) -> None:
+        if self._nc is None:
+            raise RuntimeError("NATS not initialized")
+        if self._production_enabled() and authority is None:
+            raise ProductionEventConflictError("production progress requires admitted request authority")
+        progress = job_pb2.JobProgress(
+            job_id=authority.job_id if authority is not None else request.job_request.job_id,
+            status=job_pb2.JOB_STATUS_RUNNING, message=marker,
+        )
+        if authority is not None:
+            bind_production_event(progress, authority)
+        packet = self._event_envelope(request)
+        packet.job_progress.CopyFrom(progress)
+        raw = self._event_wire(packet, authority, SUBJECT_PROGRESS)
+        await self._with_timeout(self._nc.publish(SUBJECT_PROGRESS, raw), "progress publish")
+
+    def _event_envelope(self, request: buspacket_pb2.BusPacket) -> buspacket_pb2.BusPacket:
         packet = buspacket_pb2.BusPacket()
-        packet.trace_id = ctx.packet.trace_id
+        packet.trace_id = request.trace_id
         packet.sender_id = self._sender_id
         packet.protocol_version = DEFAULT_PROTOCOL_VERSION
         ts = timestamp_pb2.Timestamp()
         ts.GetCurrentTime()
         packet.created_at.CopyFrom(ts)
-        packet.job_result.CopyFrom(bound_result)
+        return packet
+
+    def _event_wire(
+        self, packet: buspacket_pb2.BusPacket,
+        authority: Optional[ProductionEventAuthority], subject: str,
+    ) -> bytes:
         if authority is not None:
             packet.identity.CopyFrom(authority.identity)
             packet.auth_token = self._outbound_session_token()
@@ -1557,7 +1659,7 @@ class Agent:
                 packet,
                 key=config.proof_private_key,
                 key_id=config.proof_key_id,
-                audience=SUBJECT_RESULT,
+                audience=subject,
             )
         else:
             outgoing = finalize_packet(
@@ -1567,10 +1669,7 @@ class Agent:
             )
             raw = outgoing.SerializeToString(deterministic=True)
 
-        await self._with_timeout(
-            self._nc.publish(SUBJECT_RESULT, raw),
-            "result publish",
-        )
+        return raw
 
     async def _with_timeout(self, coro: Awaitable[TAny], label: str) -> TAny:
         if self._io_timeout is None:

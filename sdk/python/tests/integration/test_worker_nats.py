@@ -23,8 +23,8 @@ from cap.resource_registry import (
     ResourceRegistry,
     TrustedResourceContext,
 )
-from cap.runtime import Agent
-from cap.subjects import SUBJECT_RESULT
+from cap.runtime import Agent, Context, InMemoryBlobStore
+from cap.subjects import SUBJECT_CANCEL, SUBJECT_RESULT
 from cap.worker import run_worker
 from tests.worker_trust_runtime_support import trust_config
 
@@ -297,6 +297,54 @@ class TestWorkerRealNATS(unittest.IsolatedAsyncioTestCase):
             resolved = await registry.resolve(result.result_ref, trusted)
             self.assertEqual(json.dumps({"y": 2}).encode("utf-8"), resolved.content)
             self.assertEqual("application/json", resolved.media_type)
+        finally:
+            await asyncio.wait_for(agent.close(), TIMEOUT_SECONDS)
+            if not submitter.is_closed:
+                await asyncio.wait_for(submitter.drain(), TIMEOUT_SECONDS)
+
+
+    async def test_fenced_cancel_over_real_nats(self) -> None:
+        nats_url, suffix = _required_nats_url(), uuid.uuid4().hex
+        topic, trace_id, job_id = (f"test.cap.cancel.{suffix}", f"trace-{suffix}", f"job-{suffix}")
+        scheduler_key = ec.generate_private_key(ec.SECP256R1())
+        config = replace(trust_config(), scheduler_public_keys={"scheduler-pin": scheduler_key.public_key()})
+        store, started = InMemoryBlobStore(), asyncio.Event()
+        await store.set("ctx:" + job_id, b"{}")
+        agent = Agent(nats_url=nats_url, sender_id=config.worker_id, store=store,
+                      worker_trust_mode="warn", worker_trust=config,
+                      worker_trust_timeout=0.5, worker_trust_retries=1)
+
+        @agent.job(topic)
+        async def handler(ctx: Context, data: object) -> object:
+            started.set()
+            await asyncio.Event().wait()
+            return data
+
+        submitter = await _connect("cap-python-cancel-submitter", nats_url)
+        results = await submitter.subscribe(SUBJECT_RESULT)
+        try:
+            await asyncio.wait_for(agent.start(), TIMEOUT_SECONDS)
+            await agent._nc.flush(timeout=TIMEOUT_SECONDS)
+            await submitter.flush(timeout=TIMEOUT_SECONDS)
+            packet = buspacket_pb2.BusPacket(trace_id=trace_id,
+                sender_id=config.expected_scheduler_id, protocol_version=DEFAULT_PROTOCOL_VERSION)
+            packet.created_at.GetCurrentTime()
+            packet.job_request.CopyFrom(job_pb2.JobRequest(job_id=job_id, topic=topic,
+                context_ptr="redis://ctx:" + job_id, dispatch=job_pb2.DispatchIdentity(
+                    dispatch_id="dispatch-" + suffix, attempt=1, assigned_worker_id=config.worker_id)))
+            await submitter.publish(topic, finalize_packet(packet, scheduler_key).SerializeToString())
+            await asyncio.wait_for(started.wait(), TIMEOUT_SECONDS)
+            cancel = job_pb2.JobCancel(job_id=job_id, dispatch=packet.job_request.dispatch,
+                                      requested_by="integration-operator")
+            packet.ClearField("job_request")
+            packet.job_cancel.CopyFrom(cancel)
+            before = asyncio.get_running_loop().time()
+            await submitter.publish(SUBJECT_CANCEL, finalize_packet(packet, scheduler_key).SerializeToString())
+            result = (await _next_result(results, trace_id)).job_result
+            self.assertLess(asyncio.get_running_loop().time() - before, TIMEOUT_SECONDS)
+            self.assertEqual((job_id, job_pb2.JOB_STATUS_CANCELLED), (result.job_id, result.status))
+            with self.assertRaises(asyncio.TimeoutError):
+                await asyncio.wait_for(_next_result(results, trace_id), 0.5)
         finally:
             await asyncio.wait_for(agent.close(), TIMEOUT_SECONDS)
             if not submitter.is_closed:

@@ -5,8 +5,9 @@ import logging
 import math
 import os
 import secrets
+import threading
 import time
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta, timezone
 from types import MappingProxyType
 from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Tuple, Type, TypeVar, Union
@@ -27,7 +28,11 @@ except Exception:  # pragma: no cover - optional until runtime used
     ValidationError = Exception
 
 
-from cap.subjects import SUBJECT_HANDSHAKE, SUBJECT_RESULT
+from cap.subjects import SUBJECT_CANCEL, SUBJECT_HANDSHAKE, SUBJECT_RESULT
+from cap.cancel import (
+    CancelRegistry, _JOB_CANCELLED, _JOB_TIMEOUT, handler_deadline,
+    peek_cancel_job_id, validate_max_deadline,
+)
 from cap.errors import InvalidInputError
 from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
@@ -327,11 +332,21 @@ def _default_logger() -> logging.Logger:
 
 @dataclass
 class Context:
-    """Per-request context passed to every job handler."""
+    """Per-request context. deadline is a monotonic instant, or None.
+
+    cancelled is read-only and thread-safe: True after an accepted cancel or
+    deadline stops the handler. Constructing with job/packet/logger still works.
+    """
 
     job: job_pb2.JobRequest
     packet: buspacket_pb2.BusPacket
     logger: logging.LoggerAdapter
+    deadline: Optional[float] = None
+    _stop_signal: threading.Event = field(default_factory=threading.Event, repr=False)
+
+    @property
+    def cancelled(self) -> bool:
+        return self._stop_signal.is_set()
 
     @property
     def job_id(self) -> str:
@@ -375,6 +390,15 @@ class Agent:
     scoped to the worker-trust tenant and the admitted job id, so :meth:`start`
     fails closed without a worker-trust configuration (mode warn or enforce).
     Without a registry, ``context_ptr`` and ``result_ptr`` work as before.
+
+    ``max_deadline`` is a positive finite bound in seconds, or None (unbounded).
+    The smaller of it and a positive budget.deadline_ms applies from handler
+    start, including middleware/retries. A zero budget uses max_deadline.
+    Admitted, dispatch-fenced sys.job.cancel stops the handler without a slot.
+    Synchronous handlers block the loop and cannot be pre-empted; their result
+    wins. Work in a thread finishes independently after the bounded result.
+    Suppressing CancelledError keeps the slot until return; that outcome is
+    discarded. close() drains cancel subscriptions. run_worker is unchanged.
     """
 
     def __init__(
@@ -388,6 +412,7 @@ class Agent:
         worker_id: Optional[str] = None,
         pool: str = "",
         max_parallel: int = 1,
+        max_deadline: Optional[float] = None,
         heartbeat_interval: float = 5.0,
         heartbeat_payload_fn: Optional[Callable[[], bytes]] = None,
         retries: int = 0,
@@ -416,6 +441,7 @@ class Agent:
         self._sender_id = worker_id or sender_id
         self._pool = pool
         self._max_parallel = _normalize_max_parallel(max_parallel)
+        self._max_deadline = validate_max_deadline(max_deadline)
         self._heartbeat_interval = heartbeat_interval if heartbeat_interval > 0 else 5.0
         self._heartbeat_payload_fn = heartbeat_payload_fn
         self._default_retries = max(0, retries)
@@ -487,6 +513,7 @@ class Agent:
         self._middlewares: list = []
         self._nc = None
         self._active_jobs: set[str] = set()
+        self._cancel_registry = CancelRegistry()
         self._heartbeat_cancel_event: Optional[asyncio.Event] = None
         self._heartbeat_task: Optional[asyncio.Task[Any]] = None
         self._subscriptions: list[Any] = []
@@ -698,6 +725,23 @@ class Agent:
 
             handle = await self._nc.subscribe(subject, cb=on_direct)
             self._remember_subscription(handle)
+        handle = await self._nc.subscribe(SUBJECT_CANCEL, cb=self._on_cancel)
+        self._remember_subscription(handle)
+
+    async def _on_cancel(self, msg: object) -> None:
+        payload = getattr(msg, "data", b"")
+        if not self._cancel_registry.is_running(peek_cancel_job_id(payload)):
+            return
+        packet = self._decode_admitted_packet(payload, SUBJECT_CANCEL)
+        if packet is None or not packet.HasField("job_cancel"):
+            return
+        cancel = packet.job_cancel
+        if (self._production_enabled() and cancel.HasField("identity")
+                and cancel.identity != packet.identity):
+            return
+        if self._cancel_registry.apply(cancel):
+            self._logger.info("job cancel accepted", extra={
+                "job_id": _bounded_log_field(cancel.job_id)})
 
     def _remember_subscription(self, handle: Any) -> None:
         if handle is not None and callable(getattr(handle, "drain", None)):
@@ -1247,6 +1291,9 @@ class Agent:
         authority = (
             freeze_production_authority(req) if self._production_enabled() else None
         )
+        running = self._cancel_registry.register(
+            req.job_id, authority.dispatch if authority is not None else req.dispatch
+        )
 
         self._active_jobs.add(req.job_id)
         try:
@@ -1264,7 +1311,7 @@ class Agent:
                     "sender_id": _bounded_log_field(packet.sender_id),
                 },
             )
-            ctx = Context(job=req, packet=packet, logger=ctx_logger)
+            ctx = Context(job=req, packet=packet, logger=ctx_logger, _stop_signal=running.stopped)
 
             registry = self._resource_registry
             store = self._store
@@ -1284,47 +1331,35 @@ class Agent:
                 )
                 return
 
-            # Build middleware chain: outermost first, terminal calls handler.
-            async def _terminal(c: Context, d: Any) -> Any:
-                result = spec.func(c, d)
-                if asyncio.iscoroutine(result):
-                    result = await result
-                return result
-
-            chain = _terminal
-            for mw in reversed(self._middlewares):
-                _next = chain
-                chain = (lambda m, n: (lambda c, d: m(c, d, n)))(mw, _next)
-
+            if running.requested.is_set():
+                running.stopped.set()
+                await self._publish_cancelled(ctx, 0, authority)
+                return
             start_time = time.monotonic()
-            failure: Optional[_Outcome] = None
-            output: Any = None
-            for attempt in range(spec.retries + 1):
-                try:
-                    output = await chain(ctx, input_data)
-                    output = self._validate_output(spec, output)
-                    failure = None
-                    break
-                except JobFailure as reported:
-                    # The operator chose the outcome: publish it, never retry.
-                    failure = _failure_outcome(reported)
-                    _log_handler_failure(
-                        self._logger, packet, req, reported, attempt + 1, spec.retries + 1
-                    )
-                    break
-                except Exception as exc:
-                    failure = _HANDLER_FAILED
-                    _log_handler_failure(
-                        self._logger,
-                        packet,
-                        req,
-                        exc,
-                        attempt + 1,
-                        spec.retries + 1,
-                    )
-                    if attempt >= spec.retries:
-                        break
-
+            ctx.deadline = handler_deadline(start_time, req.budget.deadline_ms, self._max_deadline)
+            task = asyncio.create_task(self._invoke_handler(ctx, spec, input_data))
+            cancel_task = asyncio.create_task(running.requested.wait())
+            try:
+                timeout = max(0, ctx.deadline - time.monotonic()) if ctx.deadline is not None else None
+                await asyncio.wait({task, cancel_task}, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
+                # Observe completion before cancel before deadline, even on the same tick.
+                if task.done():
+                    failure, output = task.result()
+                else:
+                    running.stopped.set()
+                    task.cancel()
+                    elapsed_ms = int((time.monotonic() - start_time) * 1000)
+                    if running.requested.is_set():
+                        await self._publish_cancelled(ctx, elapsed_ms, authority)
+                    else:
+                        await self._publish_failure(ctx, req, _JOB_TIMEOUT, elapsed_ms, authority)
+                    await asyncio.gather(task, return_exceptions=True)
+                    return
+            finally:
+                task.cancel()
+                task.add_done_callback(self._consume_detached)
+                cancel_task.cancel()
+                await asyncio.gather(cancel_task, return_exceptions=True)
             elapsed_ms = int((time.monotonic() - start_time) * 1000)
             result = job_pb2.JobResult(
                 job_id=req.job_id,
@@ -1355,7 +1390,66 @@ class Agent:
                 ),
             )
         finally:
+            self._cancel_registry.unregister(running)
             self._active_jobs.discard(req.job_id)
+
+    async def _invoke_handler(
+        self, ctx: Context, spec: HandlerSpec, input_data: object
+    ) -> Tuple[Optional[_Outcome], object]:
+        # Build middleware chain: outermost first, terminal calls handler.
+        async def _terminal(c: Context, d: object) -> object:
+            result = spec.func(c, d)
+            if asyncio.iscoroutine(result):
+                result = await result
+            return result
+
+        chain = _terminal
+        for mw in reversed(self._middlewares):
+            _next = chain
+            chain = (lambda m, n: (lambda c, d: m(c, d, n)))(mw, _next)
+
+        packet, req = ctx.packet, ctx.job
+        failure: Optional[_Outcome] = None
+        output: object = None
+        for attempt in range(spec.retries + 1):
+            try:
+                output = await chain(ctx, input_data)
+                output = self._validate_output(spec, output)
+                failure = None
+                break
+            except JobFailure as reported:
+                # The operator chose the outcome: publish it, never retry.
+                failure = _failure_outcome(reported)
+                _log_handler_failure(
+                    self._logger, packet, req, reported, attempt + 1, spec.retries + 1
+                )
+                break
+            except Exception as exc:
+                failure = _HANDLER_FAILED
+                _log_handler_failure(
+                    self._logger,
+                    packet,
+                    req,
+                    exc,
+                    attempt + 1,
+                    spec.retries + 1,
+                )
+                if attempt >= spec.retries:
+                    break
+        return failure, output
+
+    async def _publish_cancelled(
+        self, ctx: Context, elapsed_ms: int, authority: Optional[ProductionEventAuthority]
+    ) -> None:
+        result = job_pb2.JobResult(
+            job_id=ctx.job_id, status=_JOB_CANCELLED.status,
+            error_code_enum=_JOB_CANCELLED.error_code_enum, error_code=_JOB_CANCELLED.error_code,
+            error_message=_JOB_CANCELLED.error_message,
+            worker_id=self._sender_id, execution_ms=elapsed_ms,
+        )
+        await self._publish_result(ctx, result, authority)
+        safe_metrics_call(self._logger, lambda: self._metrics.on_job_completed(
+            ctx.job_id, elapsed_ms, "CANCELLED"))
 
     async def _read_input(
         self, store: BlobStore, spec: HandlerSpec, req: job_pb2.JobRequest

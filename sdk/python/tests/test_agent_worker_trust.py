@@ -136,7 +136,7 @@ class TestAgentTrustStartup(unittest.IsolatedAsyncioTestCase):
         try:
             self.assertEqual("", agent.session_token)
             self.assertTrue(agent._trust_admitting)
-            self.assertEqual(2, len(agent._subscriptions))
+            self.assertEqual(3, len(agent._subscriptions))  # Includes plain cancel subscription.
         finally:
             await agent.close()
 
@@ -213,7 +213,7 @@ class TestAgentTrustRenewal(unittest.IsolatedAsyncioTestCase):
 
         with patch.object(WorkerTrustLifecycle, "_exchange_once", exchange):
             await agent.start()
-            await nats.wait_for_drains(2)
+            await nats.wait_for_drains(3)  # Includes the cancel subscription.
         try:
             self.assertEqual("", agent.session_token)
             self.assertFalse(agent._trust_admitting)
@@ -266,7 +266,7 @@ class TestAgentTrustRenewal(unittest.IsolatedAsyncioTestCase):
 
         with patch.object(WorkerTrustLifecycle, "_exchange_once", exchange):
             await agent.start()
-            await nats.wait_for_drains(2)
+            await nats.wait_for_drains(3)  # Includes the cancel subscription.
             while agent._worker_trust.renewal_running:
                 await asyncio.sleep(0)
             self.assertIsNone(agent._heartbeat_task)
@@ -276,7 +276,7 @@ class TestAgentTrustRenewal(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(agent._trust_admitting)
             self.assertIsNotNone(agent._heartbeat_task)
             self.assertTrue(agent._worker_trust.renewal_running)
-            self.assertEqual(2, len(agent._subscriptions))
+            self.assertEqual(3, len(agent._subscriptions))  # Includes plain cancel subscription.
         finally:
             await agent.close()
 

@@ -6,6 +6,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **cap-sdk-python: `cap.testing.MockNATS.publish` accepts `headers=` (bug fix).** `create_test_agent(telemetry=...)` failed every result publish with `TypeError`, marking the span `TRANSPORT_PUBLISH_FAILED`. MockNATS now accepts the optional headers mapping and records a defensive copy in `published_headers`; the `published` queue still yields `(subject, data)`.
+
 - **cap-sdk-python: `validate_resource_ref` compares ResourceRef expiry at nanosecond precision (bug fix).** `Timestamp.ToDatetime()` truncated to microseconds, rejecting references expiring 1 ns after validation while Go accepted them. Exact `(seconds, nanos)` comparison now matches Go `AsTime().After(now)`, range validation mirrors Go `CheckValid`, and aware validation times at the edges of `datetime` no longer raise `OverflowError`.
 
 

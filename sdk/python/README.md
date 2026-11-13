@@ -216,10 +216,11 @@ asyncio.run(agent.run())
 
 - In both `run_worker()` and the high-level `Agent`, an ordinary handler
   `Exception` produces exactly one `JOB_STATUS_FAILED` result with the generic
-  external message `handler failed`. Diagnostics use bounded, newline-safe
-  identifiers and the exception type without exposing exception text. Logging
-  and metrics hooks are best-effort and cannot block the terminal result; the
-  worker remains available for later jobs.
+  external message `handler failed`. In the `Agent`, a `cap.JobFailure`
+  publishes its own status and code instead (see below). Diagnostics use
+  bounded, newline-safe identifiers and the exception type without exposing
+  exception text. Logging and metrics hooks are best-effort and cannot block
+  the terminal result; the worker remains available for later jobs.
 - `asyncio.CancelledError`, `KeyboardInterrupt`, and `SystemExit` remain control
   flow and are not converted into job results.
 - Cancelling `run_worker()` drains its NATS connection before exit.
@@ -231,6 +232,196 @@ asyncio.run(agent.run())
   (30 seconds by default), and later stages are still attempted after a timeout.
   Pass `None` only to opt out of deadlines; zero and negative values are
   rejected. Repeated or concurrent calls share the same cleanup operation.
+
+#### Typed failures and error codes
+
+In an `Agent` handler or middleware, raise `cap.JobFailure` to publish a
+[spec/13](https://github.com/cordum-io/cap/blob/main/spec/13-error-codes.md)
+error code instead of `handler failed`. For example, the handler above can
+reject an empty prompt:
+
+```python
+from cap import JobFailure
+
+@agent.job("job.summarize", input_model=Input, output_model=Output)
+async def summarize(ctx: Context, data: Input) -> Output:
+    if not data.prompt:
+        raise JobFailure("EMPTY_PROMPT", retryable=False)
+    return Output(summary=data.prompt[:140])
+```
+
+- An `int` code sets `error_code_enum`. It must be an `ErrorCode` value other
+  than `ERROR_CODE_UNSPECIFIED`, or an application code in 1000-9999.
+  `error_code` stays empty, except for the spec/13 legacy strings:
+  - `ERROR_CODE_JOB_TIMEOUT`: `TIMEOUT`;
+  - `ERROR_CODE_SAFETY_DENIED`: `DENIED`;
+  - `ERROR_CODE_JOB_PERMISSION_DENIED`: `PERMISSION_DENIED`.
+- A `str` code such as `"FRAMEWORK_ERROR"` sets `error_code` and leaves
+  `error_code_enum` at `ERROR_CODE_UNSPECIFIED`. It must match
+  `[A-Z][A-Z0-9_]{0,63}`. Any other code or `retryable` value, `bool` codes
+  included, raises `TypeError` or `ValueError` when the `JobFailure` is built;
+  inside a handler, that error is an ordinary exception.
+- `retryable` selects the status:
+  - `retryable=None` (the default): `JOB_STATUS_FAILED`;
+  - `retryable=True`: `JOB_STATUS_FAILED_RETRYABLE`;
+  - `retryable=False`: `JOB_STATUS_FAILED_FATAL`.
+- `error_message` is always `handler reported failure`, and the metrics hook's
+  `on_job_failed` gets the same text. The exception's arguments, its cause and
+  the input are never published. A subclass must call `JobFailure.__init__`;
+  one that does not publishes `handler failed`, still without a retry.
+- The SDK never retries after a `JobFailure`: it publishes that outcome at
+  once, whatever `retries` says. An ordinary exception, an `output_model`
+  validation error included, still runs the handler up to `retries + 1` times;
+  if every attempt fails, the result is `handler failed`.
+- The low-level `run_worker()` is unchanged. Its handlers build their own
+  `JobResult`, and a `JobFailure` raised there is an ordinary exception.
+
+Failures the `Agent` detects itself publish `JOB_STATUS_FAILED` with an empty
+`error_code` and fixed text, never exception text, input bytes or pointer text:
+
+| Condition | `error_code_enum` | `error_message` |
+|---|---|---|
+| `context_ptr` is not a valid pointer | `ERROR_CODE_JOB_INVALID_INPUT` | `context pointer invalid` |
+| a `resource_registry` is set and `context_ref` is missing | `ERROR_CODE_JOB_INVALID_INPUT` | `context ref required` |
+| the registry refused `context_ref`, or `context_ptr` names other bytes | `ERROR_CODE_JOB_INVALID_INPUT` | `context ref refused` |
+| context fetch raised or timed out | `ERROR_CODE_UNSPECIFIED` | `context fetch failed` |
+| no context blob at the pointer | `ERROR_CODE_JOB_NOT_FOUND` | `context not found` |
+| context over `max_context_bytes` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `context exceeds max size` |
+| context is not UTF-8 JSON | `ERROR_CODE_JOB_INVALID_INPUT` | `context decode failed` |
+| `input_model` rejects the input | `ERROR_CODE_JOB_INVALID_INPUT` | `input validation failed` |
+| handler, middleware or `output_model` raised on every attempt | `ERROR_CODE_UNSPECIFIED` | `handler failed` |
+| output is not JSON-serializable | `ERROR_CODE_UNSPECIFIED` | `result encode failed` |
+| result over `max_result_bytes` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `result exceeds max size` |
+| result write raised or timed out | `ERROR_CODE_UNSPECIFIED` | `result write failed` |
+
+#### ResourceRef input and output
+
+Pass an operator-built `cap.ResourceRegistry` to read job input from
+`JobRequest.context_ref` and publish results as `JobResult.result_ref`:
+
+```python
+from cap import Agent, InMemoryResourceBackend, ResourceBackendRegistration, ResourceRegistry
+
+backend = InMemoryResourceBackend()  # tests only: install a durable backend in production
+registry = ResourceRegistry([ResourceBackendRegistration("memory", 2 * 1024 * 1024, backend, backend)])
+agent = Agent(
+    resource_registry=registry,
+    result_backend_id="memory",  # required with a registry
+    result_ref_ttl=3600.0,  # seconds; the default
+    worker_trust_mode="enforce",
+    worker_trust=trust,  # a cap.WorkerTrustConfig
+)
+```
+
+- Every resolve and externalize runs under the worker-trust tenant
+  (`worker_trust.tenant_id`) and the admitted job id. Neither comes from the
+  ref. `start()` raises `RuntimeError` before it connects when there is no
+  worker-trust configuration (mode `warn` or `enforce`). No Redis store is opened.
+- Input comes only from `context_ref`. A `context_ptr` sent with it must name
+  the same Redis key (spec/19). A ref whose `media_type` is not
+  `application/json`, or whose `size_bytes` is over `max_context_bytes`, is
+  rejected before any fetch. The handler never runs for a missing, refused or
+  oversize ref, and `retries` never repeats the resolve.
+- A ref over the backend's `max_bytes` publishes `context exceeds max size`. A
+  backend error or timeout publishes `context fetch failed`, and so does another
+  tenant's ref, which the backend cannot find. A non-JSON ref publishes
+  `context decode failed`, and any other registry error `context ref refused`.
+- A SUCCEEDED result is externalized as `application/json` with purpose
+  `job-result`, expiring `result_ref_ttl` seconds later. It carries
+  `result_ref`, and `result_ptr` stays empty. A result over the backend's
+  `max_bytes` publishes `result exceeds max size`; any other failure
+  `result write failed`.
+- Without `resource_registry`, `context_ptr` and `result_ptr` work as before.
+
+#### Cancellation and deadlines
+
+Tags: cancellation, deadlines, worker-contract.
+
+`Agent` subscribes to `sys.job.cancel` without a queue group or a handler slot.
+It first checks whether the unverified job id is running locally (routing only,
+not authority), then admits the cancel exactly like a request. CAP-PRODUCTION
+requires the `sys.job.cancel` audience, session-bound trust and replay admission;
+a set cancel identity must equal the verified envelope identity. The admitted
+job id and the whole dispatch (dispatch id, attempt, assigned worker) must match
+the running attempt. Empty dispatch matches only empty dispatch. Refused cancels
+change nothing, and non-target workers do not consume shared replay entries.
+
+`Agent(max_deadline=None)` keeps unbounded execution by default. A positive
+`Budget.deadline_ms` gives `min(deadline_ms / 1000, max_deadline)` seconds, or the
+budget alone when the maximum is `None`. A zero budget uses the maximum.
+The maximum must be positive and finite; booleans and non-numbers are rejected.
+The clock starts after input resolution, at handler start, and includes
+middleware and retries. Result writes and publication still use `io_timeout`.
+`Context.deadline` is that `time.monotonic()` instant, or `None`;
+`Context.cancelled` is a read-only, thread-safe boolean set when cancel or
+deadline stops the handler.
+
+Cancellation publishes `JOB_STATUS_CANCELLED`, an empty `error_code`, enum
+`UNSPECIFIED`, and `job cancelled`. Deadline expiry publishes `JOB_STATUS_FAILED`
+(never status TIMEOUT), `ERROR_CODE_JOB_TIMEOUT`, `TIMEOUT`, and
+`job deadline exceeded`. Cancel reason and requester text are never published or
+logged. Exactly one terminal result is selected: the first observed event wins,
+with completion before cancel before deadline when observed together. A cancel
+before handler start skips the handler with execution time zero; an input
+failure keeps its own outcome.
+
+A synchronous handler blocks the event loop and cannot be pre-empted; its result
+wins once it returns. Blocking work in `asyncio.to_thread` gets its terminal
+result at the bound, while the thread finishes independently. A handler that
+suppresses `CancelledError` keeps its slot until it returns; that outcome is
+discarded. Once `close()` drains subscriptions, no further cancels are received.
+The low-level `cap.worker.run_worker` is unchanged.
+
+#### Progress and artifacts
+
+Async `Agent` handlers can await ordered progress and registry-backed artifacts:
+
+```python
+await context.report_progress("validated")
+await context.attach_artifact("receipt", "text/plain", b"accepted")
+```
+
+`report_progress(marker)` publishes one `JobProgress` on `sys.job.progress` with
+the admitted job ID, status `JOB_STATUS_RUNNING`, `message=marker`, percent 0
+and other fields unset. The marker is an exact `str`, 1-256 UTF-8 bytes, and
+`str.isprintable()` must be true. CAP-PRODUCTION binds job identity and dispatch
+and seals the envelope for audience `sys.job.progress` using the worker proof key.
+Each call awaits publication under `io_timeout`; errors propagate. Markers go
+out in call order before the terminal result.
+
+`attach_artifact(name, media_type, content)` requires the operator
+`resource_registry` and writes to `result_backend_id`, with purpose
+`job-artifact:<name>` and expiry `now + result_ref_ttl`. It uses the worker-trust
+tenant and admitted job ID, never identity from a resource reference. The exact
+string name matches `[a-z0-9][a-z0-9._-]{0,63}`; media type is canonical lowercase
+type/subtype without parameters, at most 127 bytes; content is nonempty exact
+`bytes`. Invalid arguments raise `TypeError` or `ValueError` without publication
+or latching a failure.
+
+`Agent(max_artifacts=8, max_artifact_bytes=2 * 1024 * 1024)` bounds the count per
+attempt and bytes per artifact. Count accepts integers 0..1000 and byte limit
+accepts positive integers; bool and non-integers raise `ValueError`. A rejected
+bound never writes content. Only a SUCCEEDED result includes `artifact_refs`,
+in call order; `result_ref` is unchanged. Retries clear artifacts, but retain
+progress already published and the first failure latch.
+
+| Status | Error code | Fixed message |
+| --- | --- | --- |
+| `JOB_STATUS_FAILED` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `artifact count exceeds max` |
+| `JOB_STATUS_FAILED` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `artifact exceeds max size` |
+| `JOB_STATUS_FAILED` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `artifact write failed` |
+
+Count/size breaches, missing registries and write failures raise `JobFailure`
+and latch the first row above. Registry size refusal uses the size row. The
+latch overrides the handler outcome even if caught, so no SUCCEEDED result is
+published. The raised failure contains no backend exception cause or context.
+
+Hooks close synchronously when the final handler attempt ends, at terminal
+publish entry, and during request cleanup. A call that runs after the handler's
+final attempt ended is dropped. Closed or directly constructed, unbound contexts
+still validate arguments, but publish and externalize nothing. Await hooks on
+the event-loop thread: synchronous handlers cannot await them. `run_worker`
+is unchanged. Tags: Python, progress, artifacts, ResourceRef.
 
 ### Middleware
 

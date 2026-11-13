@@ -1,9 +1,11 @@
 import asyncio
+import json
 import os
 import unittest
 import uuid
-from typing import Awaitable, Callable, Optional
-from typing import Any, Dict, List, Tuple
+from dataclasses import replace
+from datetime import datetime, timedelta, timezone
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Tuple
 
 import nats
 from nats.aio.client import Client as NATSClient
@@ -17,14 +19,25 @@ from opentelemetry.sdk.trace.sampling import ALWAYS_ON
 from opentelemetry.trace import SpanContext, SpanKind
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
+from cryptography.hazmat.primitives.asymmetric import ec
+
 from cap.client import submit_job
 from cap.constants import DEFAULT_PROTOCOL_VERSION
+from cap.packet_boundary import finalize_packet
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cap.production_replay import InMemoryReplayStore
 from cap.production_signing import ProductionTrust
+from cap.resource_registry import (
+    InMemoryResourceBackend,
+    ResourceBackendRegistration,
+    ResourceRegistry,
+    TrustedResourceContext,
+)
 from cap.runtime import Agent, Context, InMemoryBlobStore
 from cap.subjects import (
+    SUBJECT_CANCEL,
     SUBJECT_HANDSHAKE,
+    SUBJECT_PROGRESS,
     SUBJECT_RESULT,
     SUBJECT_SUBMIT,
     SUBJECT_WORKER_HANDSHAKE_AUTHENTICATE,
@@ -40,6 +53,7 @@ from tests.integration.test_production_admission_nats import (
     TrustResponder,
     connect_worker,
 )
+from tests.worker_trust_runtime_support import trust_config
 
 
 NATS_URL_ENV = "CAP_TEST_NATS_URL"
@@ -244,6 +258,188 @@ class TestWorkerRealNATS(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(worker_connection.client.is_closed)
         finally:
             await _cleanup_task(worker_task)
+            if not submitter.is_closed:
+                await asyncio.wait_for(submitter.drain(), TIMEOUT_SECONDS)
+
+    async def test_context_ref_round_trip_over_real_nats(self) -> None:
+        nats_url = _required_nats_url()
+        suffix = uuid.uuid4().hex
+        topic = f"test.cap.python.agent.{suffix}"
+        job_id = f"job-{suffix}"
+        trace_id = f"trace-{suffix}"
+        scheduler_key = ec.generate_private_key(ec.SECP256R1())
+        config = replace(
+            trust_config(),
+            scheduler_public_keys={"scheduler-pin": scheduler_key.public_key()},
+        )
+        backend = InMemoryResourceBackend()
+        registry = ResourceRegistry(
+            [ResourceBackendRegistration("memory", 1 << 20, backend, backend)]
+        )
+        trusted = TrustedResourceContext(config.tenant_id, job_id)
+        context_ref = await registry.externalize(
+            "memory", json.dumps({"x": 1}).encode("utf-8"),
+            media_type="application/json", purpose="job-context",
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=5),
+            trusted=trusted,
+        )
+        # Warn mode: no scheduler answers the trust exchange, so the worker runs
+        # without a session but still pins the scheduler key and the tenant.
+        agent = Agent(
+            nats_url=nats_url, sender_id=config.worker_id, heartbeat_interval=60,
+            worker_trust_mode="warn", worker_trust=config,
+            worker_trust_timeout=0.5, worker_trust_retries=1,
+            resource_registry=registry, result_backend_id="memory",
+        )
+
+        @agent.job(topic)
+        async def handler(ctx: Any, data: Any) -> Any:
+            return {"y": data["x"] + 1}
+
+        submitter = await _connect("cap-python-integration-submitter", nats_url)
+        results = await submitter.subscribe(SUBJECT_RESULT)
+        await submitter.flush(timeout=TIMEOUT_SECONDS)
+        try:
+            await asyncio.wait_for(agent.start(), TIMEOUT_SECONDS)
+            await agent._nc.flush(timeout=TIMEOUT_SECONDS)
+            packet = buspacket_pb2.BusPacket(
+                trace_id=trace_id,
+                sender_id=config.expected_scheduler_id,
+                protocol_version=DEFAULT_PROTOCOL_VERSION,
+            )
+            packet.created_at.GetCurrentTime()
+            packet.job_request.CopyFrom(
+                job_pb2.JobRequest(job_id=job_id, topic=topic, context_ref=context_ref)
+            )
+            signed = finalize_packet(packet, scheduler_key)
+            await submitter.publish(topic, signed.SerializeToString(deterministic=True))
+            await submitter.flush(timeout=TIMEOUT_SECONDS)
+
+            result = (await _next_result(results, trace_id)).job_result
+            self.assertEqual(job_id, result.job_id)
+            self.assertEqual(job_pb2.JOB_STATUS_SUCCEEDED, result.status)
+            self.assertEqual("", result.result_ptr)
+            self.assertTrue(result.HasField("result_ref"))
+            self.assertEqual("job-result", result.result_ref.purpose)
+            resolved = await registry.resolve(result.result_ref, trusted)
+            self.assertEqual(json.dumps({"y": 2}).encode("utf-8"), resolved.content)
+            self.assertEqual("application/json", resolved.media_type)
+        finally:
+            await asyncio.wait_for(agent.close(), TIMEOUT_SECONDS)
+            if not submitter.is_closed:
+                await asyncio.wait_for(submitter.drain(), TIMEOUT_SECONDS)
+
+
+    async def test_handler_progress_and_artifact_order_over_real_nats(self) -> None:
+        nats_url, suffix = _required_nats_url(), uuid.uuid4().hex
+        topic, job_id, trace_id = "test.cap.events." + suffix, "job-" + suffix, "trace-" + suffix
+        scheduler_key = ec.generate_private_key(ec.SECP256R1())
+        config = replace(trust_config(), scheduler_public_keys={"scheduler-pin": scheduler_key.public_key()})
+        backend = InMemoryResourceBackend()
+        registry = ResourceRegistry([ResourceBackendRegistration("memory", 1 << 20, backend, backend)])
+        trusted = TrustedResourceContext(config.tenant_id, job_id)
+        context_ref = await registry.externalize(
+            "memory", b"{}", media_type="application/json", purpose="job-context",
+            expires_at=datetime.now(timezone.utc) + timedelta(minutes=5), trusted=trusted,
+        )
+        agent = Agent(nats_url=nats_url, sender_id=config.worker_id, heartbeat_interval=60,
+                      worker_trust_mode="warn", worker_trust=config, worker_trust_timeout=0.5,
+                      worker_trust_retries=1, resource_registry=registry, result_backend_id="memory")
+
+        @agent.job(topic)
+        async def handler(ctx, data):
+            await ctx.report_progress("upper")
+            await ctx.report_progress("suffix")
+            await ctx.attach_artifact("summary", "text/plain", b"HELLO")
+            return {"text": "HELLO!"}
+
+        submitter = await _connect("cap-python-event-submitter", nats_url)
+        traffic = await submitter.subscribe("sys.job.>")  # one subscription preserves arrival order
+        await submitter.flush(timeout=TIMEOUT_SECONDS)
+        try:
+            await asyncio.wait_for(agent.start(), TIMEOUT_SECONDS)
+            await agent._nc.flush(timeout=TIMEOUT_SECONDS)
+            packet = buspacket_pb2.BusPacket(trace_id=trace_id, sender_id=config.expected_scheduler_id,
+                                             protocol_version=DEFAULT_PROTOCOL_VERSION)
+            packet.created_at.GetCurrentTime()
+            packet.job_request.CopyFrom(job_pb2.JobRequest(job_id=job_id, topic=topic, context_ref=context_ref))
+            signed = finalize_packet(packet, scheduler_key)
+            await submitter.publish(topic, signed.SerializeToString(deterministic=True))
+            await submitter.flush(timeout=TIMEOUT_SECONDS)
+            received = []
+            deadline = asyncio.get_running_loop().time() + TIMEOUT_SECONDS
+            while True:
+                msg = await traffic.next_msg(timeout=max(0.001, deadline - asyncio.get_running_loop().time()))
+                event = buspacket_pb2.BusPacket.FromString(msg.data)
+                if event.trace_id == trace_id:
+                    received.append((msg.subject, event))
+                    if event.HasField("job_result"):
+                        break
+                self.assertLess(asyncio.get_running_loop().time(), deadline)
+            self.assertEqual([s for s, _ in received], [SUBJECT_PROGRESS, SUBJECT_PROGRESS, SUBJECT_RESULT])
+            self.assertEqual([(p.job_progress.message, p.job_progress.status) for _, p in received[:-1]],
+                             [("upper", job_pb2.JOB_STATUS_RUNNING), ("suffix", job_pb2.JOB_STATUS_RUNNING)])
+            result = received[-1][1].job_result
+            self.assertEqual(result.status, job_pb2.JOB_STATUS_SUCCEEDED)
+            self.assertEqual(len(result.artifact_refs), 1)
+            ref = result.artifact_refs[0]
+            self.assertEqual((ref.purpose, ref.media_type), ("job-artifact:summary", "text/plain"))
+            self.assertEqual((await registry.resolve(ref, trusted)).content, b"HELLO")
+            self.assertEqual(json.loads((await registry.resolve(result.result_ref, trusted)).content), {"text": "HELLO!"})
+            await asyncio.sleep(0.5)
+            while traffic.pending_msgs:
+                msg = await traffic.next_msg(timeout=TIMEOUT_SECONDS)
+                self.assertNotEqual(buspacket_pb2.BusPacket.FromString(msg.data).trace_id, trace_id)
+        finally:
+            await asyncio.wait_for(agent.close(), TIMEOUT_SECONDS)
+            if not submitter.is_closed:
+                await asyncio.wait_for(submitter.drain(), TIMEOUT_SECONDS)
+
+
+    async def test_fenced_cancel_over_real_nats(self) -> None:
+        nats_url, suffix = _required_nats_url(), uuid.uuid4().hex
+        topic, trace_id, job_id = (f"test.cap.cancel.{suffix}", f"trace-{suffix}", f"job-{suffix}")
+        scheduler_key = ec.generate_private_key(ec.SECP256R1())
+        config = replace(trust_config(), scheduler_public_keys={"scheduler-pin": scheduler_key.public_key()})
+        store, started = InMemoryBlobStore(), asyncio.Event()
+        await store.set("ctx:" + job_id, b"{}")
+        agent = Agent(nats_url=nats_url, sender_id=config.worker_id, store=store,
+                      worker_trust_mode="warn", worker_trust=config,
+                      worker_trust_timeout=0.5, worker_trust_retries=1)
+
+        @agent.job(topic)
+        async def handler(ctx: Context, data: object) -> object:
+            started.set()
+            await asyncio.Event().wait()
+            return data
+
+        submitter = await _connect("cap-python-cancel-submitter", nats_url)
+        results = await submitter.subscribe(SUBJECT_RESULT)
+        try:
+            await asyncio.wait_for(agent.start(), TIMEOUT_SECONDS)
+            await agent._nc.flush(timeout=TIMEOUT_SECONDS)
+            await submitter.flush(timeout=TIMEOUT_SECONDS)
+            packet = buspacket_pb2.BusPacket(trace_id=trace_id,
+                sender_id=config.expected_scheduler_id, protocol_version=DEFAULT_PROTOCOL_VERSION)
+            packet.created_at.GetCurrentTime()
+            packet.job_request.CopyFrom(job_pb2.JobRequest(job_id=job_id, topic=topic,
+                context_ptr="redis://ctx:" + job_id, dispatch=job_pb2.DispatchIdentity(
+                    dispatch_id="dispatch-" + suffix, attempt=1, assigned_worker_id=config.worker_id)))
+            await submitter.publish(topic, finalize_packet(packet, scheduler_key).SerializeToString())
+            await asyncio.wait_for(started.wait(), TIMEOUT_SECONDS)
+            cancel = job_pb2.JobCancel(job_id=job_id, dispatch=packet.job_request.dispatch,
+                                      requested_by="integration-operator")
+            packet.ClearField("job_request")
+            packet.job_cancel.CopyFrom(cancel)
+            before = asyncio.get_running_loop().time()
+            await submitter.publish(SUBJECT_CANCEL, finalize_packet(packet, scheduler_key).SerializeToString())
+            result = (await _next_result(results, trace_id)).job_result
+            self.assertLess(asyncio.get_running_loop().time() - before, TIMEOUT_SECONDS)
+            self.assertEqual((job_id, job_pb2.JOB_STATUS_CANCELLED), (result.job_id, result.status))
+            with self.assertRaises(asyncio.TimeoutError):
+                await asyncio.wait_for(_next_result(results, trace_id), 0.5)
+        finally:
+            await asyncio.wait_for(agent.close(), TIMEOUT_SECONDS)
             if not submitter.is_closed:
                 await asyncio.wait_for(submitter.drain(), TIMEOUT_SECONDS)
 

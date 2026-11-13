@@ -21,6 +21,12 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   no check's content changed. Enabling the merge queue remains a maintainer ruleset change
   (task-324398d5).
 
+- Python `Context.report_progress` publishes ordered, production-sealed markers;
+  `Context.attach_artifact` writes ordered registry refs for SUCCEEDED results.
+  `Agent(max_artifacts, max_artifact_bytes)` bounds each attempt and latches fixed
+  RESOURCE_EXHAUSTED count, size, or write failures; closed hooks perform no I/O.
+- **Python Agent cancellation and deadlines:** honours fenced `sys.job.cancel` and per-job deadlines (`FAILED` / `ERROR_CODE_JOB_TIMEOUT` / `TIMEOUT`), with `Context.deadline`, `Context.cancelled` and `Agent(max_deadline)`.
+
 - **cordum-guard closes governance bypasses (security, behavior change).**
   - Verdicts: the client now reads the gateway's protojson names
     (`DECISION_TYPE_REQUIRE_HUMAN`, ...). Previously every real verdict, DENY included, parsed
@@ -179,6 +185,41 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   (not made active), and sends the result's own `publish sys.job.result` span context.
   Without `telemetry`, no headers or spans are added. `startWorker`, heartbeats and
   the handshake are not instrumented.
+
+- **cap-sdk-python ResourceRef registry:** `cap.ResourceRegistry` ports Go
+  `NewResourceRegistry`. Operators install named backends with `ResourceBackendRegistration`.
+  `resolve()` and `externalize()` enforce generic production bounds, backend byte limits,
+  expiry before and after backend calls, media type, size and SHA-256. Tenant and job identity
+  come only from `TrustedResourceContext`. Failures are typed `ResourceRegistryError` values
+  with fixed text; backend exceptions become `ResourceBackendUnavailableError` without backend
+  text. `InMemoryResourceBackend` is a test-only backend.
+
+- **cap-sdk-python typed job outcomes (behavior change, no wire change):** `cap.Agent` failure
+  results now carry spec/13 `error_code_enum` and `error_code` with a fixed `error_message`,
+  never exception text: for example `ERROR_CODE_JOB_INVALID_INPUT` with
+  `"context decode failed"`, `ERROR_CODE_JOB_NOT_FOUND` with `"context not found"`, and
+  `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` when the context or result is over its size bound.
+  Handlers and middleware can raise the new `cap.JobFailure(code, retryable=None|True|False)`
+  with an `ErrorCode` value, an application code in 1000-9999 or an upper-snake string. It
+  publishes `JOB_STATUS_FAILED`, `JOB_STATUS_FAILED_RETRYABLE` or `JOB_STATUS_FAILED_FATAL`
+  with that code and `"handler reported failure"`, and the SDK does not retry it. Other
+  handler exceptions keep `"handler failed"` and the retry policy. User-visible change: the
+  context fetch, decode, input validation and result write failures used to publish
+  exception text, for example pydantic errors or store messages. They now publish fixed text
+  (`"context fetch failed"`, `"context decode failed"`, `"input validation failed"`,
+  `"result encode failed"`, `"result write failed"`). The low-level `cap.worker` is unchanged.
+
+- **cap-sdk-python `Agent` reads `context_ref` and writes `result_ref` (no wire change):**
+  `cap.Agent` accepts `resource_registry` (a `cap.ResourceRegistry`), `result_backend_id`
+  and `result_ref_ttl` (seconds, default 3600). With a registry, job input comes only from
+  `JobRequest.context_ref`, resolved with the worker-trust tenant and the admitted job id,
+  never with values from the ref. A missing, refused, non-JSON or oversize ref fails before
+  the handler runs, with the new fixed texts `"context ref required"` and
+  `"context ref refused"` (`ERROR_CODE_JOB_INVALID_INPUT`) or an existing row. SUCCEEDED
+  results carry `result_ref` (`application/json`, purpose `job-result`) and no `result_ptr`.
+  `start()` fails closed, before connecting, without a worker-trust configuration (mode
+  `warn` or `enforce`), and no Redis store is opened. Without a registry, behaviour is
+  unchanged.
 
 ## v2.17.0 — 2026-07-22
 

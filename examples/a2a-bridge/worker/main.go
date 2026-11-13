@@ -66,14 +66,14 @@ func loadConfig() (config, []string, error) {
 		pool: os.Getenv("CAP_WORKER_POOL"), schedulerID: or(os.Getenv("CAP_SCHEDULER_ID"), "cordum-scheduler"),
 		unsigned: os.Getenv("CAP_A2A_DEV_UNSIGNED") == "1"}
 	var errs []error
-	for name, v := range map[string]string{"CAP_NATS_URL": c.natsURL, "CAP_REDIS_URL": c.redisURL} {
-		if v == "" {
-			errs = append(errs, fmt.Errorf("%s is required", name))
+	for _, v := range [][2]string{{"CAP_NATS_URL", c.natsURL}, {"CAP_REDIS_URL", c.redisURL}} {
+		if v[1] == "" {
+			errs = append(errs, fmt.Errorf("%s is required", v[0]))
 		}
 	}
-	for name, v := range map[string]string{"CAP_WORKER_POOL": c.pool, "CAP_WORKER_ID": c.workerID, "CAP_SCHEDULER_ID": c.schedulerID} {
-		if !idRe.MatchString(v) {
-			errs = append(errs, fmt.Errorf("%s must match %s", name, idRe))
+	for _, v := range [][2]string{{"CAP_WORKER_POOL", c.pool}, {"CAP_WORKER_ID", c.workerID}, {"CAP_SCHEDULER_ID", c.schedulerID}} {
+		if !idRe.MatchString(v[1]) {
+			errs = append(errs, fmt.Errorf("%s must match %s", v[0], idRe))
 		}
 	}
 	n, err := strconv.Atoi(or(os.Getenv("CAP_WORKER_MAX_PARALLEL"), "4"))
@@ -87,6 +87,9 @@ func loadConfig() (config, []string, error) {
 	}
 	errs = append(errs, loadKeys(&c)...)
 	warnings, terrs := checkTransport(&c)
+	if c.unsigned {
+		warnings = append(warnings, "CAP_A2A_DEV_UNSIGNED=1, development only: unsigned jobs are accepted")
+	}
 	return c, warnings, errors.Join(append(errs, terrs...)...)
 }
 
@@ -145,12 +148,9 @@ func checkTransport(c *config) ([]string, []error) {
 		return nil, []error{fmt.Errorf("refusing insecure transport: %s; set CAP_A2A_DEV_INSECURE=1 only for local development",
 			strings.Join(problems, "; "))}
 	}
-	warnings := make([]string, 0, len(problems)+1)
+	warnings := make([]string, 0, len(problems))
 	for _, p := range problems {
 		warnings = append(warnings, "CAP_A2A_DEV_INSECURE=1, development only: "+p)
-	}
-	if c.unsigned {
-		warnings = append(warnings, "CAP_A2A_DEV_UNSIGNED=1, development only: unsigned jobs are accepted")
 	}
 	return warnings, nil
 }

@@ -75,7 +75,14 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   (`application/vnd.cordum.cap.a2a-turn-result.v1+json`) carries input-required and
   auth-required, with credentials only out of band. The design also covers identity
   and idempotency rules, cancel semantics, and the bridge-placement decision. It is a
-  design only: no bridge ships yet, and there is no wire change.
+  design only, with no wire change.
+- **A2A bridge (draft, compat profile; no wire change):** added `cmd/cap-a2a-bridge`, which
+  serves A2A 1.0 JSON-RPC (SendMessage, GetTask, CancelTask) plus an agent card, and turns
+  authenticated messages into signed CAP jobs on one operator-configured topic. Also added
+  `examples/a2a-bridge` (example worker and README). TLS is required for HTTP, NATS and Redis
+  unless `CAP_A2A_DEV_INSECURE=1`. `CAP_A2A_DEV_UNSIGNED=1` accepts unsigned packets for
+  Cordum's compat profile. The CAP-only end-to-end test uses an ungoverned test scheduler.
+  Governed operation needs Cordum's compat profile; production admission is not supported yet.
 - **Spec (no wire change):** added `spec/interop/trace-context.md`, the normative W3C Trace
   Context carrier contract for CAP over NATS, and `spec/interop/vectors/trace-context-v1.json`.
   The contract covers lowercase `traceparent`/`tracestate` headers, no baggage by default,

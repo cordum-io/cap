@@ -19,6 +19,7 @@ class MockNATS:
         self.subscriptions: Dict[str, Any] = {}
         self._published: 'Optional["asyncio.Queue[Tuple[str, bytes]]"]' = None
         self.requests: List[Tuple[str, bytes]] = []
+        self.published_headers: List[Tuple[str, Optional[Dict[str, str]]]] = []
         self.reconnected_cb: Optional[Callable[[], Awaitable[None]]] = None
         self.disconnected_cb: Optional[Callable[[], Awaitable[None]]] = None
 
@@ -29,7 +30,15 @@ class MockNATS:
             self._published = asyncio.Queue()
         return self._published
 
-    async def publish(self, subject: str, data: bytes) -> None:
+    async def publish(
+        self, subject: str, data: bytes, headers: Optional[Dict[str, str]] = None,
+    ) -> None:
+        """Accept telemetry-enabled Agent/client headers and record a copy in order.
+
+        ``published`` still yields ``(subject, data)``; ``published_headers``
+        records the optional headers separately in the same publish order.
+        """
+        self.published_headers.append((subject, None if headers is None else dict(headers)))
         await self.published.put((subject, data))
 
     async def subscribe(self, subject: str, queue: str = "", cb: Any = None) -> None:

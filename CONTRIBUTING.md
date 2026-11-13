@@ -54,6 +54,14 @@ cd sdk/python-guard && pip install -e ".[dev]" && pytest && cd ../..
 4. **CI must pass** — all SDK tests run automatically.
 5. **CODEOWNERS** will be assigned for review.
 
+Go SDK, Node SDK and Python SDK required checks run on `pull_request` and `merge_group`
+events, so `main` can use a GitHub merge queue. The queue is not enabled until a maintainer
+adds it to the main ruleset. Once enabled with squash merging, add an approved PR to the queue
+instead of updating its branch and seeking re-approval. The queue re-runs required checks on
+the PR combined with current `main` and the PRs ahead of it, then squash-merges it when they
+pass. Pushing to a queued PR removes it from the queue. DCO sign-off still applies to every
+commit.
+
 ## Sign your commits (DCO)
 
 CAP uses the [Developer Certificate of Origin 1.1](DCO.md). Every commit must be signed

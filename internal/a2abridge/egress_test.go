@@ -1457,7 +1457,9 @@ func (h *egHarness) joinCancel(t *testing.T, id a2a.TaskID) <-chan egCall {
 	}
 	ctx, stop := context.WithCancel(context.Background())
 	t.Cleanup(stop)
-	return egAsync(func() (*a2a.Task, error) { return h.ing.awaitCancel(ctx, egIdents["key-alice"], string(id), abort) })
+	return egAsync(func() (*a2a.Task, error) {
+		return h.ing.awaitCancel(ctx, egIdents["key-alice"], string(id), attempt, abort)
+	})
 }
 
 // egGate blocks the first call only, with bounded waits and cleanup on failed assertions.
@@ -1614,6 +1616,99 @@ func TestCancelDuringFailedResumeCancelsTheRestoredTurn(t *testing.T) {
 		"stale-failure-cannot-abort-a-new-attempt", "same-message-retry-ignores-stale-grace"} {
 		t.Run(mode, func(t *testing.T) { egFailedResumeCancel(t, mode) })
 	}
+	t.Run("publisher-missed-restore-cancels-the-new-turn", func(t *testing.T) { egMissedRestore(t, false) })
+	t.Run("joiner-of-stale-failure-cancels-the-new-turn", func(t *testing.T) { egMissedRestore(t, true) })
+}
+
+// egMissedRestore lets a resume replace the restored turn before the old
+// attempt's waiter (its publisher, or a joiner of its failed publish) watches.
+func egMissedRestore(t *testing.T, joiner bool) {
+	t.Helper()
+	h := newEgHarness(t)
+	id, job1 := h.start(t, "key-alice", "msg-1")
+	h.interrupt(t, job1, "input-required")
+	submit, entered, release := egGate(t, errors.New("resume failed"))
+	var failure error
+	if joiner {
+		failure = errors.New("stale cancel failed")
+	}
+	cancel, cancelEntered, cancelRelease := egGate(t, failure)
+	h.pub.fail = func(s string) error {
+		switch s {
+		case capsdk.SubjectSubmit:
+			return submit()
+		case capsdk.SubjectCancel:
+			return cancel()
+		}
+		return nil
+	}
+	r := egAsync(func() (*a2a.Task, error) { return h.resume("key-alice", id, "msg-2", "", "resume") })
+	egWait(t, entered, "resume publish")
+	a := h.cancel(t, egAs("key-alice"), id)
+	egWait(t, cancelEntered, "old cancel publish")
+	var attempt uint64
+	var abort <-chan struct{}
+	if joiner {
+		var step cancelStep
+		var err error
+		step, _, _, attempt, abort, err = h.ing.store.requestCancel(egIdents["key-alice"], string(id), egNow)
+		egOK(t, err)
+		if rec, _ := h.ing.store.get(egIdents["key-alice"], string(id)); step != cancelWait || attempt == 0 || attempt != rec.cancelAttempt {
+			t.Fatalf("B did not join A's attempt: step %v attempt %d, current %d", step, attempt, rec.cancelAttempt)
+		}
+	}
+	release()
+	egIs(t, egCancelReply(t, r).err, a2a.ErrInternalError)
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired)
+	_, err := h.resume("key-alice", id, "msg-3", "", "resume")
+	egOK(t, err)
+	job3 := egJobOf("tenant-a", "alice", id, "msg-3")
+	if rec, _ := h.ing.store.get(egIdents["key-alice"], string(id)); rec.turn != 2 || rec.jobID != job3 {
+		t.Fatalf("wrong new turn/job: %d/%s", rec.turn, rec.jobID)
+	}
+	cancelRelease()
+	if joiner {
+		egMissedRestoreJoiner(t, h, id, job3, a, attempt, abort)
+	} else {
+		egMissedRestorePublisher(t, h, id, job3, a)
+	}
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateSubmitted, a2a.TaskStateCanceled)
+}
+
+func egMissedRestorePublisher(t *testing.T, h *egHarness, id a2a.TaskID, job3 string, a <-chan egCall) {
+	t.Helper()
+	h.waitGraces(t, 2)
+	h.wantCancels(t, id, egJobOf("tenant-a", "alice", id, "msg-2"), job3)
+	h.fireGrace(0)
+	h.want(t, "key-alice", id, a2a.TaskStateSubmitted, a2a.TaskStateInputRequired, a2a.TaskStateSubmitted)
+	select {
+	case c := <-a:
+		t.Fatalf("A returned before the new attempt's grace: %+v", c)
+	default:
+	}
+	h.fireGrace(1)
+	egCanceled(t, a, a2a.TaskStateCanceled)
+	h.wantCancels(t, id, egJobOf("tenant-a", "alice", id, "msg-2"), job3)
+}
+
+func egMissedRestoreJoiner(t *testing.T, h *egHarness, id a2a.TaskID, job3 string, a <-chan egCall, attempt uint64, abort <-chan struct{}) {
+	t.Helper()
+	egIs(t, egCancelReply(t, a).err, a2a.ErrInternalError)
+	select {
+	case <-abort:
+		t.Fatal("a stale publish failure closed the superseded attempt's abort")
+	default:
+	}
+	ctx, stop := context.WithCancel(context.Background())
+	t.Cleanup(stop)
+	b := egAsync(func() (*a2a.Task, error) {
+		return h.ing.awaitCancel(ctx, egIdents["key-alice"], string(id), attempt, abort)
+	})
+	h.waitGraces(t, 1)
+	h.wantCancels(t, id, job3)
+	h.fireGraces()
+	egCanceled(t, b, a2a.TaskStateCanceled)
+	h.wantCancels(t, id, job3)
 }
 
 func egFailedResumeCancel(t *testing.T, mode string) {

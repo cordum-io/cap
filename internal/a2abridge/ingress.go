@@ -688,36 +688,42 @@ func (i *Ingress) CancelTask(ctx context.Context, req *a2a.CancelTaskRequest) (*
 		return nil, a2a.ErrTaskNotFound
 	}
 	taskID := string(req.ID)
-	rec, abort, done, err := i.startCancel(id, taskID)
+	rec, attempt, abort, done, err := i.startCancel(id, taskID)
 	if err != nil {
 		return nil, err
 	}
 	if done {
 		return rec.task(), nil
 	}
-	return i.awaitCancel(ctx, id, taskID, abort)
+	return i.awaitCancel(ctx, id, taskID, attempt, abort)
 }
 
 // startCancel ensures every new attempt has exactly one publisher, including
-// a waiter that observes a restored interrupted turn racing another resume.
-func (i *Ingress) startCancel(id Identity, taskID string) (taskRecord, <-chan struct{}, bool, error) {
+// a waiter whose attempt a release superseded. It returns the attempt the
+// caller now waits on: the new one it published, the joined one, or 0 when
+// the cancel is already done.
+func (i *Ingress) startCancel(id Identity, taskID string) (taskRecord, uint64, <-chan struct{}, bool, error) {
 	step, rec, job, attempt, abort, err := i.store.requestCancel(id, taskID, i.now().UTC())
 	if err != nil {
-		return taskRecord{}, nil, false, err
+		return taskRecord{}, 0, nil, false, err
 	}
 	if step == cancelPublish {
 		if err := i.publishCancel(id, taskID, job); err != nil {
 			i.store.cancelFailed(id, taskID, attempt)
-			return taskRecord{}, nil, false, a2a.ErrInternalError
+			return taskRecord{}, 0, nil, false, a2a.ErrInternalError
 		}
 		i.afterFunc(i.grace, func() { i.store.expireCancel(id, taskID, attempt, i.now().UTC()) })
 	}
-	return rec, abort, step == cancelDone, nil
+	return rec, attempt, abort, step == cancelDone, nil
 }
 
 // awaitCancel decides by state before checking the attempt's abort: release
 // restores an interrupted turn without aborting the callers waiting on it.
-func (i *Ingress) awaitCancel(ctx context.Context, id Identity, taskID string, abort <-chan struct{}) (*a2a.Task, error) {
+// A waiter re-applies the cancel to the current turn when it sees that
+// restored state, or when its attempt is no longer current while its abort
+// is still open: only release clears an attempt without closing its abort,
+// and a resume may already have replaced the restored turn.
+func (i *Ingress) awaitCancel(ctx context.Context, id Identity, taskID string, attempt uint64, abort <-chan struct{}) (*a2a.Task, error) {
 	for {
 		rec, changed, ok := i.store.watch(id, taskID)
 		switch {
@@ -727,21 +733,19 @@ func (i *Ingress) awaitCancel(ctx context.Context, id Identity, taskID string, a
 			return rec.task(), nil
 		case rec.state.Terminal():
 			return nil, a2a.ErrTaskNotCancelable
-		case rec.state == a2a.TaskStateInputRequired || rec.state == a2a.TaskStateAuthRequired:
-			next, nextAbort, done, err := i.startCancel(id, taskID)
+		case rec.state == a2a.TaskStateInputRequired || rec.state == a2a.TaskStateAuthRequired,
+			rec.cancelAttempt != attempt && !closed(abort):
+			next, nextAttempt, nextAbort, done, err := i.startCancel(id, taskID)
 			if err != nil {
 				return nil, err
 			}
 			if done {
 				return next.task(), nil
 			}
-			abort = nextAbort
+			attempt, abort = nextAttempt, nextAbort
 			continue
-		}
-		select {
-		case <-abort:
+		case closed(abort):
 			return nil, a2a.ErrInternalError
-		default:
 		}
 		select {
 		case <-changed:
@@ -752,6 +756,16 @@ func (i *Ingress) awaitCancel(ctx context.Context, id Identity, taskID string, a
 			}
 			return nil, a2a.ErrTaskNotFound
 		}
+	}
+}
+
+// closed reports, without blocking, whether ch is closed.
+func closed(ch <-chan struct{}) bool {
+	select {
+	case <-ch:
+		return true
+	default:
+		return false
 	}
 }
 

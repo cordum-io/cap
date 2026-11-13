@@ -22,7 +22,9 @@
 //   - A legacy packet's trace_id is never recorded: a process span carries
 //     messaging.message.conversation_id only for a CAP-PRODUCTION verified
 //     packet.
-//   - The CAP Go client and runtime do not call this package yet.
+//   - The CAP Go client (client.Client.Telemetry: the submit publish) and runtime
+//     (runtime.Agent.Telemetry: process and result publish) call this package; a
+//     nil Config changes neither.
 package telemetry
 
 import (

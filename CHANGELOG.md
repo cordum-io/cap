@@ -6,6 +6,19 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **TCK public reports:** new `cap-tck report` subcommands. `project` turns a `cap-tck run --json` report into a public report (`cap-public-report/v1`), taking its required cases and scenario manifest digest from the scenario files the run used. `sign` and `verify` use an Ed25519 key you supply (PKCS#8 / PKIX PEM) and a detached raw 64-byte signature. `badge` writes a fixed SVG, for a PASS report only. All four run offline with no telemetry, never create or store keys, and write 0600 files confined to `--out-dir`.
+
+- **cap-sdk-python: `cap.testing.MockNATS.publish` accepts `headers=` (bug fix).** `create_test_agent(telemetry=...)` failed every result publish with `TypeError`, marking the span `TRANSPORT_PUBLISH_FAILED`. MockNATS now accepts the optional headers mapping and records a defensive copy in `published_headers`; the `published` queue still yields `(subject, data)`.
+
+- **cap-sdk-python: `validate_resource_ref` compares ResourceRef expiry at nanosecond precision (bug fix).** `Timestamp.ToDatetime()` truncated to microseconds, rejecting references expiring 1 ns after validation while Go accepted them. Exact `(seconds, nanos)` comparison now matches Go `AsTime().After(now)`, range validation mirrors Go `CheckValid`, and aware validation times at the edges of `datetime` no longer raise `OverflowError`.
+
+
+- **cap-sdk-python: `cap.testing.MockNATS` can start worker-trust Agents (bug fix).** `connect` accepts the `reconnected_cb`/`disconnected_cb` options the Agent passes when worker trust is `warn` or `enforce`, and `request` raises `asyncio.TimeoutError` (no responders). `create_test_agent(worker_trust_mode="warn", ...)` therefore starts without a session instead of failing with `TypeError`, and `enforce` fails closed with `WorkerTrustRuntimeError`.
+
+- The Go SDK, Node SDK and Python SDK checks in `ci.yml` also run on `merge_group` events;
+  no check's content changed. Enabling the merge queue remains a maintainer ruleset change
+  (task-324398d5).
+
 - **cordum-guard closes governance bypasses (security, behavior change).**
   - Verdicts: the client now reads the gateway's protojson names
     (`DECISION_TYPE_REQUIRE_HUMAN`, ...). Previously every real verdict, DENY included, parsed
@@ -75,7 +88,14 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   (`application/vnd.cordum.cap.a2a-turn-result.v1+json`) carries input-required and
   auth-required, with credentials only out of band. The design also covers identity
   and idempotency rules, cancel semantics, and the bridge-placement decision. It is a
-  design only: no bridge ships yet, and there is no wire change.
+  design only, with no wire change.
+- **A2A bridge (draft, compat profile; no wire change):** added `cmd/cap-a2a-bridge`, which
+  serves A2A 1.0 JSON-RPC (SendMessage, GetTask, CancelTask) plus an agent card, and turns
+  authenticated messages into signed CAP jobs on one operator-configured topic. Also added
+  `examples/a2a-bridge` (example worker and README). TLS is required for HTTP, NATS and Redis
+  unless `CAP_A2A_DEV_INSECURE=1`. `CAP_A2A_DEV_UNSIGNED=1` accepts unsigned packets for
+  Cordum's compat profile. The CAP-only end-to-end test uses an ungoverned test scheduler.
+  Governed operation needs Cordum's compat profile; production admission is not supported yet.
 - **Spec (no wire change):** added `spec/interop/trace-context.md`, the normative W3C Trace
   Context carrier contract for CAP over NATS, and `spec/interop/vectors/trace-context-v1.json`.
   The contract covers lowercase `traceparent`/`tracestate` headers, no baggage by default,
@@ -92,6 +112,17 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `captraceid`, `capworkflowid`, `capstepindex`, `capparentjobid`, `traceparent` and
   `tracestate` extensions. It is a documented mapping only: no CAP SDK or Cordum component
   emits these events.
+- **Interop contract (no wire change):** added `asyncapi/cap.asyncapi.yaml`, an AsyncAPI 3.1.0
+  description of the 12 NATS subjects in the spec/09 subject table: one channel per subject
+  (`job.{pool}` parameterized), each subject's producer-to-consumer direction and delivery,
+  opaque protobuf `BusPacket` payloads named by `x-cap-proto-message`, the spec/14 reply
+  payloads of the two worker-trust request subjects, and optional `traceparent`/`tracestate`
+  headers. The deprecated `sys.worker.handshake` and `sys.worker.handshake.renew` JSON
+  subjects are listed as excluded. A new Interop Contract workflow runs
+  `tools/interop/validate.cjs` (exact pins `@asyncapi/parser` 3.6.6 and `ajv` 8.20.0) on every
+  pull request and push to main. It checks the document against spec/09, spec/14, the proto
+  files and the Go SDK subject constants, and checks the trace-context, CloudEvents and A2A
+  vectors in `spec/interop/vectors/`. No SDK behavior changes.
 - Conformance and support-tier truth: `spec/tck/coverage.json` no longer says the
   CAP-PRODUCTION model is unmerged and now maps every shipped TCK case, and its consistency
   test fails on any unmapped case; `sdk/support-tiers.json` drops the stale Node/Python
@@ -101,8 +132,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `traceparent` and `tracestate` NATS headers, never `baggage`, uses the W3C trace-context
   propagator by default, and starts the contract's `publish` (PRODUCER) and `process`
   (CONSUMER) spans with exactly its attributes and closed `error.type` values. A nil
-  `*telemetry.Config` writes no headers and starts no spans. The Go client and runtime do
-  not use it yet. The module now requires `go.opentelemetry.io/otel` and `otel/trace`
+  `*telemetry.Config` writes no headers and starts no spans. The module now requires
+  `go.opentelemetry.io/otel` and `otel/trace`
   v1.47.0; `otel/sdk` v1.47.0 is required only by tests.
 
 - **Python SDK telemetry (no wire change):** added `cap.telemetry`, an OpenTelemetry API
@@ -112,7 +143,7 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   (CONSUMER) spans with exactly its attributes and closed `error.type` values. A `None`
   config writes no headers and starts no spans. OpenTelemetry stays optional: the module
   imports without it, and `pip install 'cap-sdk-python[otel]'` adds
-  `opentelemetry-api>=1.41.1,<2`. The Python client and runtime do not use it yet.
+  `opentelemetry-api>=1.41.1,<2`.
 
 - **Node SDK `telemetry` namespace:** `telemetry.injectHeaders`, `extract`, `startPublish`
   and `startProcess` implement the `spec/interop/trace-context.md` contract over NATS headers:
@@ -120,7 +151,32 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   empty context, and PRODUCER/CONSUMER messaging spans with the contract's attributes and
   closed `error.type` values. The types are structural, so cap-sdk-node gains no OpenTelemetry
   dependency: pass the OpenTelemetry API module and a `W3CTraceContextPropagator` to
-  `telemetry.fromOpenTelemetry`. The client and runtime do not call it yet.
+  `telemetry.fromOpenTelemetry`.
+
+- **Go SDK trace propagation (no wire change):** `client.Client.Telemetry` and
+  `runtime.Agent.Telemetry` (`*telemetry.Config`, nil = off) send W3C
+  `traceparent`/`tracestate` NATS headers on job submit and result, and record the
+  `publish`/`process` spans of `spec/interop/trace-context.md`. The runtime extracts
+  trace context only after admission or validation, exposes the process span through
+  `Context.TraceContext()`, and gives a rejected packet no span. `baggage` is never sent.
+
+- **Python SDK trace propagation (no wire change):** `submit_job(..., telemetry=)` and
+  `Agent(telemetry=)` carry W3C trace context through a job round trip over NATS. The client
+  sends its `publish sys.job.submit` span in the `traceparent` and `tracestate` headers. The
+  Agent reads them only after CAP-PRODUCTION admission or legacy validation, runs the handler
+  under a `process` span exposed as `Context.otel_context`, and sends the
+  `publish sys.job.result` span's context with the result. Without `telemetry` nothing
+  changes: no headers and no spans. `run_worker`, heartbeats and the handshake are not
+  instrumented.
+
+- **Node SDK trace propagation (no wire change):** `submitJob(..., { telemetry })`
+  and `new Agent({ telemetry })` carry W3C trace context through a job round trip
+  over NATS. The client sends its `publish sys.job.submit` span in the lowercase
+  `traceparent`/`tracestate` headers. The Agent reads them only after CAP-PRODUCTION
+  admission or legacy validation, exposes the process span as `Context.otelContext`
+  (not made active), and sends the result's own `publish sys.job.result` span context.
+  Without `telemetry`, no headers or spans are added. `startWorker`, heartbeats and
+  the handshake are not instrumented.
 
 ## v2.17.0 — 2026-07-22
 

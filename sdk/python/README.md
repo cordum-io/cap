@@ -177,7 +177,7 @@ async def test_echo():
 
 - `run_handler(handler, input, **options)` — runs a single handler invocation and returns the `JobResult`.
 - `create_test_agent(**options)` — returns `(agent, mock_nats, store)` pre-wired with `MockNATS` + `InMemoryBlobStore`.
-- `MockNATS` — in-memory NATS mock for custom test setups.
+- `MockNATS` — in-memory NATS mock for custom test setups. It accepts the worker-trust `reconnected_cb`/`disconnected_cb` connect options (stored as attributes) and answers every `request` with `asyncio.TimeoutError`, recorded in `requests`, so `create_test_agent(worker_trust_mode="warn", worker_trust=cfg)` starts without a session while `"enforce"` fails closed.
 
 ## Runtime (High-Level SDK)
 The runtime hides NATS/Redis plumbing and gives you typed handlers.
@@ -376,3 +376,32 @@ agent = Agent(metrics=PromMetrics())
 ```
 
 The `trace_id` is propagated through all log and metrics calls for distributed tracing correlation.
+
+### Trace context (OpenTelemetry)
+`pip install "cap-sdk-python[otel]"` adds only `opentelemetry-api`. Install an OpenTelemetry SDK and exporter yourself; without one, spans are no-ops. The wire contract is `spec/interop/trace-context.md` in the CAP repository.
+
+```python
+from opentelemetry import trace
+from cap import telemetry
+from cap.client import submit_job
+from cap.runtime import Agent, Context
+
+# Global TracerProvider and the W3C propagator, never the global propagator.
+config = telemetry.from_opentelemetry()
+tracer = trace.get_tracer("orders")
+agent = Agent(telemetry=config)
+
+@agent.job("job.orders.validate")
+async def validate(ctx: Context, data):
+    with tracer.start_as_current_span("orders.validate", context=ctx.otel_context):
+        return {"ok": True}
+
+# When telemetry is set, nc.publish must accept headers=.
+await submit_job(nc, request, trace_id, sender_id, telemetry=config)
+```
+
+- **Submit**: `submit_job` starts a `publish sys.job.submit` PRODUCER span, parented on `context=` (default: the current context), and sends its context in the lowercase `traceparent` and `tracestate` headers.
+- **Process**: the Agent reads those headers only after CAP-PRODUCTION admission or legacy validation; a rejected packet starts no span. The CONSUMER `process` span is a child of a valid sender context and links to it; a missing or invalid `traceparent` starts a new root. The handler gets `ctx.otel_context`, which the runtime does not make current.
+- **Result**: the `publish sys.job.result` span is a child of the process span, and its context goes out with the result. A handler error marks the process span `HANDLER_FAILED`; a failed publish marks its span `TRANSPORT_PUBLISH_FAILED`.
+- **Never authority**: trace headers never select tenant, principal, key, policy or approval, and `baggage` is never read or sent.
+- **Off by default**: with no `telemetry`, no headers are sent and no spans are started.

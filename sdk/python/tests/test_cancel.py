@@ -216,21 +216,29 @@ def test_cancel_during_input_resolution_never_starts_handler():
     asyncio.run(run())
 
 
-@pytest.mark.parametrize("deadline_ms, maximum", [(200, None), (0, 0.2), (5000, 0.2)])
-def test_deadline_and_agent_maximum_are_bounded(deadline_ms, maximum):
+@pytest.mark.parametrize("deadline_ms, maximum, delay",
+                         [(200, None, 0), (0, 0.2, 0), (5000, 0.2, 0), (200, None, 0.05)])
+def test_deadline_and_agent_maximum_are_bounded(deadline_ms, maximum, delay):
+    async def slow_middleware(ctx, data, next_):
+        await asyncio.sleep(delay)  # Middleware time counts toward the deadline.
+        return await next_(ctx, data)
+
     async def run():
         async with Harness(max_deadline=maximum) as h:
+            if delay:
+                h.agent.use(slow_middleware)
             await h.submit(h.request(deadline_ms=deadline_ms))
             result = await h.result()
-            elapsed = time.monotonic() - h.start_time
-            assert 0.2 <= elapsed <= 1.2
+            # Anchor on ctx.deadline: the handler body starts after the runtime's start.
+            late = time.monotonic() - h.ctx.deadline
+            assert 0 <= late <= 1.0
             assert (result.status, result.error_code_enum, result.error_code,
                     result.error_message) == (FAILED, job_pb2.ERROR_CODE_JOB_TIMEOUT,
                                              "TIMEOUT", "job deadline exceeded")
-            assert abs(h.ctx.deadline - h.start_time - 0.2) < 0.02
+            assert abs(h.ctx.deadline - h.start_time - (0.2 - delay)) < 0.02
             await asyncio.gather(*h.agent._handler_tasks)
             assert (h.ctx.cancelled, h.stops, h.nats.result_count()) == (True, 1, 1)
-            print("deadline", deadline_ms, maximum, "elapsed", elapsed)
+            print("deadline", deadline_ms, maximum, delay, "late", late)
     asyncio.run(run())
 
 
@@ -251,7 +259,7 @@ def test_thread_keeps_running_without_a_second_terminal_result():
         async with Harness(thread=True) as h:
             await h.submit(h.request(deadline_ms=200))
             result = await h.result()
-            assert 0.2 <= time.monotonic() - h.start_time <= 1.2
+            assert 0 <= time.monotonic() - h.ctx.deadline <= 1.0
             assert (result.status, result.error_code) == (FAILED, "TIMEOUT")
             assert h.ctx.cancelled is True
             await asyncio.sleep(1.2)

@@ -8,10 +8,17 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 - **TCK public reports:** new `cap-tck report` subcommands. `project` turns a `cap-tck run --json` report into a public report (`cap-public-report/v1`), taking its required cases and scenario manifest digest from the scenario files the run used. `sign` and `verify` use an Ed25519 key you supply (PKCS#8 / PKIX PEM) and a detached raw 64-byte signature. `badge` writes a fixed SVG, for a PASS report only. All four run offline with no telemetry, never create or store keys, and write 0600 files confined to `--out-dir`.
 
+- **cap-sdk-python: `cap.testing.MockNATS.publish` accepts `headers=` (bug fix).** `create_test_agent(telemetry=...)` failed every result publish with `TypeError`, marking the span `TRANSPORT_PUBLISH_FAILED`. MockNATS now accepts the optional headers mapping and records a defensive copy in `published_headers`; the `published` queue still yields `(subject, data)`.
+
 - **cap-sdk-python: `validate_resource_ref` compares ResourceRef expiry at nanosecond precision (bug fix).** `Timestamp.ToDatetime()` truncated to microseconds, rejecting references expiring 1 ns after validation while Go accepted them. Exact `(seconds, nanos)` comparison now matches Go `AsTime().After(now)`, range validation mirrors Go `CheckValid`, and aware validation times at the edges of `datetime` no longer raise `OverflowError`.
 
 
 - **cap-sdk-python: `cap.testing.MockNATS` can start worker-trust Agents (bug fix).** `connect` accepts the `reconnected_cb`/`disconnected_cb` options the Agent passes when worker trust is `warn` or `enforce`, and `request` raises `asyncio.TimeoutError` (no responders). `create_test_agent(worker_trust_mode="warn", ...)` therefore starts without a session instead of failing with `TypeError`, and `enforce` fails closed with `WorkerTrustRuntimeError`.
+
+- The Go SDK, Node SDK and Python SDK checks in `ci.yml` also run on `merge_group` events;
+  no check's content changed. Enabling the merge queue remains a maintainer ruleset change
+  (task-324398d5).
+
 - **cordum-guard closes governance bypasses (security, behavior change).**
   - Verdicts: the client now reads the gateway's protojson names
     (`DECISION_TYPE_REQUIRE_HUMAN`, ...). Previously every real verdict, DENY included, parsed

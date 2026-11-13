@@ -43,6 +43,46 @@ func TestLoadSuiteRejectsUnknownField(t *testing.T) {
 	}
 }
 
+// A suite file holds exactly one JSON object. A second value or stray bytes
+// after it are refused, never ignored.
+func TestLoadSuiteRejectsTrailingData(t *testing.T) {
+	for _, tc := range []struct{ name, tail string }{
+		{"second object", `{"ignored":true}`},
+		{"second object on its own line", "\n{\"ignored\":true}\n"},
+		{"second suite", goodSuite},
+		{"empty object", `{}`},
+		{"number", " 1"},
+		{"array", "[]"},
+		{"null", "\nnull"},
+		{"bare word", "xyz"},
+		{"closing brace", "}"},
+		{"closing bracket", "]"},
+		{"comma", ","},
+		{"nul byte", "\x00"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s, err := LoadSuite([]byte(goodSuite + tc.tail))
+			if err == nil || !strings.Contains(err.Error(), "trailing data") {
+				t.Fatalf("expected trailing data error, got %v", err)
+			}
+			if s != nil {
+				t.Fatalf("expected no suite with the error, got %+v", s)
+			}
+		})
+	}
+}
+
+// Whitespace after the suite object is not data: the suite loads unchanged.
+func TestLoadSuiteAllowsTrailingWhitespace(t *testing.T) {
+	s, err := LoadSuite([]byte(goodSuite + " \t\r\n\n"))
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	if len(s.Scenarios) != 3 || s.Scenarios[0].ID != "lifecycle/happy-path" || s.Scenarios[2].Params["decision"] != "DENY" {
+		t.Fatalf("suite changed by trailing whitespace: %+v", s.Scenarios)
+	}
+}
+
 func TestLoadSuiteRejectsDuplicateID(t *testing.T) {
 	dup := `{"version":1,"scenarios":[
       {"id":"x","role":"worker","profile":"core"},

@@ -1,10 +1,21 @@
 import asyncio
+import json
 import logging
 import unittest
+from types import SimpleNamespace
 
-from cap.pb.cordum.agent.v1 import job_pb2
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+from opentelemetry.sdk.trace.sampling import ALWAYS_ON
+from opentelemetry.trace import StatusCode
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
+from cap.constants import DEFAULT_PROTOCOL_VERSION
+from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cap.runtime import Context
-from cap.subjects import SUBJECT_WORKER_HANDSHAKE_CHALLENGE
+from cap.subjects import SUBJECT_RESULT, SUBJECT_WORKER_HANDSHAKE_CHALLENGE
+from cap.telemetry import TelemetryConfig
 from cap.testing import MockNATS, create_test_agent, run_handler
 from cap.worker_trust_runtime import WorkerTrustRuntimeError
 from worker_trust_runtime_support import TOPIC, WORKER_ID, trust_config
@@ -23,6 +34,65 @@ def _trust_agent(mode, logger=None):
 
 
 class TestTestingUtilities(unittest.IsolatedAsyncioTestCase):
+    async def test_mock_nats_publish_accepts_and_records_headers(self):
+        mock = MockNATS()
+        traceparent = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"
+        headers = {"traceparent": traceparent}
+        await mock.publish("subject.a", b"one", headers=headers)
+        await mock.publish("subject.b", b"two")
+        headers["traceparent"] = "mutated"
+        self.assertEqual(mock.published_headers, [
+            ("subject.a", {"traceparent": traceparent}), ("subject.b", None),
+        ])
+        self.assertEqual(await asyncio.wait_for(mock.published.get(), 1), ("subject.a", b"one"))
+        self.assertEqual(await asyncio.wait_for(mock.published.get(), 1), ("subject.b", b"two"))
+
+    async def test_create_test_agent_with_telemetry_publishes_result_with_trace_headers(self):
+        exporter = InMemorySpanExporter()
+        provider = TracerProvider(sampler=ALWAYS_ON)
+        provider.add_span_processor(SimpleSpanProcessor(exporter))
+        cfg = TelemetryConfig(provider.get_tracer("test"), TraceContextTextMapPropagator())
+        agent, mock, store = create_test_agent(telemetry=cfg)
+
+        @agent.job("job.telemetry")
+        async def handler(ctx: Context, data):
+            return {"ok": True}
+
+        await agent.start()
+        try:
+            await store.set("ctx:telemetry-job", json.dumps({"input": "test"}).encode("utf-8"))
+            packet = buspacket_pb2.BusPacket(
+                trace_id="test-trace", sender_id="test-client",
+                protocol_version=DEFAULT_PROTOCOL_VERSION,
+            )
+            packet.created_at.GetCurrentTime()
+            packet.job_request.CopyFrom(job_pb2.JobRequest(
+                job_id="telemetry-job", topic="job.telemetry",
+                context_ptr="redis://ctx:telemetry-job",
+            ))
+            await mock.subscriptions["job.telemetry"](SimpleNamespace(
+                data=packet.SerializeToString(deterministic=True),
+                # Keep the incoming W3C flags stable across OTel SDK versions.
+                headers={"traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"},
+            ))
+            while True:
+                subject, raw = await asyncio.wait_for(mock.published.get(), timeout=5)
+                if subject == SUBJECT_RESULT:
+                    break
+            result = buspacket_pb2.BusPacket.FromString(raw).job_result
+            self.assertEqual(result.status, job_pb2.JOB_STATUS_SUCCEEDED)
+            headers = [h for s, h in mock.published_headers if s == SUBJECT_RESULT]
+            self.assertEqual(len(headers), 1)
+            self.assertIsNotNone(headers[0])
+            self.assertRegex(headers[0]["traceparent"], r"^00-[0-9a-f]{32}-[0-9a-f]{16}-0[01]$")
+            self.assertNotIn("baggage", headers[0])
+            spans = exporter.get_finished_spans()
+            self.assertTrue(spans)
+            self.assertTrue(all(s.status.status_code != StatusCode.ERROR for s in spans))
+        finally:
+            await agent.close()
+            provider.shutdown()
+
     async def test_run_handler_echo(self):
         async def echo_handler(ctx: Context, data):
             return {"echo": data["prompt"]}

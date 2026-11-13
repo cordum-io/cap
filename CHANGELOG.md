@@ -8,6 +8,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 - **TCK public reports:** new `cap-tck report` subcommands. `project` turns a `cap-tck run --json` report into a public report (`cap-public-report/v1`), taking its required cases and scenario manifest digest from the scenario files the run used. `sign` and `verify` use an Ed25519 key you supply (PKCS#8 / PKIX PEM) and a detached raw 64-byte signature. `badge` writes a fixed SVG, for a PASS report only. All four run offline with no telemetry, never create or store keys, and write 0600 files confined to `--out-dir`.
 
+- **cap-tck: a scenario suite file holds exactly one JSON object (bug fix).** `list`, `run`, `matrix` and `report project` refuse a suite file that has anything but whitespace after the suite object, such as a second JSON value, and exit with an error. Trailing whitespace and newlines are still accepted, and valid suites load unchanged.
+
 - **cap-sdk-python: `cap.testing.MockNATS.publish` accepts `headers=` (bug fix).** `create_test_agent(telemetry=...)` failed every result publish with `TypeError`, marking the span `TRANSPORT_PUBLISH_FAILED`. MockNATS now accepts the optional headers mapping and records a defensive copy in `published_headers`; the `published` queue still yields `(subject, data)`.
 
 - **cap-sdk-python: `validate_resource_ref` compares ResourceRef expiry at nanosecond precision (bug fix).** `Timestamp.ToDatetime()` truncated to microseconds, rejecting references expiring 1 ns after validation while Go accepted them. Exact `(seconds, nanos)` comparison now matches Go `AsTime().After(now)`, range validation mirrors Go `CheckValid`, and aware validation times at the edges of `datetime` no longer raise `OverflowError`.

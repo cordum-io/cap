@@ -333,6 +333,45 @@ agent = Agent(
   `result write failed`.
 - Without `resource_registry`, `context_ptr` and `result_ptr` work as before.
 
+#### Cancellation and deadlines
+
+Tags: cancellation, deadlines, worker-contract.
+
+`Agent` subscribes to `sys.job.cancel` without a queue group or a handler slot.
+It first checks whether the unverified job id is running locally (routing only,
+not authority), then admits the cancel exactly like a request. CAP-PRODUCTION
+requires the `sys.job.cancel` audience, session-bound trust and replay admission;
+a set cancel identity must equal the verified envelope identity. The admitted
+job id and the whole dispatch (dispatch id, attempt, assigned worker) must match
+the running attempt. Empty dispatch matches only empty dispatch. Refused cancels
+change nothing, and non-target workers do not consume shared replay entries.
+
+`Agent(max_deadline=None)` keeps unbounded execution by default. A positive
+`Budget.deadline_ms` gives `min(deadline_ms / 1000, max_deadline)` seconds, or the
+budget alone when the maximum is `None`. A zero budget uses the maximum.
+The maximum must be positive and finite; booleans and non-numbers are rejected.
+The clock starts after input resolution, at handler start, and includes
+middleware and retries. Result writes and publication still use `io_timeout`.
+`Context.deadline` is that `time.monotonic()` instant, or `None`;
+`Context.cancelled` is a read-only, thread-safe boolean set when cancel or
+deadline stops the handler.
+
+Cancellation publishes `JOB_STATUS_CANCELLED`, an empty `error_code`, enum
+`UNSPECIFIED`, and `job cancelled`. Deadline expiry publishes `JOB_STATUS_FAILED`
+(never status TIMEOUT), `ERROR_CODE_JOB_TIMEOUT`, `TIMEOUT`, and
+`job deadline exceeded`. Cancel reason and requester text are never published or
+logged. Exactly one terminal result is selected: the first observed event wins,
+with completion before cancel before deadline when observed together. A cancel
+before handler start skips the handler with execution time zero; an input
+failure keeps its own outcome.
+
+A synchronous handler blocks the event loop and cannot be pre-empted; its result
+wins once it returns. Blocking work in `asyncio.to_thread` gets its terminal
+result at the bound, while the thread finishes independently. A handler that
+suppresses `CancelledError` keeps its slot until it returns; that outcome is
+discarded. Once `close()` drains subscriptions, no further cancels are received.
+The low-level `cap.worker.run_worker` is unchanged.
+
 #### Progress and artifacts
 
 Async `Agent` handlers can await ordered progress and registry-backed artifacts:

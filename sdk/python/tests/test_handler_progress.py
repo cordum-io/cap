@@ -12,6 +12,7 @@ import pytest
 from cryptography.hazmat.primitives.asymmetric import ec
 
 from cap import JobFailure
+from cap.packet_boundary import finalize_packet
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2 as E
 from cap.production_replay import InMemoryReplayStore
 from cap.production_signing import ProductionSignatureError, ProductionTrust, verify_production_packet
@@ -431,6 +432,37 @@ def test_unbound_context_validates_but_does_nothing():
             await ctx.attach_artifact("a", "text/plain", "x")
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("stop", ["cancel", "deadline"])
+def test_stop_wins_over_artifact_latch_and_closes_hooks(stop):
+    nats, stopped = RecordingNATS(), []
+
+    async def handler(ctx):
+        with pytest.raises(JobFailure):
+            await ctx.attach_artifact("first", "text/plain", b"x")
+        if stop == "cancel":
+            packet = buspacket_pb2.BusPacket(trace_id="cancel-trace", sender_id=CONFIG.expected_scheduler_id,
+                                             protocol_version=1, job_cancel=E.JobCancel(job_id=JOB_ID))
+            packet.created_at.GetCurrentTime()
+            raw = finalize_packet(packet, SCHEDULER_KEY).SerializeToString(deterministic=True)
+            await nats.callbacks["sys.job.cancel"](SimpleNamespace(data=raw))
+        try:
+            await asyncio.Event().wait()
+        except asyncio.CancelledError:
+            stopped.append(ctx.cancelled)
+            assert await ctx.report_progress("late") is None
+            assert await ctx.attach_artifact("late", "text/plain", b"x") is None
+        return {}  # cancellation/deadline already won; this success must be ignored
+
+    run = asyncio.run(drive(handler, nats=nats, max_artifacts=0, max_deadline=0.02))
+    assert stopped == [True]
+    assert [s for s, _ in run.nats.published] == [SUBJECT_RESULT]
+    expected = (E.JOB_STATUS_CANCELLED, 0, "", "job cancelled") if stop == "cancel" else (
+        FAILED, E.ERROR_CODE_JOB_TIMEOUT, "TIMEOUT", "job deadline exceeded")
+    result = run.result
+    assert (result.status, result.error_code_enum, result.error_code, result.error_message) == expected
+    assert list(result.artifact_refs) == [] and run.backend.artifacts == []
 
 
 def test_readme_documents_progress_and_artifacts():

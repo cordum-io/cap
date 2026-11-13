@@ -1,6 +1,10 @@
-// Package a2abridge is an A2A 1.0 JSON-RPC ingress. It turns authenticated
-// SendMessage calls into signed CAP JobRequests on sys.job.submit, as fixed by
-// spec/interop/a2a-mapping.md. Results, resume and cancel are not handled here.
+// Package a2abridge is an A2A 1.0 JSON-RPC bridge, as fixed by
+// spec/interop/a2a-mapping.md. It turns authenticated SendMessage calls into
+// signed CAP JobRequests on sys.job.submit, and Start applies verified results,
+// DLQ outcomes and progress back to the tasks. A message with a taskId resumes
+// an interrupted task, and after Start a SendMessage without returnImmediately
+// waits a bounded time for its turn to settle. CancelTask publishes a signed
+// JobCancel and waits for the winning result or a bounded cancellation grace.
 package a2abridge
 
 import (
@@ -20,6 +24,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 	"unicode"
 	"unicode/utf8"
@@ -82,6 +87,8 @@ type Config struct {
 	Publisher client.Publisher
 	// Inputs stores each turn input before its JobRequest is published.
 	Inputs InputWriter
+	// Results reads bounded turn-result envelopes; required by Start, not New.
+	Results ResultReader
 	// MaxTasks bounds the in-memory task store. 0 means 10 000.
 	MaxTasks int
 	// Rand supplies task and context ids. Nil means crypto/rand. It need not be
@@ -89,6 +96,20 @@ type Config struct {
 	Rand io.Reader
 	// Now supplies timestamps. Nil means time.Now.
 	Now func() time.Time
+	// ResultKeys maps each trusted sender_id of a result, DLQ or progress
+	// packet (workers, and cordum-scheduler for sys.job.dlq) to its legacy
+	// signing key. A packet must carry a valid signature by its sender's key.
+	ResultKeys map[string]*ecdsa.PublicKey
+	// ProductionTrust verifies packets under CAP-PRODUCTION instead. It
+	// cannot be combined with ResultKeys.
+	ProductionTrust ProductionTrustFunc
+	// MaxBlockingWait bounds how long a SendMessage without returnImmediately
+	// waits, after Start, for its turn to end or be interrupted (spec §6).
+	// 0 means 60 s; otherwise it must be 1 s to 300 s.
+	MaxBlockingWait time.Duration
+	// CancelGrace bounds how long a published cancel waits for a result.
+	// 0 means 30 s; otherwise it must be 1 s to 60 s.
+	CancelGrace time.Duration
 }
 
 type keyEntry struct {
@@ -96,7 +117,7 @@ type keyEntry struct {
 	id   Identity
 }
 
-// Ingress implements a2asrv.RequestHandler for SendMessage and GetTask.
+// Ingress implements a2asrv.RequestHandler for SendMessage, GetTask and CancelTask.
 type Ingress struct {
 	keys     []keyEntry
 	topic    string
@@ -105,10 +126,19 @@ type Ingress struct {
 	unsigned bool
 	pub      client.Publisher
 	inputs   InputWriter
+	results  ResultReader
 	store    *store
 	randMu   sync.Mutex
 	rand     io.Reader
 	now      func() time.Time
+	// resultKeys and trust verify egress packets; see Start.
+	resultKeys map[string]*ecdsa.PublicKey
+	trust      ProductionTrustFunc
+	maxWait    time.Duration
+	grace      time.Duration
+	afterFunc  func(time.Duration, func())
+	// started is set once Start has subscribed: only then can a turn settle.
+	started atomic.Bool
 }
 
 var _ a2asrv.RequestHandler = (*Ingress)(nil)
@@ -134,6 +164,9 @@ func New(cfg Config) (*Ingress, error) {
 	if cfg.SigningKey == nil && !cfg.AllowUnsignedDev {
 		return nil, errors.New("a2abridge: SigningKey is required unless AllowUnsignedDev is set")
 	}
+	if err := checkResultKeys(cfg); err != nil {
+		return nil, err
+	}
 	maxTasks := cfg.MaxTasks
 	if maxTasks == 0 {
 		maxTasks = defaultMaxTasks
@@ -141,11 +174,26 @@ func New(cfg Config) (*Ingress, error) {
 	if maxTasks < 1 || maxTasks > maxMaxTasks {
 		return nil, fmt.Errorf("a2abridge: MaxTasks must be 1-%d", maxMaxTasks)
 	}
+	maxWait := cfg.MaxBlockingWait
+	if maxWait == 0 {
+		maxWait = 60 * time.Second
+	}
+	if maxWait < time.Second || maxWait > 300*time.Second {
+		return nil, errors.New("a2abridge: MaxBlockingWait must be 1s-300s")
+	}
+	grace := cfg.CancelGrace
+	if grace == 0 {
+		grace = 30 * time.Second
+	}
+	if grace < time.Second || grace > 60*time.Second {
+		return nil, errors.New("a2abridge: CancelGrace must be 1s-60s")
+	}
 	ing := &Ingress{
 		keys: keys, topic: cfg.Topic, sender: cfg.SenderID,
 		signer: cfg.SigningKey, unsigned: cfg.AllowUnsignedDev,
-		pub: cfg.Publisher, inputs: cfg.Inputs, store: newStore(maxTasks),
-		rand: cfg.Rand, now: cfg.Now,
+		pub: cfg.Publisher, inputs: cfg.Inputs, results: cfg.Results, store: newStore(maxTasks),
+		rand: cfg.Rand, now: cfg.Now, resultKeys: cfg.ResultKeys, trust: cfg.ProductionTrust, maxWait: maxWait,
+		grace: grace, afterFunc: func(d time.Duration, f func()) { time.AfterFunc(d, f) },
 	}
 	if ing.rand == nil {
 		ing.rand = rand.Reader
@@ -180,6 +228,23 @@ func parseKeys(in map[string]Identity) ([]keyEntry, error) {
 	// Map keys are unique and the lowercase check removes case variants, so
 	// no two entries share a hash.
 	return keys, nil
+}
+
+// checkResultKeys fails closed on a malformed verification config. A mode is
+// not required here, so an ingress-only Config stays valid; Start requires one.
+func checkResultKeys(cfg Config) error {
+	if cfg.ProductionTrust != nil && len(cfg.ResultKeys) > 0 {
+		return errors.New("a2abridge: set ProductionTrust or ResultKeys, not both")
+	}
+	for sender, key := range cfg.ResultKeys {
+		if sender == "" || key == nil || key.X == nil || key.Y == nil {
+			return errors.New("a2abridge: each ResultKeys entry needs a sender_id and a public key")
+		}
+		if _, err := key.ECDH(); err != nil {
+			return fmt.Errorf("a2abridge: ResultKeys[%q] is not a valid public key", sender)
+		}
+	}
+	return nil
 }
 
 func checkLabel(name, v string) error {
@@ -277,8 +342,10 @@ func (i *Ingress) authenticate(ctx context.Context) (Identity, error) {
 	return i.keys[match].id, nil
 }
 
-// SendMessage accepts the first turn of a new task. Identity comes only from
-// the API key; request tenant, metadata, parts and headers never set it.
+// SendMessage starts a task, or with a taskId opens the next turn of the
+// caller's interrupted task. Identity comes only from the API key; request
+// tenant, metadata, parts and headers never set it. After Start, a call
+// without returnImmediately waits for the turn (see waitSettled).
 func (i *Ingress) SendMessage(ctx context.Context, req *a2a.SendMessageRequest) (a2a.SendMessageResult, error) {
 	id, err := i.authenticate(ctx)
 	if err != nil {
@@ -294,14 +361,88 @@ func (i *Ingress) SendMessage(ctx context.Context, req *a2a.SendMessageRequest) 
 	if err != nil {
 		return nil, err
 	}
-	if req.Message.TaskID != "" {
-		// Only turn 1 is accepted here; resume belongs to the egress slice.
-		if i.store.exists(id, string(req.Message.TaskID)) {
-			return nil, a2a.ErrUnsupportedOperation
-		}
+	var task *a2a.Task
+	if req.Message.TaskID == "" {
+		task, err = i.startTask(ctx, id, req.Message, parts)
+	} else {
+		task, err = i.resumeTask(ctx, id, req.Message, parts)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if i.started.Load() && (req.Config == nil || !req.Config.ReturnImmediately) {
+		return i.waitSettled(ctx, id, task), nil
+	}
+	return task, nil
+}
+
+// resumeTask opens the next turn of the caller's interrupted task (spec §3).
+// The turn is reserved before the input write and the publish, and any failure
+// after the reservation restores the interrupted turn, so a retry publishes.
+func (i *Ingress) resumeTask(ctx context.Context, id Identity, msg *a2a.Message, parts []turnPart) (*a2a.Task, error) {
+	taskID := string(msg.TaskID)
+	key := idempotencyKey(id.Tenant, id.Principal, taskID, msg.ID)
+	rec, ok := i.store.get(id, taskID)
+	if !ok {
 		return nil, a2a.ErrTaskNotFound
 	}
-	return i.startTask(ctx, id, req.Message, parts)
+	partsJSON, err := json.Marshal(parts)
+	if err != nil {
+		return nil, a2a.ErrInternalError
+	}
+	// Bound the largest input this message can produce before reserving.
+	bound, err := json.Marshal(turnInput{TaskID: taskID, ContextID: rec.contextID, Turn: maxTurns,
+		MessageID: msg.ID, Parts: parts})
+	if err != nil {
+		return nil, a2a.ErrInternalError
+	}
+	if len(bound) > maxTurnInputBytes {
+		return nil, invalid("turn input exceeds 262144 bytes")
+	}
+	history := &a2a.Message{ID: msg.ID, Role: a2a.MessageRoleUser, Parts: a2aParts(parts)}
+	snap, parent, created, err := i.store.reserveTurn(id, taskID, key, sha256.Sum256(partsJSON), msg.ContextID,
+		"a2a-"+key, history, i.now().UTC())
+	if err != nil {
+		return nil, err // reserveTurn returns a2a errors only
+	}
+	if !created {
+		return snap.task(), nil
+	}
+	input, err := json.Marshal(turnInput{TaskID: taskID, ContextID: snap.contextID, Turn: snap.turn,
+		MessageID: msg.ID, Parts: parts})
+	if err == nil {
+		err = i.publish(ctx, id, key, snap, input, parent)
+	}
+	if err != nil {
+		i.store.release(key)
+		return nil, a2a.ErrInternalError
+	}
+	return snap.task(), nil
+}
+
+// waitSettled waits until task's turn ends or is interrupted, at most maxWait
+// or until ctx ends, and returns the newest task (spec §6).
+func (i *Ingress) waitSettled(ctx context.Context, id Identity, task *a2a.Task) *a2a.Task {
+	timer := time.NewTimer(i.maxWait)
+	defer timer.Stop()
+	for done := false; ; {
+		rec, changed, ok := i.store.watch(id, string(task.ID))
+		if !ok {
+			return task
+		}
+		task = rec.task()
+		st := rec.state
+		if done || st.Terminal() || st == a2a.TaskStateInputRequired || st == a2a.TaskStateAuthRequired {
+			return task
+		}
+		select {
+		case <-changed:
+		case <-timer.C:
+			done = true // one more read returns the newest task
+		case <-ctx.Done():
+			done = true
+		}
+	}
 }
 
 // startTask reserves the task, writes its input and only then publishes. Any
@@ -335,7 +476,7 @@ func (i *Ingress) startTask(ctx context.Context, id Identity, msg *a2a.Message, 
 	if !created {
 		return snap.task(), nil
 	}
-	if err := i.publish(ctx, id, key, rec, input); err != nil {
+	if err := i.publish(ctx, id, key, rec, input, ""); err != nil {
 		i.store.release(key)
 		return nil, a2a.ErrInternalError
 	}
@@ -358,14 +499,15 @@ func (i *Ingress) newIDs(clientContext string) (string, string, error) {
 	return "a2a-task-" + hex.EncodeToString(buf[:16]), contextID, nil
 }
 
-// publish writes the turn input and then publishes the JobRequest.
-func (i *Ingress) publish(ctx context.Context, id Identity, key string, rec taskRecord, input []byte) error {
+// publish writes the turn input and then publishes the JobRequest of rec's
+// current turn; parentJobID is the previous turn's job, empty for turn 1.
+func (i *Ingress) publish(ctx context.Context, id Identity, key string, rec taskRecord, input []byte, parentJobID string) error {
 	if err := i.inputs.PutTurnInput(ctx, "ctx:"+rec.jobID, input); err != nil {
 		return err
 	}
 	req := &agentv1.JobRequest{
-		JobId: rec.jobID, Topic: i.topic, ContextPtr: "redis://ctx:" + rec.jobID,
-		WorkflowId: rec.id, StepIndex: 1, TenantId: id.Tenant, PrincipalId: id.Principal,
+		JobId: rec.jobID, Topic: i.topic, ContextPtr: "redis://ctx:" + rec.jobID, ParentJobId: parentJobID,
+		WorkflowId: rec.id, StepIndex: int32(rec.turn), TenantId: id.Tenant, PrincipalId: id.Principal,
 		Meta: &agentv1.JobMetadata{TenantId: id.Tenant, ActorId: id.Principal, IdempotencyKey: key},
 	}
 	if i.signer == nil && i.unsigned {
@@ -393,9 +535,21 @@ func (i *Ingress) GetTask(ctx context.Context, req *a2a.GetTaskRequest) (*a2a.Ta
 
 // task renders a record as the A2A Task the caller sees.
 func (r taskRecord) task() *a2a.Task {
-	created := r.created
-	parts := make(a2a.ContentParts, 0, len(r.parts))
-	for _, p := range r.parts {
+	statusAt := r.statusAt
+	if statusAt.IsZero() {
+		statusAt = r.created
+	}
+	msg := &a2a.Message{ID: r.messageID, ContextID: r.contextID, TaskID: a2a.TaskID(r.id),
+		Role: a2a.MessageRoleUser, Parts: a2aParts(r.parts)}
+	return &a2a.Task{ID: a2a.TaskID(r.id), ContextID: r.contextID,
+		Status:  a2a.TaskStatus{State: r.state, Timestamp: &statusAt, Message: r.statusMsg},
+		History: append([]*a2a.Message{msg}, r.history...), Artifacts: r.artifacts}
+}
+
+// a2aParts converts envelope-grammar parts to fresh A2A parts.
+func a2aParts(parts []turnPart) a2a.ContentParts {
+	out := make(a2a.ContentParts, 0, len(parts))
+	for _, p := range parts {
 		part := &a2a.Part{MediaType: p.MediaType}
 		if p.Text != nil {
 			part.Content = a2a.Text(*p.Text)
@@ -404,12 +558,9 @@ func (r taskRecord) task() *a2a.Task {
 			_ = json.Unmarshal(p.Data, &v) // our own json.Marshal output
 			part.Content = a2a.Data{Value: v}
 		}
-		parts = append(parts, part)
+		out = append(out, part)
 	}
-	msg := &a2a.Message{ID: r.messageID, ContextID: r.contextID, TaskID: a2a.TaskID(r.id),
-		Role: a2a.MessageRoleUser, Parts: parts}
-	return &a2a.Task{ID: a2a.TaskID(r.id), ContextID: r.contextID,
-		Status: a2a.TaskStatus{State: r.state, Timestamp: &created}, History: []*a2a.Message{msg}}
+	return out
 }
 
 func invalid(msg string) error { return a2a.NewError(a2a.ErrInvalidParams, msg) }
@@ -527,9 +678,95 @@ func (i *Ingress) ListTasks(ctx context.Context, _ *a2a.ListTasksRequest) (*a2a.
 	return nil, i.deny(ctx, a2a.ErrUnsupportedOperation)
 }
 
-// CancelTask is not supported by the ingress; the egress slice owns it.
-func (i *Ingress) CancelTask(ctx context.Context, _ *a2a.CancelTaskRequest) (*a2a.Task, error) {
-	return nil, i.deny(ctx, a2a.ErrUnsupportedOperation)
+// CancelTask cancels only a task owned by the authenticated caller.
+func (i *Ingress) CancelTask(ctx context.Context, req *a2a.CancelTaskRequest) (*a2a.Task, error) {
+	id, err := i.authenticate(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if req == nil {
+		return nil, a2a.ErrTaskNotFound
+	}
+	taskID := string(req.ID)
+	rec, attempt, abort, done, err := i.startCancel(id, taskID)
+	if err != nil {
+		return nil, err
+	}
+	if done {
+		return rec.task(), nil
+	}
+	return i.awaitCancel(ctx, id, taskID, attempt, abort)
+}
+
+// startCancel ensures every new attempt has exactly one publisher, including
+// a waiter whose attempt a release superseded. It returns the attempt the
+// caller now waits on: the new one it published, the joined one, or 0 when
+// the cancel is already done.
+func (i *Ingress) startCancel(id Identity, taskID string) (taskRecord, uint64, <-chan struct{}, bool, error) {
+	step, rec, job, attempt, abort, err := i.store.requestCancel(id, taskID, i.now().UTC())
+	if err != nil {
+		return taskRecord{}, 0, nil, false, err
+	}
+	if step == cancelPublish {
+		if err := i.publishCancel(id, taskID, job); err != nil {
+			i.store.cancelFailed(id, taskID, attempt)
+			return taskRecord{}, 0, nil, false, a2a.ErrInternalError
+		}
+		i.afterFunc(i.grace, func() { i.store.expireCancel(id, taskID, attempt, i.now().UTC()) })
+	}
+	return rec, attempt, abort, step == cancelDone, nil
+}
+
+// awaitCancel decides by state before checking the attempt's abort: release
+// restores an interrupted turn without aborting the callers waiting on it.
+// A waiter re-applies the cancel to the current turn when it sees that
+// restored state, or when its attempt is no longer current while its abort
+// is still open: only release clears an attempt without closing its abort,
+// and a resume may already have replaced the restored turn.
+func (i *Ingress) awaitCancel(ctx context.Context, id Identity, taskID string, attempt uint64, abort <-chan struct{}) (*a2a.Task, error) {
+	for {
+		rec, changed, ok := i.store.watch(id, taskID)
+		switch {
+		case !ok:
+			return nil, a2a.ErrTaskNotFound
+		case rec.state == a2a.TaskStateCanceled:
+			return rec.task(), nil
+		case rec.state.Terminal():
+			return nil, a2a.ErrTaskNotCancelable
+		case rec.state == a2a.TaskStateInputRequired || rec.state == a2a.TaskStateAuthRequired,
+			rec.cancelAttempt != attempt && !closed(abort):
+			next, nextAttempt, nextAbort, done, err := i.startCancel(id, taskID)
+			if err != nil {
+				return nil, err
+			}
+			if done {
+				return next.task(), nil
+			}
+			attempt, abort = nextAttempt, nextAbort
+			continue
+		case closed(abort):
+			return nil, a2a.ErrInternalError
+		}
+		select {
+		case <-changed:
+		case <-abort:
+		case <-ctx.Done():
+			if current, ok := i.store.get(id, taskID); ok {
+				return current.task(), nil
+			}
+			return nil, a2a.ErrTaskNotFound
+		}
+	}
+}
+
+// closed reports, without blocking, whether ch is closed.
+func closed(ch <-chan struct{}) bool {
+	select {
+	case <-ch:
+		return true
+	default:
+		return false
+	}
 }
 
 // SubscribeToTask is not supported (no streaming in v1).

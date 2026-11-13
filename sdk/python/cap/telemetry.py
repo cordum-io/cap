@@ -17,8 +17,6 @@ Rules this module enforces:
 - A ``None`` config is the off switch: it writes no headers, extracts
   nothing and starts no spans.
 - A legacy packet's ``trace_id`` and message ID are never recorded.
-
-The Python client and runtime do not call this module yet.
 """
 
 import enum

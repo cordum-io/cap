@@ -4,6 +4,8 @@ on:
   push:
     branches: [ main ]
   pull_request:
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
@@ -31,10 +33,12 @@ jobs:
       - name: Go race (SDK)
         run: go test -race ./sdk/go/...
 
-      - name: Govulncheck
-        run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
+      - name: Govulncheck gate tests (pinned module)
+        run: go -C tools/govulncheck test -count=1 ./...
+
+      - name: Govulncheck (pinned module, seeded fail-closed gate)
+        timeout-minutes: 15
+        run: go -C tools/govulncheck run . --repo-root ../..
 
   node:
     name: Node SDK (Node ${{ matrix.node-version }})

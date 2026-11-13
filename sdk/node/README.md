@@ -364,6 +364,55 @@ const agent = new Agent({ metrics });
 Job-scoped runtime logs include `traceId`. `MetricsHook` receives the job, topic, duration,
 status, error, and worker fields shown above; add trace correlation in your adapter if needed.
 
+### Trace context (OpenTelemetry)
+
+`cap-sdk-node` has no OpenTelemetry dependency. Install `@opentelemetry/api` and
+`@opentelemetry/core`, plus an SDK and exporter for your spans, and configure the
+provider in your application. The carrier and span contract is
+`spec/interop/trace-context.md` in the CAP repository.
+
+```ts
+import * as api from "@opentelemetry/api";
+import { W3CTraceContextPropagator } from "@opentelemetry/core";
+import { Agent, submitJob, telemetry } from "cap-sdk-node";
+import type { NatsConnection } from "nats";
+
+// Never pass the global propagator: it may include baggage.
+const config = telemetry.fromOpenTelemetry(api, new W3CTraceContextPropagator());
+const tracer = api.trace.getTracer("orders");
+const agent = new Agent({ telemetry: config });
+agent.job("job.orders", async (ctx) => {
+  const span = tracer.startSpan("orders.validate", {}, ctx.otelContext);
+  try {
+    return { valid: true };
+  } finally {
+    span.end();
+  }
+});
+
+async function submitOrder(
+  nc: NatsConnection, request: Record<string, unknown>, traceId: string,
+  senderId: string, privateKey?: string, sessionToken = "",
+): Promise<void> {
+  await submitJob(nc, request, traceId, senderId, privateKey, sessionToken, { telemetry: config });
+}
+```
+
+- **Submit:** `publish sys.job.submit` is a PRODUCER span parented on the optional
+  `context` option (default: the active context). Its context goes out in the
+  lowercase `traceparent`/`tracestate` NATS headers.
+- **Process:** headers are read only after CAP-PRODUCTION admission or legacy
+  validation. Rejected packets create no span. The process span is a child of,
+  and links to, a valid sender context; missing or invalid context starts a new
+  root. The handler gets `ctx.otelContext`; the runtime does **not** make it active.
+- **Result:** `publish sys.job.result` is a child of the process span; the result
+  carries that publish span's context. A handler error marks the process span
+  `HANDLER_FAILED`; a failed publish marks its own span `TRANSPORT_PUBLISH_FAILED`.
+- **Never authority:** trace headers never select tenant, principal, key, policy
+  or approval. `baggage` is never read or sent by this instrumentation.
+- **Off by default:** without `telemetry`, no headers or spans are added.
+  `startWorker`, heartbeats and the handshake are not instrumented.
+
 ## Notes
 - Subjects: `sys.job.submit`, `job.<pool>`, `sys.job.result`, `sys.heartbeat`.
 - Protocol version: `1`.

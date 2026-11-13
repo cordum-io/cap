@@ -26,12 +26,18 @@ class MockNATS:
         await self.published.put((subject, data))
 
 
+HEARTBEAT_WAIT_TIMEOUT = 5.0
+
+
 class RecordingMetrics:
-    def __init__(self):
+    def __init__(self, on_record=None):
         self.heartbeats = []
+        self._on_record = on_record
 
     def on_heartbeat_sent(self, worker_id):
         self.heartbeats.append(worker_id)
+        if self._on_record is not None:
+            self._on_record(len(self.heartbeats))
 
 
 class TestHeartbeatPayload(unittest.TestCase):
@@ -187,7 +193,8 @@ class TestHeartbeatAsync(unittest.IsolatedAsyncioTestCase):
 
     async def test_heartbeat_loop_emits_and_stops(self):
         nc = MockNATS()
-        metrics = RecordingMetrics()
+        two_beats = asyncio.Event()
+        metrics = RecordingMetrics(on_record=lambda count: two_beats.set() if count >= 2 else None)
         cancel_event = asyncio.Event()
         calls = {"count": 0}
 
@@ -205,9 +212,16 @@ class TestHeartbeatAsync(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-        await asyncio.sleep(0.35)
-        cancel_event.set()
-        await asyncio.wait_for(loop_task, timeout=1)
+        # A fixed sleep window flakes under load; two recorded beats is the observable condition (task-2e7ff3cd).
+        try:
+            await asyncio.wait_for(two_beats.wait(), timeout=HEARTBEAT_WAIT_TIMEOUT)
+        except asyncio.TimeoutError:
+            self.fail(
+                f"heartbeat_loop recorded {len(metrics.heartbeats)} beat(s) within {HEARTBEAT_WAIT_TIMEOUT}s; expected 2"
+            )
+        finally:
+            cancel_event.set()
+            await asyncio.wait_for(loop_task, timeout=HEARTBEAT_WAIT_TIMEOUT)
 
         self.assertGreaterEqual(calls["count"], 2)
         self.assertGreaterEqual(len(metrics.heartbeats), 2)

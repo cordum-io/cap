@@ -372,6 +372,57 @@ suppresses `CancelledError` keeps its slot until it returns; that outcome is
 discarded. Once `close()` drains subscriptions, no further cancels are received.
 The low-level `cap.worker.run_worker` is unchanged.
 
+#### Progress and artifacts
+
+Async `Agent` handlers can await ordered progress and registry-backed artifacts:
+
+```python
+await context.report_progress("validated")
+await context.attach_artifact("receipt", "text/plain", b"accepted")
+```
+
+`report_progress(marker)` publishes one `JobProgress` on `sys.job.progress` with
+the admitted job ID, status `JOB_STATUS_RUNNING`, `message=marker`, percent 0
+and other fields unset. The marker is an exact `str`, 1-256 UTF-8 bytes, and
+`str.isprintable()` must be true. CAP-PRODUCTION binds job identity and dispatch
+and seals the envelope for audience `sys.job.progress` using the worker proof key.
+Each call awaits publication under `io_timeout`; errors propagate. Markers go
+out in call order before the terminal result.
+
+`attach_artifact(name, media_type, content)` requires the operator
+`resource_registry` and writes to `result_backend_id`, with purpose
+`job-artifact:<name>` and expiry `now + result_ref_ttl`. It uses the worker-trust
+tenant and admitted job ID, never identity from a resource reference. The exact
+string name matches `[a-z0-9][a-z0-9._-]{0,63}`; media type is canonical lowercase
+type/subtype without parameters, at most 127 bytes; content is nonempty exact
+`bytes`. Invalid arguments raise `TypeError` or `ValueError` without publication
+or latching a failure.
+
+`Agent(max_artifacts=8, max_artifact_bytes=2 * 1024 * 1024)` bounds the count per
+attempt and bytes per artifact. Count accepts integers 0..1000 and byte limit
+accepts positive integers; bool and non-integers raise `ValueError`. A rejected
+bound never writes content. Only a SUCCEEDED result includes `artifact_refs`,
+in call order; `result_ref` is unchanged. Retries clear artifacts, but retain
+progress already published and the first failure latch.
+
+| Status | Error code | Fixed message |
+| --- | --- | --- |
+| `JOB_STATUS_FAILED` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `artifact count exceeds max` |
+| `JOB_STATUS_FAILED` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `artifact exceeds max size` |
+| `JOB_STATUS_FAILED` | `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` | `artifact write failed` |
+
+Count/size breaches, missing registries and write failures raise `JobFailure`
+and latch the first row above. Registry size refusal uses the size row. The
+latch overrides the handler outcome even if caught, so no SUCCEEDED result is
+published. The raised failure contains no backend exception cause or context.
+
+Hooks close synchronously when the final handler attempt ends, at terminal
+publish entry, and during request cleanup. A call that runs after the handler's
+final attempt ended is dropped. Closed or directly constructed, unbound contexts
+still validate arguments, but publish and externalize nothing. Await hooks on
+the event-loop thread: synchronous handlers cannot await them. `run_worker`
+is unchanged. Tags: Python, progress, artifacts, ResourceRef.
+
 ### Middleware
 
 Add cross-cutting concerns (logging, auth, metrics) without modifying handlers:

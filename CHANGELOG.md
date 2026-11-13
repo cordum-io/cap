@@ -6,6 +6,10 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- Python `Context.report_progress` publishes ordered, production-sealed markers;
+  `Context.attach_artifact` writes ordered registry refs for SUCCEEDED results.
+  `Agent(max_artifacts, max_artifact_bytes)` bounds each attempt and latches fixed
+  RESOURCE_EXHAUSTED count, size, or write failures; closed hooks perform no I/O.
 - **Python Agent cancellation and deadlines:** honours fenced `sys.job.cancel` and per-job deadlines (`FAILED` / `ERROR_CODE_JOB_TIMEOUT` / `TIMEOUT`), with `Context.deadline`, `Context.cancelled` and `Agent(max_deadline)`.
 
 - **cordum-guard closes governance bypasses (security, behavior change).**

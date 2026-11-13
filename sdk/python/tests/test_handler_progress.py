@@ -443,7 +443,8 @@ def test_stop_wins_over_artifact_latch_and_closes_hooks(stop):
             await ctx.attach_artifact("first", "text/plain", b"x")
         if stop == "cancel":
             packet = buspacket_pb2.BusPacket(trace_id="cancel-trace", sender_id=CONFIG.expected_scheduler_id,
-                                             protocol_version=1, job_cancel=E.JobCancel(job_id=JOB_ID))
+                                             protocol_version=1, job_cancel=E.JobCancel(job_id=JOB_ID,
+                                                 requested_by=CONFIG.expected_scheduler_id))
             packet.created_at.GetCurrentTime()
             raw = finalize_packet(packet, SCHEDULER_KEY).SerializeToString(deterministic=True)
             await nats.callbacks["sys.job.cancel"](SimpleNamespace(data=raw))

@@ -76,7 +76,7 @@ func loadConfig() (config, []string, error) {
 			errs = append(errs, fmt.Errorf("%s must match %s", v[0], idRe))
 		}
 	}
-	n, err := strconv.Atoi(or(os.Getenv("CAP_WORKER_MAX_PARALLEL"), "4"))
+	n, err := strconv.ParseInt(or(os.Getenv("CAP_WORKER_MAX_PARALLEL"), "4"), 10, 32)
 	if err != nil || n < 1 || n > 64 {
 		errs = append(errs, errors.New("CAP_WORKER_MAX_PARALLEL must be 1-64"))
 	}

@@ -12,6 +12,11 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 
 - **cap-sdk-python: `cap.testing.MockNATS` can start worker-trust Agents (bug fix).** `connect` accepts the `reconnected_cb`/`disconnected_cb` options the Agent passes when worker trust is `warn` or `enforce`, and `request` raises `asyncio.TimeoutError` (no responders). `create_test_agent(worker_trust_mode="warn", ...)` therefore starts without a session instead of failing with `TypeError`, and `enforce` fails closed with `WorkerTrustRuntimeError`.
+
+- The Go SDK, Node SDK and Python SDK checks in `ci.yml` also run on `merge_group` events;
+  no check's content changed. Enabling the merge queue remains a maintainer ruleset change
+  (task-324398d5).
+
 - **cordum-guard closes governance bypasses (security, behavior change).**
   - Verdicts: the client now reads the gateway's protojson names
     (`DECISION_TYPE_REQUIRE_HUMAN`, ...). Previously every real verdict, DENY included, parsed

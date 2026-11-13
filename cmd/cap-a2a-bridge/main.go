@@ -14,16 +14,27 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
+	"net"
+	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"regexp"
+	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync"
+	"syscall"
 	"time"
 
+	"github.com/a2aproject/a2a-go/v2/a2a"
+	"github.com/a2aproject/a2a-go/v2/a2asrv"
 	"github.com/cordum-io/cap/v2/internal/a2abridge"
 	capsdk "github.com/cordum-io/cap/v2/sdk/go"
+	"github.com/nats-io/nats.go"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -44,11 +55,161 @@ type config struct {
 	inputTTL, cancelGrace, maxWait, shutdown              time.Duration
 }
 
-func main() {
-	if _, _, err := loadConfig(os.Getenv); err != nil {
-		fmt.Fprintf(os.Stderr, "cap-a2a-bridge: configuration: %v\n", err)
-		os.Exit(2)
+func main() { os.Exit(run(context.Background(), os.Getenv, os.Stderr)) }
+
+// run returns 0 after a signal-triggered shutdown, 1 on a connection, start
+// or serve failure, and 2 on a configuration error.
+func run(ctx context.Context, getenv func(string) string, stderr io.Writer) int {
+	cfg, warnings, err := loadConfig(getenv)
+	if err != nil {
+		fmt.Fprintf(stderr, "cap-a2a-bridge: configuration: %v\n", err)
+		return 2
 	}
+	log := slog.New(slog.NewJSONHandler(stderr, nil))
+	for _, w := range warnings {
+		log.Warn(w)
+	}
+	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	b, code := start(cfg, log)
+	if b == nil {
+		return code
+	}
+	served := make(chan error, 1)
+	go func() {
+		if cfg.cert == nil {
+			served <- b.srv.ListenAndServe()
+		} else {
+			served <- b.srv.ListenAndServeTLS("", "")
+		}
+	}()
+	log.Info("cap-a2a-bridge started", "listen", cfg.listen, "topic", cfg.topic, "sender_id", cfg.senderID)
+	select {
+	case <-ctx.Done():
+	case err := <-served:
+		log.Error("HTTP server failed", "error", err)
+		code = 1
+	}
+	b.shutdown(cfg.shutdown)
+	return code
+}
+
+// bridge holds what shutdown releases.
+type bridge struct {
+	srv        *http.Server
+	stopEgress func() error
+	nc         *nats.Conn
+	rdb        io.Closer
+	cancel     context.CancelFunc // ends every request context
+	once       sync.Once
+}
+
+// newBridge derives every request context from one that shutdown cancels:
+// closing a connection alone does not end the context of a handler that has
+// not read its body to EOF.
+func newBridge(srv *http.Server, stopEgress func() error, nc *nats.Conn, rdb io.Closer) *bridge {
+	base, cancel := context.WithCancel(context.Background())
+	srv.BaseContext = func(net.Listener) context.Context { return base }
+	return &bridge{srv: srv, stopEgress: stopEgress, nc: nc, rdb: rdb, cancel: cancel}
+}
+
+func start(c config, log *slog.Logger) (*bridge, int) {
+	opts := []nats.Option{nats.Name("cap-a2a-bridge"), nats.Timeout(5 * time.Second)}
+	if c.natsTLS != nil {
+		opts = append(opts, nats.Secure(c.natsTLS))
+	}
+	nc, err := nats.Connect(c.natsURL, opts...)
+	if err != nil {
+		log.Error("NATS connect failed", "url", redact(c.natsURL), "error", err)
+		return nil, 1
+	}
+	ropts, err := redis.ParseURL(c.redisURL)
+	if err != nil {
+		nc.Close()
+		log.Error("CAP_REDIS_URL is not a valid Redis URL", "url", redact(c.redisURL))
+		return nil, 2
+	}
+	if c.redisTLS != nil {
+		ropts.TLSConfig = c.redisTLS
+	}
+	rdb := redis.NewClient(ropts)
+	pctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	err = rdb.Ping(pctx).Err()
+	cancel()
+	if err != nil {
+		nc.Close()
+		_ = rdb.Close()
+		log.Error("Redis ping failed", "url", redact(c.redisURL), "error", err)
+		return nil, 1
+	}
+	rio := redisIO{c: rdb, ttl: c.inputTTL}
+	ing, err := a2abridge.New(a2abridge.Config{APIKeys: c.apiKeys, Topic: c.topic, SenderID: c.senderID,
+		SigningKey: c.signingKey, AllowUnsignedDev: c.unsigned, Publisher: nc, Inputs: rio, Results: rio,
+		MaxTasks: c.maxTasks, ResultKeys: c.resultKeys, MaxBlockingWait: c.maxWait, CancelGrace: c.cancelGrace})
+	code, stopEgress := 2, func() error { return nil }
+	if err == nil {
+		code = 1
+		stopEgress, err = ing.Start(nc)
+	}
+	if err != nil {
+		nc.Close()
+		_ = rdb.Close()
+		log.Error("bridge start failed", "error", err)
+		return nil, code
+	}
+	mux := http.NewServeMux()
+	mux.Handle("/", ing.Handler()) // Handler bounds the request body to 1 MiB
+	mux.Handle(a2asrv.WellKnownAgentCardPath, a2asrv.NewStaticAgentCardHandler(agentCard(c)))
+	srv := &http.Server{Addr: c.listen, Handler: mux, ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout: 30 * time.Second, IdleTimeout: 120 * time.Second, WriteTimeout: c.maxWait + 15*time.Second,
+		MaxHeaderBytes: 64 << 10, TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12},
+		ErrorLog: slog.NewLogLogger(log.Handler(), slog.LevelWarn)}
+	if c.cert != nil {
+		srv.TLSConfig.Certificates = []tls.Certificate{*c.cert}
+	}
+	return newBridge(srv, stopEgress, nc, rdb), 0
+}
+
+// shutdown releases everything within timeout and is safe to call twice. A
+// request still running at the deadline has its context canceled.
+func (b *bridge) shutdown(timeout time.Duration) {
+	b.once.Do(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		defer b.cancel()
+		if b.srv.Shutdown(ctx) != nil {
+			b.cancel()
+			_ = b.srv.Close()
+		}
+		_ = b.stopEgress()
+		closed := make(chan struct{})
+		b.nc.SetClosedHandler(func(*nats.Conn) { close(closed) })
+		if b.nc.Drain() == nil {
+			select {
+			case <-closed:
+			case <-ctx.Done():
+			}
+		}
+		b.nc.Close()
+		_ = b.rdb.Close()
+	})
+}
+
+func agentCard(c config) *a2a.AgentCard {
+	version := "dev"
+	if bi, ok := debug.ReadBuildInfo(); ok && bi.Main.Version != "" && bi.Main.Version != "(devel)" {
+		version = bi.Main.Version
+	}
+	const bearer = a2a.SecuritySchemeName("bearer")
+	modes := []string{"text/plain", "application/json"}
+	return &a2a.AgentCard{Name: "cap-a2a-bridge", Version: version,
+		Description:         "A2A 1.0 JSON-RPC bridge that runs each message as a CAP job on one topic.",
+		SupportedInterfaces: []*a2a.AgentInterface{a2a.NewAgentInterface(c.publicURL, a2a.TransportProtocolJSONRPC)},
+		DefaultInputModes:   modes, DefaultOutputModes: modes,
+		Skills: []a2a.AgentSkill{{ID: c.topic, Name: c.topic, Tags: []string{"cap"},
+			Description: "Runs the message as a CAP job on topic " + c.topic + "."}},
+		SecuritySchemes:      a2a.NamedSecuritySchemes{bearer: a2a.HTTPAuthSecurityScheme{Scheme: "Bearer"}},
+		SecurityRequirements: a2a.SecurityRequirementsOptions{{bearer: a2a.SecuritySchemeScopes{}}}}
 }
 
 // loadConfig parses and checks every variable before any network I/O and
@@ -301,6 +462,18 @@ func allPrefixed(list, prefix string) bool {
 		}
 	}
 	return true
+}
+
+func redact(list string) string {
+	parts := strings.Split(list, ",")
+	for i, p := range parts {
+		if u, err := url.Parse(strings.TrimSpace(p)); err == nil {
+			parts[i] = u.Redacted()
+		} else {
+			parts[i] = "<unparseable>"
+		}
+	}
+	return strings.Join(parts, ",")
 }
 
 // redisCmds is the part of *redis.Client that redisIO uses. It has no Get,

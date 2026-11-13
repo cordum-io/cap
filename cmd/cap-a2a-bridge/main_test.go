@@ -10,12 +10,16 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"math/big"
+	"net"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/nats-io/nats-server/v2/server"
+	"github.com/nats-io/nats.go"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -336,5 +340,69 @@ func TestRedisIOBoundedRead(t *testing.T) {
 	}
 	if err := io.PutTurnInput(ctx, "ctx:j1", []byte("{}")); err != nil || len(f.ttls) != 1 || f.ttls[0] != 7*time.Minute {
 		t.Fatalf("PutTurnInput: err = %v, ttls = %v", err, f.ttls)
+	}
+}
+
+type countCloser struct{ n int }
+
+func (c *countCloser) Close() error { c.n++; return nil }
+
+func TestShutdownIsBounded(t *testing.T) {
+	ns, err := server.NewServer(&server.Options{Host: "127.0.0.1", Port: -1, NoLog: true, NoSigs: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ns.Start()
+	t.Cleanup(ns.Shutdown)
+	if !ns.ReadyForConnections(5 * time.Second) {
+		t.Fatal("nats-server not ready")
+	}
+	nc, err := nats.Connect(ns.ClientURL())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(nc.Close)
+	if _, err := nc.Subscribe("sys.job.result", func(*nats.Msg) {}); err != nil {
+		t.Fatal(err)
+	}
+	entered, exited := make(chan struct{}), make(chan struct{})
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	srv := &http.Server{ReadHeaderTimeout: time.Second, Handler: http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
+		close(entered)
+		<-r.Context().Done() // like a blocking SendMessage; the body is left unread
+		close(exited)
+	})}
+	stops, rdb := 0, &countCloser{}
+	s := newBridge(srv, func() error { stops++; return nil }, nc, rdb)
+	go func() { _ = srv.Serve(ln) }()
+	go func() {
+		if resp, err := http.Post("http://"+ln.Addr().String()+"/", "application/json", strings.NewReader("{}")); err == nil {
+			_ = resp.Body.Close()
+		}
+	}()
+	select {
+	case <-entered:
+	case <-time.After(5 * time.Second):
+		t.Fatal("request never reached the handler")
+	}
+	began := time.Now()
+	s.shutdown(200 * time.Millisecond)
+	if d := time.Since(began); d > 2*time.Second {
+		t.Fatalf("shutdown took %v with a request in flight", d)
+	}
+	select {
+	case <-exited:
+	case <-time.After(2 * time.Second):
+		t.Fatal("the in-flight handler did not exit")
+	}
+	if !nc.IsClosed() || stops != 1 || rdb.n != 1 {
+		t.Fatalf("after shutdown: nats closed %v, egress stops %d, redis closes %d", nc.IsClosed(), stops, rdb.n)
+	}
+	s.shutdown(200 * time.Millisecond)
+	if stops != 1 || rdb.n != 1 {
+		t.Fatalf("second shutdown was not a no-op: egress stops %d, redis closes %d", stops, rdb.n)
 	}
 }

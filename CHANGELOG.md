@@ -6,6 +6,11 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- Python `Context.report_progress` publishes ordered, production-sealed markers;
+  `Context.attach_artifact` writes ordered registry refs for SUCCEEDED results.
+  `Agent(max_artifacts, max_artifact_bytes)` bounds each attempt and latches fixed
+  RESOURCE_EXHAUSTED count, size, or write failures; closed hooks perform no I/O.
+
 - **cordum-guard closes governance bypasses (security, behavior change).**
   - Verdicts: the client now reads the gateway's protojson names
     (`DECISION_TYPE_REQUIRE_HUMAN`, ...). Previously every real verdict, DENY included, parsed

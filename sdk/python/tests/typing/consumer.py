@@ -109,6 +109,8 @@ orders_agent = Agent(
     max_parallel=8,
     heartbeat_payload_fn=heartbeat,
     metrics=build_metrics(),
+    max_artifacts=8,
+    max_artifact_bytes=2 * 1024 * 1024,
 )
 
 
@@ -119,6 +121,8 @@ orders_agent = Agent(
 )
 async def process_order(context: Context, request: OrderRequest) -> OrderResult:
     """Use the idiomatic decorator while preserving the handler signature."""
+    await context.report_progress("validated")
+    await context.attach_artifact("receipt", "text/plain", b"accepted")
     return OrderResult(accepted=bool(context.job_id and request.order_id))
 
 

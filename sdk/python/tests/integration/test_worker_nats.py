@@ -396,6 +396,51 @@ class TestWorkerRealNATS(unittest.IsolatedAsyncioTestCase):
                 await asyncio.wait_for(submitter.drain(), TIMEOUT_SECONDS)
 
 
+    async def test_exact_dispatch_redelivery_replays_result(self) -> None:
+        nats_url, suffix = _required_nats_url(), uuid.uuid4().hex
+        topic, job_id, trace_id = "test.cap.replay." + suffix, "job-" + suffix, "trace-" + suffix
+        key = ec.generate_private_key(ec.SECP256R1())
+        config = replace(trust_config(), scheduler_public_keys={"scheduler-pin": key.public_key()})
+        store, calls = InMemoryBlobStore(), []
+        await store.set("ctx:" + job_id, b"{}")
+        agent = Agent(nats_url=nats_url, sender_id=config.worker_id, store=store,
+                      worker_trust_mode="warn", worker_trust=config,
+                      worker_trust_timeout=0.5, worker_trust_retries=1)
+
+        @agent.job(topic)
+        async def handler(ctx: Context, data: object) -> object:
+            calls.append(ctx.job_id)
+            return data
+
+        submitter = await _connect("cap-python-replay-submitter", nats_url)
+        results = await submitter.subscribe(SUBJECT_RESULT)
+        try:
+            await asyncio.wait_for(agent.start(), TIMEOUT_SECONDS)
+            await agent._nc.flush(timeout=TIMEOUT_SECONDS)
+            await submitter.flush(timeout=TIMEOUT_SECONDS)
+            packet = buspacket_pb2.BusPacket(trace_id=trace_id,
+                sender_id=config.expected_scheduler_id, protocol_version=DEFAULT_PROTOCOL_VERSION)
+            packet.created_at.GetCurrentTime()
+            packet.job_request.CopyFrom(job_pb2.JobRequest(job_id=job_id, topic=topic,
+                context_ptr="redis://ctx:" + job_id, dispatch=job_pb2.DispatchIdentity(
+                    dispatch_id="dsp-" + suffix, attempt=1, assigned_worker_id=config.worker_id)))
+            raw = finalize_packet(packet, key).SerializeToString(deterministic=True)
+            received = []
+            for _ in range(2):
+                await submitter.publish(topic, raw)
+                await submitter.flush(timeout=TIMEOUT_SECONDS)
+                received.append(await _next_result(results, trace_id))
+            self.assertEqual(calls, [job_id])
+            self.assertEqual(len(received), 2)
+            self.assertEqual(received[0].job_result, received[1].job_result)
+            self.assertEqual(received[0].job_result.status, job_pb2.JOB_STATUS_SUCCEEDED)
+            with self.assertRaises(asyncio.TimeoutError):
+                await asyncio.wait_for(_next_result(results, trace_id), 0.5)
+        finally:
+            await asyncio.wait_for(agent.close(), TIMEOUT_SECONDS)
+            if not submitter.is_closed:
+                await asyncio.wait_for(submitter.drain(), TIMEOUT_SECONDS)
+
     async def test_fenced_cancel_over_real_nats(self) -> None:
         nats_url, suffix = _required_nats_url(), uuid.uuid4().hex
         topic, trace_id, job_id = (f"test.cap.cancel.{suffix}", f"trace-{suffix}", f"job-{suffix}")

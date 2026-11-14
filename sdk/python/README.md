@@ -445,6 +445,46 @@ still validate arguments, but publish and externalize nothing. Await hooks on
 the event-loop thread: synchronous handlers cannot await them. `run_worker`
 is unchanged. Tags: Python, progress, artifacts, ResourceRef.
 
+#### Dispatch fencing and result replay
+
+`Agent` fences every admitted `JobRequest` carrying a `DispatchIdentity`, in every
+trust mode, before input resolution, cancellation registration or handler execution.
+The dispatch id must be 1–128 UTF-8 bytes, `attempt >= 1`, the assigned worker must
+match this Agent, and the job id must be at most 256 UTF-8 bytes. Invalid or foreign
+dispatches are dropped. Admission still authenticates first; the trust mode decides
+who can steer the fence. The digest is SHA-256 of deterministic `JobRequest` bytes.
+
+| Stored state | Incoming dispatch | Decision |
+| --- | --- | --- |
+| unknown (including evicted) | valid dispatch | RUN |
+| DONE | exact dispatch and digest, recorded result | REPLAY |
+| DONE | exact dispatch and digest, no result | RUN |
+| RUNNING | exact dispatch and digest | DROP (in flight) |
+| any | same dispatch, different digest | DROP (conflicting dispatch) |
+| RUNNING | attempt = active+1 | RUN (replaces entry) |
+| RUNNING | attempt > active+1 | DROP (future attempt) |
+| DONE | newer attempt, including a gap | RUN (replaces entry) |
+| any | stale attempt, or same attempt with a different dispatch id | DROP |
+
+The bound terminal result and trace id are recorded **before** result publication;
+a failed publish can therefore be replayed. Replays keep the recorded trace id and
+never invoke the handler, resolve input, register cancellation, update metrics or
+record again. Production replays are re-bound and freshly sealed with the current
+session. A verified production byte-identical duplicate may only replay an exact
+recorded result; otherwise it is dropped without claiming a dispatch. Interrupted
+attempts finish without a result; a non-duplicate exact redelivery can run again.
+
+`dispatch_fence_max_jobs=1024` accepts integers from 1 to 1,000,000;
+`dispatch_fence_max_age=3600.0` accepts positive finite seconds (neither accepts bool).
+Age is measured since the last write with a monotonic clock. Age and oldest-write
+size eviction are checked on every store call. The store is **in memory**, per
+process: eviction or restart forgets a job, not a durable exactly-once guarantee.
+Drops log a fixed reason and bounded job id, never request content; replays log at info.
+Requests without `DispatchIdentity` remain unfenced, even in production; requiring
+it for Go managed-worker parity is a follow-up. `run_worker` is unchanged.
+For TCK probes, a distinct dispatch at attempt 1 needs a fresh job id, and the
+future-attempt case must hold the active attempt RUNNING (DONE accepts newer gaps).
+
 ### Middleware
 
 Add cross-cutting concerns (logging, auth, metrics) without modifying handlers:

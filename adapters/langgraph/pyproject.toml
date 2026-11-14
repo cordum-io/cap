@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools==84.1.0", "wheel==0.47.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cap-adapter-langgraph"
+version = "0.1.0.dev0"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+classifiers = [
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+dependencies = ["langgraph==1.2.18", "langsmith==0.14.14", "cap-sdk-python>=2.17.1.dev0,<3"]
+
+[project.scripts]
+cap-adapter-langgraph = "cap_adapter_langgraph:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["tests/fixtures"]
+testpaths = ["tests"]

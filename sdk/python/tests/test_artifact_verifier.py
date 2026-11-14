@@ -137,6 +137,18 @@ def _write_pair(
             archive.addfile(info, io.BytesIO(content))
     return wheel, sdist
 
+@pytest.fixture(autouse=True)
+def _bounded_node_id(request: pytest.FixtureRequest) -> None:
+    """Fail any test in this module whose node id outgrows a short bound.
+
+    pytest copies the node id into PYTEST_CURRENT_TEST, and Windows rejects an
+    environment variable longer than 32767 characters. A parametrize id built
+    from README or METADATA bytes therefore breaks setup on Windows only; this
+    bound fails it on every platform, long before the README reaches that size.
+    """
+    assert len(request.node.nodeid) <= 512, request.node.nodeid[:160]
+
+
 def test_complete_pair_has_exact_deterministic_inventory(tmp_path: Path) -> None:
     wheel, sdist = _write_pair(tmp_path)
     first = verifier.inspect_artifacts(wheel, sdist)

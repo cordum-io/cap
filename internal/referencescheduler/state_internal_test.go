@@ -325,3 +325,68 @@ func TestResultArtifactsAreBoundedWhole(t *testing.T) {
 		t.Fatalf("2 artifacts: %+v %v", j, err)
 	}
 }
+
+// dispatchedJ1 returns a scheduler holding job j1 of tenant t1, dispatched to w1.
+func dispatchedJ1(t *testing.T, attempts uint64) (*Scheduler, Dispatch) {
+	t.Helper()
+	at := time.Unix(1_900_000_000, 0)
+	s, err := New(Config{Limits: Limits{MaxInputBytes: 10, MaxOutputBytes: 10, MaxArtifacts: 4, MaxAttempts: attempts,
+		DispatchTimeout: time.Minute, RunTimeout: time.Minute, MaxRunTimeout: time.Minute},
+		Allow: []AllowRule{{TenantID: "t1", Topic: "topic", Capability: "c"}}, Now: func() time.Time { return at }})
+	if err != nil {
+		t.Fatal(err)
+	}
+	req := &agentv1.JobRequest{JobId: "j1", Topic: "topic", Meta: &agentv1.JobMetadata{Capability: "c"}, ContextRef: &agentv1.ResourceRef{SizeBytes: 1}}
+	if _, err := s.Submit(signed(t, SubjectSubmit, "t1", "client", func(p *agentv1.BusPacket) {
+		p.Payload = &agentv1.BusPacket_JobRequest{JobRequest: req}
+	})); err != nil {
+		t.Fatal(err)
+	}
+	d, err := s.Dispatch("t1", "j1", "w1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return s, d
+}
+
+// resultFrom returns a verified copy of r sent by sender.
+func resultFrom(t *testing.T, sender string, r *agentv1.JobResult) capsdk.VerifiedProductionPacket {
+	t.Helper()
+	return signed(t, SubjectResult, "t1", sender, func(p *agentv1.BusPacket) {
+		p.Payload = &agentv1.BusPacket_JobResult{JobResult: proto.Clone(r).(*agentv1.JobResult)}
+	})
+}
+
+// Rule: the output bound is checked before the retry rule.
+func TestApplyResultOutputBoundBeatsRetry(t *testing.T) {
+	s, d := dispatchedJ1(t, 3)
+	r := &agentv1.JobResult{JobId: "j1", Status: agentv1.JobStatus_JOB_STATUS_FAILED_RETRYABLE, Dispatch: d.Identity,
+		ResultRef: &agentv1.ResourceRef{SizeBytes: 11}}
+	j, err := s.ApplyResult(resultFrom(t, "w1", r))
+	if err != ErrOutputTooLarge || j.Status != agentv1.JobStatus_JOB_STATUS_FAILED ||
+		j.Result.GetErrorCodeEnum() != agentv1.ErrorCode_ERROR_CODE_JOB_RESOURCE_EXHAUSTED {
+		t.Fatalf("oversized retryable result: %+v %v", j, err)
+	}
+	if got, _ := s.Get("t1", "j1"); got.Status != agentv1.JobStatus_JOB_STATUS_FAILED ||
+		got.Result.GetErrorCodeEnum() != agentv1.ErrorCode_ERROR_CODE_JOB_RESOURCE_EXHAUSTED {
+		t.Fatalf("stored job: %+v", got)
+	}
+}
+
+// Rule: a repeat on a terminal job is a no-op only when the fence also passes.
+func TestApplyResultTerminalRepeatNeedsFence(t *testing.T) {
+	s, d := dispatchedJ1(t, 1)
+	r := &agentv1.JobResult{JobId: "j1", Status: agentv1.JobStatus_JOB_STATUS_SUCCEEDED, Dispatch: d.Identity}
+	if j, err := s.ApplyResult(resultFrom(t, "w1", r)); err != nil || j.Status != agentv1.JobStatus_JOB_STATUS_SUCCEEDED {
+		t.Fatalf("winner: %+v %v", j, err)
+	}
+	if _, err := s.ApplyResult(resultFrom(t, "w1", r)); err != nil {
+		t.Fatalf("winner's repeat from w1: %v", err)
+	}
+	if _, err := s.ApplyResult(resultFrom(t, "w2", r)); err != ErrTerminal {
+		t.Fatalf("identical result from w2: %v", err)
+	}
+	if j, _ := s.Get("t1", "j1"); j.Status != agentv1.JobStatus_JOB_STATUS_SUCCEEDED || !proto.Equal(j.Result, r) {
+		t.Fatalf("winner changed: %+v", j)
+	}
+}

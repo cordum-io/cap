@@ -221,6 +221,15 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `warn` or `enforce`), and no Redis store is opened. Without a registry, behaviour is
   unchanged.
 
+- **cap-sdk-python nats-kv ResourceRef backend:** `cap.NatsKvResourceBackend.open(kv)`
+  installs a content-addressed JetStream KV backend (resolver id `nats-kv`) in
+  `cap.ResourceRegistry`. URIs are `nats-kv://<bucket>/<tenant>/<sha256hex>`, and keys
+  and values match the Go `internal/resourcekv` format byte for byte (shared golden
+  fixture). The operator supplies the connection and the bucket, whose `max_value_size`
+  (1 byte to 1 GiB) becomes the backend limit; an unbounded bucket is refused. A ref never
+  supplies credentials, hosts or paths, another tenant's ref is refused before any fetch,
+  and backend errors carry fixed text. A new workflow runs it against real JetStream.
+
 ## v2.17.0 — 2026-07-22
 
 - **Go SDK ResourceRef registry:** added an immutable registry of operator-installed

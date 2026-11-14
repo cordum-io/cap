@@ -9,6 +9,7 @@ import subprocess
 import sys
 import threading
 from pathlib import Path
+from types import SimpleNamespace
 
 import cap
 import golden_graphs as gg
@@ -154,6 +155,26 @@ def test_cancel_stops_blocking_graph():
     run = stopped(CASES["cancel-mid-run"])
     assert (run.status, run.progress) == ("JOB_STATUS_CANCELLED", ["started"])
     assert run.after_cancel <= 2
+
+
+def test_handler_lets_cancellation_propagate():
+    async def scenario():
+        started = asyncio.Event()
+
+        async def report_progress(marker):
+            started.set()
+
+        ctx = SimpleNamespace(job=SimpleNamespace(meta=SimpleNamespace(capability="wait-for-cancel")),
+                              report_progress=report_progress)
+        task = asyncio.ensure_future(adapter.make_handler(adapter.load_workloads(gg.WORKLOADS))(ctx, {"text": "x"}))
+        await asyncio.wait_for(started.wait(), 5)
+        task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
+        return task.cancelled()
+
+    gg.CANCEL_SEEN.clear()
+    assert asyncio.run(scenario()) is True  # never converted into a JobFailure
+    assert gg.CANCEL_SEEN == [True]
 
 
 @pytest.fixture

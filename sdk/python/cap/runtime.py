@@ -367,11 +367,11 @@ class Context:
     deadline: Optional[float] = None
     _stop_signal: threading.Event = field(default_factory=threading.Event, repr=False)
     _events: Optional[_JobEvents] = field(default=None, repr=False, compare=False)
+    _dispatch_claim: Optional[Tuple[str, Dispatch]] = field(default=None, init=False, repr=False, compare=False)
     # The OpenTelemetry context holding the job's process span when the Agent
     # has telemetry configured, else None. It is never made current: pass it
     # as ``context=`` to start child spans.
     otel_context: Optional[Any] = None
-    _dispatch_claim: Optional[Tuple[str, Dispatch]] = field(default=None, repr=False, compare=False)
 
     async def report_progress(self, marker: str) -> None:
         """Await a RUNNING JobProgress with message=marker (1-256 printable UTF-8 bytes).
@@ -1430,8 +1430,8 @@ class Agent:
                 },
             )
             ctx = Context(job=req, packet=packet, logger=ctx_logger, otel_context=otel_context,
-                          _stop_signal=running.stopped, _events=events,
-                          _dispatch_claim=(job_id, dispatch_snapshot) if dispatch_snapshot is not None else None)
+                          _stop_signal=running.stopped, _events=events)
+            ctx._dispatch_claim = (job_id, dispatch_snapshot) if dispatch_snapshot is not None else None
 
             registry = self._resource_registry
             store = self._store

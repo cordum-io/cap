@@ -238,6 +238,11 @@ def test_unexpected_inventory_fails_closed(tmp_path: Path, kind: str, relative: 
         ("METADATA", _metadata(PROJECT_VERSION, _source_bytes("README.md")).replace(
             b"protobuf<7,>=6.31.1", b"protobuf>=1"), "Requires-Dist"),
     ),
+    ids=(
+        "setup-cfg-injected",
+        "metadata-requires-python-widened",
+        "metadata-requires-dist-widened",
+    ),
 )
 def test_build_metadata_is_bound_to_pyproject(
     tmp_path: Path, relative: str, replacement: bytes, message: str

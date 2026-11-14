@@ -471,7 +471,7 @@ a failed publish can therefore be replayed. Replays keep the recorded trace id a
 never invoke the handler, resolve input, register cancellation, update metrics or
 record again. Production replays are re-bound and freshly sealed with the current
 session. A verified production byte-identical duplicate may only replay an exact
-recorded result; otherwise it is dropped without claiming a dispatch. Interrupted
+recorded result; otherwise it is dropped silently, without claiming a dispatch. Interrupted
 attempts finish without a result; a non-duplicate exact redelivery can run again.
 
 `dispatch_fence_max_jobs=1024` accepts integers from 1 to 1,000,000;
@@ -479,7 +479,7 @@ attempts finish without a result; a non-duplicate exact redelivery can run again
 Age is measured since the last write with a monotonic clock. Age and oldest-write
 size eviction are checked on every store call. The store is **in memory**, per
 process: eviction or restart forgets a job, not a durable exactly-once guarantee.
-Drops log a fixed reason and bounded job id, never request content; replays log at info.
+Other drops log a fixed reason and bounded job id, never request content; replays log at info.
 Requests without `DispatchIdentity` remain unfenced, even in production; requiring
 it for Go managed-worker parity is a follow-up. `run_worker` is unchanged.
 For TCK probes, a distinct dispatch at attempt 1 needs a fresh job id, and the

@@ -1394,10 +1394,10 @@ class Agent:
             if decision == FenceDecision.REPLAY and recorded is not None:
                 await self._replay_result(packet, authority, recorded)
                 return
-            if decision != FenceDecision.RUN or duplicate:
+            if decision != FenceDecision.RUN and not duplicate:
                 self._logger.warning("dispatch dropped: %s job_id=%s", reason, _bounded_log_field(job_id))
                 return
-        elif duplicate:
+        if duplicate:
             return
         events = _JobEvents(
             lambda marker: self._publish_progress(packet, marker, authority),

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -270,11 +271,17 @@ def test_new_attempt_runs_and_stale_drops():
     asyncio.run(run())
 
 
-def test_foreign_worker_is_dropped():
+def dropped(caplog):
+    return [r.getMessage() for r in caplog.records if "dispatch dropped" in r.getMessage()]
+
+
+def test_foreign_worker_is_dropped(caplog):
     async def run():
         h = Harness()
-        await h.deliver(h.wire(h.request(worker="foreign")))
+        with caplog.at_level(logging.WARNING, logger="cap.runtime"):
+            await h.deliver(h.wire(h.request(worker="foreign")))
         assert (h.calls, len(h.results())) == (0, 0)
+        assert dropped(caplog) == ["dispatch dropped: wrong worker job_id=job-1"]
     asyncio.run(run())
 
 
@@ -312,13 +319,14 @@ def test_publish_failure_is_replayed_without_handler():
     asyncio.run(run())
 
 
-def test_production_unknown_duplicate_never_claims_a_dispatch():
+def test_production_unknown_duplicate_never_claims_a_dispatch(caplog):
     async def run():
         h = Harness(production=True)
         raw = h.wire(h.request())
         assert h.agent._decode_admitted_packet(raw, TOPIC) is not None
-        await h.deliver(raw)
-        assert (h.calls, len(h.results())) == (0, 0)
+        with caplog.at_level(logging.WARNING, logger="cap.runtime"):
+            await h.deliver(raw)
+        assert (h.calls, len(h.results()), dropped(caplog)) == (0, 0, [])
         dispatch = ("d1", 1, h.agent._sender_id)
         assert h.agent._dispatch_fence.record("job-1", dispatch, *RECORDED) is False
         await h.deliver(h.wire(h.request()))

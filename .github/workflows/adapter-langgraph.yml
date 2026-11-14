@@ -1,6 +1,6 @@
 name: Adapter LangGraph
 
-# Locked install, adapter tests and installed-wheel smoke under the test-only network trap. Read-only, no secrets.
+# Locked install, adapter tests and installed-wheel smoke under the test-only network trap; read-only, uses no secrets or caches.
 
 on:
   push:

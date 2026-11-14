@@ -117,13 +117,34 @@ Cordum is a **reference control plane** that implements CAP (API Gateway,
 Scheduler, Safety Kernel, Workflow Engine). CAP is the open protocol; Cordum is
 one implementation of it. Anyone can implement CAP.
 
+## Interoperability
+
+These interop pieces ship today. None of them changes the CAP wire format.
+
+| Standard | Version | What ships | Reference |
+| --- | --- | --- | --- |
+| A2A | 1.0, through `github.com/a2aproject/a2a-go/v2` v2.6.0 | `cmd/cap-a2a-bridge`, a draft CAP-native gateway. It serves SendMessage, GetTask and CancelTask, turns each authenticated message into a signed CAP job, and carries input-required and auth-required in a versioned turn-result envelope. | [mapping](../spec/interop/a2a-mapping.md), [example](../examples/a2a-bridge/) |
+| W3C Trace Context | Level 1 | Lowercase `traceparent`/`tracestate` NATS headers on job submit, process and result in the Go, Python and Node SDK clients and Agent runtimes. Context is extracted only after admission or validation, and baggage is never propagated. | [contract](../spec/interop/trace-context.md) |
+| OpenTelemetry messaging semantic conventions | v1.44.0 (Development status upstream) | PRODUCER `publish` and CONSUMER `process` spans with the attributes pinned by the trace-context vectors. | [contract](../spec/interop/trace-context.md) |
+| CloudEvents | specversion 1.0 | A mapping, not an exporter, for job progress, job result, alert and workflow-event packets, with deterministic vectors. No CAP SDK or Cordum component emits these events. | [mapping](../spec/interop/cloudevents-mapping.md) |
+| AsyncAPI | 3.1.0 | A description of the 12 NATS subjects in the spec/09 subject table, checked in CI together with the interop vectors. | [contract](../asyncapi/cap.asyncapi.yaml) |
+| MCP | 2024-11-05, as implemented by Cordum | A CAP worker demo in Cordum calls Cordum's governed MCP endpoint. Its mutating `cordum_create_workflow` call waits for a distinct operator's approval. | [Cordum demo](https://github.com/cordum-io/cordum/tree/main/demo/cap-mcp-governed) |
+
+**A2A production limitation.** The bridge is admitted only while the Cordum
+scheduler runs with handshake mode `off` or `warn`, which is the compat profile.
+Under `enforce` or CAP-PRODUCTION it is rejected. The CAP-only end-to-end test
+uses an ungoverned test scheduler; the governed run is a Cordum CI workflow.
+
 ## Interoperability roadmap
 
-The following are **roadmap**, not current CAP behavior, and are owned by the
-interop-adapters work — do not treat them as shipped:
+The following are **roadmap**, not current CAP behavior — do not treat them as
+shipped:
 
-- an A2A ↔ CAP bridge;
-- an MCP-client-in-CAP-worker reference demo;
-- OpenTelemetry context propagation helpers;
-- a CloudEvents export mapping;
-- an AsyncAPI description of the CAP subjects.
+- a CloudEvents exporter (today there is only the mapping);
+- a typed `WorkflowEvent` payload;
+- A2A streaming (`SendStreamingMessage` and `SubscribeToTask` are unsupported);
+- A2A artifacts carried as `ResourceRef`s;
+- the six Cordum MCP mutating hooks other than `cordum_create_workflow`, which
+  are not wired yet;
+- trace propagation in the Go SDK's `worker.Worker` and `ManagedWorker`;
+- production A2A fronting through the Cordum gateway.

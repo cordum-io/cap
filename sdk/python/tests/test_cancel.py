@@ -267,6 +267,68 @@ def test_thread_keeps_running_without_a_second_terminal_result():
     asyncio.run(run())
 
 
+async def _keep_loop_awake(stop, on_tick=None):
+    # Iterate the loop without pause, so every pass checks the timers, the way
+    # other I/O wakes a busy worker's loop.
+    while not stop.is_set():
+        if on_tick is not None:
+            on_tick()
+        await asyncio.sleep(0)
+
+
+def _fire_timers_early(loop):
+    # CPython runs a timer once it is due within loop._clock_resolution: 15.625 ms
+    # on Windows before 3.13 (GetTickCount64). Widen it so every platform sees a
+    # deadline timer fire early. Fail, never skip, if CPython drops the attribute.
+    assert isinstance(loop._clock_resolution, float)
+    loop._clock_resolution = 0.15
+
+
+@pytest.mark.parametrize("deadline_ms, maximum", [(200, None), (0, 0.2)])
+def test_early_deadline_timer_never_times_out_before_the_deadline(deadline_ms, maximum):
+    async def run():
+        _fire_timers_early(asyncio.get_running_loop())
+        stop = asyncio.Event()
+        async with Harness(max_deadline=maximum) as h:
+            waker = asyncio.create_task(_keep_loop_awake(stop))
+            try:
+                await h.submit(h.request(deadline_ms=deadline_ms))
+                result = await h.result()
+                late = time.monotonic() - h.ctx.deadline
+            finally:
+                stop.set()
+                await waker
+            assert 0 <= late <= 1.0
+            assert (result.status, result.error_code_enum, result.error_code,
+                    result.error_message) == (FAILED, job_pb2.ERROR_CODE_JOB_TIMEOUT,
+                                              "TIMEOUT", "job deadline exceeded")
+            await asyncio.gather(*h.agent._handler_tasks)
+            assert (h.ctx.cancelled, h.stops, h.nats.result_count()) == (True, 1, 1)
+    asyncio.run(run())
+
+
+def test_handler_finishing_after_an_early_deadline_timer_succeeds():
+    async def run():
+        _fire_timers_early(asyncio.get_running_loop())
+        stop = asyncio.Event()
+        async with Harness(max_deadline=0.2) as h:
+            def release_before_deadline():
+                # 100 ms before the deadline: after the early timer, before the deadline.
+                if h.ctx is not None and time.monotonic() >= h.ctx.deadline - 0.1:
+                    h.release.set()
+            waker = asyncio.create_task(_keep_loop_awake(stop, release_before_deadline))
+            try:
+                await h.submit(h.request())
+                result = await h.result()
+            finally:
+                stop.set()
+                await waker
+            assert result.status == SUCCEEDED
+            await asyncio.gather(*h.agent._handler_tasks)
+            assert (h.completions, h.stops, h.ctx.cancelled, h.nats.result_count()) == (1, 0, False, 1)
+    asyncio.run(run())
+
+
 def test_completion_cancel_deadline_race_has_one_terminal_result():
     async def run():
         counts = Counter()

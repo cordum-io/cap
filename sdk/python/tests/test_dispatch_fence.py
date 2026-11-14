@@ -260,7 +260,7 @@ def test_running_duplicate_or_future_is_dropped(production, future):
 
 def test_new_attempt_runs_and_stale_drops():
     async def run():
-        h = Harness()
+        h = Harness(production=True)
         await h.deliver(h.wire(h.request()))
         await h.deliver(h.wire(h.request(2, "d2")))
         assert (h.calls, len(h.results())) == (2, 2)
@@ -323,6 +323,25 @@ def test_production_unknown_duplicate_never_claims_a_dispatch():
         assert h.agent._dispatch_fence.record("job-1", dispatch, *RECORDED) is False
         await h.deliver(h.wire(h.request()))
         assert (h.calls, len(h.results())) == (1, 1)
+    asyncio.run(run())
+
+
+def test_handler_mutation_cannot_record_another_jobs_result():
+    async def run():
+        h = Harness()
+        other = ("other-dispatch", 2, h.agent._sender_id)
+        h.agent._dispatch_fence.admit("other-job", other, b"other", h.agent._sender_id)
+        @h.agent.job(TOPIC)
+        async def mutate(ctx, data):
+            ctx.job.job_id = "other-job"
+            ctx.job.dispatch.CopyFrom(job_pb2.DispatchIdentity(
+                dispatch_id=other[0], attempt=other[1], assigned_worker_id=other[2]))
+            return {}
+        await h.deliver(h.wire(h.request()))
+        assert h.agent._dispatch_fence.record("other-job", other, *RECORDED) is True
+        original = ("d1", 1, h.agent._sender_id)
+        assert h.agent._dispatch_fence.record("job-1", original, *RECORDED) is False
+        assert h.agent._active_jobs == set()
     asyncio.run(run())
 
 

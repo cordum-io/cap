@@ -46,6 +46,7 @@ from cap.cancel import (
     peek_cancel_job_id, validate_max_deadline,
 )
 from cap.errors import InvalidInputError
+from cap.dispatch_fence import Dispatch, DispatchFence, FenceDecision, RecordedResult
 from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
 from cap.outcome import (
@@ -370,6 +371,7 @@ class Context:
     # has telemetry configured, else None. It is never made current: pass it
     # as ``context=`` to start child spans.
     otel_context: Optional[Any] = None
+    _dispatch_claim: Optional[Tuple[str, Dispatch]] = field(default=None, repr=False, compare=False)
 
     async def report_progress(self, marker: str) -> None:
         """Await a RUNNING JobProgress with message=marker (1-256 printable UTF-8 bytes).
@@ -455,6 +457,12 @@ class Agent:
     wins. Work in a thread finishes independently after the bounded result.
     Suppressing CancelledError keeps the slot until return; that outcome is
     discarded. close() drains cancel subscriptions. run_worker is unchanged.
+
+    Admitted requests with DispatchIdentity are fenced by worker and attempt.
+    Exact completed redeliveries replay the result, including production duplicates.
+    dispatch_fence_max_jobs (1024, 1..1000000) and dispatch_fence_max_age
+    (3600 seconds, positive finite) bound this per-process, in-memory store.
+    Eviction or restart forgets a job; requests without a dispatch are unchanged.
     """
 
     def __init__(
@@ -491,7 +499,10 @@ class Agent:
         result_ref_ttl: float = 3600.0,
         max_artifacts: int = 8,
         max_artifact_bytes: int = 2 * 1024 * 1024,
+        dispatch_fence_max_jobs: int = 1024,
+        dispatch_fence_max_age: float = 3600.0,
     ) -> None:
+        self._dispatch_fence = DispatchFence(dispatch_fence_max_jobs, dispatch_fence_max_age)
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
         self._store = store
@@ -1168,6 +1179,12 @@ class Agent:
         audience: Optional[str] = None,
         bind_session: bool = False,
     ) -> Optional[buspacket_pb2.BusPacket]:
+        packet, duplicate = self._admit_production_packet(payload, audience, bind_session)
+        return None if duplicate else packet
+
+    def _admit_production_packet(
+        self, payload: bytes, audience: Optional[str] = None, bind_session: bool = False,
+    ) -> Tuple[Optional[buspacket_pb2.BusPacket], bool]:
         """Raw-wire CAP-PRODUCTION admission: verify the exact received
         bytes (never a re-serialized object), then authoritative identity,
         then atomic replay admission — all BEFORE any handler runs. Any
@@ -1175,7 +1192,7 @@ class Agent:
         base_trust = self._production_trust
         replay_store = self._replay_store
         if base_trust is None or replay_store is None:
-            return None
+            return None, False
         try:
             trust = replace(
                 base_trust, audience=audience or base_trust.audience
@@ -1186,21 +1203,20 @@ class Agent:
             packet = verify_production_packet(payload, trust)
         except ProductionSignatureError as exc:
             self._logger.warning("production admission rejected packet: %s", exc)
-            return None
+            return None, False
         if validate_bus_packet(packet):
             self._logger.warning("production admission rejected packet: invalid envelope")
-            return None
+            return None, False
         if packet.HasField("job_request") and packet.HasField("identity"):
             try:
                 validate_identity_binding(packet.job_request, packet.identity)
             except IdentityMismatchError as exc:
                 self._logger.warning("production admission rejected packet: %s", exc)
-                return None
-        if not self._admit_production_replay(
-            packet, unsigned, trust, replay_store
-        ):
-            return None
-        return packet
+                return None, False
+        outcome = self._admit_production_replay(packet, unsigned, trust, replay_store)
+        if outcome is None:
+            return None, False
+        return packet, outcome == ReplayOutcome.DUPLICATE
 
     def _admit_production_replay(
         self,
@@ -1208,7 +1224,7 @@ class Agent:
         unsigned: bytes,
         trust: ProductionTrust,
         replay_store: ReplayStore,
-    ) -> bool:
+    ) -> Optional[ReplayOutcome]:
         metadata = packet.signature_metadata
         digest = hashlib.sha256(unsigned).digest()
         expiry = metadata.expires_at.ToDatetime(tzinfo=timezone.utc)
@@ -1226,15 +1242,22 @@ class Agent:
                 "production admission rejected packet: %s",
                 _replay_error_category(exc),
             )
-            return False
-        if outcome == ReplayOutcome.DUPLICATE:
-            return False
-        if outcome != ReplayOutcome.FIRST:
+            return None
+        if outcome not in (ReplayOutcome.FIRST, ReplayOutcome.DUPLICATE):
             self._logger.warning(
                 "production admission rejected packet: invalid outcome"
             )
-            return False
-        return True
+            return None
+        return outcome
+
+    def _admit_request_packet(
+        self, payload: bytes, audience: Optional[str],
+    ) -> Tuple[Optional[buspacket_pb2.BusPacket], bool]:
+        if self._production_enabled():
+            if not audience or not self._production_session_active():
+                return None, False
+            return self._admit_production_packet(payload, audience, bind_session=True)
+        return self._decode_admitted_packet(payload, audience), False
 
     def _decode_admitted_packet(
         self, payload: bytes, audience: Optional[str] = None
@@ -1326,7 +1349,7 @@ class Agent:
 
     async def _on_direct_msg(self, msg: Any) -> None:
         """Route a direct worker message to the correct handler by topic."""
-        packet = self._decode_admitted_packet(
+        packet, duplicate = self._admit_request_packet(
             msg.data, getattr(msg, "subject", None)
         )
         if packet is None:
@@ -1336,18 +1359,19 @@ class Agent:
         if spec is None:
             self._logger.warning("no handler for topic %s on direct subject", topic)
             return
-        await self._on_msg(msg, spec, packet)
+        await self._on_msg(msg, spec, packet, duplicate)
 
     async def _on_msg(
         self,
         msg: Any,
         spec: HandlerSpec,
         packet: Optional[buspacket_pb2.BusPacket] = None,
+        duplicate: bool = False,
     ) -> None:
         # Only _on_direct_msg passes a decoded packet.
         direct = packet is not None
         if packet is None:
-            packet = self._decode_admitted_packet(
+            packet, duplicate = self._admit_request_packet(
                 msg.data, getattr(msg, "subject", None)
             )
         if packet is None:
@@ -1359,6 +1383,22 @@ class Agent:
         authority = (
             freeze_production_authority(req) if self._production_enabled() else None
         )
+        job_id, dispatch_snapshot = req.job_id, None
+        if req.HasField("dispatch"):
+            dispatch = authority.dispatch if authority is not None else req.dispatch
+            dispatch_snapshot = (dispatch.dispatch_id, dispatch.attempt, dispatch.assigned_worker_id)
+            decision, reason, recorded = self._dispatch_fence.admit(
+                job_id, dispatch_snapshot, hashlib.sha256(req.SerializeToString(deterministic=True)).digest(),
+                self._sender_id, replay_only=duplicate,
+            )
+            if decision == FenceDecision.REPLAY and recorded is not None:
+                await self._replay_result(packet, authority, recorded)
+                return
+            if decision != FenceDecision.RUN or duplicate:
+                self._logger.warning("dispatch dropped: %s job_id=%s", reason, _bounded_log_field(job_id))
+                return
+        elif duplicate:
+            return
         events = _JobEvents(
             lambda marker: self._publish_progress(packet, marker, authority),
             (lambda name, media, content: self._externalize_artifact(req, authority, name, media, content))
@@ -1390,7 +1430,8 @@ class Agent:
                 },
             )
             ctx = Context(job=req, packet=packet, logger=ctx_logger, otel_context=otel_context,
-                          _stop_signal=running.stopped, _events=events)
+                          _stop_signal=running.stopped, _events=events,
+                          _dispatch_claim=(job_id, dispatch_snapshot) if dispatch_snapshot is not None else None)
 
             registry = self._resource_registry
             store = self._store
@@ -1481,7 +1522,9 @@ class Agent:
             span.end()
             events.close()
             self._cancel_registry.unregister(running)
-            self._active_jobs.discard(req.job_id)
+            self._active_jobs.discard(job_id)
+            if dispatch_snapshot is not None:
+                self._dispatch_fence.finish(job_id, dispatch_snapshot)
 
     async def _invoke_handler(
         self, ctx: Context, spec: HandlerSpec, input_data: object
@@ -1774,6 +1817,13 @@ class Agent:
         packet = self._event_envelope(ctx.packet)
         packet.job_result.CopyFrom(bound_result)
         raw = self._event_wire(packet, authority, SUBJECT_RESULT)
+        request = authority if authority is not None else ctx.job
+        dispatch = request.dispatch
+        claim = (request.job_id, (dispatch.dispatch_id, dispatch.attempt, dispatch.assigned_worker_id))
+        if ctx._dispatch_claim == claim:
+            self._dispatch_fence.record(
+                claim[0], claim[1], packet.trace_id, bound_result.SerializeToString(deterministic=True)
+            )
         telemetry = self._telemetry
         if telemetry is None:
             await self._with_timeout(
@@ -1799,6 +1849,29 @@ class Agent:
             raise
         finally:
             span.end()
+
+    async def _replay_result(
+        self, request: buspacket_pb2.BusPacket, authority: Optional[ProductionEventAuthority],
+        recorded: RecordedResult,
+    ) -> None:
+        if self._nc is None:
+            self._logger.warning("dispatch replay dropped: NATS not initialized")
+            return
+        trace_id, raw_result = recorded
+        result = job_pb2.JobResult.FromString(raw_result)
+        if authority is not None:
+            try:
+                bind_production_event(result, authority)
+            except ProductionEventConflictError:
+                self._logger.warning("dispatch replay dropped: conflicting authority job_id=%s",
+                                     _bounded_log_field(request.job_request.job_id))
+                return
+        packet = self._event_envelope(request)
+        packet.trace_id = trace_id
+        packet.job_result.CopyFrom(result)
+        raw = self._event_wire(packet, authority, SUBJECT_RESULT)
+        self._logger.info("dispatch replay: job_id=%s", _bounded_log_field(result.job_id))
+        await self._with_timeout(self._nc.publish(SUBJECT_RESULT, raw), "result publish")
 
     async def _publish_progress(
         self, request: buspacket_pb2.BusPacket, marker: str,

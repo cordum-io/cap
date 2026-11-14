@@ -189,6 +189,12 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   Without `telemetry`, no headers or spans are added. `startWorker`, heartbeats and
   the handshake are not instrumented.
 
+- **Docs (interop):** `docs/ecosystem.md` now lists the shipped A2A bridge, W3C trace
+  propagation with OpenTelemetry spans, CloudEvents mapping, AsyncAPI contract and Cordum's
+  governed MCP demo as current, with their pinned versions and the A2A production
+  limitation. What remains is kept as roadmap. `spec/00-index.md` lists the interop
+  documents, and `examples/README.md` lists `a2a-bridge/`.
+
 - **cap-sdk-python ResourceRef registry:** `cap.ResourceRegistry` ports Go
   `NewResourceRegistry`. Operators install named backends with `ResourceBackendRegistration`.
   `resolve()` and `externalize()` enforce generic production bounds, backend byte limits,

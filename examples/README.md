@@ -11,6 +11,7 @@ Runnable examples and wire-format samples for the Cordum Agent Protocol.
 | [framework-langchain/](framework-langchain/) | LangChain tools wrapped with CAP safety governance via `CordumToolGuard` | Python | Python 3.9+ |
 | [framework-crewai/](framework-crewai/) | CrewAI agents with CAP `@guard` decorator for safety decisions | Python | Python 3.9+ |
 | [framework-autogen/](framework-autogen/) | AutoGen agents with CAP `@guard` decorator and `FunctionTool` integration | Python | Python 3.9+ |
+| [a2a-bridge/](a2a-bridge/) | A2A 1.0 bridge (`cmd/cap-a2a-bridge`) and example worker; ungoverned test scheduler in CAP; governed run in Cordum CI | Go | NATS server, Redis |
 
 The framework examples use `MockCordumClient` — no NATS server or live infrastructure required.
 

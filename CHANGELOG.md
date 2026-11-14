@@ -84,6 +84,9 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `x/text` 0.42.0); bumped sdk/node dev dependencies `js-yaml` 4.3.1, `markdown-it` 14.3.2
   and `brace-expansion` 2.1.7, and tools/codegen dev dependencies `markdown-it` 14.3.2 and
   `brace-expansion` 2.1.7.
+- Dependency maintenance: sdk/python builds with `setuptools` 84.1.0 on Python 3.10 and newer.
+  Python 3.9 builds keep `setuptools` 82.0.1, the last release that supports 3.9, through a
+  `python_version` marker in `[build-system] requires`.
 - **Node SDK depends on zod 4 (`^4.6.7`, was `^3.24.0`)** to clear GHSA-mrhx-c7xc-m3w5,
   where zod can exhaust memory validating oversized constrained collections. `Agent.job`,
   `JobOptions.outputSchema` and `testHandler` now take a `JobSchema<T>`, any object with

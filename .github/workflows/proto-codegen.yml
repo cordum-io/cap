@@ -11,29 +11,31 @@ jobs:
   generated-contract:
     runs-on: ubuntu-24.04  # ubuntu-26.04 has no Python 3.12.8 build
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: go.mod
           cache: true
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 20.18.1
           cache: npm
           cache-dependency-path: tools/codegen/package-lock.json
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: 3.12.8
           cache: pip
           cache-dependency-path: sdk/python/requirements-codegen.txt
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: temurin
           java-version: 17.0.13+11
           cache: maven
-      - uses: dtolnay/rust-toolchain@1.88.0
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # v1
+        with:
+          toolchain: 1.88.0
       - name: Configure non-root Ruby gem path
         run: |
           echo "GEM_HOME=$RUNNER_TEMP/cap-ruby-gems" >> "$GITHUB_ENV"

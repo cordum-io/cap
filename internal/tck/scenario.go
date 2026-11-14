@@ -3,7 +3,9 @@ package tck
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"sort"
 )
 
@@ -25,15 +27,21 @@ type Suite struct {
 	Scenarios []Scenario `json:"scenarios"`
 }
 
-// LoadSuite parses and validates a scenario suite, rejecting unknown fields so
-// contract drift cannot pass silently, and sorts scenarios by ID so case order
-// and report output are deterministic regardless of authoring order.
+// LoadSuite parses and validates a scenario suite, rejecting unknown fields and
+// any data after the suite object so contract drift cannot pass silently, and
+// sorts scenarios by ID so case order and report output are deterministic
+// regardless of authoring order.
 func LoadSuite(data []byte) (*Suite, error) {
 	dec := json.NewDecoder(bytes.NewReader(data))
 	dec.DisallowUnknownFields()
 	var s Suite
 	if err := dec.Decode(&s); err != nil {
 		return nil, fmt.Errorf("tck: parse suite: %w", err)
+	}
+	// Exactly one JSON value per suite file: only whitespace may follow the
+	// suite object, so a second value or stray bytes are refused, not ignored.
+	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
+		return nil, errors.New("tck: parse suite: unexpected trailing data after the suite object")
 	}
 	if err := s.validate(); err != nil {
 		return nil, err

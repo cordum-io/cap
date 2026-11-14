@@ -6,7 +6,21 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **cap-sdk-python:** `Agent` fences admitted dispatches and replays recorded terminal results on exact redelivery, including production duplicates. `dispatch_fence_max_jobs` and `dispatch_fence_max_age` bound the per-process in-memory store.
+
+- **cap-adapter-langgraph (new, `adapters/langgraph`):** an operator-run CAP worker that runs operator-registered LangGraph graphs (langgraph 1.2.18) on cap-sdk-python, with no Cordum dependency, on Python 3.11+. A job selects its workload only by `JobMetadata.capability`; inputs are validated with the workload's pydantic model; nodes report ordered progress and artifacts through explicit `cap.progress` and `cap.artifact` stream events; graph errors become a fixed `FRAMEWORK_ERROR` with no exception text; LangSmith tracing is forced off. The `cap-adapter-langgraph` console script runs with worker trust ENFORCE, CAP-PRODUCTION admission, TLS NATS and the nats-kv ResourceRegistry, and `--check` validates the config offline. It ships a hash-pinned lock and its own `adapter-langgraph.yml` workflow; it is not published to PyPI.
+
+- **Readiness evidence:** `cap-governance readiness` and `render` accept `--evidence-dir` for bounded, offline verification of public PASS reports, exclude CAP-owned artifacts, and count each report or artifact only once.
+- **cap-sdk-python: a job no longer times out before its deadline (bug fix).** asyncio runs a
+  timer up to one clock-resolution tick early, 15.625 ms on Windows before CPython 3.13, so the
+  Agent could publish `FAILED` / `ERROR_CODE_JOB_TIMEOUT` before `ctx.deadline`, and a handler
+  that finished just before its deadline could be reported as timed out. The Agent now checks
+  `time.monotonic()` and keeps waiting until the deadline has passed; the timeout result is
+  unchanged (task-d6488961).
+
 - **TCK public reports:** new `cap-tck report` subcommands. `project` turns a `cap-tck run --json` report into a public report (`cap-public-report/v1`), taking its required cases and scenario manifest digest from the scenario files the run used. `sign` and `verify` use an Ed25519 key you supply (PKCS#8 / PKIX PEM) and a detached raw 64-byte signature. `badge` writes a fixed SVG, for a PASS report only. All four run offline with no telemetry, never create or store keys, and write 0600 files confined to `--out-dir`.
+
+- **cap-tck: a scenario suite file holds exactly one JSON object (bug fix).** `list`, `run`, `matrix` and `report project` refuse a suite file that has anything but whitespace after the suite object, such as a second JSON value, and exit with an error. Trailing whitespace and newlines are still accepted, and valid suites load unchanged.
 
 - **cap-sdk-python: `cap.testing.MockNATS.publish` accepts `headers=` (bug fix).** `create_test_agent(telemetry=...)` failed every result publish with `TypeError`, marking the span `TRANSPORT_PUBLISH_FAILED`. MockNATS now accepts the optional headers mapping and records a defensive copy in `published_headers`; the `published` queue still yields `(subject, data)`.
 
@@ -18,6 +32,12 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 - The Go SDK, Node SDK and Python SDK checks in `ci.yml` also run on `merge_group` events;
   no check's content changed. Enabling the merge queue remains a maintainer ruleset change
   (task-324398d5).
+
+- Python `Context.report_progress` publishes ordered, production-sealed markers;
+  `Context.attach_artifact` writes ordered registry refs for SUCCEEDED results.
+  `Agent(max_artifacts, max_artifact_bytes)` bounds each attempt and latches fixed
+  RESOURCE_EXHAUSTED count, size, or write failures; closed hooks perform no I/O.
+- **Python Agent cancellation and deadlines:** honours fenced `sys.job.cancel` and per-job deadlines (`FAILED` / `ERROR_CODE_JOB_TIMEOUT` / `TIMEOUT`), with `Context.deadline`, `Context.cancelled` and `Agent(max_deadline)`.
 
 - **cordum-guard closes governance bypasses (security, behavior change).**
   - Verdicts: the client now reads the gateway's protojson names
@@ -76,6 +96,9 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   `x/text` 0.42.0); bumped sdk/node dev dependencies `js-yaml` 4.3.1, `markdown-it` 14.3.2
   and `brace-expansion` 2.1.7, and tools/codegen dev dependencies `markdown-it` 14.3.2 and
   `brace-expansion` 2.1.7.
+- Dependency maintenance: sdk/python builds with `setuptools` 84.1.0 on Python 3.10 and newer.
+  Python 3.9 builds keep `setuptools` 82.0.1, the last release that supports 3.9, through a
+  `python_version` marker in `[build-system] requires`.
 - **Node SDK depends on zod 4 (`^4.6.7`, was `^3.24.0`)** to clear GHSA-mrhx-c7xc-m3w5,
   where zod can exhaust memory validating oversized constrained collections. `Agent.job`,
   `JobOptions.outputSchema` and `testHandler` now take a `JobSchema<T>`, any object with
@@ -177,6 +200,56 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   (not made active), and sends the result's own `publish sys.job.result` span context.
   Without `telemetry`, no headers or spans are added. `startWorker`, heartbeats and
   the handshake are not instrumented.
+
+- **Docs (interop):** `docs/ecosystem.md` now lists the shipped A2A bridge, W3C trace
+  propagation with OpenTelemetry spans, CloudEvents mapping, AsyncAPI contract and Cordum's
+  governed MCP demo as current, with their pinned versions and the A2A production
+  limitation. What remains is kept as roadmap. `spec/00-index.md` lists the interop
+  documents, and `examples/README.md` lists `a2a-bridge/`.
+
+- **cap-sdk-python ResourceRef registry:** `cap.ResourceRegistry` ports Go
+  `NewResourceRegistry`. Operators install named backends with `ResourceBackendRegistration`.
+  `resolve()` and `externalize()` enforce generic production bounds, backend byte limits,
+  expiry before and after backend calls, media type, size and SHA-256. Tenant and job identity
+  come only from `TrustedResourceContext`. Failures are typed `ResourceRegistryError` values
+  with fixed text; backend exceptions become `ResourceBackendUnavailableError` without backend
+  text. `InMemoryResourceBackend` is a test-only backend.
+
+- **cap-sdk-python typed job outcomes (behavior change, no wire change):** `cap.Agent` failure
+  results now carry spec/13 `error_code_enum` and `error_code` with a fixed `error_message`,
+  never exception text: for example `ERROR_CODE_JOB_INVALID_INPUT` with
+  `"context decode failed"`, `ERROR_CODE_JOB_NOT_FOUND` with `"context not found"`, and
+  `ERROR_CODE_JOB_RESOURCE_EXHAUSTED` when the context or result is over its size bound.
+  Handlers and middleware can raise the new `cap.JobFailure(code, retryable=None|True|False)`
+  with an `ErrorCode` value, an application code in 1000-9999 or an upper-snake string. It
+  publishes `JOB_STATUS_FAILED`, `JOB_STATUS_FAILED_RETRYABLE` or `JOB_STATUS_FAILED_FATAL`
+  with that code and `"handler reported failure"`, and the SDK does not retry it. Other
+  handler exceptions keep `"handler failed"` and the retry policy. User-visible change: the
+  context fetch, decode, input validation and result write failures used to publish
+  exception text, for example pydantic errors or store messages. They now publish fixed text
+  (`"context fetch failed"`, `"context decode failed"`, `"input validation failed"`,
+  `"result encode failed"`, `"result write failed"`). The low-level `cap.worker` is unchanged.
+
+- **cap-sdk-python `Agent` reads `context_ref` and writes `result_ref` (no wire change):**
+  `cap.Agent` accepts `resource_registry` (a `cap.ResourceRegistry`), `result_backend_id`
+  and `result_ref_ttl` (seconds, default 3600). With a registry, job input comes only from
+  `JobRequest.context_ref`, resolved with the worker-trust tenant and the admitted job id,
+  never with values from the ref. A missing, refused, non-JSON or oversize ref fails before
+  the handler runs, with the new fixed texts `"context ref required"` and
+  `"context ref refused"` (`ERROR_CODE_JOB_INVALID_INPUT`) or an existing row. SUCCEEDED
+  results carry `result_ref` (`application/json`, purpose `job-result`) and no `result_ptr`.
+  `start()` fails closed, before connecting, without a worker-trust configuration (mode
+  `warn` or `enforce`), and no Redis store is opened. Without a registry, behaviour is
+  unchanged.
+
+- **cap-sdk-python nats-kv ResourceRef backend:** `cap.NatsKvResourceBackend.open(kv)`
+  installs a content-addressed JetStream KV backend (resolver id `nats-kv`) in
+  `cap.ResourceRegistry`. URIs are `nats-kv://<bucket>/<tenant>/<sha256hex>`, and keys
+  and values match the Go `internal/resourcekv` format byte for byte (shared golden
+  fixture). The operator supplies the connection and the bucket, whose `max_value_size`
+  (1 byte to 1 GiB) becomes the backend limit; an unbounded bucket is refused. A ref never
+  supplies credentials, hosts or paths, another tenant's ref is refused before any fetch,
+  and backend errors carry fixed text. A new workflow runs it against real JetStream.
 
 ## v2.17.0 — 2026-07-22
 

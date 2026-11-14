@@ -6,6 +6,7 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **Readiness evidence:** `cap-governance readiness` and `render` accept `--evidence-dir` for bounded, offline verification of public PASS reports, exclude CAP-owned artifacts, and count each report or artifact only once.
 - **cap-sdk-python: a job no longer times out before its deadline (bug fix).** asyncio runs a
   timer up to one clock-resolution tick early, 15.625 ms on Windows before CPython 3.13, so the
   Agent could publish `FAILED` / `ERROR_CODE_JOB_TIMEOUT` before `ctx.deadline`, and a handler

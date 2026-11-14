@@ -16,13 +16,14 @@ class DockerNATSServer:
         self.url = url
 
     @classmethod
-    def start(cls) -> "DockerNATSServer":
+    def start(cls, *server_args: str) -> "DockerNATSServer":
+        """Start the pinned image; server_args, such as "-js", go to nats-server."""
         cls._ensure_image()
         name = f"cap-python-nats-{uuid.uuid4().hex}"
         process = subprocess.Popen(
             [
                 "docker", "run", "--rm", "--name", name,
-                "-p", "127.0.0.1::4222", NATS_IMAGE,
+                "-p", "127.0.0.1::4222", NATS_IMAGE, *server_args,
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,

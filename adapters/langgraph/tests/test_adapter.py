@@ -184,7 +184,7 @@ def test_load_config_rejects(config_path, edit):
     assert "canary-secret" not in str(err.value)
 
 
-def test_load_config_rejects_duplicate_missing_and_oversize(config_path, tmp_path):
+def test_load_config_rejects_duplicate_missing_and_too_large(config_path, tmp_path):
     text = config_path.read_text()
     for name, data in [("dup.json", '{"topic": "a", ' + text[1:]), ("big.json", " " * (1 << 20) + text)]:
         (tmp_path / name).write_text(data)

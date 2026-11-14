@@ -30,6 +30,7 @@ from typing import Any, Callable, Dict, List, Optional, TypedDict  # noqa: E402
 import cap  # noqa: E402
 from cap.packet_boundary import finalize_packet  # noqa: E402
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2  # noqa: E402
+from cap.testing import MockNATS  # noqa: E402
 from cryptography import x509  # noqa: E402
 from cryptography.hazmat.primitives import hashes, serialization  # noqa: E402
 from cryptography.hazmat.primitives.asymmetric import ec  # noqa: E402
@@ -220,7 +221,7 @@ async def run_case(case: Dict[str, Any], *, limits: Optional[adapter.Limits] = N
                    edit: Callable[[job_pb2.JobRequest], None] = lambda req: None, timeout: float = 10.0) -> Run:
     """Run one golden case through a real cap.Agent over MockNATS (worker trust warn, no session)."""
     COUNTS.clear()
-    nats, backend = cap.testing.MockNATS(), cap.InMemoryResourceBackend()
+    nats, backend = MockNATS(), cap.InMemoryResourceBackend()
     registry = cap.ResourceRegistry([cap.ResourceBackendRegistration("memory", 1 << 22, backend, backend)])
     agent = cap.Agent(connect_fn=nats.connect, worker_id=WORKER_ID, heartbeat_interval=60,
                       worker_trust_mode="warn", worker_trust=trust_config(), worker_trust_timeout=0.1,
@@ -249,7 +250,7 @@ async def run_case(case: Dict[str, Any], *, limits: Optional[adapter.Limits] = N
             if subject == cap.SUBJECT_PROGRESS:
                 marks.append(packet.job_progress.message)
                 if case.get("cancel", {}).get("afterProgress") == marks[-1]:
-                    cancel = job_pb2.JobCancel(job_id=job_id, dispatch=req.dispatch, reason="golden")
+                    cancel = job_pb2.JobCancel(job_id=job_id, dispatch=req.dispatch, reason="golden", requested_by="golden")
                     cancel_at = time.monotonic()
                     await nats.subscriptions[cap.SUBJECT_CANCEL](signed(lambda p: p.job_cancel.CopyFrom(cancel),
                                                                         job_id))

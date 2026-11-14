@@ -6,6 +6,13 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **cap-sdk-python: a job no longer times out before its deadline (bug fix).** asyncio runs a
+  timer up to one clock-resolution tick early, 15.625 ms on Windows before CPython 3.13, so the
+  Agent could publish `FAILED` / `ERROR_CODE_JOB_TIMEOUT` before `ctx.deadline`, and a handler
+  that finished just before its deadline could be reported as timed out. The Agent now checks
+  `time.monotonic()` and keeps waiting until the deadline has passed; the timeout result is
+  unchanged (task-d6488961).
+
 - **TCK public reports:** new `cap-tck report` subcommands. `project` turns a `cap-tck run --json` report into a public report (`cap-public-report/v1`), taking its required cases and scenario manifest digest from the scenario files the run used. `sign` and `verify` use an Ed25519 key you supply (PKCS#8 / PKIX PEM) and a detached raw 64-byte signature. `badge` writes a fixed SVG, for a PASS report only. All four run offline with no telemetry, never create or store keys, and write 0600 files confined to `--out-dir`.
 
 - **cap-tck: a scenario suite file holds exactly one JSON object (bug fix).** `list`, `run`, `matrix` and `report project` refuse a suite file that has anything but whitespace after the suite object, such as a second JSON value, and exit with an error. Trailing whitespace and newlines are still accepted, and valid suites load unchanged.

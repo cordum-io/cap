@@ -6,6 +6,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **cap-adapter-langgraph (new, `adapters/langgraph`):** an operator-run CAP worker that runs operator-registered LangGraph graphs (langgraph 1.2.18) on cap-sdk-python, with no Cordum dependency, on Python 3.11+. A job selects its workload only by `JobMetadata.capability`; inputs are validated with the workload's pydantic model; nodes report ordered progress and artifacts through explicit `cap.progress` and `cap.artifact` stream events; graph errors become a fixed `FRAMEWORK_ERROR` with no exception text; LangSmith tracing is forced off. The `cap-adapter-langgraph` console script runs with worker trust ENFORCE, CAP-PRODUCTION admission, TLS NATS and the nats-kv ResourceRegistry, and `--check` validates the config offline. It ships a hash-pinned lock and its own `adapter-langgraph.yml` workflow; it is not published to PyPI.
+
 - **Readiness evidence:** `cap-governance readiness` and `render` accept `--evidence-dir` for bounded, offline verification of public PASS reports, exclude CAP-owned artifacts, and count each report or artifact only once.
 - **cap-sdk-python: a job no longer times out before its deadline (bug fix).** asyncio runs a
   timer up to one clock-resolution tick early, 15.625 ms on Windows before CPython 3.13, so the

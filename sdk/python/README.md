@@ -333,6 +333,28 @@ agent = Agent(
   `result write failed`.
 - Without `resource_registry`, `context_ptr` and `result_ptr` work as before.
 
+For durable storage, install `cap.NatsKvResourceBackend` (resolver id `nats-kv`)
+over a JetStream KV bucket that you provision:
+
+```python
+import nats
+from cap import NatsKvResourceBackend, ResourceRegistry
+
+nc = await nats.connect(servers, user_credentials=creds)  # your connection and credentials
+kv = await nc.jetstream().key_value("cap-resources")  # history 1, max_value_size set
+backend = await NatsKvResourceBackend.open(kv)
+registry = ResourceRegistry([backend.registration()])
+```
+
+- `open()` refuses a bucket without `max_value_size`, or with one over 1 GiB,
+  and uses it as the backend's `max_bytes`. Set the bucket's `max_age` to at
+  least your longest `result_ref_ttl`, and keep the server's `max_payload` at or
+  above `max_value_size`. Entries have no per-entry TTL.
+- URIs are `nats-kv://<bucket>/<tenant>/<sha256hex>`. Keys and values match the
+  Go backend in this repository (`internal/resourcekv`) byte for byte. A ref
+  names only the bucket and tenant, never a connection, credentials or path, and
+  another tenant's ref is refused before any fetch.
+
 #### Cancellation and deadlines
 
 Tags: cancellation, deadlines, worker-contract.

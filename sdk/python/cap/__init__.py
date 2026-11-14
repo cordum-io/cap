@@ -88,6 +88,16 @@ from .resource_registry import (
     ResourceTooLargeError,
     TrustedResourceContext,
 )
+from .resource_nats_kv import (
+    NATS_KV_RESOLVER_ID,
+    InvalidNatsKvBucketError,
+    InvalidNatsKvURIError,
+    NatsKvEntryNotFoundError,
+    NatsKvResourceBackend,
+    NatsKvResourceError,
+    NatsKvStorageError,
+    NatsKvTenantMismatchError,
+)
 from .production_events import (
     ProductionEventAuthority,
     ProductionEventConflictError,
@@ -225,6 +235,14 @@ __all__ = [
     "ResourceSizeMismatchError",
     "ResourceTooLargeError",
     "TrustedResourceContext",
+    "InvalidNatsKvBucketError",
+    "InvalidNatsKvURIError",
+    "NATS_KV_RESOLVER_ID",
+    "NatsKvEntryNotFoundError",
+    "NatsKvResourceBackend",
+    "NatsKvResourceError",
+    "NatsKvStorageError",
+    "NatsKvTenantMismatchError",
     "ValidationError",
     "validate_alert",
     "validate_job_request",

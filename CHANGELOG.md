@@ -8,6 +8,16 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 - **cap-sdk-python:** `Agent` fences admitted dispatches and replays recorded terminal results on exact redelivery, including production duplicates. `dispatch_fence_max_jobs` and `dispatch_fence_max_age` bound the per-process in-memory store.
 
+- **cap-adapter-langgraph (new, `adapters/langgraph`):** an operator-run CAP worker that runs operator-registered LangGraph graphs (langgraph 1.2.18) on cap-sdk-python, with no Cordum dependency, on Python 3.11+. A job selects its workload only by `JobMetadata.capability`; inputs are validated with the workload's pydantic model; nodes report ordered progress and artifacts through explicit `cap.progress` and `cap.artifact` stream events; graph errors become a fixed `FRAMEWORK_ERROR` with no exception text; LangSmith tracing is forced off. The `cap-adapter-langgraph` console script runs with worker trust ENFORCE, CAP-PRODUCTION admission, TLS NATS and the nats-kv ResourceRegistry, and `--check` validates the config offline. It ships a hash-pinned lock and its own `adapter-langgraph.yml` workflow; it is not published to PyPI.
+
+- **Readiness evidence:** `cap-governance readiness` and `render` accept `--evidence-dir` for bounded, offline verification of public PASS reports, exclude CAP-owned artifacts, and count each report or artifact only once.
+- **cap-sdk-python: a job no longer times out before its deadline (bug fix).** asyncio runs a
+  timer up to one clock-resolution tick early, 15.625 ms on Windows before CPython 3.13, so the
+  Agent could publish `FAILED` / `ERROR_CODE_JOB_TIMEOUT` before `ctx.deadline`, and a handler
+  that finished just before its deadline could be reported as timed out. The Agent now checks
+  `time.monotonic()` and keeps waiting until the deadline has passed; the timeout result is
+  unchanged (task-d6488961).
+
 - **TCK public reports:** new `cap-tck report` subcommands. `project` turns a `cap-tck run --json` report into a public report (`cap-public-report/v1`), taking its required cases and scenario manifest digest from the scenario files the run used. `sign` and `verify` use an Ed25519 key you supply (PKCS#8 / PKIX PEM) and a detached raw 64-byte signature. `badge` writes a fixed SVG, for a PASS report only. All four run offline with no telemetry, never create or store keys, and write 0600 files confined to `--out-dir`.
 
 - **cap-tck: a scenario suite file holds exactly one JSON object (bug fix).** `list`, `run`, `matrix` and `report project` refuse a suite file that has anything but whitespace after the suite object, such as a second JSON value, and exit with an error. Trailing whitespace and newlines are still accepted, and valid suites load unchanged.
@@ -190,6 +200,12 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
   (not made active), and sends the result's own `publish sys.job.result` span context.
   Without `telemetry`, no headers or spans are added. `startWorker`, heartbeats and
   the handshake are not instrumented.
+
+- **Docs (interop):** `docs/ecosystem.md` now lists the shipped A2A bridge, W3C trace
+  propagation with OpenTelemetry spans, CloudEvents mapping, AsyncAPI contract and Cordum's
+  governed MCP demo as current, with their pinned versions and the A2A production
+  limitation. What remains is kept as roadmap. `spec/00-index.md` lists the interop
+  documents, and `examples/README.md` lists `a2a-bridge/`.
 
 - **cap-sdk-python ResourceRef registry:** `cap.ResourceRegistry` ports Go
   `NewResourceRegistry`. Operators install named backends with `ResourceBackendRegistration`.

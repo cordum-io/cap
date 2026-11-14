@@ -1461,8 +1461,14 @@ class Agent:
             task = asyncio.create_task(self._invoke_handler(ctx, spec, input_data))
             cancel_task = asyncio.create_task(running.requested.wait())
             try:
-                timeout = max(0, ctx.deadline - time.monotonic()) if ctx.deadline is not None else None
-                await asyncio.wait({task, cancel_task}, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
+                deadline = ctx.deadline
+                while True:
+                    timeout = max(0, deadline - time.monotonic()) if deadline is not None else None
+                    await asyncio.wait({task, cancel_task}, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
+                    # asyncio runs a timer up to one clock-resolution tick early (15.625 ms on
+                    # Windows before CPython 3.13); time out only once the deadline has passed.
+                    if task.done() or cancel_task.done() or deadline is None or time.monotonic() >= deadline:
+                        break
                 # Observe completion before cancel before deadline, even on the same tick.
                 if task.done():
                     failure, output = task.result()

@@ -8,6 +8,11 @@
     "commit": "e580c670d54a7563c749835c7dd09d81f116c823",
     "channel": "stable"
   },
+  "candidate": {
+    "version": "2.18.0",
+    "tag": "v2.18.0",
+    "channel": "stable"
+  },
   "development": {
     "commit": "0f71604",
     "describe": "v2.17.0-2-g0f71604",

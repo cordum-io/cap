@@ -1,0 +1,65 @@
+name: Adapter LangGraph
+
+# Locked install, adapter tests and installed-wheel smoke under the test-only network trap; read-only, uses no secrets or caches.
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'adapters/langgraph/**'
+      - 'sdk/python/**'
+      - 'testdata/adapters/**'
+      - '.github/workflows/adapter-langgraph.yml'
+  pull_request:
+    paths:
+      - 'adapters/langgraph/**'
+      - 'sdk/python/**'
+      - 'testdata/adapters/**'
+      - '.github/workflows/adapter-langgraph.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adapter:
+    name: LangGraph adapter (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13', '3.14']
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install the locked dependencies
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/python" -m pip install --require-hashes --no-deps -r adapters/langgraph/requirements.lock
+          echo "$RUNNER_TEMP/venv/bin" >> "$GITHUB_PATH"
+      - name: Build and install both wheels
+        run: |
+          python -m build --no-isolation --wheel --outdir "$RUNNER_TEMP/dist" sdk/python
+          python -m build --no-isolation --wheel --outdir "$RUNNER_TEMP/dist" adapters/langgraph
+          python -m pip install --no-index --no-deps "$RUNNER_TEMP"/dist/*.whl
+          python -m pip check
+      - name: Adapter tests under the network trap
+        run: PYTHONPATH="$GITHUB_WORKSPACE/testdata/adapters/nettrap" python -m pytest -q -rs -p no:cacheprovider adapters/langgraph/tests
+      - name: Installed-wheel smoke from a temp directory
+        run: |
+          python -m venv "$RUNNER_TEMP/smoke"
+          smoke="$RUNNER_TEMP/smoke/bin/python"
+          "$smoke" -m pip install --require-hashes --no-deps -r adapters/langgraph/requirements.lock
+          "$smoke" -m pip install --no-index --no-deps "$RUNNER_TEMP"/dist/*.whl
+          "$smoke" -m pip check
+          cd "$RUNNER_TEMP"
+          "$smoke" -I "$GITHUB_WORKSPACE/adapters/langgraph/tests/fixtures/golden_graphs.py"

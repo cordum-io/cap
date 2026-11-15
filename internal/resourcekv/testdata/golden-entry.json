@@ -1,0 +1,16 @@
+{
+  "bucket": "cap-resources",
+  "tenant_id": "tenant-a",
+  "job_id": "job-1",
+  "key": "74656e616e742d61.bcbc827e841ac6ace183a693d5b653d58408b41a97fa22d129d4b0cfa4bb359e.6170706c69636174696f6e2f6a736f6e",
+  "value_base64": "eyJjYXAiOiJnb2xkZW4ifQ==",
+  "ref": {
+    "resolver_id": "nats-kv",
+    "uri": "nats-kv://cap-resources/tenant-a/bcbc827e841ac6ace183a693d5b653d58408b41a97fa22d129d4b0cfa4bb359e",
+    "sha256_hex": "bcbc827e841ac6ace183a693d5b653d58408b41a97fa22d129d4b0cfa4bb359e",
+    "media_type": "application/json",
+    "size_bytes": 16,
+    "expires_at": "2030-01-01T00:00:00Z",
+    "purpose": "job-input"
+  }
+}

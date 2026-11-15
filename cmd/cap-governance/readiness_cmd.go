@@ -12,7 +12,7 @@ import (
 const manifestRel = "governance/readiness.json"
 const readinessDocRel = "governance/READINESS.md"
 
-func loadReadiness(root string) (*gov.Manifest, gov.Readiness, error) {
+func loadReadiness(root, evidenceDir string) (*gov.Manifest, gov.Readiness, error) {
 	data, err := os.ReadFile(filepath.Join(root, manifestRel))
 	if err != nil {
 		return nil, gov.Readiness{}, err
@@ -21,17 +21,21 @@ func loadReadiness(root string) (*gov.Manifest, gov.Readiness, error) {
 	if err != nil {
 		return nil, gov.Readiness{}, err
 	}
-	return m, gov.Evaluate(m), nil
+	if evidenceDir == "" {
+		evidenceDir = filepath.Join(root, "governance", "evidence")
+	}
+	return m, gov.EvaluateWithEvidence(m, evidenceDir), nil
 }
 
 func runReadiness(args []string) (int, error) {
 	fs := flag.NewFlagSet("readiness", flag.ContinueOnError)
 	root := fs.String("root", ".", "repository root")
+	evidenceDir := fs.String("evidence-dir", "", "public report evidence directory (default <root>/governance/evidence)")
 	requireReady := fs.Bool("require-foundation-ready", false, "exit nonzero unless verdict is READY")
 	if err := fs.Parse(args); err != nil {
 		return 2, err
 	}
-	_, r, err := loadReadiness(*root)
+	_, r, err := loadReadiness(*root, *evidenceDir)
 	if err != nil {
 		return 1, err
 	}
@@ -48,11 +52,12 @@ func runReadiness(args []string) (int, error) {
 func runRender(args []string) (int, error) {
 	fs := flag.NewFlagSet("render", flag.ContinueOnError)
 	root := fs.String("root", ".", "repository root")
+	evidenceDir := fs.String("evidence-dir", "", "public report evidence directory (default <root>/governance/evidence)")
 	check := fs.Bool("check", false, "fail if the rendered doc is stale instead of writing it")
 	if err := fs.Parse(args); err != nil {
 		return 2, err
 	}
-	m, r, err := loadReadiness(*root)
+	m, r, err := loadReadiness(*root, *evidenceDir)
 	if err != nil {
 		return 1, err
 	}

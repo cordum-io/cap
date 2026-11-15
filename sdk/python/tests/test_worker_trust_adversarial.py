@@ -157,7 +157,7 @@ class TestTrustAdmissionEdges(unittest.IsolatedAsyncioTestCase):
         )
         await started.wait()
         close_task = asyncio.create_task(agent.close())
-        await nats.wait_for_drains(2)
+        await nats.wait_for_drains(3)  # Includes the cancel subscription.
         release.set()
         await close_task
 

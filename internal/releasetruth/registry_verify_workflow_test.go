@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	checkoutPin = "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683"
-	setupGoPin  = "actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5"
-	setupPyPin  = "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065"
+	checkoutPin = "actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09"
+	setupGoPin  = "actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16"
+	setupPyPin  = "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1"
 	natsPin     = "nats:2.12.6-alpine@sha256:1cfc36e2e5e638243d8c722f72c954cd0ec4b15ee82fadbc718ce12e2b3c1652"
 )
 

@@ -2,11 +2,13 @@ import asyncio
 import hashlib
 import json
 import logging
+import math
 import os
 import secrets
+import threading
 import time
-from dataclasses import dataclass, replace
-from datetime import timezone
+from dataclasses import dataclass, field, replace
+from datetime import datetime, timedelta, timezone
 from types import MappingProxyType
 from typing import Any, Awaitable, Callable, Coroutine, Dict, Optional, Protocol, Tuple, Type, TypeVar, Union
 
@@ -37,10 +39,33 @@ from cap.telemetry import (
     start_process,
     start_publish,
 )
-from cap.subjects import SUBJECT_HANDSHAKE, SUBJECT_RESULT
+from cap.subjects import SUBJECT_CANCEL, SUBJECT_HANDSHAKE, SUBJECT_PROGRESS, SUBJECT_RESULT
+from cap.job_events import ARTIFACT_PURPOSE_PREFIX, _JobEvents, check_artifact, check_marker
+from cap.cancel import (
+    CancelRegistry, _JOB_CANCELLED, _JOB_TIMEOUT, handler_deadline,
+    peek_cancel_job_id, validate_max_deadline,
+)
 from cap.errors import InvalidInputError
+from cap.dispatch_fence import Dispatch, DispatchFence, FenceDecision, RecordedResult
 from cap.metrics import MetricsHook, NoopMetrics, safe_metrics_call
 from cap.heartbeat import heartbeat_loop, heartbeat_payload
+from cap.outcome import (
+    JobFailure,
+    _CONTEXT_DECODE_FAILED,
+    _CONTEXT_FETCH_FAILED,
+    _CONTEXT_NOT_FOUND,
+    _CONTEXT_POINTER_INVALID,
+    _CONTEXT_REF_REFUSED,
+    _CONTEXT_REF_REQUIRED,
+    _CONTEXT_TOO_LARGE,
+    _HANDLER_FAILED,
+    _INPUT_INVALID,
+    _Outcome,
+    _RESULT_ENCODE_FAILED,
+    _RESULT_TOO_LARGE,
+    _RESULT_WRITE_FAILED,
+    _failure_outcome,
+)
 from cap.packet_boundary import decode_packet, finalize_packet, parse_packet
 from cap.production_signing import (
     ProductionSignatureError,
@@ -57,7 +82,15 @@ from cap.production_events import (
     seal_production_event,
 )
 from cap.production_validation import IdentityMismatchError, validate_identity_binding
-from cap.validate import validate_bus_packet
+from cap.production_resource import validate_resource_ref_compatibility
+from cap.resource_registry import (
+    ResourceBackendUnavailableError,
+    ResourceRegistry,
+    ResourceRegistryError,
+    ResourceTooLargeError,
+    TrustedResourceContext,
+)
+from cap.validate import MAX_REPEATED_FIELD_SIZE, validate_bus_packet
 from cap.worker_trust import WorkerTrustConfig, WorkerTrustMode
 from cap.worker_trust_runtime import (
     DEFAULT_RENEW_MIN_INTERVAL,
@@ -70,6 +103,8 @@ from cap.constants import DEFAULT_PROTOCOL_VERSION  # noqa: E402 — must be aft
 
 
 _HANDLER_FAILED_MESSAGE = "handler failed"
+_JSON_MEDIA_TYPE = "application/json"
+_RESULT_PURPOSE = "job-result"
 _LOG_FIELD_LIMIT = 256
 
 
@@ -112,7 +147,7 @@ def _log_handler_failure(
 ) -> None:
     try:
         logger.warning(
-            "handler failed",
+            _HANDLER_FAILED_MESSAGE,
             extra={
                 "job_id": _bounded_log_field(request.job_id),
                 "trace_id": _bounded_log_field(packet.trace_id),
@@ -320,15 +355,53 @@ def _default_logger() -> logging.Logger:
 
 @dataclass
 class Context:
-    """Per-request context passed to every job handler."""
+    """Per-request context. deadline is a monotonic instant, or None.
+
+    cancelled is read-only and thread-safe: True after an accepted cancel or
+    deadline stops the handler. Constructing with job/packet/logger still works.
+    """
 
     job: job_pb2.JobRequest
     packet: buspacket_pb2.BusPacket
     logger: logging.LoggerAdapter
+    deadline: Optional[float] = None
+    _stop_signal: threading.Event = field(default_factory=threading.Event, repr=False)
+    _events: Optional[_JobEvents] = field(default=None, repr=False, compare=False)
+    _dispatch_claim: Optional[Tuple[str, Dispatch]] = field(default=None, init=False, repr=False, compare=False)
     # The OpenTelemetry context holding the job's process span when the Agent
     # has telemetry configured, else None. It is never made current: pass it
     # as ``context=`` to start child spans.
     otel_context: Optional[Any] = None
+
+    async def report_progress(self, marker: str) -> None:
+        """Await a RUNNING JobProgress with message=marker (1-256 printable UTF-8 bytes).
+
+        Calls publish in order, sealed for sys.job.progress in production; I/O
+        errors propagate. Async handlers on the event-loop thread only. A call
+        that runs after the handler's final attempt ended is dropped. Closed or
+        unbound contexts validate but do no I/O; run_worker is unchanged.
+        """
+        check_marker(marker)
+        if self._events is not None:
+            await self._events.progress(marker)
+
+    async def attach_artifact(self, name: str, media_type: str, content: bytes) -> None:
+        """Externalize bytes through the registry as job-artifact:<name>.
+
+        Name matches [a-z0-9][a-z0-9._-]{0,63}; media type is canonical (127-byte
+        max), content nonempty bytes. Per-attempt count/byte bounds and write
+        failures latch RESOURCE_EXHAUSTED and raise JobFailure even if caught.
+        Only SUCCEEDED carries refs, in call order; retries reset refs. Await
+        on the event-loop thread, not from a sync handler. Closed/unbound hooks
+        validate but do nothing; a call after the final attempt ended is dropped.
+        """
+        check_artifact(name, media_type, content)
+        if self._events is not None:
+            await self._events.artifact(name, media_type, content)
+
+    @property
+    def cancelled(self) -> bool:
+        return self._stop_signal.is_set()
 
     @property
     def job_id(self) -> str:
@@ -364,6 +437,32 @@ class Agent:
     """High-level runtime that manages typed job handlers, blob storage, and NATS subscriptions.
 
     Register handlers with :meth:`job`, then call :meth:`run` to start processing.
+
+    ``resource_registry`` (an operator-built :class:`cap.ResourceRegistry`) switches
+    job input and output to ResourceRefs: input comes only from
+    ``JobRequest.context_ref`` and a SUCCEEDED result carries ``result_ref``,
+    externalized to ``result_backend_id`` for ``result_ref_ttl`` seconds. Both are
+    scoped to the worker-trust tenant and the admitted job id, so :meth:`start`
+    fails closed without a worker-trust configuration (mode warn or enforce).
+    Without a registry, ``context_ptr`` and ``result_ptr`` work as before.
+    ``max_artifacts`` (default 8, 0..1000) and ``max_artifact_bytes`` (default
+    2 MiB, positive) bound each attempt's artifacts. Only SUCCEEDED carries
+    their refs. Bounds and writes fail closed with RESOURCE_EXHAUSTED.
+
+    ``max_deadline`` is a positive finite bound in seconds, or None (unbounded).
+    The smaller of it and a positive budget.deadline_ms applies from handler
+    start, including middleware/retries. A zero budget uses max_deadline.
+    Admitted, dispatch-fenced sys.job.cancel stops the handler without a slot.
+    Synchronous handlers block the loop and cannot be pre-empted; their result
+    wins. Work in a thread finishes independently after the bounded result.
+    Suppressing CancelledError keeps the slot until return; that outcome is
+    discarded. close() drains cancel subscriptions. run_worker is unchanged.
+
+    Admitted requests with DispatchIdentity are fenced by worker and attempt.
+    Exact completed redeliveries replay the result, including production duplicates.
+    dispatch_fence_max_jobs (1024, 1..1000000) and dispatch_fence_max_age
+    (3600 seconds, positive finite) bound this per-process, in-memory store.
+    Eviction or restart forgets a job; requests without a dispatch are unchanged.
     """
 
     def __init__(
@@ -377,6 +476,7 @@ class Agent:
         worker_id: Optional[str] = None,
         pool: str = "",
         max_parallel: int = 1,
+        max_deadline: Optional[float] = None,
         heartbeat_interval: float = 5.0,
         heartbeat_payload_fn: Optional[Callable[[], bytes]] = None,
         retries: int = 0,
@@ -394,7 +494,15 @@ class Agent:
         production_trust: Optional[ProductionTrust] = None,
         replay_store: Optional[ReplayStore] = None,
         telemetry: Optional[TelemetryConfig] = None,
+        resource_registry: Optional[ResourceRegistry] = None,
+        result_backend_id: Optional[str] = None,
+        result_ref_ttl: float = 3600.0,
+        max_artifacts: int = 8,
+        max_artifact_bytes: int = 2 * 1024 * 1024,
+        dispatch_fence_max_jobs: int = 1024,
+        dispatch_fence_max_age: float = 3600.0,
     ) -> None:
+        self._dispatch_fence = DispatchFence(dispatch_fence_max_jobs, dispatch_fence_max_age)
         self._nats_url = nats_url or os.getenv("NATS_URL", "nats://127.0.0.1:4222")
         self._redis_url = redis_url or os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
         self._store = store
@@ -403,6 +511,7 @@ class Agent:
         self._sender_id = worker_id or sender_id
         self._pool = pool
         self._max_parallel = _normalize_max_parallel(max_parallel)
+        self._max_deadline = validate_max_deadline(max_deadline)
         self._heartbeat_interval = heartbeat_interval if heartbeat_interval > 0 else 5.0
         self._heartbeat_payload_fn = heartbeat_payload_fn
         self._default_retries = max(0, retries)
@@ -429,6 +538,12 @@ class Agent:
         self._replay_store = replay_store
         # W3C trace context (cap.telemetry); None sends no headers and starts no spans.
         self._telemetry = telemetry
+        self._configure_resources(resource_registry, result_backend_id, result_ref_ttl)
+        if type(max_artifacts) is not int or not 0 <= max_artifacts <= MAX_REPEATED_FIELD_SIZE:
+            raise ValueError("max_artifacts must be an int from 0 to 1000")
+        if type(max_artifact_bytes) is not int or max_artifact_bytes <= 0:
+            raise ValueError("max_artifact_bytes must be a positive int")
+        self._max_artifacts, self._max_artifact_bytes = max_artifacts, max_artifact_bytes
         Agent._initialize_lifecycle(self)
 
     def _configure_worker_trust(
@@ -445,11 +560,37 @@ class Agent:
         self._worker_trust_retries = retries
         self._worker_trust_renew_min_interval = renew_min_interval
 
+    def _configure_resources(
+        self,
+        registry: Optional[ResourceRegistry],
+        backend_id: Optional[str],
+        ttl: float,
+    ) -> None:
+        if registry is not None and not isinstance(registry, ResourceRegistry):
+            raise ValueError("resource_registry must be a ResourceRegistry")
+        if (registry is None) != (backend_id is None):
+            raise ValueError(
+                "resource_registry and result_backend_id must be configured together"
+            )
+        if registry is not None and backend_id not in registry.backend_ids:
+            raise ValueError("result_backend_id is not an installed backend")
+        if (
+            isinstance(ttl, bool)
+            or not isinstance(ttl, (int, float))
+            or not math.isfinite(ttl)
+            or ttl <= 0
+        ):
+            raise ValueError("result_ref_ttl must be a positive number of seconds")
+        self._resource_registry = registry
+        self._result_backend_id = backend_id
+        self._result_ref_ttl = float(ttl)
+
     def _initialize_lifecycle(self) -> None:
         self._handlers: Dict[str, HandlerSpec] = {}
         self._middlewares: list = []
         self._nc = None
         self._active_jobs: set[str] = set()
+        self._cancel_registry = CancelRegistry()
         self._heartbeat_cancel_event: Optional[asyncio.Event] = None
         self._heartbeat_task: Optional[asyncio.Task[Any]] = None
         self._subscriptions: list[Any] = []
@@ -526,6 +667,7 @@ class Agent:
             renew_min_interval=self._worker_trust_renew_min_interval,
         )
         self._validate_production_startup()
+        self._validate_resource_startup()
         self._capability = self._build_capability_handshake()
         self._lifecycle_state = "starting"
         try:
@@ -577,7 +719,7 @@ class Agent:
             connect_fn(**connect_options),
             "nats connect",
         )
-        if self._store is None:
+        if self._store is None and self._resource_registry is None:
             self._store = RedisBlobStore(self._redis_url)
         await self._establish_worker_trust()
         self._require_trust_startup_continuity()
@@ -660,6 +802,23 @@ class Agent:
 
             handle = await self._nc.subscribe(subject, cb=on_direct)
             self._remember_subscription(handle)
+        handle = await self._nc.subscribe(SUBJECT_CANCEL, cb=self._on_cancel)
+        self._remember_subscription(handle)
+
+    async def _on_cancel(self, msg: object) -> None:
+        payload = getattr(msg, "data", b"")
+        if not self._cancel_registry.is_running(peek_cancel_job_id(payload)):
+            return
+        packet = self._decode_admitted_packet(payload, SUBJECT_CANCEL)
+        if packet is None or not packet.HasField("job_cancel"):
+            return
+        cancel = packet.job_cancel
+        if (self._production_enabled() and cancel.HasField("identity")
+                and cancel.identity != packet.identity):
+            return
+        if self._cancel_registry.apply(cancel):
+            self._logger.info("job cancel accepted", extra={
+                "job_id": _bounded_log_field(cancel.job_id)})
 
     def _remember_subscription(self, handle: Any) -> None:
         if handle is not None and callable(getattr(handle, "drain", None)):
@@ -1020,6 +1179,12 @@ class Agent:
         audience: Optional[str] = None,
         bind_session: bool = False,
     ) -> Optional[buspacket_pb2.BusPacket]:
+        packet, duplicate = self._admit_production_packet(payload, audience, bind_session)
+        return None if duplicate else packet
+
+    def _admit_production_packet(
+        self, payload: bytes, audience: Optional[str] = None, bind_session: bool = False,
+    ) -> Tuple[Optional[buspacket_pb2.BusPacket], bool]:
         """Raw-wire CAP-PRODUCTION admission: verify the exact received
         bytes (never a re-serialized object), then authoritative identity,
         then atomic replay admission — all BEFORE any handler runs. Any
@@ -1027,7 +1192,7 @@ class Agent:
         base_trust = self._production_trust
         replay_store = self._replay_store
         if base_trust is None or replay_store is None:
-            return None
+            return None, False
         try:
             trust = replace(
                 base_trust, audience=audience or base_trust.audience
@@ -1038,21 +1203,20 @@ class Agent:
             packet = verify_production_packet(payload, trust)
         except ProductionSignatureError as exc:
             self._logger.warning("production admission rejected packet: %s", exc)
-            return None
+            return None, False
         if validate_bus_packet(packet):
             self._logger.warning("production admission rejected packet: invalid envelope")
-            return None
+            return None, False
         if packet.HasField("job_request") and packet.HasField("identity"):
             try:
                 validate_identity_binding(packet.job_request, packet.identity)
             except IdentityMismatchError as exc:
                 self._logger.warning("production admission rejected packet: %s", exc)
-                return None
-        if not self._admit_production_replay(
-            packet, unsigned, trust, replay_store
-        ):
-            return None
-        return packet
+                return None, False
+        outcome = self._admit_production_replay(packet, unsigned, trust, replay_store)
+        if outcome is None:
+            return None, False
+        return packet, outcome == ReplayOutcome.DUPLICATE
 
     def _admit_production_replay(
         self,
@@ -1060,7 +1224,7 @@ class Agent:
         unsigned: bytes,
         trust: ProductionTrust,
         replay_store: ReplayStore,
-    ) -> bool:
+    ) -> Optional[ReplayOutcome]:
         metadata = packet.signature_metadata
         digest = hashlib.sha256(unsigned).digest()
         expiry = metadata.expires_at.ToDatetime(tzinfo=timezone.utc)
@@ -1078,15 +1242,22 @@ class Agent:
                 "production admission rejected packet: %s",
                 _replay_error_category(exc),
             )
-            return False
-        if outcome == ReplayOutcome.DUPLICATE:
-            return False
-        if outcome != ReplayOutcome.FIRST:
+            return None
+        if outcome not in (ReplayOutcome.FIRST, ReplayOutcome.DUPLICATE):
             self._logger.warning(
                 "production admission rejected packet: invalid outcome"
             )
-            return False
-        return True
+            return None
+        return outcome
+
+    def _admit_request_packet(
+        self, payload: bytes, audience: Optional[str],
+    ) -> Tuple[Optional[buspacket_pb2.BusPacket], bool]:
+        if self._production_enabled():
+            if not audience or not self._production_session_active():
+                return None, False
+            return self._admit_production_packet(payload, audience, bind_session=True)
+        return self._decode_admitted_packet(payload, audience), False
 
     def _decode_admitted_packet(
         self, payload: bytes, audience: Optional[str] = None
@@ -1133,6 +1304,26 @@ class Agent:
             raise RuntimeError("CAP-PRODUCTION trust is unavailable")
         self._session_bound_production_trust(trust)
 
+    def _validate_resource_startup(self) -> None:
+        if self._resource_registry is None:
+            return
+        settings = self._trust_settings
+        if settings is None or settings.config is None:
+            raise RuntimeError("resource registry requires worker trust configuration")
+
+    def _trusted_resource_context(
+        self,
+        req: job_pb2.JobRequest,
+        authority: Optional[ProductionEventAuthority],
+    ) -> TrustedResourceContext:
+        """The worker-trust tenant and the admitted job id; nothing comes from the ref."""
+        settings = self._trust_settings
+        config = settings.config if settings is not None else None
+        if config is None:
+            raise RuntimeError("resource registry requires worker trust configuration")
+        job_id = authority.job_id if authority is not None else req.job_id
+        return TrustedResourceContext(tenant_id=config.tenant_id, job_id=job_id)
+
     def _session_bound_production_trust(self, trust: ProductionTrust) -> ProductionTrust:
         settings = self._trust_settings
         config = settings.config if settings is not None else None
@@ -1158,7 +1349,7 @@ class Agent:
 
     async def _on_direct_msg(self, msg: Any) -> None:
         """Route a direct worker message to the correct handler by topic."""
-        packet = self._decode_admitted_packet(
+        packet, duplicate = self._admit_request_packet(
             msg.data, getattr(msg, "subject", None)
         )
         if packet is None:
@@ -1168,18 +1359,19 @@ class Agent:
         if spec is None:
             self._logger.warning("no handler for topic %s on direct subject", topic)
             return
-        await self._on_msg(msg, spec, packet)
+        await self._on_msg(msg, spec, packet, duplicate)
 
     async def _on_msg(
         self,
         msg: Any,
         spec: HandlerSpec,
         packet: Optional[buspacket_pb2.BusPacket] = None,
+        duplicate: bool = False,
     ) -> None:
         # Only _on_direct_msg passes a decoded packet.
         direct = packet is not None
         if packet is None:
-            packet = self._decode_admitted_packet(
+            packet, duplicate = self._admit_request_packet(
                 msg.data, getattr(msg, "subject", None)
             )
         if packet is None:
@@ -1190,6 +1382,31 @@ class Agent:
             return
         authority = (
             freeze_production_authority(req) if self._production_enabled() else None
+        )
+        job_id, dispatch_snapshot = req.job_id, None
+        if req.HasField("dispatch"):
+            dispatch = authority.dispatch if authority is not None else req.dispatch
+            dispatch_snapshot = (dispatch.dispatch_id, dispatch.attempt, dispatch.assigned_worker_id)
+            decision, reason, recorded = self._dispatch_fence.admit(
+                job_id, dispatch_snapshot, hashlib.sha256(req.SerializeToString(deterministic=True)).digest(),
+                self._sender_id, replay_only=duplicate,
+            )
+            if decision == FenceDecision.REPLAY and recorded is not None:
+                await self._replay_result(packet, authority, recorded)
+                return
+            if decision != FenceDecision.RUN and not duplicate:
+                self._logger.warning("dispatch dropped: %s job_id=%s", reason, _bounded_log_field(job_id))
+                return
+        if duplicate:
+            return
+        events = _JobEvents(
+            lambda marker: self._publish_progress(packet, marker, authority),
+            (lambda name, media, content: self._externalize_artifact(req, authority, name, media, content))
+            if self._resource_registry is not None else None,
+            self._max_artifacts, self._max_artifact_bytes,
+        )
+        running = self._cancel_registry.register(
+            req.job_id, authority.dispatch if authority is not None else req.dispatch
         )
         # Trace headers are untrusted correlation hints. They are read only
         # here, after admission or validation, and never used for identity
@@ -1212,76 +1429,146 @@ class Agent:
                     "sender_id": _bounded_log_field(packet.sender_id),
                 },
             )
-            ctx = Context(job=req, packet=packet, logger=ctx_logger, otel_context=otel_context)
+            ctx = Context(job=req, packet=packet, logger=ctx_logger, otel_context=otel_context,
+                          _stop_signal=running.stopped, _events=events)
+            ctx._dispatch_claim = (job_id, dispatch_snapshot) if dispatch_snapshot is not None else None
 
+            registry = self._resource_registry
             store = self._store
-            if store is None:
+            if registry is not None:
+                trusted = self._trusted_resource_context(req, authority)
+                input_failure, input_data = await self._resolve_input(
+                    registry, trusted, spec, req
+                )
+            elif store is None:
                 ctx_logger.error("blob store not initialized")
                 return
-
-            try:
-                key = key_from_pointer(req.context_ptr)
-                payload = await self._with_timeout(store.get(key), "context fetch")
-                if payload is None:
-                    raise ValueError("context not found")
-                if self._max_context_bytes is not None and len(payload) > self._max_context_bytes:
-                    raise ValueError("context exceeds max size")
-            except Exception as exc:
+            else:
+                input_failure, input_data = await self._read_input(store, spec, req)
+            if input_failure is not None:
                 span.fail(ErrorType.OTHER)
                 await self._publish_failure(
-                    ctx, req, str(exc), execution_ms=0, authority=authority
+                    ctx, req, input_failure, execution_ms=0, authority=authority
                 )
                 return
 
-            try:
-                raw = json.loads(payload.decode("utf-8"))
-            except Exception as exc:
-                span.fail(ErrorType.OTHER)
-                await self._publish_failure(
-                    ctx,
-                    req,
-                    f"context decode failed: {exc}",
-                    execution_ms=0,
-                    authority=authority,
-                )
+            if running.requested.is_set():
+                running.stopped.set()
+                await self._publish_cancelled(ctx, 0, authority)
                 return
-
-            try:
-                input_data = self._validate_input(spec, raw)
-            except Exception as exc:
-                span.fail(ErrorType.OTHER)
-                await self._publish_failure(
-                    ctx,
-                    req,
-                    f"input validation failed: {exc}",
-                    execution_ms=0,
-                    authority=authority,
-                )
-                return
-
-            # Build middleware chain: outermost first, terminal calls handler.
-            async def _terminal(c: Context, d: Any) -> Any:
-                result = spec.func(c, d)
-                if asyncio.iscoroutine(result):
-                    result = await result
-                return result
-
-            chain = _terminal
-            for mw in reversed(self._middlewares):
-                _next = chain
-                chain = (lambda m, n: (lambda c, d: m(c, d, n)))(mw, _next)
-
             start_time = time.monotonic()
-            error: Optional[str] = None
-            output: Any = None
+            ctx.deadline = handler_deadline(start_time, req.budget.deadline_ms, self._max_deadline)
+            task = asyncio.create_task(self._invoke_handler(ctx, spec, input_data))
+            cancel_task = asyncio.create_task(running.requested.wait())
+            try:
+                deadline = ctx.deadline
+                while True:
+                    timeout = max(0, deadline - time.monotonic()) if deadline is not None else None
+                    await asyncio.wait({task, cancel_task}, timeout=timeout, return_when=asyncio.FIRST_COMPLETED)
+                    # asyncio runs a timer up to one clock-resolution tick early (15.625 ms on
+                    # Windows before CPython 3.13); time out only once the deadline has passed.
+                    if task.done() or cancel_task.done() or deadline is None or time.monotonic() >= deadline:
+                        break
+                # Observe completion before cancel before deadline, even on the same tick.
+                if task.done():
+                    failure, output = task.result()
+                else:
+                    running.stopped.set()
+                    task.cancel()
+                    elapsed_ms = int((time.monotonic() - start_time) * 1000)
+                    if running.requested.is_set():
+                        await self._publish_cancelled(ctx, elapsed_ms, authority)
+                    else:
+                        span.fail(ErrorType.OTHER)
+                        await self._publish_failure(ctx, req, _JOB_TIMEOUT, elapsed_ms, authority)
+                    await asyncio.gather(task, return_exceptions=True)
+                    return
+            finally:
+                task.cancel()
+                task.add_done_callback(self._consume_detached)
+                cancel_task.cancel()
+                await asyncio.gather(cancel_task, return_exceptions=True)
+            refs = events.refs()
+            if events.failure is not None:
+                failure = events.failure
+            elapsed_ms = int((time.monotonic() - start_time) * 1000)
+            result = job_pb2.JobResult(
+                job_id=req.job_id,
+                status=job_pb2.JOB_STATUS_SUCCEEDED,
+                artifact_refs=refs,
+                worker_id=self._sender_id,
+                execution_ms=elapsed_ms,
+            )
+            # A failure set so far is the handler's; one set below is the result store's.
+            error_type = ErrorType.HANDLER_FAILED if failure is not None else ErrorType.OTHER
+            if failure is None and registry is not None:
+                failure, result_ref = await self._externalize_result(
+                    registry, trusted, output
+                )
+                if result_ref is not None:
+                    result.result_ref.CopyFrom(result_ref)
+            elif failure is None:
+                failure, result_ptr = await self._write_result(store, req, output)
+                result.result_ptr = result_ptr
+            if failure is not None:
+                span.fail(error_type)
+                await self._publish_failure(
+                    ctx, req, failure, execution_ms=elapsed_ms, authority=authority
+                )
+                return
+
+            await self._publish_result(ctx, result, authority)
+            safe_metrics_call(
+                self._logger,
+                lambda: self._metrics.on_job_completed(
+                    req.job_id, elapsed_ms, "SUCCEEDED"
+                ),
+            )
+        finally:
+            span.end()
+            events.close()
+            self._cancel_registry.unregister(running)
+            self._active_jobs.discard(job_id)
+            if dispatch_snapshot is not None:
+                self._dispatch_fence.finish(job_id, dispatch_snapshot)
+
+    async def _invoke_handler(
+        self, ctx: Context, spec: HandlerSpec, input_data: object
+    ) -> Tuple[Optional[_Outcome], object]:
+        # Build middleware chain: outermost first, terminal calls handler.
+        async def _terminal(c: Context, d: object) -> object:
+            result = spec.func(c, d)
+            if asyncio.iscoroutine(result):
+                result = await result
+            return result
+
+        chain = _terminal
+        for mw in reversed(self._middlewares):
+            _next = chain
+            chain = (lambda m, n: (lambda c, d: m(c, d, n)))(mw, _next)
+
+        packet, req = ctx.packet, ctx.job
+        failure: Optional[_Outcome] = None
+        output: object = None
+        events = ctx._events
+        try:
             for attempt in range(spec.retries + 1):
+                if events is not None:
+                    events.begin_attempt()
                 try:
                     output = await chain(ctx, input_data)
                     output = self._validate_output(spec, output)
-                    error = None
+                    failure = None
+                    break
+                except JobFailure as reported:
+                    # The operator chose the outcome: publish it, never retry.
+                    failure = _failure_outcome(reported)
+                    _log_handler_failure(
+                        self._logger, packet, req, reported, attempt + 1, spec.retries + 1
+                    )
                     break
                 except Exception as exc:
-                    error = _HANDLER_FAILED_MESSAGE
+                    failure = _HANDLER_FAILED
                     _log_handler_failure(
                         self._logger,
                         packet,
@@ -1292,50 +1579,154 @@ class Agent:
                     )
                     if attempt >= spec.retries:
                         break
-
-            elapsed_ms = int((time.monotonic() - start_time) * 1000)
-            if error is not None:
-                span.fail(ErrorType.HANDLER_FAILED)
-                await self._publish_failure(
-                    ctx, req, error, execution_ms=elapsed_ms, authority=authority
-                )
-                return
-
-            try:
-                result_payload = self._serialize_output(output)
-                if self._max_result_bytes is not None and len(result_payload) > self._max_result_bytes:
-                    raise ValueError("result exceeds max size")
-                result_key = f"res:{req.job_id}"
-                await self._with_timeout(store.set(result_key, result_payload), "result write")
-                result_ptr = pointer_for_key(result_key)
-            except Exception as exc:
-                span.fail(ErrorType.OTHER)
-                await self._publish_failure(
-                    ctx,
-                    req,
-                    f"result write failed: {exc}",
-                    execution_ms=elapsed_ms,
-                    authority=authority,
-                )
-                return
-
-            result = job_pb2.JobResult(
-                job_id=req.job_id,
-                status=job_pb2.JOB_STATUS_SUCCEEDED,
-                result_ptr=result_ptr,
-                worker_id=self._sender_id,
-                execution_ms=elapsed_ms,
-            )
-            await self._publish_result(ctx, result, authority)
-            safe_metrics_call(
-                self._logger,
-                lambda: self._metrics.on_job_completed(
-                    req.job_id, elapsed_ms, "SUCCEEDED"
-                ),
-            )
         finally:
-            span.end()
-            self._active_jobs.discard(req.job_id)
+            if events is not None:
+                events.close()  # invocation exit: before this coroutine yields completion
+        return failure, output
+
+    async def _publish_cancelled(
+        self, ctx: Context, elapsed_ms: int, authority: Optional[ProductionEventAuthority]
+    ) -> None:
+        result = job_pb2.JobResult(
+            job_id=ctx.job_id, status=_JOB_CANCELLED.status,
+            error_code_enum=_JOB_CANCELLED.error_code_enum, error_code=_JOB_CANCELLED.error_code,
+            error_message=_JOB_CANCELLED.error_message,
+            worker_id=self._sender_id, execution_ms=elapsed_ms,
+        )
+        await self._publish_result(ctx, result, authority)
+        safe_metrics_call(self._logger, lambda: self._metrics.on_job_completed(
+            ctx.job_id, elapsed_ms, "CANCELLED"))
+
+    async def _read_input(
+        self, store: BlobStore, spec: HandlerSpec, req: job_pb2.JobRequest
+    ) -> Tuple[Optional[_Outcome], Any]:
+        """Fetch, decode and validate the input. Failures map to fixed table rows."""
+        try:
+            key = key_from_pointer(req.context_ptr)
+        except Exception:
+            return _CONTEXT_POINTER_INVALID, None
+        try:
+            payload = await self._with_timeout(store.get(key), "context fetch")
+            size = len(payload) if payload is not None else 0
+        except Exception:
+            return _CONTEXT_FETCH_FAILED, None
+        if payload is None:
+            return _CONTEXT_NOT_FOUND, None
+        if self._max_context_bytes is not None and size > self._max_context_bytes:
+            return _CONTEXT_TOO_LARGE, None
+        return self._decode_input(spec, payload)
+
+    async def _resolve_input(
+        self,
+        registry: ResourceRegistry,
+        trusted: TrustedResourceContext,
+        spec: HandlerSpec,
+        req: job_pb2.JobRequest,
+    ) -> Tuple[Optional[_Outcome], Any]:
+        """Resolve context_ref through the registry; a refused ref is never fetched."""
+        if not req.HasField("context_ref"):
+            return _CONTEXT_REF_REQUIRED, None
+        ref = req.context_ref
+        if req.context_ptr:
+            try:
+                validate_resource_ref_compatibility(req.context_ptr, ref)
+            except Exception:
+                return _CONTEXT_REF_REFUSED, None
+        if ref.media_type != _JSON_MEDIA_TYPE:
+            return _CONTEXT_DECODE_FAILED, None
+        limit = self._max_context_bytes
+        if limit is not None and ref.size_bytes > limit:
+            return _CONTEXT_TOO_LARGE, None
+        try:
+            resolved = await self._with_timeout(
+                registry.resolve(ref, trusted), "context resolve"
+            )
+        except ResourceTooLargeError:
+            return _CONTEXT_TOO_LARGE, None
+        except ResourceBackendUnavailableError:
+            return _CONTEXT_FETCH_FAILED, None
+        except ResourceRegistryError:
+            return _CONTEXT_REF_REFUSED, None
+        except Exception:
+            return _CONTEXT_FETCH_FAILED, None
+        if limit is not None and len(resolved.content) > limit:
+            return _CONTEXT_TOO_LARGE, None
+        return self._decode_input(spec, resolved.content)
+
+    def _decode_input(self, spec: HandlerSpec, payload: bytes) -> Tuple[Optional[_Outcome], Any]:
+        try:
+            raw = json.loads(payload.decode("utf-8"))
+        except Exception:
+            return _CONTEXT_DECODE_FAILED, None
+        try:
+            return None, self._validate_input(spec, raw)
+        except Exception:
+            return _INPUT_INVALID, None
+
+    def _encode_result(self, output: Any) -> Tuple[Optional[_Outcome], bytes]:
+        try:
+            result_payload = self._serialize_output(output)
+        except Exception:
+            return _RESULT_ENCODE_FAILED, b""
+        if self._max_result_bytes is not None and len(result_payload) > self._max_result_bytes:
+            return _RESULT_TOO_LARGE, b""
+        return None, result_payload
+
+    async def _externalize_artifact(
+        self, req: job_pb2.JobRequest, authority: Optional[ProductionEventAuthority],
+        name: str, media_type: str, content: bytes,
+    ) -> object:
+        registry = self._resource_registry
+        if registry is None:
+            raise RuntimeError("artifact registry is unavailable")
+        return await self._with_timeout(
+            registry.externalize(
+                self._result_backend_id, content, media_type=media_type,
+                purpose=ARTIFACT_PURPOSE_PREFIX + name,
+                expires_at=datetime.now(timezone.utc) + timedelta(seconds=self._result_ref_ttl),
+                trusted=self._trusted_resource_context(req, authority),
+            ), "artifact externalize",
+        )
+
+    async def _externalize_result(
+        self, registry: ResourceRegistry, trusted: TrustedResourceContext, output: Any
+    ) -> Tuple[Optional[_Outcome], Optional[job_pb2.ResourceRef]]:
+        """Encode the output and externalize it; returns its ref or a fixed table row."""
+        failure, result_payload = self._encode_result(output)
+        if failure is not None:
+            return failure, None
+        try:
+            expires_at = datetime.now(timezone.utc) + timedelta(seconds=self._result_ref_ttl)
+            ref = await self._with_timeout(
+                registry.externalize(
+                    self._result_backend_id,
+                    result_payload,
+                    media_type=_JSON_MEDIA_TYPE,
+                    purpose=_RESULT_PURPOSE,
+                    expires_at=expires_at,
+                    trusted=trusted,
+                ),
+                "result externalize",
+            )
+        except ResourceTooLargeError:
+            return _RESULT_TOO_LARGE, None
+        except Exception:
+            return _RESULT_WRITE_FAILED, None
+        return None, ref
+
+    async def _write_result(
+        self, store: BlobStore, req: job_pb2.JobRequest, output: Any
+    ) -> Tuple[Optional[_Outcome], str]:
+        """Encode and store the output; returns its pointer or a fixed table row."""
+        failure, result_payload = self._encode_result(output)
+        if failure is not None:
+            return failure, ""
+        result_key = f"res:{req.job_id}"
+        try:
+            await self._with_timeout(store.set(result_key, result_payload), "result write")
+        except Exception:
+            return _RESULT_WRITE_FAILED, ""
+        return None, pointer_for_key(result_key)
 
     def _start_process_span(
         self,
@@ -1390,21 +1781,23 @@ class Agent:
         self,
         ctx: Context,
         req: job_pb2.JobRequest,
-        error: str,
+        outcome: _Outcome,
         execution_ms: int,
         authority: Optional[ProductionEventAuthority] = None,
     ) -> None:
         result = job_pb2.JobResult(
             job_id=req.job_id,
-            status=job_pb2.JOB_STATUS_FAILED,
-            error_message=error,
+            status=outcome.status,
+            error_code=outcome.error_code,
+            error_code_enum=outcome.error_code_enum,
+            error_message=outcome.error_message,
             worker_id=self._sender_id,
             execution_ms=execution_ms,
         )
         await self._publish_result(ctx, result, authority)
         safe_metrics_call(
             self._logger,
-            lambda: self._metrics.on_job_failed(req.job_id, error),
+            lambda: self._metrics.on_job_failed(req.job_id, outcome.error_message),
         )
 
     async def _publish_result(
@@ -1413,6 +1806,8 @@ class Agent:
         result: job_pb2.JobResult,
         authority: Optional[ProductionEventAuthority] = None,
     ) -> None:
+        if ctx._events is not None:
+            ctx._events.close()
         if self._nc is None:
             ctx.logger.error("NATS not initialized")
             return
@@ -1425,37 +1820,16 @@ class Agent:
         bound_result.CopyFrom(result)
         if authority is not None:
             bind_production_event(bound_result, authority)
-        packet = buspacket_pb2.BusPacket()
-        packet.trace_id = ctx.packet.trace_id
-        packet.sender_id = self._sender_id
-        packet.protocol_version = DEFAULT_PROTOCOL_VERSION
-        ts = timestamp_pb2.Timestamp()
-        ts.GetCurrentTime()
-        packet.created_at.CopyFrom(ts)
+        packet = self._event_envelope(ctx.packet)
         packet.job_result.CopyFrom(bound_result)
-        if authority is not None:
-            packet.identity.CopyFrom(authority.identity)
-            packet.auth_token = self._outbound_session_token()
-            settings = self._trust_settings
-            config = settings.config if settings is not None else None
-            if config is None:
-                raise ProductionEventConflictError(
-                    "production result signing key is unavailable"
-                )
-            raw = seal_production_event(
-                packet,
-                key=config.proof_private_key,
-                key_id=config.proof_key_id,
-                audience=SUBJECT_RESULT,
+        raw = self._event_wire(packet, authority, SUBJECT_RESULT)
+        request = authority if authority is not None else ctx.job
+        dispatch = request.dispatch
+        claim = (request.job_id, (dispatch.dispatch_id, dispatch.attempt, dispatch.assigned_worker_id))
+        if ctx._dispatch_claim == claim:
+            self._dispatch_fence.record(
+                claim[0], claim[1], packet.trace_id, bound_result.SerializeToString(deterministic=True)
             )
-        else:
-            outgoing = finalize_packet(
-                packet,
-                self._private_key,
-                session_token=self._outbound_session_token(),
-            )
-            raw = outgoing.SerializeToString(deterministic=True)
-
         telemetry = self._telemetry
         if telemetry is None:
             await self._with_timeout(
@@ -1481,6 +1855,87 @@ class Agent:
             raise
         finally:
             span.end()
+
+    async def _replay_result(
+        self, request: buspacket_pb2.BusPacket, authority: Optional[ProductionEventAuthority],
+        recorded: RecordedResult,
+    ) -> None:
+        if self._nc is None:
+            self._logger.warning("dispatch replay dropped: NATS not initialized")
+            return
+        trace_id, raw_result = recorded
+        result = job_pb2.JobResult.FromString(raw_result)
+        if authority is not None:
+            try:
+                bind_production_event(result, authority)
+            except ProductionEventConflictError:
+                self._logger.warning("dispatch replay dropped: conflicting authority job_id=%s",
+                                     _bounded_log_field(request.job_request.job_id))
+                return
+        packet = self._event_envelope(request)
+        packet.trace_id = trace_id
+        packet.job_result.CopyFrom(result)
+        raw = self._event_wire(packet, authority, SUBJECT_RESULT)
+        self._logger.info("dispatch replay: job_id=%s", _bounded_log_field(result.job_id))
+        await self._with_timeout(self._nc.publish(SUBJECT_RESULT, raw), "result publish")
+
+    async def _publish_progress(
+        self, request: buspacket_pb2.BusPacket, marker: str,
+        authority: Optional[ProductionEventAuthority],
+    ) -> None:
+        if self._nc is None:
+            raise RuntimeError("NATS not initialized")
+        if self._production_enabled() and authority is None:
+            raise ProductionEventConflictError("production progress requires admitted request authority")
+        progress = job_pb2.JobProgress(
+            job_id=authority.job_id if authority is not None else request.job_request.job_id,
+            status=job_pb2.JOB_STATUS_RUNNING, message=marker,
+        )
+        if authority is not None:
+            bind_production_event(progress, authority)
+        packet = self._event_envelope(request)
+        packet.job_progress.CopyFrom(progress)
+        raw = self._event_wire(packet, authority, SUBJECT_PROGRESS)
+        await self._with_timeout(self._nc.publish(SUBJECT_PROGRESS, raw), "progress publish")
+
+    def _event_envelope(self, request: buspacket_pb2.BusPacket) -> buspacket_pb2.BusPacket:
+        packet = buspacket_pb2.BusPacket()
+        packet.trace_id = request.trace_id
+        packet.sender_id = self._sender_id
+        packet.protocol_version = DEFAULT_PROTOCOL_VERSION
+        ts = timestamp_pb2.Timestamp()
+        ts.GetCurrentTime()
+        packet.created_at.CopyFrom(ts)
+        return packet
+
+    def _event_wire(
+        self, packet: buspacket_pb2.BusPacket,
+        authority: Optional[ProductionEventAuthority], subject: str,
+    ) -> bytes:
+        if authority is not None:
+            packet.identity.CopyFrom(authority.identity)
+            packet.auth_token = self._outbound_session_token()
+            settings = self._trust_settings
+            config = settings.config if settings is not None else None
+            if config is None:
+                raise ProductionEventConflictError(
+                    "production result signing key is unavailable"
+                )
+            raw = seal_production_event(
+                packet,
+                key=config.proof_private_key,
+                key_id=config.proof_key_id,
+                audience=subject,
+            )
+        else:
+            outgoing = finalize_packet(
+                packet,
+                self._private_key,
+                session_token=self._outbound_session_token(),
+            )
+            raw = outgoing.SerializeToString(deterministic=True)
+
+        return raw
 
     async def _with_timeout(self, coro: Awaitable[TAny], label: str) -> TAny:
         if self._io_timeout is None:

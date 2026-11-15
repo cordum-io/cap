@@ -46,14 +46,14 @@ const canonicalBuildJob = `    name: Go installed consumer (${{ matrix.os }})
       matrix:
         os: [ubuntu-24.04, windows-2025]
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
           persist-credentials: false
-      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
         with:
           go-version-file: 'go.mod'
           cache: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.11.9'
       - name: Verify Go consumer helper contract
@@ -74,14 +74,14 @@ const canonicalLiveJob = `    name: Registry and real-NATS installed quickstarts
     env:
       CAP_NATS_URL: nats://127.0.0.1:4222
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
         with:
           persist-credentials: false
-      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
         with:
           go-version-file: 'go.mod'
           cache: false
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
         with:
           python-version: '3.11.9'
 
@@ -123,9 +123,10 @@ var registryWorkflowMutations = []workflowMutation{
 	{"disable services", "    services:", "    disabled_services:", "live NATS service"},
 	{"wrong NATS port", "          - 4222:4222", "          - 4999:4222", "live NATS port"},
 	{"wrong NATS URL", "CAP_NATS_URL: nats://127.0.0.1:4222", "CAP_NATS_URL: nats://127.0.0.1:4999", "live NATS URL"},
-	{"mutable checkout", checkoutPin, "actions/checkout@v4", "immutable checkout pin"},
-	{"mutable setup Go", setupGoPin, "actions/setup-go@v5", "immutable setup-go pin"},
-	{"mutable setup Python", setupPyPin, "actions/setup-python@v5", "immutable setup-python pin"},
+	{"mutable checkout", checkoutPin, "actions/checkout@v5", "immutable checkout pin"},
+	{"mutable setup Go", setupGoPin, "actions/setup-go@v6", "immutable setup-go pin"},
+	{"mutable setup Python", setupPyPin, "actions/setup-python@v6", "immutable setup-python pin"},
+	{"node20 setup Python", setupPyPin, "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065", "immutable setup-python pin"},
 	{"drop checkout fence", "persist-credentials: false", "persist-credentials: true", "checkout credential isolation"},
 	{"wrong Go version", "go-version-file: 'go.mod'", "go-version: 'stable'", "root Go version file"},
 	{"float Python", "python-version: '3.11.9'", "python-version: '3.11'", "exact Python version"},

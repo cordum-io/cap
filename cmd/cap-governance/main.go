@@ -19,12 +19,14 @@ usage:
   cap-governance dco        --range BASE..HEAD
       Verify DCO sign-off for every non-allowlisted commit in the range.
 
-  cap-governance readiness  --root DIR [--require-foundation-ready]
+  cap-governance readiness  --root DIR [--evidence-dir DIR] [--require-foundation-ready]
       Print the computed readiness verdict. Exits 0 for a truthful BLOCKED/UNKNOWN
       manifest; --require-foundation-ready exits nonzero until every dimension PASSes.
 
-  cap-governance render     --root DIR [--check]
+  cap-governance render     --root DIR [--evidence-dir DIR] [--check]
       Regenerate governance/READINESS.md from the manifest. --check fails if stale.
+
+An implementation counts only with a verified PASS public report at <evidence-dir>/<reportDigest>.json (default <root>/governance/evidence).
 `)
 }
 

@@ -77,7 +77,7 @@ The harness follows the installed-artifact rule (spec/tck/MATRIX-STATUS.md:45-53
 The harness command for task-dbed002a (addendum item 6):
 
 ```
-go run ./cmd/cap-framework-tck run --framework langgraph --python <python3.10+> --out <dir>
+go run ./cmd/cap-framework-tck run --framework langgraph --python <python3.11+> --out <dir>
 go run ./cmd/cap-framework-tck run --framework crewai    --python <python3.10-3.13> --out <dir>
 ```
 
@@ -132,7 +132,7 @@ go run ./cmd/cap-framework-tck run --framework crewai    --python <python3.10-3.
 
 - **Application subjects, not a wire change.** Only `sys.*` subjects are protocol-defined (spec/09-transport-profile.md:23-24). The two `refsched.*` subjects reuse existing messages, so they are not a wire change. `refsched.job.cancel` is the separate authenticated cancel operation that spec/19-cap-production-profile.md:111-115 calls for.
 - **Why dispatch uses the direct subject.** Dispatch goes to the direct subject, not to a `job.<pool>` queue group. `DispatchIdentity` names one assigned worker (proto/cordum/agent/v1/job.proto:25-29), and a queue group could hand the job to a member that must then reject it.
-- **Worker selection.** A worker can take topic T when it holds a live session from this scheduler and the operator config lists it for T. Selection is round-robin.
+- **Worker selection.** A worker can take topic T when it holds a live session of the job's tenant and the operator config lists it for T. Selection is round-robin.
 
 ### 2.3 Admission before any mutation
 
@@ -471,7 +471,7 @@ The note was recorded on 2026-11-11, so a pin must have been uploaded on or befo
 | CrewAI | `crewai==1.15.30` | 2026-10-24T01:56:42Z | MIT, stated only in the README; the sdist has no LICENSE file and no license metadata (**license gap**) | `>=3.10,<3.14` | `crewai-core 1.15.30`, `opentelemetry-sdk 1.45.2` |
 
 - **Newer releases.** Newer releases exist (`langgraph 1.2.19` on 2026-10-30 and `crewai 1.15.31` on 2026-10-27). They were not pinned because they were inside, or at the edge of, the 14-day window when recorded. A slice may bump to a release that is at least 14 days old only if it re-runs section 4.3.
-- **Python floor.** The adapters' floor is 3.10. cap-sdk-python itself supports `>=3.9` (sdk/python/pyproject.toml:10).
+- **Python floor.** The LangGraph adapter's floor is 3.11: on 3.10, langgraph 1.2.18's async custom-event writer fails with `Called get_config outside of a runnable context` (task-45d29cb0). The CrewAI adapter's floor is 3.10. cap-sdk-python itself supports `>=3.9` (sdk/python/pyproject.toml:10).
 - **CrewAI license gap.** task-c82d5007 must record the README license evidence in its package README and recheck it on any bump.
 
 ### 4.2 Phone-home switches, applied before import
@@ -512,7 +512,7 @@ ci.yml and sdk-gates.yml stay untouched. Each slice adds its own workflow.
 
 | workflow (slice) | runners | Python | runs |
 |---|---|---|---|
-| `adapter-langgraph.yml` (task-45d29cb0) | `ubuntu-24.04` | 3.10, 3.11, 3.12, 3.13, 3.14 | lock install, pytest under the trap, wheel build + `python -I` smoke outside the repo |
+| `adapter-langgraph.yml` (task-45d29cb0) | `ubuntu-24.04` | 3.11, 3.12, 3.13, 3.14 | lock install, pytest under the trap, wheel build + `python -I` smoke outside the repo |
 | `adapter-crewai.yml` (task-c82d5007) | `ubuntu-24.04` (3.10-3.13), `macos-latest` and `windows-latest` (3.10, 3.13) | `<3.14` per the pin | same as above, plus the child-lifecycle tests per OS |
 | `framework-tck.yml` (task-dbed002a) | `ubuntu-latest` | 3.12 | the section 1.3 command for both frameworks; uploads both report sets; no `continue-on-error`, no skip path |
 
@@ -578,7 +578,7 @@ The dependency order:
 - **45d29cb0.**
   - It depends on NEW-1 and NEW-2.
   - The capability-keyed registry (section 3.2) replaces "topic → module:callable".
-  - Python is 3.10+.
+  - Python is 3.11+.
   - The no-leftover-thread requirement holds for async nodes only (section 3.5).
   - It owns the shared `testdata/adapters/nettrap/sitecustomize.py`.
 - **c82d5007.**

@@ -124,9 +124,8 @@ func actionPinCheck(ref, comment string) string {
 }
 
 // actionPinViolations lists every contract violation in one workflow, in line
-// order, as `<file>:<line>: <subject>: <reason>`. It also reports whether the
-// file holds at least one exact approved pin.
-func actionPinViolations(file, text string) (out []string, hasApproved bool) {
+// order, as `<file>:<line>: <subject>: <reason>`.
+func actionPinViolations(file, text string) (out []string) {
 	for i, line := range actionPinLines(text) {
 		if strings.Contains(line, actionPinEscapeVar) {
 			out = append(out, fmt.Sprintf("%s:%d: %s: Node 20 escape hatch is forbidden", file, i+1, actionPinEscapeVar))
@@ -135,36 +134,15 @@ func actionPinViolations(file, text string) (out []string, hasApproved bool) {
 		if !ok {
 			continue
 		}
-		if key, rev, ok := actionPinSplit(ref); ok && actionPinApproved[key].sha == rev {
-			hasApproved = true
-		}
 		if why := actionPinCheck(ref, comment); why != "" {
 			out = append(out, fmt.Sprintf("%s:%d: %s: %s", file, i+1, ref, why))
 		}
 	}
-	return out, hasApproved
+	return out
 }
 
-// actionPinFileReport applies the TRANSITIONAL rule. A file that must
-// comply, or that already contains an approved pin, fails on every violation.
-// Any other file fails only on the escape variable; its remaining violations
-// are returned as pending migration. Slice 5 of the Node 24 migration
-// (task-cf23dfc6) deletes this rule, so every workflow is then fully checked.
-func actionPinFileReport(file, text string, mustComply bool) (failures, pending []string) {
-	all, hasApproved := actionPinViolations(file, text)
-	if mustComply || hasApproved {
-		return all, nil
-	}
-	for _, v := range all {
-		if strings.Contains(v, ": "+actionPinEscapeVar+": ") {
-			failures = append(failures, v)
-		} else {
-			pending = append(pending, v)
-		}
-	}
-	return failures, pending
-}
-
+// TestActionPinsAcrossWorkflows holds every workflow to the full contract;
+// no file is exempt.
 func TestActionPinsAcrossWorkflows(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join(repoRoot(t), ".github", "workflows", "*.y*ml"))
 	if err != nil || len(files) == 0 {
@@ -175,13 +153,8 @@ func TestActionPinsAcrossWorkflows(t *testing.T) {
 		if err != nil {
 			t.Fatalf("read %s: %v", path, err)
 		}
-		name := filepath.Base(path)
-		failures, pending := actionPinFileReport(name, string(b), false)
-		for _, f := range failures {
+		for _, f := range actionPinViolations(filepath.Base(path), string(b)) {
 			t.Error(f)
-		}
-		if len(pending) > 0 {
-			t.Logf("pending: %s: %d unmigrated uses (TRANSITIONAL)", name, len(pending))
 		}
 	}
 }
@@ -240,16 +213,17 @@ const (
 	actionPinEscapeLine  = "      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true"
 	actionPinMutableWant = "fixture.yml:8: actions/setup-go@v5: mutable ref (want 40-hex SHA)"
 	actionPinEscapeWant  = "fixture.yml:9: ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: Node 20 escape hatch is forbidden"
+	actionPinV4Want      = "fixture.yml:7: actions/checkout@v4: mutable ref (want 40-hex SHA)"
 )
 
 // TestActionPinMutations runs every rule against synthetic workflows; step
 // lines start at line 7, after actionPinFixtureHead.
 func TestActionPinMutations(t *testing.T) {
 	cases := []struct {
-		name        string
-		lines       []string
-		crlf, loose bool // loose: mustComply=false, so the TRANSITIONAL rule decides
-		want, pend  []string
+		name  string
+		lines []string
+		crlf  bool
+		want  []string
 	}{
 		{name: "mutable tag", lines: []string{"      - uses: actions/setup-go@v5"},
 			want: []string{"fixture.yml:7: actions/setup-go@v5: mutable ref (want 40-hex SHA)"}},
@@ -273,12 +247,10 @@ func TestActionPinMutations(t *testing.T) {
 		{name: "commented-out uses ignored", lines: []string{actionPinOKCheckout, "      # - uses: actions/checkout@v4", "#uses: evil/x@v1"}},
 		{name: "CRLF line endings", crlf: true, lines: []string{actionPinOKCheckout, actionPinSetupGoV5},
 			want: []string{actionPinMutableWant}},
-		{name: "transitional: approved pin forces full check", loose: true, lines: []string{actionPinOKCheckout, actionPinSetupGoV5},
-			want: []string{actionPinMutableWant}},
-		{name: "transitional: unmigrated file is pending", loose: true, lines: []string{"      - uses: actions/checkout@v4", actionPinSetupGoV5},
-			pend: []string{"fixture.yml:7: actions/checkout@v4: mutable ref (want 40-hex SHA)", actionPinMutableWant}},
-		{name: "transitional: escape var fails a pending file", loose: true, lines: []string{"      - uses: actions/checkout@v4", "    env:", actionPinEscapeLine},
-			want: []string{actionPinEscapeWant}, pend: []string{"fixture.yml:7: actions/checkout@v4: mutable ref (want 40-hex SHA)"}},
+		{name: "no approved pin: mutable ref still fails", lines: []string{"      - uses: actions/checkout@v4"},
+			want: []string{actionPinV4Want}},
+		{name: "no approved pin: escape var and mutable ref fail", lines: []string{"      - uses: actions/checkout@v4", "    env:", actionPinEscapeLine},
+			want: []string{actionPinV4Want, actionPinEscapeWant}},
 		{name: "fully approved", lines: []string{actionPinOKCheckout,
 			"        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0",
 			"        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3",
@@ -291,9 +263,8 @@ func TestActionPinMutations(t *testing.T) {
 			if c.crlf {
 				text = strings.ReplaceAll(text, "\n", "\r\n")
 			}
-			got, pend := actionPinFileReport("fixture.yml", text, !c.loose)
-			if !slices.Equal(got, c.want) || !slices.Equal(pend, c.pend) {
-				t.Errorf("failures = %q, pending = %q\nwant failures %q, pending %q", got, pend, c.want, c.pend)
+			if got := actionPinViolations("fixture.yml", text); !slices.Equal(got, c.want) {
+				t.Errorf("violations = %q\nwant %q", got, c.want)
 			}
 		})
 	}

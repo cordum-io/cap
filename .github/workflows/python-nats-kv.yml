@@ -1,0 +1,38 @@
+name: Python nats-kv (real JetStream)
+
+# Runs the cap-sdk-python nats-kv ResourceRef backend against a real JetStream
+# server. The test starts the pinned NATS image with -js through Docker and
+# fails, never skips, when Docker or the server is unavailable. ci.yml's
+# python-nats service runs without JetStream, so this job owns that coverage.
+# Read-only, no secrets, no caches.
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  jetstream:
+    name: Python SDK nats-kv (real JetStream)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "sdk/python[dev]"
+
+      - name: Run mandatory real-JetStream nats-kv test
+        run: python -m pytest -q -rs sdk/python/tests/integration/test_resource_nats_kv_jetstream.py

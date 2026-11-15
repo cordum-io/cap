@@ -93,6 +93,19 @@ func TestCmdListPrintsScenarios(t *testing.T) {
 	}
 }
 
+// list refuses a suite file with data after the suite object: it prints no
+// scenarios and exits 2.
+func TestCmdListRejectsTrailingSuiteData(t *testing.T) {
+	suite := writeSuite(t, `{"version":1,"scenarios":[{"id":"w/a","role":"worker","profile":"core"}]}`+"\n"+`{"ignored":true}`+"\n")
+	var out, errb bytes.Buffer
+	if code := cmdList([]string{"--suite", suite}, &out, &errb); code != 2 {
+		t.Fatalf("list exit %d, want 2; stdout=%q stderr=%q", code, out.String(), errb.String())
+	}
+	if out.Len() != 0 || !strings.Contains(errb.String(), "trailing data") {
+		t.Fatalf("want no scenarios and a trailing data error; stdout=%q stderr=%q", out.String(), errb.String())
+	}
+}
+
 func TestRunEndToEndConformant(t *testing.T) {
 	suite := writeSuite(t, `{"version":1,"scenarios":[
       {"id":"w/pass","role":"worker","profile":"core","required":true,"params":{"status":"PASS"}},

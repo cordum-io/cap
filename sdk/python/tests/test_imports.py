@@ -90,7 +90,8 @@ def test_generated_headers_use_one_version_per_tool() -> None:
 def test_build_backend_is_pinned_for_python_39() -> None:
     build_system = pyproject_data()["build-system"]
     assert set(build_system["requires"]) == {
-        "setuptools==82.0.1",
+        "setuptools==82.0.1; python_version < '3.10'",
+        "setuptools==84.1.0; python_version >= '3.10'",
         "wheel==0.47.0",
     }
     assert build_system["build-backend"] == "setuptools.build_meta"

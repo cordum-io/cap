@@ -46,3 +46,10 @@ Tags: `conformance`, `fixtures`, `testing`, `signing`, `deterministic`.
 - [16 Protocol Errors](16-protocol-errors.md)
 - [17 Versioning Policy](17-versioning-policy.md)
 - [19 CAP-PRODUCTION Profile](19-cap-production-profile.md)
+
+## Interop
+These documents map CAP onto other standards. They change no wire format.
+- [W3C Trace Context carrier](interop/trace-context.md) ([vectors](interop/vectors/trace-context-v1.json))
+- [A2A 1.0 mapping](interop/a2a-mapping.md) ([vectors](interop/vectors/a2a-v1.json))
+- [CloudEvents 1.0 mapping](interop/cloudevents-mapping.md) ([vectors](interop/vectors/cloudevents-v1.json))
+- [AsyncAPI 3.1.0 contract](../asyncapi/cap.asyncapi.yaml) for the NATS subjects in [09 Transport Profile](09-transport-profile.md)

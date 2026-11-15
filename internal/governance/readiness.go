@@ -44,6 +44,8 @@ var requiredSurfaces = []string{"root", "go", "python", "node"}
 
 // TCKAttestation is a self-hosted TCK report reference. Its presence is necessary
 // evidence for an implementation; it is never proof of certification or endorsement.
+// ReportDigest is the hex SHA-256 of the public report stored at
+// <evidence-dir>/<reportDigest>.json.
 type TCKAttestation struct {
 	Profile      string `json:"profile"`
 	Version      string `json:"version"`
@@ -124,11 +126,16 @@ func isCordum(affiliation string) bool {
 	return strings.EqualFold(strings.TrimSpace(affiliation), "cordum")
 }
 
-// Evaluate computes the readiness verdict purely from evidence. The verdict is READY
-// only if every dimension PASSes; any UNKNOWN or FAIL yields BLOCKED.
+// Evaluate fails closed: without an evidence directory, no implementation counts.
 func Evaluate(m *Manifest) Readiness {
+	return EvaluateWithEvidence(m, "")
+}
+
+// EvaluateWithEvidence verifies local public reports and computes readiness.
+// Only every dimension PASSing yields READY; any UNKNOWN or FAIL yields BLOCKED.
+func EvaluateWithEvidence(m *Manifest, evidenceDir string) Readiness {
 	dims := []Dimension{
-		evalImplementations(m.Implementations),
+		evalImplementations(m.Implementations, evidenceDir),
 		evalAdopters(m.Adopters),
 		evalMaintainers(m.Maintainers),
 		evalOnboarding(m.OnboardingSurfaces),
@@ -153,8 +160,10 @@ func countThreshold(name string, counting, required int, notes []string) Dimensi
 	return Dimension{Name: name, Status: st, Required: required, Counting: counting, Notes: notes}
 }
 
-func evalImplementations(impls []Implementation) Dimension {
+func evalImplementations(impls []Implementation, evidenceDir string) Dimension {
 	counting, notes := 0, []string{}
+	evidence := evidenceSet{dir: evidenceDir, digests: map[string]string{}, artifacts: map[string]string{}}
+	defer evidence.close()
 	for _, i := range impls {
 		switch {
 		case i.IsFork:
@@ -166,7 +175,11 @@ func evalImplementations(impls []Implementation) Dimension {
 		case !i.Attestation.complete():
 			notes = append(notes, i.ID+": missing/stale TCK attestation — UNKNOWN")
 		default:
-			counting++
+			if why := evidence.check(i); why != "" {
+				notes = append(notes, i.ID+": "+why)
+			} else {
+				counting++
+			}
 		}
 	}
 	return countThreshold(DimImplementations, counting, reqImplementations, notes)

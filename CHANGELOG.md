@@ -4,7 +4,9 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
-## Development
+## v2.18.0 — 2026-11-15
+
+- **cordum-guard: `cordum_guard.__version__` reports the installed version (bug fix).** It was hard-coded to `0.1.1`, so 2.17.0 reported 0.1.1. It now reads the installed distribution's metadata, and is `0+unknown` when the package is imported from a source tree that was never installed.
 
 - **cap-sdk-python:** `Agent` fences admitted dispatches and replays recorded terminal results on exact redelivery, including production duplicates. `dispatch_fence_max_jobs` and `dispatch_fence_max_age` bound the per-process in-memory store.
 

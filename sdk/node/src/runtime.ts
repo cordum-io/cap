@@ -977,6 +977,13 @@ export class Agent {
     const config = this.telemetry;
     if (config === undefined) return startProcess(undefined, { subject: msg.subject });
     const production = this.productionEnabled();
+    let headers: MsgHdrs | undefined;
+    try {
+      headers = msg.headers;
+    } catch {
+      // nats.js decodes the header block on first read and throws on a malformed one. That is
+      // an invalid creation context, which never rejects the job (spec/interop/trace-context.md).
+    }
     // A NATS callback may inherit an ambient span from subscription setup.
     // Only the sender's context can parent this process, so explicitly start at root.
     return startProcess(config, {
@@ -984,7 +991,7 @@ export class Agent {
       productionVerified: production,
       messageId: production ? packet.signatureMetadata?.messageId : undefined,
       conversationId: production ? packet.traceId : undefined,
-      creation: extract(config, msg.headers),
+      creation: extract(config, headers),
     }, config.api.ROOT_CONTEXT);
   }
 

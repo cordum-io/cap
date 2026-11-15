@@ -8,6 +8,11 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 - **cap-sdk-node: a malformed NATS header block no longer drops an admitted job (bug fix).** With telemetry on, the Agent read a job's NATS headers after admission and outside its error handling. nats.js decodes the header block on that first read and throws on an invalid key such as `traceparent :`, so no handler ran and no result was published; in CAP-PRODUCTION mode the packet had already been admitted for replay. The Agent now treats a malformed header block as a missing creation context and runs the job under a new root span, as spec/interop/trace-context.md requires (task-3b96b39b).
 
+- Dependency maintenance: sdk/node's `serialize-javascript` override is `^7.1.3` (was
+  `^7.1.1`) and the lock resolves 7.1.4, clearing GHSA-m5mm-p8h7-m29v, a cross-site scripting
+  issue through an unescaped `</script` at the end of a serialized function body. It is a dev
+  dependency of mocha, which stays at `^11` with engines `node >=18` (task-d3ca4d86).
+
 ## v2.18.0 — 2026-11-15
 
 - **cordum-guard: `cordum_guard.__version__` reports the installed version (bug fix).** It was hard-coded to `0.1.1`, so 2.17.0 reported 0.1.1. It now reads the installed distribution's metadata, and is `0+unknown` when the package is imported from a source tree that was never installed.

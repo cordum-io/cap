@@ -6,6 +6,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **cap-reference-scheduler: run the reference scheduler as a command.** `cmd/cap-reference-scheduler` runs `internal/referencescheduler` over NATS from flags and a JSON config file. SIGINT and SIGTERM drain it and it exits 0; a usage or configuration error exits 2 without printing key material, and a private key file that is a symlink or, on POSIX, accessible to group or others is refused (task-aa883942).
+
 - **cap-sdk-node: a malformed NATS header block no longer drops an admitted job (bug fix).** With telemetry on, the Agent read a job's NATS headers after admission and outside its error handling. nats.js decodes the header block on that first read and throws on an invalid key such as `traceparent :`, so no handler ran and no result was published; in CAP-PRODUCTION mode the packet had already been admitted for replay. The Agent now treats a malformed header block as a missing creation context and runs the job under a new root span, as spec/interop/trace-context.md requires (task-3b96b39b).
 
 - Dependency maintenance: sdk/node's `serialize-javascript` override is `^7.1.3` (was

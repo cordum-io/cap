@@ -29,10 +29,14 @@ RFC 2119/8174 key words are normative. Sections marked informative are not.
 2. Header values follow the Trace Context Level 1 grammar. A producer MUST emit
    `traceparent` version `00`.
 3. A consumer MUST look up both keys by exact case. A key with any other casing,
-   for example `Traceparent`, is treated as absent. The NATS clients CAP pins
-   all look headers up by exact case: nats.go v1.49.0 `Header.Get` is
-   case-sensitive, nats.js 2.29.3 `MsgHdrs.get` defaults to `Match.Exact`, and
-   nats-py 2.16.0 exposes headers as a plain `dict`. Trace Context §3.2.1 asks
+   for example `Traceparent`, is treated as absent. For example,
+   nats.go v1.49.0 `Header.Get` is
+   case-sensitive, and nats.js 2.29.3 `MsgHdrs.get` defaults to `Match.Exact`.
+   The Python SDK declares `nats-py>=2.6.0` in
+   [pyproject.toml](../../sdk/python/pyproject.toml) (a minimum, not a pin).
+   The [registry-verify CI job](../../.github/workflows/registry-verify.yml)
+   selects `nats-py==2.6.0`; this does not establish header behavior for every
+   permitted version. Trace Context §3.2.1 asks
    vendors to accept any casing because HTTP field names are case-insensitive.
    NATS header keys are case-sensitive, so CAP fixes one spelling instead.
 4. A producer MUST NOT emit more than one field for either key. The vectors

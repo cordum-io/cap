@@ -6,6 +6,7 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- Docs: correct the trace-context rationale to distinguish Python's `nats-py>=2.6.0` minimum from registry-verify CI's `nats-py==2.6.0` selection (task-715fb3f0).
 - Bug fix: `cap-release links` skips `.venv`, `venv` and `.tox` directories, so an in-repo Python virtualenv's third-party READMEs no longer fail the link check (task-f64397d1).
 
 - Bug fix: `cap-a2a-bridge` rejects trailing JSON or garbage in API-key files before connecting, while accepting trailing whitespace (task-5faf4e7a).

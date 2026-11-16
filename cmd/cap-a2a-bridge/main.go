@@ -367,7 +367,7 @@ func loadAPIKeys(path string) (map[string]a2abridge.Identity, error) {
 	var entries []apiKeyEntry
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	dec.DisallowUnknownFields()
-	if dec.Decode(&entries) != nil || len(entries) == 0 {
+	if dec.Decode(&entries) != nil || len(entries) == 0 || !errors.Is(dec.Decode(&struct{}{}), io.EOF) {
 		return nil, errors.New(`want a non-empty JSON array of {"sha256","tenant","principal"}`)
 	}
 	keys := make(map[string]a2abridge.Identity, len(entries))

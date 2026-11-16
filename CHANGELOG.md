@@ -4,6 +4,26 @@ All notable changes to the Cordum Agent Protocol and its SDKs are documented her
 
 Entries are grouped by SDK release tag. Wire schema changes (protobuf field additions or semantic changes) are prefixed with **[WIRE]**. See [spec/17-versioning-policy.md](spec/17-versioning-policy.md) for the full versioning policy.
 
+## Development
+
+- Docs: correct the trace-context rationale to distinguish Python's `nats-py>=2.6.0` minimum from registry-verify CI's `nats-py==2.6.0` selection (task-715fb3f0).
+- Bug fix: `cap-release links` skips `.venv`, `venv` and `.tox` directories, so an in-repo Python virtualenv's third-party READMEs no longer fail the link check (task-f64397d1).
+
+- Bug fix: `cap-a2a-bridge` rejects trailing JSON or garbage in API-key files before connecting, while accepting trailing whitespace (task-5faf4e7a).
+
+- Add operator-registered `cap-adapter-crewai` crews in bounded children, offline goldens and installed-wheel smoke (task-dfd35334).
+
+- **cap-reference-submit: submit one job to the reference scheduler.** `cmd/cap-reference-submit` stores a job's input in the operator's nats-kv bucket, signs one CAP-PRODUCTION JobRequest with the client's P-256 key and publishes it on `sys.job.submit`. It waits for the scheduler-signed terminal on `refsched.job.terminal`, verifies it against the scheduler's public key and prints a JSON summary. It exits 0 when the job succeeded, 1 for any other result or a failure to submit, 2 for a usage or configuration error and 3 at the deadline; a private key file that is a symlink or, on POSIX, accessible to group or others is refused (task-f969e10f).
+
+- **cap-reference-scheduler: run the reference scheduler as a command.** `cmd/cap-reference-scheduler` runs `internal/referencescheduler` over NATS from flags and a JSON config file. SIGINT and SIGTERM drain it and it exits 0; a usage or configuration error exits 2 without printing key material, and a private key file that is a symlink or, on POSIX, accessible to group or others is refused (task-aa883942).
+
+- **cap-sdk-node: a malformed NATS header block no longer drops an admitted job (bug fix).** With telemetry on, the Agent read a job's NATS headers after admission and outside its error handling. nats.js decodes the header block on that first read and throws on an invalid key such as `traceparent :`, so no handler ran and no result was published; in CAP-PRODUCTION mode the packet had already been admitted for replay. The Agent now treats a malformed header block as a missing creation context and runs the job under a new root span, as spec/interop/trace-context.md requires (task-3b96b39b).
+
+- Dependency maintenance: sdk/node's `serialize-javascript` override is `^7.1.3` (was
+  `^7.1.1`) and the lock resolves 7.1.4, clearing GHSA-m5mm-p8h7-m29v, a cross-site scripting
+  issue through an unescaped `</script` at the end of a serialized function body. It is a dev
+  dependency of mocha, which stays at `^11` with engines `node >=18` (task-d3ca4d86).
+
 ## v2.18.0 — 2026-11-15
 
 - **cordum-guard: `cordum_guard.__version__` reports the installed version (bug fix).** It was hard-coded to `0.1.1`, so 2.17.0 reported 0.1.1. It now reads the installed distribution's metadata, and is `0+unknown` when the package is imported from a source tree that was never installed.

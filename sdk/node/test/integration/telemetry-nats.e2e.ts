@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createPublicKey, randomUUID } from "node:crypto";
+import { createConnection } from "node:net";
 import * as api from "@opentelemetry/api";
 import { W3CTraceContextPropagator } from "@opentelemetry/core";
 import { AlwaysOnSampler, BasicTracerProvider, InMemorySpanExporter, SimpleSpanProcessor, type ReadableSpan } from "@opentelemetry/sdk-trace-base";
@@ -33,6 +34,24 @@ function carrier(value: string): MsgHdrs {
   const h = headers();
   h.set("traceparent", value);
   return h;
+}
+// nats.js refuses to encode an invalid header key, so the malformed block is sent on a raw connection.
+function rawPublish(port: number, subject: string, header: string, data: Uint8Array): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const head = Buffer.from(header, "latin1");
+    const socket = createConnection({ host: "127.0.0.1", port });
+    let reply = "";
+    socket.once("error", reject);
+    socket.on("data", (chunk: Buffer) => {
+      reply += chunk.toString("latin1");
+      if (reply.includes("-ERR")) { socket.destroy(); reject(new Error(reply)); }
+      else if (reply.includes("PONG\r\n")) { socket.end(); resolve(); }
+    });
+    socket.write(Buffer.concat([
+      Buffer.from(`CONNECT {"verbose":false,"headers":true,"protocol":1}\r\nHPUB ${subject} ${head.length} ${head.length + data.length}\r\n`),
+      head, data, Buffer.from("\r\nPING\r\n"),
+    ]));
+  });
 }
 function findSpan(exporter: InMemorySpanExporter, name: string): ReadableSpan {
   const span = exporter.getFinishedSpans().find((s) => s.name === name);
@@ -194,6 +213,28 @@ describe("Node trace propagation over real NATS", function () {
     }
     assert.deepEqual(r.seen.map((s) => s?.spanId).sort(), processes.map((s) => s.spanContext().spanId).sort());
     assert.equal(new Set(processes.map((s) => s.spanContext().traceId)).size, 2);
+  });
+
+  it("runs the handler under a new root for a malformed header block", async () => {
+    const t = tracing();
+    const topic = `job.telemetry.${randomUUID()}`;
+    const results = collect(SUBJECT_RESULT);
+    const r = await startAgent(topic, t.config);
+    const type = await busPacketType();
+    const data = type.encode(type.fromObject({
+      traceId: "trace-job-1", senderId: "client", protocolVersion: 1,
+      createdAt: { seconds: Math.floor(Date.now() / 1000), nanos: 0 },
+      jobRequest: { jobId: "job-1", topic, contextPtr: "redis://ctx:job-1" },
+    })).finish();
+    // "traceparent " is not a valid header key: nats.js throws BAD_HEADER when msg.headers is first read.
+    await withTimeout(rawPublish(server.port, topic, `NATS/1.0\r\ntraceparent : ${CREATION}\r\n\r\n`, data),
+      5_000, "raw publish timed out");
+    await settled(t.exporter, 2, results, 1);
+    assert.deepEqual(r.handled, ["job-1"]);
+    const process = findSpan(t.exporter, `process ${topic}`);
+    assert.equal(process.parentSpanContext, undefined);
+    assert.deepEqual(process.links, []);
+    assert.deepEqual(r.seen, [process.spanContext()]);
   });
 
   it("sends no headers and records nothing without telemetry", async () => {

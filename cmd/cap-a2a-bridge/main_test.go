@@ -126,6 +126,39 @@ func plaintext(env map[string]string) {
 	env["CAP_A2A_PUBLIC_URL"] = "http://127.0.0.1:8080/"
 }
 
+func TestAPIKeysFileTrailingInput(t *testing.T) {
+	for _, tc := range []struct {
+		name, suffix string
+	}{
+		{"second_document", `{"extra":true}`},
+		{"garbage", "x"},
+		{"whitespace", " \n\t\r\n"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			env := validEnv(t)
+			writeFile(t, env["CAP_A2A_API_KEYS_FILE"],
+				`[{"sha256":"`+hashOf(testAPIKey)+`","tenant":"acme","principal":"alice"}]`+tc.suffix)
+			if tc.name == "whitespace" {
+				cfg, _, err := load(env)
+				if err != nil {
+					t.Fatalf("valid array with trailing whitespace: %v", err)
+				}
+				id, ok := cfg.apiKeys[hashOf(testAPIKey)]
+				if !ok || id.Tenant != "acme" || id.Principal != "alice" {
+					t.Fatalf("api keys = %+v, want acme/alice", cfg.apiKeys)
+				}
+				return
+			}
+			env["CAP_NATS_URL"] = "tls://127.0.0.1:1"
+			var stderr strings.Builder
+			code := run(context.Background(), func(k string) string { return env[k] }, &stderr)
+			if code != 2 || !strings.Contains(stderr.String(), "configuration: CAP_A2A_API_KEYS_FILE:") {
+				t.Fatalf("exit = %d, stderr = %q; want API-key configuration error", code, stderr.String())
+			}
+		})
+	}
+}
+
 func TestConfigRefusesPlaintextWithoutDevFlag(t *testing.T) {
 	env := validEnv(t)
 	plaintext(env)

@@ -6,6 +6,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- **cap-reference-submit: submit one job to the reference scheduler.** `cmd/cap-reference-submit` stores a job's input in the operator's nats-kv bucket, signs one CAP-PRODUCTION JobRequest with the client's P-256 key and publishes it on `sys.job.submit`. It waits for the scheduler-signed terminal on `refsched.job.terminal`, verifies it against the scheduler's public key and prints a JSON summary. It exits 0 when the job succeeded, 1 for any other result or a failure to submit, 2 for a usage or configuration error and 3 at the deadline; a private key file that is a symlink or, on POSIX, accessible to group or others is refused (task-f969e10f).
+
 - **cap-reference-scheduler: run the reference scheduler as a command.** `cmd/cap-reference-scheduler` runs `internal/referencescheduler` over NATS from flags and a JSON config file. SIGINT and SIGTERM drain it and it exits 0; a usage or configuration error exits 2 without printing key material, and a private key file that is a symlink or, on POSIX, accessible to group or others is refused (task-aa883942).
 
 - **cap-sdk-node: a malformed NATS header block no longer drops an admitted job (bug fix).** With telemetry on, the Agent read a job's NATS headers after admission and outside its error handling. nats.js decodes the header block on that first read and throws on an invalid key such as `traceparent :`, so no handler ran and no result was published; in CAP-PRODUCTION mode the packet had already been admitted for replay. The Agent now treats a malformed header block as a missing creation context and runs the job under a new root span, as spec/interop/trace-context.md requires (task-3b96b39b).

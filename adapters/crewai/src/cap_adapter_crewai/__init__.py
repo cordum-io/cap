@@ -1,14 +1,15 @@
 """CAP handler for operator-registered CrewAI crews; framework imports stay in the child."""
+from __future__ import annotations
+
 import re
 import sys
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Awaitable, Callable, Mapping, cast
+from typing import TYPE_CHECKING, Awaitable, Callable, Mapping, cast
 
-from cap import Context, JobFailure
-from cap.pb.cordum.agent.v1 import job_pb2
-
-from . import _proc
+if TYPE_CHECKING:
+    from cap import Context
+    from . import _proc
 
 _KEY = re.compile(r"[a-z0-9][a-z0-9._-]{0,63}")
 _REF = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*:[A-Za-z_][A-Za-z0-9_]*")
@@ -37,6 +38,8 @@ class Workload:
 
 
 def _child_limits(value: object, where: str) -> _proc.ChildLimits:
+    from . import _proc
+
     if not isinstance(value, dict) or set(value) != {"graceMs", "maxStdoutBytes", "maxStderrBytes"}:
         raise ConfigError(where + ": must have graceMs, maxStdoutBytes and maxStderrBytes")
     for key, upper in (("graceMs", 60000), ("maxStdoutBytes", 64 << 20), ("maxStderrBytes", 64 << 20)):
@@ -47,6 +50,8 @@ def _child_limits(value: object, where: str) -> _proc.ChildLimits:
 
 def load_workloads(mapping: object) -> Mapping[str, Workload]:
     """Validate and freeze operator references without importing them in the parent."""
+    from . import _proc
+
     if not isinstance(mapping, dict) or not mapping:
         raise ConfigError("workloads: must be a non-empty object")
     loaded: dict[str, Workload] = {}
@@ -72,6 +77,9 @@ def load_workloads(mapping: object) -> Mapping[str, Workload]:
 
 
 async def _emit(ctx: Context, event: dict[str, object]) -> None:
+    from cap import JobFailure
+    from . import _proc
+
     kind = event.get("type")
     fields = {"type", "marker"} if kind == "progress" else {"type", "name", "mediaType", "content"}
     if kind not in ("progress", "artifact") or set(event) != fields or any(
@@ -89,6 +97,10 @@ async def _emit(ctx: Context, event: dict[str, object]) -> None:
 
 def make_handler(workloads: Mapping[str, Workload]) -> Callable[[Context, object], Awaitable[object]]:
     """Resolve only the capability; cap.Agent enforces input/output bounds and cancellation."""
+    from cap import JobFailure
+    from cap.pb.cordum.agent.v1 import job_pb2
+    from . import _proc
+
     table = dict(workloads)
 
     async def handler(ctx: Context, data: object) -> object:

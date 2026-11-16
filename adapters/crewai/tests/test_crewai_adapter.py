@@ -1,12 +1,16 @@
 """CrewAI adapter boundaries, goldens and installed-child security checks."""
 import asyncio
 import os
+import re
+import socket
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
 
 import cap
+import golden_crews as gg
 import pytest
 from cap.pb.cordum.agent.v1 import job_pb2
 
@@ -17,11 +21,109 @@ FIXTURES = Path(__file__).parent / "fixtures"
 TRAP = Path(__file__).resolve().parents[3] / "testdata" / "adapters" / "nettrap"
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def child_env(monkeypatch, tmp_path):
     monkeypatch.setenv("PYTHONPATH", os.pathsep.join([str(FIXTURES), str(TRAP)]))
     monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
     return tmp_path
+
+
+@pytest.fixture
+def counts(monkeypatch, child_env):
+    seen, original = [], _proc.run_child
+
+    async def run(*args, **kwargs):
+        seen.append(args[1])
+        return await original(*args, **kwargs)
+
+    monkeypatch.setattr(_proc, "run_child", run)
+    def read():
+        marker = child_env / "kickoffs.txt"
+        return len(seen), len(marker.read_text().splitlines()) if marker.exists() else 0
+    return read
+
+
+CASES = {case["id"]: case for case in gg.golden_cases()}
+
+
+def scenario(workload="echo", data=None):
+    return {"id": "custom", "workload": workload, "input": {"text": "hello"} if data is None else data}
+
+
+@pytest.mark.parametrize("case_id", list(CASES))
+def test_golden_case(case_id, child_env):
+    run = asyncio.run(gg.run_case(CASES[case_id]))
+    got, want = gg.compare(CASES[case_id], run)
+    assert got == want
+    assert not list(child_env.glob("cap-crewai-*"))
+    if run.after_cancel is not None:
+        assert run.after_cancel < 7
+
+
+def test_parent_never_imports_crewai(counts):
+    assert asyncio.run(gg.run_case(scenario())).output == {"text": "hello"}
+    assert counts() == (1, 1)
+    assert not any(name == "crewai" or name.startswith("crewai.") for name in sys.modules)
+
+
+def test_child_module_defers_model_imports_until_job_line():
+    result = subprocess.run([sys.executable, "-c", "import sys; import cap_adapter_crewai._child; "
+                             "assert not {'crewai', 'pydantic', 'golden_crews'} & sys.modules.keys()"],
+                            capture_output=True, timeout=20)
+    assert result.returncode == 0, result.stderr
+
+
+def test_telemetry_proof(monkeypatch, counts):
+    for name in _proc.FORCED_ENV:
+        monkeypatch.delenv(name, raising=False)
+    assert socket._cap_nettrap_blocked == []
+    run = asyncio.run(gg.run_case(scenario()))
+    assert (run.status, run.output, counts()) == ("JOB_STATUS_SUCCEEDED", {"text": "hello"}, (1, 1))
+    assert socket._cap_nettrap_blocked == []  # Child success additionally proves its normal trap exit was 0.
+    print("TELEMETRY positive: parent=0 child=0 child-exit=0 spawns=1 kickoffs=1")
+
+
+def test_telemetry_negative_control(tmp_path):
+    cwd = tmp_path / "empty-storage"
+    cwd.mkdir()
+    env = _proc.child_env(str(cwd))
+    for name in (*_proc.FORCED_ENV, "CI"):
+        env.pop(name, None)
+    result = subprocess.run([sys.executable, "-c", "import golden_crews as g; g.echo_crew().kickoff(inputs={'text':'hello'})"],
+                            cwd=cwd, env=env, stdin=subprocess.DEVNULL, capture_output=True, timeout=120)
+    assert result.returncode == 97, result.stderr.decode(errors="replace")
+    blocked = re.search(rb"NETTRAP: ([1-9][0-9]*) blocked attempt", result.stderr)
+    assert blocked
+    print("TELEMETRY negative: blocked=%d exit=97" % int(blocked.group(1)))
+
+
+def test_packet_fields_never_select_code(counts):
+    hostile = ["os:system", "../../etc/passwd", "http://203.0.113.9/x.py", "rm -rf /"]
+
+    def edit(req):
+        for i, value in enumerate(hostile):
+            req.env[str(i)], req.labels[str(i)], req.meta.labels[str(i)] = value, value, value
+        req.adapter_id = hostile[0]
+
+    run = asyncio.run(gg.run_case(scenario(), edit=edit))
+    assert (run.status, run.output, counts()) == ("JOB_STATUS_SUCCEEDED", {"text": "hello"}, (1, 1))
+    refused = asyncio.run(gg.run_case(scenario("os:system"), edit=edit))
+    assert (refused.status, refused.error_code, counts()) == ("JOB_STATUS_FAILED", "ERROR_CODE_JOB_NOT_FOUND", (1, 1))
+
+
+def test_unregistered_capability_zero_spawns(counts):
+    run = asyncio.run(gg.run_case(scenario("not-registered")))
+    assert (run.status, run.error_code, counts()) == ("JOB_STATUS_FAILED", "ERROR_CODE_JOB_NOT_FOUND", (0, 0))
+
+
+def test_oversize_input_zero_spawns(counts):
+    run = asyncio.run(gg.run_case(scenario(data={"text": "x" * gg.LIMITS.max_input_bytes})))
+    assert (run.status, run.error_code, counts()) == ("JOB_STATUS_FAILED", "ERROR_CODE_JOB_RESOURCE_EXHAUSTED", (0, 0))
+
+
+def test_operator_job_failure_passes_through(counts):
+    run = asyncio.run(gg.run_case(scenario("failure")))
+    assert (run.status, run.error_code, run.error_string, counts()) == ("JOB_STATUS_FAILED_RETRYABLE", "1001", "", (1, 0))
 
 
 def child_run(factory, data, artifacts=None):
@@ -80,7 +182,7 @@ def test_workloads_are_validated_without_importing():
     ({"echo": entry(inputModel="/tmp/x.py")}, "inputModel"),
     ({"echo": entry(artifactTasks={"x": "BAD"})}, "artifactTasks"),
     ({"echo": entry(artifactTasks={"x": "a", "y": "a"})}, "artifactTasks"),
-    ({"echo": entry(child={"graceMs": True})}, "child"),
+    ({"echo": entry(child={"graceMs": True, "maxStdoutBytes": 1, "maxStderrBytes": 1})}, "child"),
     ({"echo": entry(child={"graceMs": -1, "maxStdoutBytes": 1, "maxStderrBytes": 1})}, "child"),
     ({"echo": entry(child={"graceMs": 1, "maxStdoutBytes": 1 << 30, "maxStderrBytes": 1})}, "child"),
 ])

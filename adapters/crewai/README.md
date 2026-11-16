@@ -11,7 +11,7 @@ pip install --no-index --no-deps dist/*.whl && pip check
 ```
 
 The lock is generated with uv 0.11.15 from the repo root:
-`printf '%s\n' 'protobuf>=6.31.1,<7' 'grpcio>=1.76.0,<2' 'nats-py>=2.6.0' 'cryptography>=41.0.0' 'pydantic>=2.6.0' 'redis>=5.0.0' 'pytest>=8.0,<9' 'build>=1.2,<2' 'setuptools==84.1.0' 'wheel==0.47.0' | uv pip compile - --universal --python-version 3.10 --generate-hashes --no-header --exclude-newer 2026-10-28T23:59:59Z -o adapters/crewai/requirements.lock`
+`printf '%s\n' 'crewai==1.15.30' 'protobuf>=6.31.1,<7' 'grpcio>=1.76.0,<2' 'nats-py>=2.6.0' 'cryptography>=41.0.0' 'pydantic>=2.6.0' 'redis>=5.0.0' 'pytest>=8.0,<9' 'build>=1.2,<2' 'setuptools==84.1.0' 'wheel==0.47.0' | uv pip compile - --universal --python-version 3.10 --generate-hashes --no-header --exclude-newer 2026-10-28T23:59:59Z -o adapters/crewai/requirements.lock`
 
 ## The child process
 

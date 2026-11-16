@@ -4,6 +4,7 @@ import inspect
 import json
 import os
 import sys
+from threading import Lock
 from typing import Callable
 
 
@@ -54,9 +55,13 @@ def main() -> None:
     ipc = os.dup(1)
     os.set_inheritable(ipc, False)
     os.dup2(2, 1)  # Operator prints and inherited stdout are stderr, never the private event pipe.
+    lock = Lock()  # Sequential crews may have async_execution tasks with threaded callbacks.
     with os.fdopen(ipc, "w", encoding="utf-8", newline="\n") as stream:
         def send(event: dict[str, object]) -> None:
-            print(json.dumps(event, allow_nan=False), file=stream, flush=True)
+            line = json.dumps(event, allow_nan=False) + "\n"
+            with lock:
+                stream.write(line)
+                stream.flush()
 
         from cap import JobFailure
 

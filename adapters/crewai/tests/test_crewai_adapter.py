@@ -13,6 +13,7 @@ import cap
 import golden_crews as gg
 import pytest
 from cap.pb.cordum.agent.v1 import job_pb2
+from cap.job_events import check_artifact, check_marker
 
 import cap_adapter_crewai as adapter
 from cap_adapter_crewai import _proc
@@ -84,8 +85,7 @@ def test_telemetry_proof(monkeypatch, counts):
 
 
 def test_telemetry_negative_control(tmp_path):
-    cwd = tmp_path / "empty-storage"
-    cwd.mkdir()
+    cwd = Path(tempfile.mkdtemp(prefix="negative-", dir=tmp_path))  # CrewAI's Windows storage key is cwd.name.
     env = _proc.child_env(str(cwd))
     for name in (*_proc.FORCED_ENV, "CI"):
         env.pop(name, None)
@@ -142,6 +142,7 @@ def child_run(factory, data, artifacts=None):
 
 @pytest.mark.parametrize("factory,data,expected,kickoffs", [
     ("echo_crew", {"text": "hello"}, {"type": "result", "output": {"text": "hello"}}, 1),
+    ("raw_crew", {"text": "hello"}, {"type": "result", "output": {"raw": "HELLO"}}, 1),
     ("echo_crew", {"text": 42}, {"type": "error", "code": job_pb2.ERROR_CODE_JOB_INVALID_INPUT, "retryable": None}, 0),
     ("traced_crew", {"text": "hello"}, {"type": "error", "code": "FRAMEWORK_ERROR", "retryable": None}, 0),
     ("hierarchical_crew", {"text": "hello"}, {"type": "error", "code": "FRAMEWORK_ERROR", "retryable": None}, 0),
@@ -173,6 +174,10 @@ def test_workloads_are_validated_without_importing():
     assert workloads["echo"].child == _proc.ChildLimits()
     with pytest.raises(TypeError):
         workloads["other"] = workloads["echo"]
+    custom = adapter.load_workloads({"echo": entry(artifactTasks={"Step": "artifact"}, child={
+        "graceMs": 60000, "maxStdoutBytes": 64 << 20, "maxStderrBytes": 1})})["echo"]
+    assert custom.child == _proc.ChildLimits(60000, 64 << 20, 1)
+    assert custom.artifact_tasks == {"Step": "artifact"}
 
 
 @pytest.mark.parametrize("value,key", [
@@ -199,13 +204,17 @@ def test_bad_workload(value, key):
     ({"type": "error", "code": "BUSY", "retryable": 1}, "CHILD_CRASHED"),
     ({"type": "artifact", "name": "x", "mediaType": "text/plain", "content": None}, "CHILD_CRASHED"),
     ({"type": "progress", "marker": ""}, "FRAMEWORK_ERROR"),
+    ({"type": "progress", "marker": "é" * 129}, "FRAMEWORK_ERROR"),
+    ({"type": "artifact", "name": "x", "mediaType": "text/plain", "content": ""}, "FRAMEWORK_ERROR"),
 ])
 def test_event_failure_mapping(monkeypatch, event, code):
     assert hasattr(adapter, "make_handler"), "handler not implemented"
 
     async def report(marker):
-        if not marker:
-            raise ValueError("secret")
+        check_marker(marker)
+
+    async def attach(name, media, content):
+        check_artifact(name, media, content)
 
     async def child(argv, job, limits, emit):
         if event["type"] in ("progress", "artifact"):
@@ -213,7 +222,8 @@ def test_event_failure_mapping(monkeypatch, event, code):
         return event
 
     monkeypatch.setattr(_proc, "run_child", child)
-    ctx = SimpleNamespace(job=SimpleNamespace(meta=SimpleNamespace(capability="echo")), report_progress=report)
+    ctx = SimpleNamespace(job=SimpleNamespace(meta=SimpleNamespace(capability="echo")),
+                          report_progress=report, attach_artifact=attach)
     with pytest.raises(cap.JobFailure) as caught:
         asyncio.run(adapter.make_handler(adapter.load_workloads({"echo": entry()}))(ctx, {}))
     assert caught.value.code == code
@@ -236,3 +246,25 @@ def test_sdk_failure_latch_propagates(monkeypatch):
     with pytest.raises(cap.JobFailure) as caught:
         asyncio.run(adapter.make_handler(adapter.load_workloads({"echo": entry()}))(ctx, {"text": "hello"}))
     assert caught.value is failure
+
+
+def test_child_serializes_threaded_callback_events(child_env):
+    # Sequential crews can contain async_execution tasks, whose callbacks run on threads.
+    script = """
+from cap_adapter_crewai import _child
+from concurrent.futures import ThreadPoolExecutor
+def run(job, send):
+    with ThreadPoolExecutor(max_workers=16) as pool:
+        list(pool.map(lambda i: send({'type':'progress', 'marker':str(i)+':'+'x'*4096}), range(128)))
+    return {}
+_child._run = run
+_child.main()
+"""
+    events = []
+
+    async def emit(event):
+        events.append(event["marker"])
+
+    result = asyncio.run(_proc.run_child([sys.executable, "-c", script], {}, _proc.ChildLimits(), emit))
+    assert result == {"type": "result", "output": {}}
+    assert sorted(events) == sorted(str(i) + ":" + "x" * 4096 for i in range(128))

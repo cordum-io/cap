@@ -100,6 +100,10 @@ def echo_crew():
     return _crew([(None, "echo:{text}", TextInput)])
 
 
+def raw_crew():
+    return _crew([(None, "upper:{text}", None)])
+
+
 def upper_crew():
     return _crew([("upper", "upper:{text}", None), ("suffix", "suffix:{text}", StepsOut)])
 

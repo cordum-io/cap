@@ -6,6 +6,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- Docs: correct the trace-context rationale to distinguish Python's `nats-py>=2.6.0` minimum from registry-verify CI's `nats-py==2.6.0` selection (task-715fb3f0).
+
 - Bug fix: `cap-a2a-bridge` rejects trailing JSON or garbage in API-key files before connecting, while accepting trailing whitespace (task-5faf4e7a).
 
 - Add operator-registered `cap-adapter-crewai` crews in bounded children, offline goldens and installed-wheel smoke (task-dfd35334).

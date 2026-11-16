@@ -1,12 +1,63 @@
 """CrewAI adapter boundaries, goldens and installed-child security checks."""
 import asyncio
+import os
+import sys
+import tempfile
+from pathlib import Path
 from types import SimpleNamespace
 
 import cap
 import pytest
+from cap.pb.cordum.agent.v1 import job_pb2
 
 import cap_adapter_crewai as adapter
 from cap_adapter_crewai import _proc
+
+FIXTURES = Path(__file__).parent / "fixtures"
+TRAP = Path(__file__).resolve().parents[3] / "testdata" / "adapters" / "nettrap"
+
+
+@pytest.fixture
+def child_env(monkeypatch, tmp_path):
+    monkeypatch.setenv("PYTHONPATH", os.pathsep.join([str(FIXTURES), str(TRAP)]))
+    monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
+    return tmp_path
+
+
+def child_run(factory, data, artifacts=None):
+    assert Path(adapter.__file__).with_name("_child.py").exists(), "child not implemented"
+    events = []
+
+    async def emit(event):
+        events.append(event)
+
+    job = {"factory": "golden_crews:" + factory, "inputModel": "golden_crews:TextInput",
+           "artifactTasks": artifacts or {}, "input": data}
+    result = asyncio.run(_proc.run_child([sys.executable, "-m", "cap_adapter_crewai._child"],
+                                         job, _proc.ChildLimits(), emit))
+    return result, events
+
+
+@pytest.mark.parametrize("factory,data,expected,kickoffs", [
+    ("echo_crew", {"text": "hello"}, {"type": "result", "output": {"text": "hello"}}, 1),
+    ("echo_crew", {"text": 42}, {"type": "error", "code": job_pb2.ERROR_CODE_JOB_INVALID_INPUT, "retryable": None}, 0),
+    ("traced_crew", {"text": "hello"}, {"type": "error", "code": "FRAMEWORK_ERROR", "retryable": None}, 0),
+    ("hierarchical_crew", {"text": "hello"}, {"type": "error", "code": "FRAMEWORK_ERROR", "retryable": None}, 0),
+    ("failure_crew", {"text": "hello"}, {"type": "error", "code": 1001, "retryable": True}, 0),
+])
+def test_child_outcomes(child_env, factory, data, expected, kickoffs):
+    assert child_run(factory, data) == (expected, [])
+    marker = child_env / "kickoffs.txt"
+    assert (len(marker.read_text().splitlines()) if marker.exists() else 0) == kickoffs
+
+
+def test_stdout_and_existing_callback_stay_off_ipc(child_env):
+    result, events = child_run("noisy_crew", {"text": "hello"}, {"named": "artifact"})
+    assert result == {"type": "result", "output": {"text": "hello"}}
+    assert events == [{"type": "progress", "marker": "named"},
+                      {"type": "artifact", "name": "artifact", "mediaType": "text/plain",
+                       "content": '{"text": "hello"}'}]
+    assert (child_env / "callbacks.txt").read_text().splitlines() == ["task", "crew", "crew"]
 
 
 def entry(**extra):

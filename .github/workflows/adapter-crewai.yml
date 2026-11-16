@@ -57,3 +57,16 @@ jobs:
           python -m pip check
       - name: Adapter tests under the network trap
         run: PYTHONPATH="$GITHUB_WORKSPACE/testdata/adapters/nettrap" python -m pytest -q -rs -p no:cacheprovider adapters/crewai/tests
+      - name: Installed-wheel smoke outside the repo
+        run: |
+          python -m venv "$RUNNER_TEMP/crewai-smoke"
+          if [ "$RUNNER_OS" = Windows ]; then
+            smoke="$RUNNER_TEMP/crewai-smoke/Scripts/python.exe"
+          else
+            smoke="$RUNNER_TEMP/crewai-smoke/bin/python"
+          fi
+          "$smoke" -m pip install --require-hashes --no-deps -r adapters/crewai/requirements.lock
+          "$smoke" -m pip install --no-index --no-deps dist/*.whl
+          "$smoke" -m pip check
+          cd "$RUNNER_TEMP"
+          "$smoke" -I "$GITHUB_WORKSPACE/adapters/crewai/tests/fixtures/golden_crews.py"

@@ -29,7 +29,7 @@ func TestCheckAllLinksSkipsPythonEnvironments(t *testing.T) {
 				writeLinkFixture(t, root, filepath.Join("docs", "broken.md"))
 				got, err := checkAllLinks(root)
 				want := releasetruth.LinkProblem{
-					File: "docs/broken.md", Line: 1, Target: "missing.md", Reason: "path not found",
+					File: "docs/broken.md", Line: 1, Target: "missing.md", Reason: "path not found: docs/missing.md",
 				}
 				if err != nil || len(got) != 1 || got[0] != want {
 					t.Fatalf("docs check = %v, %v; want [%v], nil", got, err, want)

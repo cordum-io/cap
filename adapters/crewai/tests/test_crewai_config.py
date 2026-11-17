@@ -26,9 +26,12 @@ TRAP = Path(__file__).resolve().parents[3] / "testdata" / "adapters" / "nettrap"
 
 @pytest.fixture(autouse=True)
 def child_env(monkeypatch, tmp_path):
+    handlers = {s: signal.getsignal(s) for s in (signal.SIGTERM, signal.SIGINT)}
     monkeypatch.setenv("PYTHONPATH", os.pathsep.join([str(FIXTURES), str(TRAP)]))
     monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
-    return tmp_path
+    yield tmp_path
+    for sig, handler in handlers.items():
+        signal.signal(sig, handler)
 
 
 @pytest.fixture
@@ -227,3 +230,27 @@ def test_check_child_failures_are_redacted(monkeypatch, outcome):
     with pytest.raises(adapter.ConfigError) as err:
         asyncio.run(adapter.check_workloads(adapter.load_workloads(gg.WORKLOADS)))
     assert str(err.value) == "workloads: the check-mode child failed"
+
+
+@pytest.mark.parametrize("contents", [b'{"tenantId": "duplicate", ', b" " * ((1 << 20) + 1), b"\xff"],
+                         ids=["duplicate", "oversize", "invalid-utf8"])
+def test_load_trust_rejects_documents(config_path, contents):
+    path = config_path.parent / "trust.json"
+    if contents.startswith(b"{"):
+        contents += path.read_bytes()[1:]
+    path.write_bytes(contents)
+    with pytest.raises(adapter.ConfigError):
+        adapter.load_trust(path)
+
+
+def test_check_validates_last_workload(config_path, capsys):
+    rewrite(config_path, lambda c: c["workloads"]["failure"].update(inputModel="golden_crews:missing"))
+    assert adapter.main(["--config", str(config_path), "--check"]) == 2
+    assert capsys.readouterr().err.strip() == "config error: workloads.failure.inputModel: cannot be imported"
+
+
+def test_tls_errors_are_redacted(config_path):
+    (config_path.parent / "client.pem").write_text("private-canary")
+    with pytest.raises(adapter.ConfigError) as err:
+        adapter.tls_context(adapter.load_config(config_path))
+    assert str(err.value) == "config.nats: TLS CA, certificate or key cannot be loaded"

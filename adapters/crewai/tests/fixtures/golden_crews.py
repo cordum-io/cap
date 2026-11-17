@@ -4,6 +4,7 @@ import json
 import logging
 import math
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -328,6 +329,12 @@ def smoke():
                 assert got == want, (case["id"], got, want)
         finally:
             tempfile.tempdir = previous
+    with tempfile.TemporaryDirectory() as tmp:
+        script = Path(sys.executable).parent / ("cap-adapter-crewai" + (".exe" if os.name == "nt" else ""))
+        check = subprocess.run([str(script), "--config", str(write_operator_files(Path(tmp))), "--check"],
+                               capture_output=True, text=True, cwd=tmp, timeout=150)
+    print("check: exit %d %s" % (check.returncode, (check.stdout + check.stderr).strip()))
+    assert check.returncode == 0 and check.stdout.strip() == "CHECK OK 7 workloads"
     print("SMOKE OK 9/9")
 
 

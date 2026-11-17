@@ -1,6 +1,7 @@
 """CAP handler for operator-registered CrewAI crews; framework imports stay in the child."""
 from __future__ import annotations
 
+import asyncio
 import importlib.metadata
 import json
 import re
@@ -321,3 +322,30 @@ def tls_context(config: AdapterConfig) -> ssl.SSLContext:
     except (OSError, ValueError):
         raise ConfigError("config.nats: TLS CA, certificate or key cannot be loaded") from None
     return context
+
+
+async def check_workloads(workloads: Mapping[str, Workload]) -> None:
+    """Validate operator imports in one bounded child, never in this process."""
+    from . import _proc
+
+    failed = "workloads: the check-mode child failed"
+
+    async def unexpected_event(event: dict[str, object]) -> None:
+        raise ConfigError(failed)
+
+    job = {"check": {key: {"factory": w.factory, "inputModel": w.input_model} for key, w in workloads.items()}}
+    try:
+        event = await asyncio.wait_for(_proc.run_child(
+            [sys.executable, "-m", "cap_adapter_crewai._child"], job, _proc.ChildLimits(), unexpected_event), 120)
+    except Exception:
+        raise ConfigError(failed) from None
+    if isinstance(event, dict) and set(event) == {"type", "output"} and event["type"] == "result":
+        output = event["output"]
+        if output is None:
+            return
+        if isinstance(output, list) and len(output) == 3 and all(isinstance(v, str) for v in output):
+            key, field, reason = output
+            if key in workloads and field in ("factory", "inputModel") and reason in (
+                    "cannot be imported", "is not callable", "must be a pydantic BaseModel subclass"):
+                raise ConfigError("workloads.%s.%s: %s" % (key, field, reason))
+    raise ConfigError(failed)

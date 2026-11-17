@@ -136,3 +136,52 @@ def test_agent_kwargs(config_path):
 def test_tls_context_verifies_server_and_loads_client_chain(config_path):
     context = adapter.tls_context(adapter.load_config(config_path))
     assert (context.verify_mode, context.check_hostname, len(context.get_ca_certs())) == (ssl.CERT_REQUIRED, True, 1)
+
+
+def test_check_spawns_one_child_without_importing_crewai(config_path, monkeypatch, capsys):
+    calls, original = [], _proc.run_child
+
+    async def run(*args, **kwargs):
+        calls.append(args)
+        return await original(*args, **kwargs)
+
+    monkeypatch.setattr(_proc, "run_child", run)
+    asyncio.run(adapter.check_workloads(adapter.load_config(config_path).workloads))
+    assert len(calls) == 1
+    assert calls[0][:3] == ([sys.executable, "-m", "cap_adapter_crewai._child"],
+                           {"check": {key: {k: v[k] for k in ("factory", "inputModel")}
+                                      for key, v in gg.WORKLOADS.items()}}, _proc.ChildLimits())
+    assert not any(name == "crewai" or name.startswith("crewai.") for name in sys.modules)
+
+
+@pytest.mark.parametrize("field,ref,reason", [
+    pytest.param("factory", "golden_crews:missing", "cannot be imported", id="missing-factory"),
+    pytest.param("factory", "golden_crews:TOPIC", "is not callable", id="uncallable-factory"),
+    pytest.param("inputModel", "golden_crews:echo_crew", "must be a pydantic BaseModel subclass", id="not-a-model"),
+])
+def test_check_rejects_bad_refs(config_path, capsys, field, ref, reason):
+    rewrite(config_path, lambda c: c["workloads"]["echo"].update({field: ref}))
+    with pytest.raises(adapter.ConfigError) as err:
+        asyncio.run(adapter.check_workloads(adapter.load_config(config_path).workloads))
+    assert str(err.value) == "workloads.echo.%s: %s" % (field, reason)
+
+
+@pytest.mark.parametrize("outcome", [
+    {"type": "result", "output": ["unknown", "factory", "cannot be imported"]},
+    {"type": "result", "output": ["echo", "secret", "cannot be imported"]},
+    {"type": "result", "output": ["echo", "factory", "private-canary"]},
+    {"type": "result", "output": [{}, "factory", "cannot be imported"]},
+    {"type": "result", "output": None, "extra": "private-canary"},
+    {"type": "error", "code": "private-canary", "retryable": None},
+    asyncio.TimeoutError("private-canary"), cap.JobFailure("CHILD_CRASHED"),
+])
+def test_check_child_failures_are_redacted(monkeypatch, outcome):
+    async def run(*args):
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    monkeypatch.setattr(_proc, "run_child", run)
+    with pytest.raises(adapter.ConfigError) as err:
+        asyncio.run(adapter.check_workloads(adapter.load_workloads(gg.WORKLOADS)))
+    assert str(err.value) == "workloads: the check-mode child failed"

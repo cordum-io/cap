@@ -218,7 +218,7 @@ def test_main_exit_codes(config_path, monkeypatch, capsys):
     {"type": "result", "output": [{}, "factory", "cannot be imported"]},
     {"type": "result", "output": None, "extra": "private-canary"},
     {"type": "error", "code": "private-canary", "retryable": None},
-    asyncio.TimeoutError("private-canary"), cap.JobFailure("CHILD_CRASHED"),
+    cap.JobFailure("CHILD_CRASHED"),
 ])
 def test_check_child_failures_are_redacted(monkeypatch, outcome):
     async def run(*args):
@@ -254,3 +254,33 @@ def test_tls_errors_are_redacted(config_path):
     with pytest.raises(adapter.ConfigError) as err:
         adapter.tls_context(adapter.load_config(config_path))
     assert str(err.value) == "config.nats: TLS CA, certificate or key cannot be loaded"
+
+
+def test_check_timeout_is_bounded_and_redacted(monkeypatch):
+    async def timeout(coro, seconds):
+        coro.close()
+        assert seconds == 120
+        raise asyncio.TimeoutError("private-canary")
+
+    monkeypatch.setattr(asyncio, "wait_for", timeout)
+    with pytest.raises(adapter.ConfigError, match="^workloads: the check-mode child failed$"):
+        asyncio.run(adapter.check_workloads(adapter.load_workloads(gg.WORKLOADS)))
+
+
+@pytest.mark.parametrize("exits", [False, True], ids=["prints", "exits"])
+def test_operator_import_is_contained(tmp_path, monkeypatch, capsys, exits):
+    code = "print('private-canary', flush=True)\n"
+    code += "raise SystemExit('private-canary')\n" if exits else "from golden_crews import echo_crew, TextInput\n"
+    (tmp_path / "noisy_operator.py").write_text(code)
+    monkeypatch.setenv("PYTHONPATH", os.pathsep.join([str(tmp_path), str(FIXTURES), str(TRAP)]))
+    workloads = adapter.load_workloads({"echo": {
+        "factory": "noisy_operator:echo_crew", "inputModel": "noisy_operator:TextInput"}})
+    if exits:
+        with pytest.raises(adapter.ConfigError, match="^workloads: the check-mode child failed$"):
+            asyncio.run(adapter.check_workloads(workloads))
+    else:
+        asyncio.run(adapter.check_workloads(workloads))
+    assert "noisy_operator" not in sys.modules
+    out = capsys.readouterr()
+    assert out.out == out.err == ""
+    assert not list(tmp_path.glob("cap-crewai-*"))

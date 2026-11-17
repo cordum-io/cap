@@ -6,6 +6,8 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- Add operator config, trust, isolated startup validation and the `cap-adapter-crewai` command (task-beb195b6).
+
 - Docs: correct the trace-context rationale to distinguish Python's `nats-py>=2.6.0` minimum from registry-verify CI's `nats-py==2.6.0` selection (task-715fb3f0).
 - Bug fix: `cap-release links` skips `.venv`, `venv` and `.tox` directories, so an in-repo Python virtualenv's third-party READMEs no longer fail the link check (task-f64397d1).
 

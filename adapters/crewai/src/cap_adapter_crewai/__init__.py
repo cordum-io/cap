@@ -1,10 +1,14 @@
 """CAP handler for operator-registered CrewAI crews; framework imports stay in the child."""
 from __future__ import annotations
 
+import argparse
 import asyncio
+import functools
 import importlib.metadata
 import json
+import logging
 import re
+import signal
 import ssl
 import sys
 from dataclasses import dataclass
@@ -20,6 +24,7 @@ if TYPE_CHECKING:
 _KEY = re.compile(r"[a-z0-9][a-z0-9._-]{0,63}")
 _REF = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*:[A-Za-z_][A-Za-z0-9_]*")
 FRAMEWORK_ERROR = "FRAMEWORK_ERROR"
+LOG = logging.getLogger("cap_adapter_crewai")
 _MAX_FILE_BYTES = 1 << 20
 _BUCKET = re.compile(r"[A-Za-z0-9_-]{1,64}")
 _LIMITS = {"maxInputBytes": 64 << 20, "maxOutputBytes": 64 << 20, "maxArtifacts": 64,
@@ -349,3 +354,59 @@ async def check_workloads(workloads: Mapping[str, Workload]) -> None:
                     "cannot be imported", "is not callable", "must be a pydantic BaseModel subclass"):
                 raise ConfigError("workloads.%s.%s: %s" % (key, field, reason))
     raise ConfigError(failed)
+
+
+async def serve(config: AdapterConfig, trust: AdapterTrust) -> None:
+    """Run the worker after one isolated workload check, before any connection."""
+    import cap
+    import nats
+
+    await check_workloads(config.workloads)
+    connect = functools.partial(nats.connect, tls=tls_context(config))
+    resources = await connect(servers=config.nats_url, name=config.worker_id + "-resources")
+    try:
+        backend = await cap.NatsKvResourceBackend.open(await resources.jetstream().key_value(config.bucket))
+        agent = cap.Agent(**agent_kwargs(config, trust), connect_fn=connect,
+                          resource_registry=cap.ResourceRegistry([backend.registration()]))
+        agent.job(config.topic)(make_handler(config.workloads))
+        await agent.run()
+    finally:
+        try:
+            await resources.drain()
+        except Exception as exc:
+            LOG.warning("resources connection drain failed: %s", type(exc).__name__)
+
+
+def _stop(signum: int, frame: object) -> None:
+    # A custom handler keeps asyncio.Runner from installing its main-task-only SIGINT cancellation.
+    raise KeyboardInterrupt
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Console script: 0 on a check or clean stop, 2 on config errors, otherwise 1."""
+    parser = argparse.ArgumentParser(prog="cap-adapter-crewai", description="CAP worker for CrewAI crews")
+    parser.add_argument("--config", required=True, metavar="PATH", help="cap-adapter-config/v1 JSON file")
+    parser.add_argument("--check", action="store_true", help="validate config, trust, TLS files and workloads only")
+    args = parser.parse_args(argv)
+    logging.basicConfig(level=logging.INFO, stream=sys.stderr)
+    try:
+        config = load_config(args.config)
+        trust = load_trust(config.trust_file)
+        agent_kwargs(config, trust)
+        tls_context(config)
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            signal.signal(sig, _stop)
+        if args.check:
+            asyncio.run(check_workloads(config.workloads))
+            print("CHECK OK %d workloads" % len(config.workloads))
+        else:
+            asyncio.run(serve(config, trust))
+    except ConfigError as exc:
+        print("config error: %s" % exc, file=sys.stderr)
+        return 2
+    except KeyboardInterrupt:
+        return 0
+    except Exception as exc:
+        LOG.error("adapter stopped: %s", type(exc).__name__)
+        return 1
+    return 0

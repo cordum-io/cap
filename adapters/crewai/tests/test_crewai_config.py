@@ -146,7 +146,8 @@ def test_check_spawns_one_child_without_importing_crewai(config_path, monkeypatc
         return await original(*args, **kwargs)
 
     monkeypatch.setattr(_proc, "run_child", run)
-    asyncio.run(adapter.check_workloads(adapter.load_config(config_path).workloads))
+    assert adapter.main(["--config", str(config_path), "--check"]) == 0
+    assert capsys.readouterr().out.strip() == "CHECK OK 7 workloads"
     assert len(calls) == 1
     assert calls[0][:3] == ([sys.executable, "-m", "cap_adapter_crewai._child"],
                            {"check": {key: {k: v[k] for k in ("factory", "inputModel")}
@@ -161,9 +162,50 @@ def test_check_spawns_one_child_without_importing_crewai(config_path, monkeypatc
 ])
 def test_check_rejects_bad_refs(config_path, capsys, field, ref, reason):
     rewrite(config_path, lambda c: c["workloads"]["echo"].update({field: ref}))
-    with pytest.raises(adapter.ConfigError) as err:
-        asyncio.run(adapter.check_workloads(adapter.load_config(config_path).workloads))
-    assert str(err.value) == "workloads.echo.%s: %s" % (field, reason)
+    assert adapter.main(["--config", str(config_path), "--check"]) == 2
+    out = capsys.readouterr()
+    assert out.out == ""
+    assert out.err.strip() == "config error: workloads.echo.%s: %s" % (field, reason)
+
+
+def test_serve_checks_workloads_before_connecting(config_path, monkeypatch):
+    rewrite(config_path, lambda c: c["workloads"]["echo"].update(factory="golden_crews:missing"))
+    calls = []
+
+    async def connect(*args, **kwargs):
+        calls.append(True)
+        raise AssertionError("connect must not run")
+
+    monkeypatch.setattr(nats, "connect", connect)
+    config = adapter.load_config(config_path)
+    with pytest.raises(adapter.ConfigError, match=r"workloads\.echo\.factory: cannot be imported"):
+        asyncio.run(adapter.serve(config, adapter.load_trust(config.trust_file)))
+    assert calls == []
+
+
+def test_main_exit_codes(config_path, monkeypatch, capsys):
+    handlers = {s: signal.getsignal(s) for s in (signal.SIGTERM, signal.SIGINT)}
+    try:
+        assert adapter.main(["--config", str(config_path.parent / "missing.json")]) == 2
+        assert capsys.readouterr().err.startswith("config error: ")
+        for failure, code in [(KeyboardInterrupt, 0), (RuntimeError, 1), (adapter.ConfigError, 2)]:
+            async def serve(*args):
+                raise failure("private-canary" if failure is RuntimeError else "fixed-message")
+            monkeypatch.setattr(adapter, "serve", serve)
+            assert adapter.main(["--config", str(config_path)]) == code
+            out = capsys.readouterr()
+            assert "private-canary" not in out.err
+            if code == 2:
+                assert out.err.strip() == "config error: fixed-message"
+        assert signal.getsignal(signal.SIGTERM) is signal.getsignal(signal.SIGINT)
+        for sig in handlers:
+            handler = signal.getsignal(sig)
+            assert handler is not signal.default_int_handler
+            with pytest.raises(KeyboardInterrupt):
+                handler(sig, None)
+    finally:
+        for sig, handler in handlers.items():
+            signal.signal(sig, handler)
 
 
 @pytest.mark.parametrize("outcome", [

@@ -188,6 +188,8 @@ def test_serve_checks_workloads_before_connecting(config_path, monkeypatch):
 
 def test_main_exit_codes(config_path, monkeypatch, capsys):
     handlers = {s: signal.getsignal(s) for s in (signal.SIGTERM, signal.SIGINT)}
+    logged = []
+    monkeypatch.setattr(adapter.LOG, "error", lambda *args: logged.append(args))
     try:
         assert adapter.main(["--config", str(config_path.parent / "missing.json")]) == 2
         assert capsys.readouterr().err.startswith("config error: ")
@@ -200,6 +202,7 @@ def test_main_exit_codes(config_path, monkeypatch, capsys):
             assert "private-canary" not in out.err
             if code == 2:
                 assert out.err.strip() == "config error: fixed-message"
+        assert logged == [("adapter stopped: %s", "RuntimeError")]  # the type name only, never the exception text
         assert signal.getsignal(signal.SIGTERM) is signal.getsignal(signal.SIGINT)
         for sig in handlers:
             handler = signal.getsignal(sig)

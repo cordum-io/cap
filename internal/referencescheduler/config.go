@@ -124,14 +124,9 @@ type ResolvedConfig struct {
 // Resolve validates the configuration and returns it with parsed keys, or a
 // bare ErrConfig* sentinel. It reads files but never logs.
 func (c RuntimeConfig) Resolve() (*ResolvedConfig, error) {
-	// NATS splits raw commas before URL parsing, even in paths or credentials.
-	// Reject lists before granting a plaintext exemption to the parsed host.
-	if strings.Contains(c.NATSURL, ",") {
-		return nil, ErrConfigNATSURL
-	}
-	u, err := url.Parse(c.NATSURL)
-	if err != nil || (u.Scheme != "nats" && u.Scheme != "tls") || u.Hostname() == "" {
-		return nil, ErrConfigNATSURL
+	u, err := c.natsURL()
+	if err != nil {
+		return nil, err
 	}
 	r := &ResolvedConfig{
 		NATSURL: c.NATSURL, SchedulerID: c.SchedulerID, SigningKeyID: c.SigningKeyID, TrustKeyID: c.TrustKeyID,
@@ -153,6 +148,31 @@ func (c RuntimeConfig) Resolve() (*ResolvedConfig, error) {
 		}
 	}
 	return r, nil
+}
+
+// ResolveTransport validates NATSURL and the TLS fields alone, with Resolve's
+// rules, for a client of the scheduler's NATS. The config is nil only in the
+// validated loopback dev case.
+func (c RuntimeConfig) ResolveTransport() (*tls.Config, error) {
+	u, err := c.natsURL()
+	if err != nil {
+		return nil, err
+	}
+	return c.resolveTLS(u.Hostname())
+}
+
+// natsURL parses NATSURL as one nats:// or tls:// endpoint.
+func (c RuntimeConfig) natsURL() (*url.URL, error) {
+	// NATS splits raw commas before URL parsing, even in paths or credentials.
+	// Reject lists before granting a plaintext exemption to the parsed host.
+	if strings.Contains(c.NATSURL, ",") {
+		return nil, ErrConfigNATSURL
+	}
+	u, err := url.Parse(c.NATSURL)
+	if err != nil || (u.Scheme != "nats" && u.Scheme != "tls") || u.Hostname() == "" {
+		return nil, ErrConfigNATSURL
+	}
+	return u, nil
 }
 
 // resolveTLS builds the client TLS config. Plaintext passes only to a parsed
@@ -207,7 +227,7 @@ func firstCertParses(data []byte) bool {
 }
 
 func (c RuntimeConfig) resolveScheduler(r *ResolvedConfig) error {
-	r.SigningKey, r.TrustKey = readPrivateKey(c.SigningKeyFile), readPrivateKey(c.TrustKeyFile)
+	r.SigningKey, r.TrustKey = ReadPrivateKey(c.SigningKeyFile), ReadPrivateKey(c.TrustKeyFile)
 	if !trimmed(c.SchedulerID) || !trimmed(c.SigningKeyID) || !trimmed(c.TrustKeyID) || r.SigningKey == nil || r.TrustKey == nil {
 		return ErrConfigScheduler
 	}
@@ -224,7 +244,7 @@ func resolveWorkers(entries []WorkerEntry) (map[string]ResolvedWorker, error) {
 			return nil, ErrConfigWorkerID
 		}
 		_, dup := out[w.WorkerID]
-		proof, sign := readPublicKey(w.ProofKeyFile), publicKeys(w.SigningKeyFiles)
+		proof, sign := ReadPublicKey(w.ProofKeyFile), publicKeys(w.SigningKeyFiles)
 		if dup || !trimmed(w.TenantID) || !trimmed(w.AgentID) || !trimmed(w.ProofKeyID) || proof == nil || sign == nil {
 			return nil, ErrConfigWorker
 		}
@@ -315,7 +335,7 @@ func publicKeys(files map[string]string) map[string]*ecdsa.PublicKey {
 	}
 	out := make(map[string]*ecdsa.PublicKey, len(files))
 	for id, path := range files {
-		if k := readPublicKey(path); trimmed(id) && k != nil {
+		if k := ReadPublicKey(path); trimmed(id) && k != nil {
 			out[id] = k
 		} else {
 			return nil
@@ -333,8 +353,8 @@ func readBlock(path string) *pem.Block {
 	return b
 }
 
-// readPrivateKey returns the P-256 key of an EC PRIVATE KEY or PKCS8 PEM file, or nil.
-func readPrivateKey(path string) *ecdsa.PrivateKey {
+// ReadPrivateKey returns the P-256 key of an EC PRIVATE KEY or PKCS8 PEM file, or nil.
+func ReadPrivateKey(path string) *ecdsa.PrivateKey {
 	b := readBlock(path)
 	if b == nil {
 		return nil
@@ -354,8 +374,8 @@ func readPrivateKey(path string) *ecdsa.PrivateKey {
 	return k
 }
 
-// readPublicKey returns the P-256 key of a PUBLIC KEY PEM file, or nil.
-func readPublicKey(path string) *ecdsa.PublicKey {
+// ReadPublicKey returns the P-256 key of a PUBLIC KEY PEM file, or nil.
+func ReadPublicKey(path string) *ecdsa.PublicKey {
 	b := readBlock(path)
 	if b == nil || b.Type != "PUBLIC KEY" {
 		return nil

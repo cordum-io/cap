@@ -37,6 +37,7 @@ func runLinks(args []string) int {
 
 var skipDirs = map[string]bool{
 	".git": true, "node_modules": true, "vendor": true, "dist": true, "build": true,
+	".venv": true, "venv": true, ".tox": true,
 }
 
 func checkAllLinks(repoRoot string) ([]releasetruth.LinkProblem, error) {

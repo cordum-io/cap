@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/a2aproject/a2a-go/v2/a2a"
 )
@@ -35,7 +36,7 @@ func mustReserve(t *testing.T, s *store, id Identity, key string, rec taskRecord
 }
 
 func TestStoreCapacityRejectsWithoutEviction(t *testing.T) {
-	s := newStore(2)
+	s := newStore(2, 2, time.Hour)
 	mustReserve(t, s, storeAlice, "k0", testRecord("t0"))
 	mustReserve(t, s, storeAlice, "k1", testRecord("t1"))
 	_, created, err := s.reserve(storeAlice, "k2", digestOf("parts"), testRecord("t2"))
@@ -53,7 +54,7 @@ func TestStoreCapacityRejectsWithoutEviction(t *testing.T) {
 }
 
 func TestCapacityRejectsNewTaskWithoutPublishing(t *testing.T) {
-	h := newHarness(t, func(c *Config) { c.MaxTasks = 2 })
+	h := newHarness(t, func(c *Config) { c.MaxTasks = 4 }) // two tenants: quota 2
 	first := h.mustSend(t, as("key-alice"), textMsg("m-1", "hi"))
 	h.mustSend(t, as("key-alice"), textMsg("m-2", "hi"))
 	_, err := h.send(as("key-alice"), textMsg("m-3", "hi"))
@@ -66,8 +67,27 @@ func TestCapacityRejectsNewTaskWithoutPublishing(t *testing.T) {
 	}
 }
 
+func TestTenantQuotaRefusesOnlyThatTenant(t *testing.T) {
+	h := newHarness(t, func(c *Config) { c.MaxTasks = 4 }) // quota 2 per tenant
+	first := h.mustSend(t, as("key-alice"), textMsg("m-1", "hi"))
+	h.mustSend(t, as("key-bob"), textMsg("m-1", "hi")) // bob shares tenant-a's quota
+	_, err := h.send(as("key-alice"), textMsg("m-2", "hi"))
+	wantErr(t, err, a2a.ErrInternalError)
+	if h.pub.attempts() != 2 || h.in.writeCount() != 2 || h.ing.store.size() != 2 {
+		t.Fatalf("at quota: attempts %d writes %d store %d, want 2", h.pub.attempts(), h.in.writeCount(), h.ing.store.size())
+	}
+	// A duplicate is still answered at quota, and tenant-b still creates a task.
+	if dup := h.mustSend(t, as("key-alice"), textMsg("m-1", "hi")); dup.ID != first.ID {
+		t.Fatalf("duplicate at quota returned %q, want %q", dup.ID, first.ID)
+	}
+	h.mustSend(t, as("key-mallory"), textMsg("m-1", "hi"))
+	if h.pub.count() != 3 || h.in.writeCount() != 3 || h.ing.store.size() != 3 {
+		t.Fatalf("tenant-b: publishes %d writes %d store %d, want 3", h.pub.count(), h.in.writeCount(), h.ing.store.size())
+	}
+}
+
 func TestStoreGetReturnsCopies(t *testing.T) {
-	s := newStore(4)
+	s := newStore(4, 4, time.Hour)
 	rec := testRecord("t0")
 	mustReserve(t, s, storeAlice, "k0", rec)
 	// Mutating the caller's record after reserve must not reach the store.
@@ -92,11 +112,11 @@ func TestStoreGetReturnsCopies(t *testing.T) {
 }
 
 func TestStoreReserveReleaseReserve(t *testing.T) {
-	s := newStore(4)
+	s := newStore(4, 4, time.Hour)
 	mustReserve(t, s, storeAlice, "k0", testRecord("t0"))
 	s.release("k0")
-	if s.size() != 0 || s.exists(storeAlice, "t0") {
-		t.Fatal("release left the task behind")
+	if s.size() != 0 || s.exists(storeAlice, "t0") || len(s.tenants) != 0 {
+		t.Fatalf("release left the task or its quota slot behind: tenants %v", s.tenants)
 	}
 	snap := mustReserve(t, s, storeAlice, "k0", testRecord("t1"))
 	if snap.id != "t1" || !s.exists(storeAlice, "t1") {
@@ -109,7 +129,7 @@ func TestStoreReserveReleaseReserve(t *testing.T) {
 }
 
 func TestStoreReleaseKeepsAdvancedTurn(t *testing.T) {
-	s := newStore(4)
+	s := newStore(4, 4, time.Hour)
 	mustReserve(t, s, storeAlice, "k0", testRecord("t0"))
 	s.tasks[taskKey{storeAlice.Tenant, storeAlice.Principal, "t0"}].turn = 2
 	s.release("k0")
@@ -119,7 +139,7 @@ func TestStoreReleaseKeepsAdvancedTurn(t *testing.T) {
 }
 
 func TestStoreDuplicateDigest(t *testing.T) {
-	s := newStore(4)
+	s := newStore(4, 4, time.Hour)
 	mustReserve(t, s, storeAlice, "k0", testRecord("t0"))
 	snap, created, err := s.reserve(storeAlice, "k0", digestOf("parts"), testRecord("t1"))
 	if err != nil || created || snap.id != "t0" {
@@ -135,7 +155,7 @@ func TestStoreDuplicateDigest(t *testing.T) {
 }
 
 func TestStoreKeyIsUnambiguous(t *testing.T) {
-	s := newStore(4)
+	s := newStore(4, 4, time.Hour)
 	owner := Identity{Tenant: "ab", Principal: "c"}
 	mustReserve(t, s, owner, "k0", testRecord("x"))
 	for _, other := range []Identity{{Tenant: "a", Principal: "bc"}, {Tenant: "abc", Principal: ""}, {Tenant: "ab", Principal: "cx"}} {

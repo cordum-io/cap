@@ -181,18 +181,33 @@ type store struct {
 	cancelSeq uint64 // monotonically allocated under mu; survives turn release
 	mu        sync.Mutex
 	max       int
+	perTenant int
+	ttl       time.Duration
 	tasks     map[taskKey]*taskRecord
 	turns     map[string]turnRef
 	jobs      map[string]jobRef
+	tenants   map[string]int // tasks held per tenant; no zero entries
 }
 
-func newStore(max int) *store {
-	return &store{max: max, tasks: map[taskKey]*taskRecord{}, turns: map[string]turnRef{}, jobs: map[string]jobRef{}}
+func newStore(max, perTenant int, ttl time.Duration) *store {
+	return &store{max: max, perTenant: perTenant, ttl: ttl, tasks: map[taskKey]*taskRecord{},
+		turns: map[string]turnRef{}, jobs: map[string]jobRef{}, tenants: map[string]int{}}
+}
+
+// drop deletes the task at key and frees its tenant's quota slot. The caller
+// holds s.mu.
+func (s *store) drop(key taskKey) {
+	delete(s.tasks, key)
+	s.tenants[key.tenant]--
+	if s.tenants[key.tenant] <= 0 {
+		delete(s.tenants, key.tenant)
+	}
 }
 
 // reserve records fresh under idemKey before anything is published. A known
 // key with the same parts digest returns the existing task (created=false);
-// a different digest is INVALID_PARAMS. A full store is an internal error.
+// a different digest is INVALID_PARAMS. A full store, or a tenant at its
+// quota, is an internal error.
 func (s *store) reserve(id Identity, idemKey string, digest [32]byte, fresh taskRecord) (taskRecord, bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -207,13 +222,14 @@ func (s *store) reserve(id Identity, idemKey string, digest [32]byte, fresh task
 		return rec.clone(), false, nil
 	}
 	key := taskKey{tenant: id.Tenant, principal: id.Principal, id: fresh.id}
-	if _, taken := s.tasks[key]; taken || len(s.tasks) >= s.max {
+	if _, taken := s.tasks[key]; taken || len(s.tasks) >= s.max || s.tenants[id.Tenant] >= s.perTenant {
 		return taskRecord{}, false, a2a.ErrInternalError
 	}
 	rec := fresh.clone()
 	rec.changed = make(chan struct{})
 	appendStatus(&rec, rec.created)
 	s.tasks[key] = &rec
+	s.tenants[id.Tenant]++
 	s.turns[idemKey] = turnRef{key: key, turn: rec.turn, digest: digest}
 	s.jobs[rec.jobID] = jobRef{key: key, turn: rec.turn}
 	return rec.clone(), true, nil
@@ -277,7 +293,7 @@ func (s *store) release(idemKey string) {
 	case !ok || rec.turn != ref.turn:
 	case ref.turn == 1:
 		notify(rec)
-		delete(s.tasks, ref.key)
+		s.drop(ref.key)
 		delete(s.jobs, rec.jobID)
 	case !rec.turnDone && rec.prev != nil:
 		p := rec.prev

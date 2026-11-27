@@ -89,8 +89,16 @@ type Config struct {
 	Inputs InputWriter
 	// Results reads bounded turn-result envelopes; required by Start, not New.
 	Results ResultReader
-	// MaxTasks bounds the in-memory task store. 0 means 10 000.
+	// MaxTasks bounds the in-memory task store. 0 means 10 000. It must be at
+	// least the number of distinct tenants in APIKeys.
 	MaxTasks int
+	// MaxTasksPerTenant bounds the tasks one tenant holds. 0 means MaxTasks
+	// divided by the number of distinct tenants; otherwise it must be 1 to
+	// that quotient, so the quotas never sum past MaxTasks.
+	MaxTasksPerTenant int
+	// TerminalTaskTTL is how long a terminal task is kept after it became
+	// terminal; then it may be evicted. 0 means 1 h; otherwise 1 min to 24 h.
+	TerminalTaskTTL time.Duration
 	// Rand supplies task and context ids. Nil means crypto/rand. It need not be
 	// safe for concurrent use.
 	Rand io.Reader
@@ -167,12 +175,9 @@ func New(cfg Config) (*Ingress, error) {
 	if err := checkResultKeys(cfg); err != nil {
 		return nil, err
 	}
-	maxTasks := cfg.MaxTasks
-	if maxTasks == 0 {
-		maxTasks = defaultMaxTasks
-	}
-	if maxTasks < 1 || maxTasks > maxMaxTasks {
-		return nil, fmt.Errorf("a2abridge: MaxTasks must be 1-%d", maxMaxTasks)
+	tasks, err := taskStore(cfg, keys)
+	if err != nil {
+		return nil, err
 	}
 	maxWait := cfg.MaxBlockingWait
 	if maxWait == 0 {
@@ -191,7 +196,7 @@ func New(cfg Config) (*Ingress, error) {
 	ing := &Ingress{
 		keys: keys, topic: cfg.Topic, sender: cfg.SenderID,
 		signer: cfg.SigningKey, unsigned: cfg.AllowUnsignedDev,
-		pub: cfg.Publisher, inputs: cfg.Inputs, results: cfg.Results, store: newStore(maxTasks),
+		pub: cfg.Publisher, inputs: cfg.Inputs, results: cfg.Results, store: tasks,
 		rand: cfg.Rand, now: cfg.Now, resultKeys: cfg.ResultKeys, trust: cfg.ProductionTrust, maxWait: maxWait,
 		grace: grace, afterFunc: func(d time.Duration, f func()) { time.AfterFunc(d, f) },
 	}
@@ -202,6 +207,40 @@ func New(cfg Config) (*Ingress, error) {
 		ing.now = time.Now
 	}
 	return ing, nil
+}
+
+// taskStore validates the task-store limits and builds the store. The default
+// quota divides MaxTasks among the tenants, so no tenant can exhaust another's.
+func taskStore(cfg Config, keys []keyEntry) (*store, error) {
+	maxTasks := cfg.MaxTasks
+	if maxTasks == 0 {
+		maxTasks = defaultMaxTasks
+	}
+	if maxTasks < 1 || maxTasks > maxMaxTasks {
+		return nil, fmt.Errorf("a2abridge: MaxTasks must be 1-%d", maxMaxTasks)
+	}
+	tenants := map[string]bool{}
+	for _, k := range keys {
+		tenants[k.id.Tenant] = true
+	}
+	if maxTasks < len(tenants) {
+		return nil, fmt.Errorf("a2abridge: MaxTasks must be at least the %d tenants", len(tenants))
+	}
+	quotient, perTenant := maxTasks/len(tenants), cfg.MaxTasksPerTenant
+	if perTenant == 0 {
+		perTenant = quotient
+	}
+	if perTenant < 1 || perTenant > quotient {
+		return nil, fmt.Errorf("a2abridge: MaxTasksPerTenant must be 1-%d (MaxTasks divided by the tenants)", quotient)
+	}
+	ttl := cfg.TerminalTaskTTL
+	if ttl == 0 {
+		ttl = time.Hour
+	}
+	if ttl < time.Minute || ttl > 24*time.Hour {
+		return nil, errors.New("a2abridge: TerminalTaskTTL must be 1m-24h")
+	}
+	return newStore(maxTasks, perTenant, ttl), nil
 }
 
 func parseKeys(in map[string]Identity) ([]keyEntry, error) {

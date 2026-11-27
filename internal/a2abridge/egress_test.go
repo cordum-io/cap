@@ -1090,9 +1090,9 @@ func (egSubscriber) Subscribe(string, nats.MsgHandler) (*nats.Subscription, erro
 	return &nats.Subscription{}, nil
 }
 
-// egJobOf is the job id of the turn that messageID opens on taskID ("" for turn 1).
+// egJobOf is the job id of the turn that messageID opens on the existing task taskID.
 func egJobOf(tenant, principal string, taskID a2a.TaskID, messageID string) string {
-	return "a2a-" + idempotencyKey(tenant, principal, string(taskID), messageID)
+	return turnJobID(string(taskID), idempotencyKey(tenant, principal, string(taskID), messageID))
 }
 
 func egIs(t *testing.T, err, target error) {
@@ -1836,12 +1836,17 @@ func TestBlockingSendMessageWaitsForTheTurn(t *testing.T) {
 	published := func(job string) {
 		egEventually(t, "JobRequest "+job, func() bool { return h.pub.request(job) != nil })
 	}
+	// A turn-1 job id binds the task id, which the pending call has not returned yet.
+	sent := func(n int) string {
+		egEventually(t, "JobRequest "+strconv.Itoa(n), func() bool { r, _ := h.pub.counts(); return r == n })
+		return h.pub.lastJob()
+	}
 	// Before Start nothing can settle a turn, so a default call returns at once.
 	egAwait(t, h.call(alice, msg("msg-1", ""), nil), a2a.TaskStateSubmitted, 0, quick)
 	_, err := h.ing.Start(egSubscriber{})
 	egOK(t, err)
-	pending, job := h.call(alice, msg("msg-2", ""), nil), egJobOf("tenant-a", "alice", "", "msg-2")
-	published(job)
+	pending := h.call(alice, msg("msg-2", ""), nil)
+	job := sent(2)
 	h.ing.deliver(capsdk.SubjectProgress, h.progress(t, job, egRunning))
 	h.ing.deliver(capsdk.SubjectResult, h.resultEnvelope(t, job, egComplete("completed")))
 	if got := egAwait(t, pending, a2a.TaskStateCompleted, 0, settle); len(got.Artifacts) != 1 {
@@ -1851,8 +1856,8 @@ func TestBlockingSendMessageWaitsForTheTurn(t *testing.T) {
 	egAwait(t, h.call(alice, msg("msg-3", ""), immediate), a2a.TaskStateSubmitted, 0, quick)
 	egAwait(t, h.call(alice, msg("msg-4", ""), nil), a2a.TaskStateSubmitted, time.Second, 5*time.Second)
 	// An interrupted turn settles the call; a default resume waits for turn 2.
-	pending, job = h.call(alice, msg("msg-5", ""), nil), egJobOf("tenant-a", "alice", "", "msg-5")
-	published(job)
+	pending = h.call(alice, msg("msg-5", ""), nil)
+	job = sent(5)
 	h.interrupt(t, job, "input-required")
 	task := egAwait(t, pending, a2a.TaskStateInputRequired, 0, settle)
 	pending, job = h.call(alice, msg("msg-6", task.ID), nil), egJobOf("tenant-a", "alice", task.ID, "msg-6")

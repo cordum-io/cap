@@ -17,6 +17,9 @@ classifiers = [
 ]
 dependencies = ["crewai==1.15.30", "cap-sdk-python>=2.17.1.dev0,<3"]
 
+[project.scripts]
+cap-adapter-crewai = "cap_adapter_crewai:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

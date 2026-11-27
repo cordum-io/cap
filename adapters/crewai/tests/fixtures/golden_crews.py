@@ -4,6 +4,7 @@ import json
 import logging
 import math
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -18,6 +19,9 @@ if __name__ == "__main__":
     runpy.run_path(str(TRAP / "sitecustomize.py"))
 
 import cap
+from cryptography import x509
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.x509.oid import NameOID
 from cap.packet_boundary import finalize_packet
 from cap.pb.cordum.agent.v1 import buspacket_pb2, job_pb2
 from cap.testing import MockNATS
@@ -275,6 +279,45 @@ def compare(case, run):
     return got, want
 
 
+def write_operator_files(directory: Path, url: str = "tls://127.0.0.1:4222") -> Path:
+    """Write generated operator TLS/trust files and return the config path."""
+    now, pem = datetime.now(timezone.utc), serialization.Encoding.PEM
+
+    def cert(subject: str, key, issuer: str, signer, ca: bool) -> bytes:
+        name = lambda cn: x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, cn)])
+        built = (x509.CertificateBuilder().subject_name(name(subject)).issuer_name(name(issuer))
+                 .public_key(key.public_key()).serial_number(x509.random_serial_number())
+                 .not_valid_before(now - timedelta(minutes=5)).not_valid_after(now + timedelta(days=1))
+                 .add_extension(x509.BasicConstraints(ca=ca, path_length=None), critical=True))
+        return built.sign(signer, hashes.SHA256()).public_bytes(pem)
+
+    def private(key) -> bytes:
+        return key.private_bytes(pem, serialization.PrivateFormat.PKCS8, serialization.NoEncryption())
+
+    ca_key, client_key = ec.generate_private_key(ec.SECP256R1()), ec.generate_private_key(ec.SECP256R1())
+    public = SCHED_KEY.public_key().public_bytes(pem, serialization.PublicFormat.SubjectPublicKeyInfo)
+    files = {"ca.pem": cert("golden-ca", ca_key, "golden-ca", ca_key, True), "client.key": private(client_key),
+             "client.pem": cert("golden-worker", client_key, "golden-ca", ca_key, False),
+             "proof.pem": private(PROOF_KEY), "sched.pem": public,
+             "trust.json": json.dumps({"schemaVersion": "cap-adapter-trust/v1", "tenantId": TENANT,
+                                       "agentId": "agent-golden", "schedulerId": SCHEDULER, "proofKeyId": "proof-1",
+                                       "proofKeyFile": "proof.pem", "schedulerTrustKeys": {"sched-1": "sched.pem"},
+                                       "schedulerSigningKeys": {"sched-1": "sched.pem"}}).encode(),
+             "config.json": json.dumps({"schemaVersion": "cap-adapter-config/v1", "topic": TOPIC, "workerId": WORKER,
+                                        "nats": {"url": url, "caFile": "ca.pem", "certFile": "client.pem",
+                                                 "keyFile": "client.key"},
+                                        "trustFile": "trust.json", "resources": {"bucket": "cap-golden"},
+                                        "limits": {"maxInputBytes": LIMITS.max_input_bytes,
+                                                   "maxOutputBytes": LIMITS.max_output_bytes,
+                                                   "maxArtifacts": LIMITS.max_artifacts,
+                                                   "maxArtifactBytes": LIMITS.max_artifact_bytes,
+                                                   "maxDeadlineMs": LIMITS.max_deadline_ms},
+                                        "workloads": WORKLOADS}).encode()}
+    for name, data in files.items():
+        (directory / name).write_bytes(data)
+    return directory / "config.json"
+
+
 def smoke():
     assert "site-packages" in Path(adapter.__file__).resolve().parts, adapter.__file__
     os.environ["PYTHONPATH"] = os.pathsep.join([str(Path(__file__).parent), str(TRAP)])
@@ -286,6 +329,12 @@ def smoke():
                 assert got == want, (case["id"], got, want)
         finally:
             tempfile.tempdir = previous
+    with tempfile.TemporaryDirectory() as tmp:
+        script = Path(sys.executable).parent / ("cap-adapter-crewai" + (".exe" if os.name == "nt" else ""))
+        check = subprocess.run([str(script), "--config", str(write_operator_files(Path(tmp))), "--check"],
+                               capture_output=True, text=True, cwd=tmp, timeout=150)
+    print("check: exit %d %s" % (check.returncode, (check.stdout + check.stderr).strip()))
+    assert check.returncode == 0 and check.stdout.strip() == "CHECK OK 7 workloads"
     print("SMOKE OK 9/9")
 
 

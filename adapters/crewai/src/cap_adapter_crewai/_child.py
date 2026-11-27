@@ -50,6 +50,22 @@ def _run(job: dict, send: Callable[[dict[str, object]], None]) -> object:
     return output.json_dict if output.json_dict is not None else {"raw": output.raw}
 
 
+def _check(workloads: dict[str, dict[str, str]]) -> list[str] | None:
+    from pydantic import BaseModel
+
+    for key, refs in workloads.items():
+        for field in ("factory", "inputModel"):
+            try:
+                value = _import(refs[field])
+            except Exception:
+                return [key, field, "cannot be imported"]
+            if field == "factory" and not callable(value):
+                return [key, field, "is not callable"]
+            if field == "inputModel" and (not isinstance(value, type) or not issubclass(value, BaseModel)):
+                return [key, field, "must be a pydantic BaseModel subclass"]
+    return None
+
+
 def main() -> None:
     line = sys.stdin.buffer.readline()  # Windows containment is established before this arrives.
     ipc = os.dup(1)
@@ -66,7 +82,8 @@ def main() -> None:
         from cap import JobFailure
 
         try:
-            output = _run(json.loads(line), send)
+            job = json.loads(line)
+            output = _check(job["check"]) if isinstance(job, dict) and set(job) == {"check"} else _run(job, send)
             send({"type": "result", "output": output})
         except JobFailure as failure:
             send({"type": "error", "code": failure.code, "retryable": failure.retryable})

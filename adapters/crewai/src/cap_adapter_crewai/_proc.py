@@ -251,4 +251,10 @@ async def _cleanup(proc: Optional[asyncio.subprocess.Process], tree: Optional[_T
             drain.cancel()
             await asyncio.gather(drain, return_exceptions=True)
     finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+        # Windows keeps a file delete-pending while a handle on it closes late, so one rmtree can miss.
+        await _until(lambda: _removed(tmp), _REAP_SECONDS)
+
+
+def _removed(tmp: str) -> bool:
+    shutil.rmtree(tmp, ignore_errors=True)
+    return not os.path.lexists(tmp)

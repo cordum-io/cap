@@ -89,8 +89,16 @@ type Config struct {
 	Inputs InputWriter
 	// Results reads bounded turn-result envelopes; required by Start, not New.
 	Results ResultReader
-	// MaxTasks bounds the in-memory task store. 0 means 10 000.
+	// MaxTasks bounds the in-memory task store. 0 means 10 000. It must be at
+	// least the number of distinct tenants in APIKeys.
 	MaxTasks int
+	// MaxTasksPerTenant bounds the tasks one tenant holds. 0 means MaxTasks
+	// divided by the number of distinct tenants; otherwise it must be 1 to
+	// that quotient, so the quotas never sum past MaxTasks.
+	MaxTasksPerTenant int
+	// TerminalTaskTTL is how long a terminal task is kept after it became
+	// terminal; then it may be evicted. 0 means 1 h; otherwise 1 min to 24 h.
+	TerminalTaskTTL time.Duration
 	// Rand supplies task and context ids. Nil means crypto/rand. It need not be
 	// safe for concurrent use.
 	Rand io.Reader
@@ -167,12 +175,9 @@ func New(cfg Config) (*Ingress, error) {
 	if err := checkResultKeys(cfg); err != nil {
 		return nil, err
 	}
-	maxTasks := cfg.MaxTasks
-	if maxTasks == 0 {
-		maxTasks = defaultMaxTasks
-	}
-	if maxTasks < 1 || maxTasks > maxMaxTasks {
-		return nil, fmt.Errorf("a2abridge: MaxTasks must be 1-%d", maxMaxTasks)
+	tasks, err := taskStore(cfg, keys)
+	if err != nil {
+		return nil, err
 	}
 	maxWait := cfg.MaxBlockingWait
 	if maxWait == 0 {
@@ -191,7 +196,7 @@ func New(cfg Config) (*Ingress, error) {
 	ing := &Ingress{
 		keys: keys, topic: cfg.Topic, sender: cfg.SenderID,
 		signer: cfg.SigningKey, unsigned: cfg.AllowUnsignedDev,
-		pub: cfg.Publisher, inputs: cfg.Inputs, results: cfg.Results, store: newStore(maxTasks),
+		pub: cfg.Publisher, inputs: cfg.Inputs, results: cfg.Results, store: tasks,
 		rand: cfg.Rand, now: cfg.Now, resultKeys: cfg.ResultKeys, trust: cfg.ProductionTrust, maxWait: maxWait,
 		grace: grace, afterFunc: func(d time.Duration, f func()) { time.AfterFunc(d, f) },
 	}
@@ -202,6 +207,40 @@ func New(cfg Config) (*Ingress, error) {
 		ing.now = time.Now
 	}
 	return ing, nil
+}
+
+// taskStore validates the task-store limits and builds the store. The default
+// quota divides MaxTasks among the tenants, so no tenant can exhaust another's.
+func taskStore(cfg Config, keys []keyEntry) (*store, error) {
+	maxTasks := cfg.MaxTasks
+	if maxTasks == 0 {
+		maxTasks = defaultMaxTasks
+	}
+	if maxTasks < 1 || maxTasks > maxMaxTasks {
+		return nil, fmt.Errorf("a2abridge: MaxTasks must be 1-%d", maxMaxTasks)
+	}
+	tenants := map[string]bool{}
+	for _, k := range keys {
+		tenants[k.id.Tenant] = true
+	}
+	if maxTasks < len(tenants) {
+		return nil, fmt.Errorf("a2abridge: MaxTasks must be at least the %d tenants", len(tenants))
+	}
+	quotient, perTenant := maxTasks/len(tenants), cfg.MaxTasksPerTenant
+	if perTenant == 0 {
+		perTenant = quotient
+	}
+	if perTenant < 1 || perTenant > quotient {
+		return nil, fmt.Errorf("a2abridge: MaxTasksPerTenant must be 1-%d (MaxTasks divided by the tenants)", quotient)
+	}
+	ttl := cfg.TerminalTaskTTL
+	if ttl == 0 {
+		ttl = time.Hour
+	}
+	if ttl < time.Minute || ttl > 24*time.Hour {
+		return nil, errors.New("a2abridge: TerminalTaskTTL must be 1m-24h")
+	}
+	return newStore(maxTasks, perTenant, ttl), nil
 }
 
 func parseKeys(in map[string]Identity) ([]keyEntry, error) {
@@ -303,15 +342,28 @@ type turnInput struct {
 // constantTimeCompare is a variable so tests can count comparisons.
 var constantTimeCompare = subtle.ConstantTimeCompare
 
-// idempotencyKey is the length-prefixed SHA-256 key of spec §3.1.
-func idempotencyKey(tenant, principal, taskRef, messageID string) string {
+// prefixedHash is the lowercase-hex SHA-256 of tag followed by each field
+// behind its u32be byte length, so field boundaries are unambiguous.
+func prefixedHash(tag string, fields ...string) string {
 	h := sha256.New()
-	h.Write([]byte("cap-a2a-turn-v1"))
-	for _, field := range [...]string{tenant, principal, taskRef, messageID} {
+	h.Write([]byte(tag))
+	for _, field := range fields {
 		h.Write(binary.BigEndian.AppendUint32(nil, uint32(len(field))))
 		h.Write([]byte(field))
 	}
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+// idempotencyKey is the length-prefixed SHA-256 key of spec §3.1.
+func idempotencyKey(tenant, principal, taskRef, messageID string) string {
+	return prefixedHash("cap-a2a-turn-v1", tenant, principal, taskRef, messageID)
+}
+
+// turnJobID is the job id of the turn idemKey opened on taskID (spec §3). The
+// task id makes a job id belong to one task, so a retry accepted as a new task
+// never reuses an old job's ctx:<job_id> or res:<job_id>.
+func turnJobID(taskID, idemKey string) string {
+	return "a2a-" + prefixedHash("cap-a2a-job-v1", taskID, idemKey)
 }
 
 // authenticate maps exactly one "Bearer <key>" Authorization value to its
@@ -401,7 +453,7 @@ func (i *Ingress) resumeTask(ctx context.Context, id Identity, msg *a2a.Message,
 	}
 	history := &a2a.Message{ID: msg.ID, Role: a2a.MessageRoleUser, Parts: a2aParts(parts)}
 	snap, parent, created, err := i.store.reserveTurn(id, taskID, key, sha256.Sum256(partsJSON), msg.ContextID,
-		"a2a-"+key, history, i.now().UTC())
+		turnJobID(taskID, key), history, i.now().UTC())
 	if err != nil {
 		return nil, err // reserveTurn returns a2a errors only
 	}
@@ -453,11 +505,12 @@ func (i *Ingress) startTask(ctx context.Context, id Identity, msg *a2a.Message, 
 		return nil, a2a.ErrInternalError
 	}
 	key := idempotencyKey(id.Tenant, id.Principal, "", msg.ID)
-	rec := taskRecord{jobID: "a2a-" + key, messageID: msg.ID, turn: 1,
+	rec := taskRecord{messageID: msg.ID, turn: 1,
 		state: a2a.TaskStateSubmitted, created: i.now().UTC(), parts: parts}
 	if rec.id, rec.contextID, err = i.newIDs(msg.ContextID); err != nil {
 		return nil, a2a.ErrInternalError
 	}
+	rec.jobID = turnJobID(rec.id, key)
 	input, err := json.Marshal(turnInput{TaskID: rec.id, ContextID: rec.contextID, Turn: rec.turn,
 		MessageID: rec.messageID, Parts: parts})
 	if err != nil {

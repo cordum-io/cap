@@ -6,10 +6,15 @@ Entries are grouped by SDK release tag. Wire schema changes (protobuf field addi
 
 ## Development
 
+- Bug fix: one tenant can no longer fill `cap-a2a-bridge`'s task store for every tenant. Each tenant holds at most `MaxTasksPerTenant` tasks (`CAP_A2A_MAX_TASKS_PER_TENANT`; 0 means `MaxTasks` divided by the tenants, and a set value may not exceed that). A terminal task is evicted once `TerminalTaskTTL` (`CAP_A2A_TERMINAL_TASK_TTL`, default 1h, 1m to 24h) has passed since it became terminal, so messageId deduplication holds only while a task is retained; a task that is not terminal is never evicted. Every turn's job id is now `a2a-` plus a SHA-256 of the task id and the idempotency key, so a retry accepted as a new task never reuses an old job's `ctx:<job_id>` or `res:<job_id>` (task-7d1f827f).
+
+- Add operator config, trust, isolated startup validation and the `cap-adapter-crewai` command (task-beb195b6).
+
 - Docs: correct the trace-context rationale to distinguish Python's `nats-py>=2.6.0` minimum from registry-verify CI's `nats-py==2.6.0` selection (task-715fb3f0).
 - Bug fix: `cap-release links` skips `.venv`, `venv` and `.tox` directories, so an in-repo Python virtualenv's third-party READMEs no longer fail the link check (task-f64397d1).
 
 - Bug fix: `cap-a2a-bridge` rejects trailing JSON or garbage in API-key files before connecting, while accepting trailing whitespace (task-5faf4e7a).
+- Bug fix: `cap-adapter-crewai` retries removing a job's temp dir for up to 5 seconds after the kill, so a handle that closes late on Windows no longer leaves an empty `cap-crewai-*` dir behind (task-436f6685).
 
 - Add operator-registered `cap-adapter-crewai` crews in bounded children, offline goldens and installed-wheel smoke (task-dfd35334).
 

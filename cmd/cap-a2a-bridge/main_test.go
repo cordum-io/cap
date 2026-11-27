@@ -231,8 +231,8 @@ func TestConfigTLSAccepted(t *testing.T) {
 		t.Errorf("signing key %v, unsigned %v, cert %v", cfg.signingKey != nil, cfg.unsigned, cfg.cert != nil)
 	case cfg.listen != ":8443" || cfg.senderID != "cap-a2a-bridge" || cfg.topic != "job.a2a.demo":
 		t.Errorf("defaults: listen %q sender %q topic %q", cfg.listen, cfg.senderID, cfg.topic)
-	case cfg.inputTTL != 24*time.Hour || cfg.shutdown != 10*time.Second:
-		t.Errorf("defaults: input TTL %v, shutdown %v", cfg.inputTTL, cfg.shutdown)
+	case cfg.inputTTL != 24*time.Hour || cfg.shutdown != 10*time.Second || cfg.terminalTTL != time.Hour:
+		t.Errorf("defaults: input TTL %v, shutdown %v, terminal task TTL %v", cfg.inputTTL, cfg.shutdown, cfg.terminalTTL)
 	}
 }
 
@@ -272,6 +272,12 @@ func TestConfigKeysAndUnsigned(t *testing.T) {
 		}},
 		{"two topics", "CAP_A2A_TOPIC", func(_ *testing.T, env map[string]string) { env["CAP_A2A_TOPIC"] = "job.a,job.b" }},
 		{"input TTL range", "CAP_A2A_INPUT_TTL", func(_ *testing.T, env map[string]string) { env["CAP_A2A_INPUT_TTL"] = "30s" }},
+		{"terminal task TTL range", "CAP_A2A_TERMINAL_TASK_TTL", func(_ *testing.T, env map[string]string) {
+			env["CAP_A2A_TERMINAL_TASK_TTL"] = "25h"
+		}},
+		{"negative tenant quota", "CAP_A2A_MAX_TASKS_PER_TENANT", func(_ *testing.T, env map[string]string) {
+			env["CAP_A2A_MAX_TASKS_PER_TENANT"] = "-1"
+		}},
 		{"shutdown range", "CAP_A2A_SHUTDOWN_TIMEOUT", func(_ *testing.T, env map[string]string) {
 			env["CAP_A2A_SHUTDOWN_TIMEOUT"] = "2m"
 		}},

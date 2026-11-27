@@ -1,19 +1,37 @@
 """CAP handler for operator-registered CrewAI crews; framework imports stay in the child."""
 from __future__ import annotations
 
+import argparse
+import asyncio
+import functools
+import importlib.metadata
+import json
+import logging
 import re
+import signal
+import ssl
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Awaitable, Callable, Mapping, cast
+from typing import TYPE_CHECKING, Awaitable, Callable, Mapping, Sequence, cast
 
 if TYPE_CHECKING:
+    from cryptography.hazmat.primitives.asymmetric import ec
     from cap import Context
     from . import _proc
 
 _KEY = re.compile(r"[a-z0-9][a-z0-9._-]{0,63}")
 _REF = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*:[A-Za-z_][A-Za-z0-9_]*")
 FRAMEWORK_ERROR = "FRAMEWORK_ERROR"
+LOG = logging.getLogger("cap_adapter_crewai")
+_MAX_FILE_BYTES = 1 << 20
+_BUCKET = re.compile(r"[A-Za-z0-9_-]{1,64}")
+_LIMITS = {"maxInputBytes": 64 << 20, "maxOutputBytes": 64 << 20, "maxArtifacts": 64,
+           "maxArtifactBytes": 64 << 20, "maxDeadlineMs": 86_400_000}
+_CONFIG_KEYS = ("schemaVersion", "topic", "workerId", "nats", "trustFile", "resources", "limits", "workloads")
+_TRUST_KEYS = ("schemaVersion", "tenantId", "agentId", "schedulerId", "proofKeyId", "proofKeyFile",
+               "schedulerTrustKeys", "schedulerSigningKeys")
 
 
 class ConfigError(ValueError):
@@ -133,3 +151,262 @@ def agent_options(limits: Limits) -> dict[str, object]:
     return {"max_context_bytes": limits.max_input_bytes, "max_result_bytes": limits.max_output_bytes,
             "max_artifacts": limits.max_artifacts, "max_artifact_bytes": limits.max_artifact_bytes,
             "max_deadline": limits.max_deadline_ms / 1000, "retries": 0, "max_parallel": 1}
+
+
+@dataclass(frozen=True)
+class AdapterConfig:
+    """A loaded cap-adapter-config/v1 file; paths are absolute."""
+    topic: str
+    worker_id: str
+    nats_url: str
+    ca_file: str
+    cert_file: str
+    key_file: str
+    trust_file: str
+    bucket: str
+    limits: Limits
+    workloads: Mapping[str, Workload]
+
+
+@dataclass(frozen=True)
+class AdapterTrust:
+    """A loaded cap-adapter-trust/v1 file with its P-256 keys."""
+    tenant_id: str
+    agent_id: str
+    scheduler_id: str
+    proof_key_id: str
+    proof_private_key: ec.EllipticCurvePrivateKey
+    scheduler_trust_keys: Mapping[str, ec.EllipticCurvePublicKey]
+    scheduler_signing_keys: Mapping[str, ec.EllipticCurvePublicKey]
+
+
+def _read(path: Path, where: str) -> bytes:
+    try:
+        with open(path, "rb") as handle:
+            raw = handle.read(_MAX_FILE_BYTES + 1)
+    except OSError:
+        raise ConfigError(where + ": cannot be read") from None
+    if len(raw) > _MAX_FILE_BYTES:
+        raise ConfigError(where + ": larger than 1 MiB")
+    return raw
+
+
+def _unique(pairs: Sequence[tuple[str, object]]) -> dict[str, object]:
+    if len({key for key, _ in pairs}) != len(pairs):
+        raise ConfigError("duplicate key")
+    return dict(pairs)
+
+
+def _fields(value: object, where: str, keys: Sequence[str]) -> dict[str, object]:
+    if not isinstance(value, dict) or set(value) != set(keys):
+        raise ConfigError(where + ": must be an object with exactly the keys " + ", ".join(sorted(keys)))
+    return cast(dict[str, object], value)
+
+
+def _document(path: Path, where: str, schema: str, keys: Sequence[str]) -> dict[str, object]:
+    raw = _read(path, where)
+    try:
+        data = json.loads(raw.decode("utf-8"), object_pairs_hook=_unique)
+    except ConfigError:
+        raise ConfigError(where + ": duplicate key") from None
+    except ValueError:
+        raise ConfigError(where + ": not valid UTF-8 JSON") from None
+    data = _fields(data, where, keys)
+    if data["schemaVersion"] != schema:
+        raise ConfigError(where + ".schemaVersion: must be " + schema)
+    return data
+
+
+def _text(value: object, where: str) -> str:
+    if not isinstance(value, str) or not value or any(c.isspace() or not c.isprintable() for c in value):
+        raise ConfigError(where + ": must be a non-empty string without spaces")
+    return value
+
+
+def _file(base: Path, value: object, where: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise ConfigError(where + ": must be a file path")
+    path = (base / value).resolve()
+    if not path.is_file():
+        raise ConfigError(where + ": file does not exist")
+    return str(path)
+
+
+def _limit(value: object, where: str, bound: int) -> int:
+    if type(value) is not int or not 0 < value <= bound:
+        raise ConfigError("%s: must be an integer from 1 to %d" % (where, bound))
+    return value
+
+
+def load_config(path: str | Path) -> AdapterConfig:
+    """Strictly read cap-adapter-config/v1; relative paths resolve against the file's directory."""
+    path = Path(path)
+    data = _document(path, "config", "cap-adapter-config/v1", _CONFIG_KEYS)
+    base = path.resolve().parent
+    server = _fields(data["nats"], "config.nats", ("url", "caFile", "certFile", "keyFile"))
+    if not isinstance(server["url"], str) or not server["url"].startswith("tls://") or len(server["url"]) < 7:
+        raise ConfigError("config.nats.url: must be a tls:// URL")
+    bucket = _fields(data["resources"], "config.resources", ("bucket",))["bucket"]
+    if not isinstance(bucket, str) or _BUCKET.fullmatch(bucket) is None:
+        raise ConfigError("config.resources.bucket: must match [A-Za-z0-9_-]{1,64}")
+    limits = _fields(data["limits"], "config.limits", tuple(_LIMITS))
+    return AdapterConfig(
+        topic=_text(data["topic"], "config.topic"), worker_id=_text(data["workerId"], "config.workerId"),
+        nats_url=server["url"], ca_file=_file(base, server["caFile"], "config.nats.caFile"),
+        cert_file=_file(base, server["certFile"], "config.nats.certFile"),
+        key_file=_file(base, server["keyFile"], "config.nats.keyFile"),
+        trust_file=_file(base, data["trustFile"], "config.trustFile"), bucket=bucket,
+        limits=Limits(*(_limit(limits[k], "config.limits." + k, bound) for k, bound in _LIMITS.items())),
+        workloads=load_workloads(data["workloads"]))
+
+
+def _p256(path: str, where: str, private: bool) -> ec.EllipticCurvePrivateKey | ec.EllipticCurvePublicKey:
+    from cryptography.hazmat.primitives import serialization
+    from cryptography.hazmat.primitives.asymmetric import ec
+
+    raw = _read(Path(path), where)
+    try:
+        key = (serialization.load_pem_private_key(raw, password=None) if private
+               else serialization.load_pem_public_key(raw))
+    except Exception:
+        key = None
+    expected = ec.EllipticCurvePrivateKey if private else ec.EllipticCurvePublicKey
+    if not isinstance(key, expected) or not isinstance(key.curve, ec.SECP256R1):
+        raise ConfigError("%s: must be an unencrypted P-256 %s key PEM" % (where, "private" if private else "public"))
+    return key
+
+
+def _public_keys(base: Path, value: object, where: str) -> Mapping[str, ec.EllipticCurvePublicKey]:
+    if not isinstance(value, dict) or not value:
+        raise ConfigError(where + ": must be a non-empty object of key id to PEM path")
+    return MappingProxyType({_text(key, where): _p256(_file(base, path, where + "." + key), where + "." + key, False)
+                             for key, path in value.items()})
+
+
+def load_trust(path: str | Path) -> AdapterTrust:
+    """Strictly read cap-adapter-trust/v1; key paths resolve against the trust file's directory."""
+    path = Path(path)
+    data = _document(path, "trust", "cap-adapter-trust/v1", _TRUST_KEYS)
+    base = path.resolve().parent
+    return AdapterTrust(
+        tenant_id=_text(data["tenantId"], "trust.tenantId"), agent_id=_text(data["agentId"], "trust.agentId"),
+        scheduler_id=_text(data["schedulerId"], "trust.schedulerId"),
+        proof_key_id=_text(data["proofKeyId"], "trust.proofKeyId"),
+        proof_private_key=_p256(_file(base, data["proofKeyFile"], "trust.proofKeyFile"), "trust.proofKeyFile", True),
+        scheduler_trust_keys=_public_keys(base, data["schedulerTrustKeys"], "trust.schedulerTrustKeys"),
+        scheduler_signing_keys=_public_keys(base, data["schedulerSigningKeys"], "trust.schedulerSigningKeys"))
+
+
+def agent_kwargs(config: AdapterConfig, trust: AdapterTrust) -> dict[str, object]:
+    """cap.Agent keyword arguments for the production path: worker trust ENFORCE and CAP-PRODUCTION admission."""
+    import cap
+    from cap.production_replay import InMemoryReplayStore
+    from cap.production_signing import ProductionTrust
+
+    worker_trust = cap.WorkerTrustConfig(
+        config.worker_id, trust.agent_id, trust.tenant_id, cap.WORKER_HANDSHAKE_AUDIENCE, trust.proof_key_id,
+        trust.proof_private_key, trust.scheduler_id, trust.scheduler_trust_keys,
+        importlib.metadata.version("cap-sdk-python"))
+    try:
+        cap.validate_worker_trust_config(worker_trust)
+    except cap.WorkerTrustConfigError:
+        raise ConfigError("trust: worker trust configuration is invalid") from None
+    return {**agent_options(config.limits), "nats_url": config.nats_url, "worker_id": config.worker_id,
+            "worker_trust_mode": "enforce", "worker_trust": worker_trust,
+            "production_trust": ProductionTrust(audience=config.topic, public_keys=trust.scheduler_signing_keys,
+                                                tenant=trust.tenant_id, sender=trust.scheduler_id),
+            "replay_store": InMemoryReplayStore(), "result_backend_id": cap.NATS_KV_RESOLVER_ID,
+            "shutdown_timeout": max(w.child.grace_ms for w in config.workloads.values()) / 1000 + 10}
+
+
+def tls_context(config: AdapterConfig) -> ssl.SSLContext:
+    """Client TLS for NATS: the operator CA, hostname checking on, and the client certificate chain."""
+    try:
+        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile=config.ca_file)
+        context.load_cert_chain(config.cert_file, config.key_file)
+    except (OSError, ValueError):
+        raise ConfigError("config.nats: TLS CA, certificate or key cannot be loaded") from None
+    return context
+
+
+async def check_workloads(workloads: Mapping[str, Workload]) -> None:
+    """Validate operator imports in one bounded child, never in this process."""
+    from . import _proc
+
+    failed = "workloads: the check-mode child failed"
+
+    async def unexpected_event(event: dict[str, object]) -> None:
+        raise ConfigError(failed)
+
+    job = {"check": {key: {"factory": w.factory, "inputModel": w.input_model} for key, w in workloads.items()}}
+    try:
+        event = await asyncio.wait_for(_proc.run_child(
+            [sys.executable, "-m", "cap_adapter_crewai._child"], job, _proc.ChildLimits(), unexpected_event), 120)
+    except Exception:
+        raise ConfigError(failed) from None
+    if isinstance(event, dict) and set(event) == {"type", "output"} and event["type"] == "result":
+        output = event["output"]
+        if output is None:
+            return
+        if isinstance(output, list) and len(output) == 3 and all(isinstance(v, str) for v in output):
+            key, field, reason = output
+            if key in workloads and field in ("factory", "inputModel") and reason in (
+                    "cannot be imported", "is not callable", "must be a pydantic BaseModel subclass"):
+                raise ConfigError("workloads.%s.%s: %s" % (key, field, reason))
+    raise ConfigError(failed)
+
+
+async def serve(config: AdapterConfig, trust: AdapterTrust) -> None:
+    """Run the worker after one isolated workload check, before any connection."""
+    import cap
+    import nats
+
+    await check_workloads(config.workloads)
+    connect = functools.partial(nats.connect, tls=tls_context(config))
+    resources = await connect(servers=config.nats_url, name=config.worker_id + "-resources")
+    try:
+        backend = await cap.NatsKvResourceBackend.open(await resources.jetstream().key_value(config.bucket))
+        agent = cap.Agent(**agent_kwargs(config, trust), connect_fn=connect,
+                          resource_registry=cap.ResourceRegistry([backend.registration()]))
+        agent.job(config.topic)(make_handler(config.workloads))
+        await agent.run()
+    finally:
+        try:
+            await resources.drain()
+        except Exception as exc:
+            LOG.warning("resources connection drain failed: %s", type(exc).__name__)
+
+
+def _stop(signum: int, frame: object) -> None:
+    # A custom handler keeps asyncio.Runner from installing its main-task-only SIGINT cancellation.
+    raise KeyboardInterrupt
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Console script: 0 on a check or clean stop, 2 on config errors, otherwise 1."""
+    parser = argparse.ArgumentParser(prog="cap-adapter-crewai", description="CAP worker for CrewAI crews")
+    parser.add_argument("--config", required=True, metavar="PATH", help="cap-adapter-config/v1 JSON file")
+    parser.add_argument("--check", action="store_true", help="validate config, trust, TLS files and workloads only")
+    args = parser.parse_args(argv)
+    logging.basicConfig(level=logging.INFO, stream=sys.stderr)
+    try:
+        config = load_config(args.config)
+        trust = load_trust(config.trust_file)
+        agent_kwargs(config, trust)
+        tls_context(config)
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            signal.signal(sig, _stop)
+        if args.check:
+            asyncio.run(check_workloads(config.workloads))
+            print("CHECK OK %d workloads" % len(config.workloads))
+        else:
+            asyncio.run(serve(config, trust))
+    except ConfigError as exc:
+        print("config error: %s" % exc, file=sys.stderr)
+        return 2
+    except KeyboardInterrupt:
+        return 0
+    except Exception as exc:
+        LOG.error("adapter stopped: %s", type(exc).__name__)
+        return 1
+    return 0

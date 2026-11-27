@@ -17,6 +17,7 @@ type taskKey struct{ tenant, principal, id string }
 
 // taskRecord is the bridge's record of one task.
 type taskRecord struct {
+	key                             taskKey
 	id, contextID, jobID, messageID string
 	turn                            int
 	state                           a2a.TaskState
@@ -40,6 +41,17 @@ type taskRecord struct {
 	cancelTurn    int
 	cancelAttempt uint64
 	cancelAbort   chan struct{}
+	// indexes are the turns and jobs entries this task created; expiry deletes them.
+	indexes []turnIndex
+}
+
+// turnIndex is the turns key and the jobs key of one reserved turn.
+type turnIndex struct{ idemKey, jobID string }
+
+// expiry is when the terminal task at key may be evicted.
+type expiry struct {
+	key taskKey
+	at  time.Time
 }
 
 // maxTurns bounds the turns of one task (spec §3).
@@ -63,9 +75,9 @@ func notify(rec *taskRecord) {
 }
 
 // clone returns a deep copy, so no caller shares memory with the store. The
-// copy carries neither the undo record nor the change channel.
+// copy carries neither the undo record, the change channel nor the indexes.
 func (r taskRecord) clone() taskRecord {
-	r.prev, r.changed = nil, nil
+	r.prev, r.changed, r.indexes = nil, nil, nil
 	parts := make([]turnPart, len(r.parts))
 	for i, p := range r.parts {
 		if p.Text != nil {
@@ -174,9 +186,11 @@ type jobRef struct {
 }
 
 // store is the bounded in-memory correlation store. Every method holds the
-// lock for its whole critical section and does no I/O under it. It never
-// evicts and is not durable: a durable store and terminal-task expiry are out
-// of scope (spec §6 and the egress slice).
+// lock for its whole critical section and does no I/O under it. Each tenant
+// holds at most perTenant tasks. A task that is not terminal is never evicted;
+// a terminal one is kept at least ttl after it became terminal, then the next
+// reserve evicts it with its turns and jobs entries (spec §3.1). The store is
+// not durable, so a restart also ends retention (spec §6).
 type store struct {
 	cancelSeq uint64 // monotonically allocated under mu; survives turn release
 	mu        sync.Mutex
@@ -187,6 +201,7 @@ type store struct {
 	turns     map[string]turnRef
 	jobs      map[string]jobRef
 	tenants   map[string]int // tasks held per tenant; no zero entries
+	expiries  []expiry       // FIFO in the order tasks became terminal
 }
 
 func newStore(max, perTenant int, ttl time.Duration) *store {
@@ -204,19 +219,48 @@ func (s *store) drop(key taskKey) {
 	}
 }
 
+// expire evicts every terminal task whose retention ended at or before now:
+// it wakes the task's waiters and deletes the task, the turns and jobs entries
+// that still name it, and its quota slot. An entry whose task is gone or not
+// terminal is skipped. Entries are in queue order, so an out-of-order time
+// only lengthens retention. The caller holds s.mu.
+func (s *store) expire(now time.Time) {
+	for len(s.expiries) > 0 && !s.expiries[0].at.After(now) {
+		key := s.expiries[0].key
+		s.expiries[0] = expiry{}
+		s.expiries = s.expiries[1:]
+		rec, ok := s.tasks[key]
+		if !ok || !rec.state.Terminal() {
+			continue
+		}
+		notify(rec)
+		for _, ix := range rec.indexes {
+			if ref, ok := s.turns[ix.idemKey]; ok && ref.key == key {
+				delete(s.turns, ix.idemKey)
+			}
+			if ref, ok := s.jobs[ix.jobID]; ok && ref.key == key {
+				delete(s.jobs, ix.jobID)
+			}
+		}
+		s.drop(key)
+	}
+}
+
 // reserve records fresh under idemKey before anything is published. A known
 // key with the same parts digest returns the existing task (created=false);
 // a different digest is INVALID_PARAMS. A full store, or a tenant at its
-// quota, is an internal error.
+// quota, is an internal error. First it evicts the tasks whose retention
+// ended at fresh.created, so a key of an evicted task creates a new task.
 func (s *store) reserve(id Identity, idemKey string, digest [32]byte, fresh taskRecord) (taskRecord, bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.expire(fresh.created)
 	if ref, ok := s.turns[idemKey]; ok {
 		if ref.digest != digest {
 			return taskRecord{}, false, a2a.ErrInvalidParams
 		}
 		rec, live := s.tasks[ref.key]
-		if !live { // unreachable: release removes the key with its task
+		if !live { // unreachable: release and expire remove the key with its task
 			return taskRecord{}, false, a2a.ErrInternalError
 		}
 		return rec.clone(), false, nil
@@ -226,6 +270,7 @@ func (s *store) reserve(id Identity, idemKey string, digest [32]byte, fresh task
 		return taskRecord{}, false, a2a.ErrInternalError
 	}
 	rec := fresh.clone()
+	rec.key, rec.indexes = key, []turnIndex{{idemKey: idemKey, jobID: rec.jobID}}
 	rec.changed = make(chan struct{})
 	appendStatus(&rec, rec.created)
 	s.tasks[key] = &rec
@@ -249,7 +294,7 @@ func (s *store) reserveTurn(id Identity, taskID, idemKey string, digest [32]byte
 		switch {
 		case ref.digest != digest:
 			return taskRecord{}, "", false, invalid("messageId was already used with different parts")
-		case !live: // unreachable: release removes the key with its task
+		case !live: // unreachable: release and expire remove the key with its task
 			return taskRecord{}, "", false, a2a.ErrInternalError
 		}
 		return rec.clone(), "", false, nil
@@ -270,9 +315,10 @@ func (s *store) reserveTurn(id Identity, taskID, idemKey string, digest [32]byte
 	rec.turn, rec.jobID, rec.turnDone = rec.turn+1, jobID, false
 	msg.TaskID, msg.ContextID = a2a.TaskID(rec.id), rec.contextID
 	rec.history = append(rec.history, msg)
+	rec.indexes = append(rec.indexes, turnIndex{idemKey: idemKey, jobID: jobID})
 	s.turns[idemKey] = turnRef{key: key, turn: rec.turn, digest: digest}
 	s.jobs[jobID] = jobRef{key: key, turn: rec.turn}
-	setState(rec, a2a.TaskStateSubmitted, nil, now)
+	s.setState(rec, a2a.TaskStateSubmitted, nil, now)
 	return rec.clone(), parentJobID, true, nil
 }
 
@@ -300,6 +346,7 @@ func (s *store) release(idemKey string) {
 		delete(s.jobs, rec.jobID)
 		rec.turn, rec.jobID, rec.state, rec.statusMsg, rec.statusAt = rec.turn-1, p.jobID, p.state, p.statusMsg, p.statusAt
 		rec.history, rec.events = rec.history[:p.history], rec.events[:p.events]
+		rec.indexes = rec.indexes[:len(rec.indexes)-1] // the released turn's, appended last
 		rec.turnDone, rec.prev = true, nil
 		rec.cancelTurn, rec.cancelAttempt, rec.cancelAbort = 0, 0, nil
 		notify(rec)
@@ -347,10 +394,14 @@ func appendStatus(rec *taskRecord, now time.Time) {
 }
 
 // setState moves rec to state with one status event, only on a change, and
-// notifies the waiters.
-func setState(rec *taskRecord, state a2a.TaskState, msg *a2a.Message, now time.Time) bool {
+// notifies the waiters. The first move to a terminal state queues the task's
+// expiry at now+ttl. The caller holds s.mu.
+func (s *store) setState(rec *taskRecord, state a2a.TaskState, msg *a2a.Message, now time.Time) bool {
 	if rec.state == state && msg == nil {
 		return false
+	}
+	if state.Terminal() && !rec.state.Terminal() {
+		s.expiries = append(s.expiries, expiry{key: rec.key, at: now.Add(s.ttl)})
 	}
 	rec.state = state
 	rec.statusMsg = msg
@@ -418,7 +469,7 @@ func (s *store) applyProgress(jobID string, st agentv1.JobStatus, now time.Time)
 	if !ok || !progress || state == a2a.TaskStateSubmitted && rec.state == a2a.TaskStateWorking {
 		return false
 	}
-	return setState(rec, state, nil, now)
+	return s.setState(rec, state, nil, now)
 }
 
 // applyResult applies a JobResult status for jobID. The first terminal status
@@ -437,7 +488,7 @@ func (s *store) applyResult(jobID string, st agentv1.JobStatus, now time.Time) b
 		return false
 	}
 	rec.turnDone = true
-	return setState(rec, state, nil, now)
+	return s.setState(rec, state, nil, now)
 }
 
 // reserveResult chooses the first terminal winner before any result I/O.
@@ -466,7 +517,7 @@ func (s *store) commitResult(job string, turn int, out *turnOutcome, now time.Ti
 	}
 	rec.settling = ""
 	if out == nil {
-		setState(rec, a2a.TaskStateFailed, nil, now)
+		s.setState(rec, a2a.TaskStateFailed, nil, now)
 		return
 	}
 	for _, artifact := range out.artifacts {
@@ -480,9 +531,9 @@ func (s *store) commitResult(job string, turn int, out *turnOutcome, now time.Ti
 		msg.TaskID, msg.ContextID = a2a.TaskID(rec.id), rec.contextID
 		rec.history = append(rec.history, msg)
 	}
-	setState(rec, out.state, msg, now)
+	s.setState(rec, out.state, msg, now)
 	if rec.cancelTurn == rec.turn && (out.state == a2a.TaskStateInputRequired || out.state == a2a.TaskStateAuthRequired) {
-		setState(rec, a2a.TaskStateCanceled, nil, now)
+		s.setState(rec, a2a.TaskStateCanceled, nil, now)
 	}
 }
 
@@ -506,7 +557,7 @@ func (s *store) requestCancel(id Identity, taskID string, now time.Time) (step c
 	case rec.state.Terminal():
 		return 0, taskRecord{}, "", 0, nil, a2a.ErrTaskNotCancelable
 	case rec.state == a2a.TaskStateInputRequired || rec.state == a2a.TaskStateAuthRequired:
-		setState(rec, a2a.TaskStateCanceled, nil, now)
+		s.setState(rec, a2a.TaskStateCanceled, nil, now)
 		return cancelDone, rec.clone(), "", 0, nil, nil
 	case rec.cancelTurn == rec.turn:
 		return cancelWait, rec.clone(), rec.jobID, rec.cancelAttempt, rec.cancelAbort, nil
@@ -539,5 +590,5 @@ func (s *store) expireCancel(id Identity, taskID string, attempt uint64, now tim
 		return
 	}
 	rec.turnDone = true
-	setState(rec, a2a.TaskStateCanceled, nil, now)
+	s.setState(rec, a2a.TaskStateCanceled, nil, now)
 }

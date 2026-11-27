@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/a2aproject/a2a-go/v2/a2a"
+	agentv1 "github.com/cordum-io/cap/v2/cordum/agent/v1"
 )
 
 var storeAlice = Identity{Tenant: "tenant-a", Principal: "alice"}
@@ -83,6 +84,114 @@ func TestTenantQuotaRefusesOnlyThatTenant(t *testing.T) {
 	h.mustSend(t, as("key-mallory"), textMsg("m-1", "hi"))
 	if h.pub.count() != 3 || h.in.writeCount() != 3 || h.ing.store.size() != 3 {
 		t.Fatalf("tenant-b: publishes %d writes %d store %d, want 3", h.pub.count(), h.in.writeCount(), h.ing.store.size())
+	}
+}
+
+// reserveAt reserves a fresh task id under key at now.
+func reserveAt(s *store, key, id string, now time.Time) (taskRecord, bool, error) {
+	rec := testRecord(id)
+	rec.created = now
+	return s.reserve(storeAlice, key, digestOf("parts"), rec)
+}
+
+func TestStoreEvictsTerminalTaskAtTTL(t *testing.T) {
+	s := newStore(4, 4, time.Hour)
+	mustReserve(t, s, storeAlice, "k0", testRecord("t0"))
+	statusAt := fixedTime.Add(time.Minute)
+	if !s.applyResult("a2a-job-t0", agentv1.JobStatus_JOB_STATUS_FAILED, statusAt) {
+		t.Fatal("applyResult did not end the task")
+	}
+	snap, created, err := reserveAt(s, "k0", "t1", statusAt.Add(time.Hour-time.Nanosecond))
+	if err != nil || created || snap.id != "t0" || !s.exists(storeAlice, "t0") {
+		t.Fatalf("duplicate inside the window: err %v created %v id %q", err, created, snap.id)
+	}
+	snap, created, err = reserveAt(s, "k0", "t1", statusAt.Add(time.Hour))
+	if err != nil || !created || snap.id != "t1" || s.exists(storeAlice, "t0") {
+		t.Fatalf("reserve at the TTL: err %v created %v id %q", err, created, snap.id)
+	}
+	for k, ref := range s.turns {
+		if ref.key.id == "t0" {
+			t.Fatalf("turns[%s] still names the evicted task", k)
+		}
+	}
+	for j, ref := range s.jobs {
+		if ref.key.id == "t0" {
+			t.Fatalf("jobs[%s] still names the evicted task", j)
+		}
+	}
+	if s.size() != 1 || s.tenants[storeAlice.Tenant] != 1 {
+		t.Fatalf("size %d tenant count %d, want 1 and 1", s.size(), s.tenants[storeAlice.Tenant])
+	}
+}
+
+func TestStoreNeverEvictsNonTerminalTasks(t *testing.T) {
+	s := newStore(8, 8, time.Hour)
+	want := map[string]a2a.TaskState{"t0": a2a.TaskStateSubmitted, "t1": a2a.TaskStateWorking,
+		"t2": a2a.TaskStateInputRequired, "t3": a2a.TaskStateAuthRequired}
+	for id, state := range want {
+		mustReserve(t, s, storeAlice, "k-"+id, testRecord(id))
+		job := "a2a-job-" + id
+		switch state {
+		case a2a.TaskStateWorking:
+			s.applyProgress(job, agentv1.JobStatus_JOB_STATUS_RUNNING, fixedTime)
+		case a2a.TaskStateInputRequired, a2a.TaskStateAuthRequired:
+			turn, ok := s.reserveResult(job)
+			if !ok {
+				t.Fatalf("reserveResult %s", job)
+			}
+			s.commitResult(job, turn, &turnOutcome{state: state}, fixedTime)
+		}
+	}
+	if _, _, err := reserveAt(s, "k-late", "late", fixedTime.Add(10*time.Hour)); err != nil {
+		t.Fatalf("late reserve: %v", err)
+	}
+	for id, state := range want {
+		if rec, ok := s.get(storeAlice, id); !ok || rec.state != state {
+			t.Fatalf("%s: found %v state %v, want %v", id, ok, rec.state, state)
+		}
+	}
+}
+
+func TestSendMessageDedupIsBoundedByTerminalTTL(t *testing.T) {
+	now := fixedTime
+	h := newHarness(t, func(c *Config) {
+		c.Now = func() time.Time { return now }
+		c.TerminalTaskTTL = time.Minute
+	})
+	alice := as("key-alice")
+	old := h.mustSend(t, alice, textMsg("m-1", "hi"))
+	oldJob := h.pub.packets(t)[0].GetJobRequest().GetJobId()
+	oldInput, _ := h.in.get("ctx:" + oldJob)
+	now = now.Add(time.Second)
+	if !h.ing.store.applyResult(oldJob, agentv1.JobStatus_JOB_STATUS_FAILED, now) {
+		t.Fatal("applyResult did not end the task")
+	}
+	// Inside the window the duplicate is the same task, with no input write or publish.
+	now = now.Add(time.Minute - time.Nanosecond)
+	if dup := h.mustSend(t, alice, textMsg("m-1", "hi")); dup.ID != old.ID || h.pub.attempts() != 1 || h.in.writeCount() != 1 {
+		t.Fatalf("in-window duplicate: task %q attempts %d writes %d", dup.ID, h.pub.attempts(), h.in.writeCount())
+	}
+	// After the TTL the same messageId is accepted as a new task with a new job id.
+	now = now.Add(time.Nanosecond)
+	fresh := h.mustSend(t, alice, textMsg("m-1", "hi"))
+	pkts := h.pub.packets(t)
+	if fresh.ID == old.ID || len(pkts) != 2 {
+		t.Fatalf("post-expiry retry: task %q (old %q) publishes %d", fresh.ID, old.ID, len(pkts))
+	}
+	newJob := pkts[1].GetJobRequest().GetJobId()
+	if newJob == oldJob || newJob != refJob(string(fresh.ID), refKey("tenant-a", "alice", "", "m-1")) {
+		t.Fatalf("post-expiry job id %q, old %q", newJob, oldJob)
+	}
+	if got, _ := h.in.get("ctx:" + oldJob); string(got) != string(oldInput) {
+		t.Fatalf("ctx:%s was rewritten\n got %s\nwant %s", oldJob, got, oldInput)
+	}
+	_, err := h.ing.GetTask(alice, &a2a.GetTaskRequest{ID: old.ID})
+	wantErr(t, err, a2a.ErrTaskNotFound)
+	if h.ing.store.applyResult(oldJob, agentv1.JobStatus_JOB_STATUS_CANCELLED, now) {
+		t.Fatal("a late result for the evicted job changed a task")
+	}
+	if got, err := h.ing.GetTask(alice, &a2a.GetTaskRequest{ID: fresh.ID}); err != nil || got.Status.State != a2a.TaskStateSubmitted {
+		t.Fatalf("new task after the late result: %v %v", got, err)
 	}
 }
 

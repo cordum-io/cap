@@ -1,6 +1,6 @@
 # cap-adapter-crewai
 
-A CAP worker adapter for operator-registered CrewAI crews, built on cap-sdk-python's `cap.Agent`, with no Cordum dependency. It is Apache-2.0, supports Python 3.10 to 3.13, and is not published to PyPI. This slice ships the crew handler and bounded child runner. Configuration, trust loading and the `cap-adapter-crewai` command follow in task-beb195b6.
+A CAP worker adapter for operator-registered CrewAI crews, built on cap-sdk-python's `cap.Agent`, with no Cordum dependency. It is Apache-2.0, supports Python 3.10 to 3.13, and is not published to PyPI. It includes the crew handler, bounded child runner, operator configuration and trust loading, and the `cap-adapter-crewai` command.
 
 ## Install (from the repo root)
 
@@ -15,6 +15,34 @@ The lock is generated with uv 0.11.15 from the repo root:
 
 The Python 3.10 constraint avoids onnxruntime 1.24.3, which has no cp310 wheel; uv resolves 1.23.2 for every supported Python, with cp310-cp313 wheels on Linux, macOS and Windows.
 
+## Configuration
+
+`cap-adapter-crewai --config adapter.json` reads one `cap-adapter-config/v1` file. Files over 1 MiB, duplicate keys, unknown keys and missing keys are rejected.
+
+```json
+{"schemaVersion": "cap-adapter-config/v1", "topic": "job.adapter.crewai", "workerId": "wrk-crew-1", "trustFile": "trust.json",
+ "nats": {"url": "tls://nats.example:4222", "caFile": "ca.pem", "certFile": "client.pem", "keyFile": "client-key.pem"},
+ "resources": {"bucket": "cap-resources"},
+ "limits": {"maxInputBytes": 65536, "maxOutputBytes": 65536, "maxArtifacts": 8, "maxArtifactBytes": 65536, "maxDeadlineMs": 30000},
+ "workloads": {"summarize": {"factory": "operator_crews:summary_crew", "inputModel": "operator_crews:TextInput",
+   "artifactTasks": {"summarize": "summary"},
+   "child": {"graceMs": 2000, "maxStdoutBytes": 1048576, "maxStderrBytes": 65536}}}}
+```
+
+- Relative paths resolve against the directory of the file that names them, never the working directory; every named file must exist.
+- `nats.url` must be `tls://`. `caFile` verifies the server with hostname checking on; `certFile` and `keyFile` are the client's TLS identity.
+- `resources.bucket` is the JetStream key-value bucket behind the nats-kv ResourceRegistry, which resolves `context_ref` and stores `result_ref` and artifacts.
+- `trustFile` is a `cap-adapter-trust/v1` file with `tenantId`, `agentId`, `schedulerId`, `proofKeyId`, `proofKeyFile` (an unencrypted P-256 private key PEM), and `schedulerTrustKeys` and `schedulerSigningKeys`: non-empty `{keyId: P-256 public key PEM path}` maps for the worker handshake and CAP-PRODUCTION packet signatures.
+- The worker uses worker trust ENFORCE, CAP-PRODUCTION admission with `topic` as audience, no retries and one job at a time. Its shutdown timeout is the largest workload's `graceMs` in seconds plus 10 seconds, allowing child cleanup to finish.
+
+Operator modules must be importable from the child's environment (installed, or on an absolute `PYTHONPATH`), because its working directory is a fresh temp dir.
+
+## CLI
+
+`cap-adapter-crewai --config PATH [--check]` loads the config, trust keys and TLS files. Every startup runs one bounded check-mode child that imports every factory and input model before any NATS connection; the parent never imports operator modules or CrewAI. `--check` stops after validation and prints `CHECK OK <n> workloads`.
+
+Exit codes: **0** for a passed check or a clean stop on SIGTERM or Ctrl-C; **2** for `config error: ...`, naming the invalid key without exception text or file values; **1** for any other failure. The check-mode child has a 120-second deadline, followed by bounded process-tree cleanup. Checking imports validates references, not factory execution or NATS connectivity.
+
 ## The child process
 
 Every job runs in a fresh child process, so a crew that cannot be stopped in-process is still stopped.
@@ -28,11 +56,11 @@ Every job runs in a fresh child process, so a crew that cannot be stopped in-pro
 
 ## Tests
 
-`PYTHONPATH="$PWD/testdata/adapters/nettrap" python -m pytest -q adapters/crewai/tests` runs the lifecycle tests, all nine framework-golden-v1 cases, telemetry proof/negative control and security boundaries. `testdata/adapters/nettrap/sitecustomize.py` is test-only and never shipped. The harness sets an absolute fixtures-plus-trap `PYTHONPATH` for children, whose working directory is a fresh temp dir. Crews use a deterministic BaseLLM double, not an external LLM.
+`PYTHONPATH="$PWD/testdata/adapters/nettrap" python -m pytest -q adapters/crewai/tests` runs the lifecycle tests, all nine framework-golden-v1 cases, telemetry proof/negative control and security boundaries, plus `test_crewai_config.py` for config, trust, TLS, isolated checks and CLI exits. `testdata/adapters/nettrap/sitecustomize.py` is test-only and never shipped. The harness sets an absolute fixtures-plus-trap `PYTHONPATH` for children, whose working directory is a fresh temp dir. Crews use a deterministic BaseLLM double, not an external LLM.
 
 The deadline golden retains every expected field but adds a measured startup allowance: twice a fresh echo child's elapsed time, rounded up to milliseconds, plus 1000 ms, before the golden's 250 ms. This accounts for importing CrewAI in a new process; it changes only the harness's operator deadline, not production behavior. The harness uses signed packets and the SDK ResourceRegistry over MockNATS in worker-trust warn mode: it is not real-NATS or CAP-PRODUCTION admission evidence (task-dbed002a owns that).
 
-After installing both wheels and the lock in a **new venv**, run from outside the repo: `python -I <repo>/adapters/crewai/tests/fixtures/golden_crews.py`. It checks the installed origin, loads the trap by path and prints `SMOKE OK 9/9`.
+After installing both wheels and the lock in a **new venv**, run from outside the repo: `python -I <repo>/adapters/crewai/tests/fixtures/golden_crews.py`. It checks the installed origin, loads the trap by path, runs the installed command with generated operator files, and prints `check: exit 0 CHECK OK 7 workloads` followed by `SMOKE OK 9/9`.
 
 ## Workloads and events
 

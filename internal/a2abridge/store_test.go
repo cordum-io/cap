@@ -97,8 +97,21 @@ func reserveAt(s *store, key, id string, now time.Time) (taskRecord, bool, error
 func TestStoreEvictsTerminalTaskAtTTL(t *testing.T) {
 	s := newStore(4, 4, time.Hour)
 	mustReserve(t, s, storeAlice, "k0", testRecord("t0"))
+	// Turn 1 ends INPUT_REQUIRED; a released turn and then turn 2 follow, so
+	// eviction must clear every turn's entries.
+	turn, _ := s.reserveResult("a2a-job-t0")
+	s.commitResult("a2a-job-t0", turn, &turnOutcome{state: a2a.TaskStateInputRequired}, fixedTime)
+	for _, k := range []string{"k0-released", "k0-2"} {
+		if _, _, created, err := s.reserveTurn(storeAlice, "t0", k, digestOf("parts"), "", "a2a-job-"+k,
+			&a2a.Message{ID: k}, fixedTime); err != nil || !created {
+			t.Fatalf("reserveTurn %s: created %v err %v", k, created, err)
+		}
+		if k == "k0-released" {
+			s.release(k)
+		}
+	}
 	statusAt := fixedTime.Add(time.Minute)
-	if !s.applyResult("a2a-job-t0", agentv1.JobStatus_JOB_STATUS_FAILED, statusAt) {
+	if !s.applyResult("a2a-job-k0-2", agentv1.JobStatus_JOB_STATUS_FAILED, statusAt) {
 		t.Fatal("applyResult did not end the task")
 	}
 	snap, created, err := reserveAt(s, "k0", "t1", statusAt.Add(time.Hour-time.Nanosecond))

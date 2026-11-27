@@ -91,7 +91,7 @@ update, in order. Duplicates and ignored events produce none.
 | A2A | CAP `JobRequest` field | Rule |
 |---|---|---|
 | `Task.id` (server-generated, A2A §3.4.2) | `workflow_id` | `a2a-task-` followed by 32 lowercase hex characters from a CSPRNG (41 bytes). Clients cannot create task ids. |
-| one turn (one accepted `Message`) | one `job_id` | `a2a-` followed by the 64-hex-character `idempotency_key` below (68 bytes, charset `a-z0-9-`). |
+| one turn (one accepted `Message`) | one `job_id` | `a2a-` followed by `lowercase_hex(SHA-256("cap-a2a-job-v1" \|\| u32be(len(task_id)) \|\| task_id \|\| u32be(len(idempotency_key)) \|\| idempotency_key))`, with `task_id` the turn's `Task.id` and `idempotency_key` from §3.1 (68 bytes, charset `a-z0-9-`). The task id makes a `job_id` belong to one task. |
 | previous turn | `parent_job_id` | empty for turn 1, otherwise the previous turn's `job_id`. |
 | turn number | `step_index` | 1 for the first turn, incremented per accepted turn. At most 64 turns per task. |
 | `Message.messageId` | `meta.idempotency_key` (via the key below) | 1-128 bytes, charset `A-Za-z0-9._:-`; anything else is `INVALID_PARAMS`. |

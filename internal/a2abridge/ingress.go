@@ -303,15 +303,28 @@ type turnInput struct {
 // constantTimeCompare is a variable so tests can count comparisons.
 var constantTimeCompare = subtle.ConstantTimeCompare
 
-// idempotencyKey is the length-prefixed SHA-256 key of spec §3.1.
-func idempotencyKey(tenant, principal, taskRef, messageID string) string {
+// prefixedHash is the lowercase-hex SHA-256 of tag followed by each field
+// behind its u32be byte length, so field boundaries are unambiguous.
+func prefixedHash(tag string, fields ...string) string {
 	h := sha256.New()
-	h.Write([]byte("cap-a2a-turn-v1"))
-	for _, field := range [...]string{tenant, principal, taskRef, messageID} {
+	h.Write([]byte(tag))
+	for _, field := range fields {
 		h.Write(binary.BigEndian.AppendUint32(nil, uint32(len(field))))
 		h.Write([]byte(field))
 	}
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+// idempotencyKey is the length-prefixed SHA-256 key of spec §3.1.
+func idempotencyKey(tenant, principal, taskRef, messageID string) string {
+	return prefixedHash("cap-a2a-turn-v1", tenant, principal, taskRef, messageID)
+}
+
+// turnJobID is the job id of the turn idemKey opened on taskID (spec §3). The
+// task id makes a job id belong to one task, so a retry accepted as a new task
+// never reuses an old job's ctx:<job_id> or res:<job_id>.
+func turnJobID(taskID, idemKey string) string {
+	return "a2a-" + prefixedHash("cap-a2a-job-v1", taskID, idemKey)
 }
 
 // authenticate maps exactly one "Bearer <key>" Authorization value to its
@@ -401,7 +414,7 @@ func (i *Ingress) resumeTask(ctx context.Context, id Identity, msg *a2a.Message,
 	}
 	history := &a2a.Message{ID: msg.ID, Role: a2a.MessageRoleUser, Parts: a2aParts(parts)}
 	snap, parent, created, err := i.store.reserveTurn(id, taskID, key, sha256.Sum256(partsJSON), msg.ContextID,
-		"a2a-"+key, history, i.now().UTC())
+		turnJobID(taskID, key), history, i.now().UTC())
 	if err != nil {
 		return nil, err // reserveTurn returns a2a errors only
 	}
@@ -453,11 +466,12 @@ func (i *Ingress) startTask(ctx context.Context, id Identity, msg *a2a.Message, 
 		return nil, a2a.ErrInternalError
 	}
 	key := idempotencyKey(id.Tenant, id.Principal, "", msg.ID)
-	rec := taskRecord{jobID: "a2a-" + key, messageID: msg.ID, turn: 1,
+	rec := taskRecord{messageID: msg.ID, turn: 1,
 		state: a2a.TaskStateSubmitted, created: i.now().UTC(), parts: parts}
 	if rec.id, rec.contextID, err = i.newIDs(msg.ContextID); err != nil {
 		return nil, a2a.ErrInternalError
 	}
+	rec.jobID = turnJobID(rec.id, key)
 	input, err := json.Marshal(turnInput{TaskID: rec.id, ContextID: rec.contextID, Turn: rec.turn,
 		MessageID: rec.messageID, Parts: parts})
 	if err != nil {

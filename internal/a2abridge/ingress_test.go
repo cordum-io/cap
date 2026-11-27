@@ -227,9 +227,14 @@ func (h *harness) mustSend(t *testing.T, ctx context.Context, msg *a2a.Message) 
 }
 
 // refKey is an independent implementation of the spec §3.1 formula.
-func refKey(fields ...string) string {
+func refKey(fields ...string) string { return refHash("cap-a2a-turn-v1", fields...) }
+
+// refJob is an independent implementation of the spec §3 job_id formula.
+func refJob(taskID, key string) string { return "a2a-" + refHash("cap-a2a-job-v1", taskID, key) }
+
+func refHash(tag string, fields ...string) string {
 	var b bytes.Buffer
-	b.WriteString("cap-a2a-turn-v1")
+	b.WriteString(tag)
 	for _, f := range fields {
 		var n [4]byte
 		binary.BigEndian.PutUint32(n[:], uint32(len(f)))
@@ -444,7 +449,7 @@ func TestIdentityComesOnlyFromKeyMap(t *testing.T) {
 		t.Fatalf("sender %q trace %q", pkt.GetSenderId(), pkt.GetTraceId())
 	}
 	key := refKey("tenant-a", "alice", "", "m-1")
-	jobID := "a2a-" + key
+	jobID := refJob(string(task.ID), key)
 	jr := pkt.GetJobRequest()
 	got := []string{jr.GetJobId(), jr.GetWorkflowId(), jr.GetTopic(), jr.GetContextPtr(), jr.GetParentJobId(),
 		jr.GetTenantId(), jr.GetPrincipalId(), jr.GetMeta().GetTenantId(), jr.GetMeta().GetActorId(), jr.GetMeta().GetIdempotencyKey()}

@@ -181,7 +181,9 @@ func readConfigFile(path string) (referencescheduler.RuntimeConfig, error) {
 	dec := json.NewDecoder(io.LimitReader(f, maxConfigBytes))
 	dec.DisallowUnknownFields()
 	var fc fileConfig
-	if err := dec.Decode(&fc); err != nil || dec.More() {
+	// More() is false at a closing ] or }, so only io.EOF from a second
+	// Decode proves the object is the whole file.
+	if err := dec.Decode(&fc); err != nil || !errors.Is(dec.Decode(&struct{}{}), io.EOF) {
 		return referencescheduler.RuntimeConfig{}, errConfigFile
 	}
 	c := fc.RuntimeConfig

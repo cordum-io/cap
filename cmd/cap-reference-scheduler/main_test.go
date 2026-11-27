@@ -103,7 +103,7 @@ func validConfig(t *testing.T, natsURL string) (cfgPath, signingKey string) {
 
 // TestRunConfigErrors: every usage or configuration error exits 2 with its
 // own message and never prints the canary, which sits in a key file, an
-// unknown field and a duration.
+// unknown field, a duration and data after the configuration.
 func TestRunConfigErrors(t *testing.T) {
 	// Port 1 refuses connections, so a case that wrongly reaches the runtime
 	// fails fast instead of serving.
@@ -115,6 +115,10 @@ func TestRunConfigErrors(t *testing.T) {
 		return p
 	}
 	key, err := os.ReadFile(signingKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := os.ReadFile(good)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,6 +134,9 @@ func TestRunConfigErrors(t *testing.T) {
 		{"unknown field", []string{"-config", file("unknown.json", `{"Canary":"`+canary+`"}`, 0o600)}, errConfigFile.Error(), false},
 		{"invalid duration", []string{"-config", file("duration.json", `{"SessionTTL":"`+canary+`"}`, 0o600)}, errConfigFile.Error(), false},
 		{"trailing data", []string{"-config", file("trailing.json", `{} {}`, 0o600)}, errConfigFile.Error(), false},
+		{"closing bracket after the configuration", []string{"-config", file("bracket.json", string(cfg)+"]", 0o600)}, errConfigFile.Error(), false},
+		{"closing brace after the configuration", []string{"-config", file("brace.json", string(cfg)+"}", 0o600)}, errConfigFile.Error(), false},
+		{"data after a closing delimiter", []string{"-config", file("after.json", string(cfg)+"]"+canary, 0o600)}, errConfigFile.Error(), false},
 		{"no configuration", nil, referencescheduler.ErrConfigNATSURL.Error(), false},
 		{"plaintext to a remote host", []string{"-config", good, "-nats-url", "nats://192.0.2.1:4222"}, referencescheduler.ErrConfigPlaintextRemote.Error(), false},
 		{"missing key file", []string{"-config", good, "-signing-key-file", filepath.Join(dir, "absent.key")}, "signing-key-file: " + errKeyFile.Error(), false},
@@ -151,6 +158,21 @@ func TestRunConfigErrors(t *testing.T) {
 				t.Fatalf("stderr %q, want %q and no canary", out.String(), tc.want)
 			}
 		})
+	}
+}
+
+// TestReadConfigFileAllowsTrailingWhitespace: a hand-written file that ends
+// in a newline is still one JSON object.
+func TestReadConfigFileAllowsTrailingWhitespace(t *testing.T) {
+	good, _ := validConfig(t, "nats://127.0.0.1:1")
+	cfg, err := os.ReadFile(good)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(filepath.Dir(good), "newline.json")
+	writeFile(t, path, append(cfg, " \r\n\t\n"...), 0o600)
+	if _, err := readConfigFile(path); err != nil {
+		t.Fatalf("readConfigFile = %v, want nil", err)
 	}
 }
 

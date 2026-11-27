@@ -121,9 +121,25 @@ two principals of one tenant collide on `msg-1` and land in each other's task.
 
 A `SendMessage` whose key matches an accepted turn returns that turn's task and
 publishes nothing (A2A §3.3.1 permits messageId deduplication). If its parts
-differ from the accepted turn's parts, it fails with `INVALID_PARAMS`. Because
-`job_id` is derived from the key, a retried publish also lands on the
-scheduler's existing job record.
+differ from the accepted turn's parts, it fails with `INVALID_PARAMS`.
+
+Deduplication is time-bounded: it holds only while the task is retained.
+
+- A task that is not terminal, `INPUT_REQUIRED` and `AUTH_REQUIRED` included,
+  is never evicted.
+- A terminal task (`COMPLETED`, `FAILED`, `CANCELED` or `REJECTED`) is kept for
+  at least `terminal_task_ttl_ms` after it became terminal (default 3 600 000,
+  bounded to 60 000-86 400 000), and may be evicted after that. A bridge
+  restart also ends retention.
+- An evicted task is `TASK_NOT_FOUND`. A retry after that is a new task with
+  new job ids, so it never writes the old job's `ctx:<job_id>` or reads its
+  `res:<job_id>`. Its work may run again.
+
+Each tenant holds at most `max_tasks_per_tenant` tasks. The default divides the
+bridge's task bound `max_tasks` by the number of tenants, and an explicit value
+cannot exceed that share, so one tenant cannot exhaust another's. A message
+that would create a task beyond the quota is refused with an internal error
+before any input write or publish.
 
 ## 4. Turn-result envelope
 

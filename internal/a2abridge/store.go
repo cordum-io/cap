@@ -189,8 +189,8 @@ type jobRef struct {
 // lock for its whole critical section and does no I/O under it. Each tenant
 // holds at most perTenant tasks. A task that is not terminal is never evicted;
 // a terminal one is kept at least ttl after it became terminal, then the next
-// reserve evicts it with its turns and jobs entries (spec §3.1). The store is
-// not durable, so a restart also ends retention (spec §6).
+// reserve evicts it with its turns and jobs entries. The store is not durable,
+// so a restart also ends retention (spec §3.1).
 type store struct {
 	cancelSeq uint64 // monotonically allocated under mu; survives turn release
 	mu        sync.Mutex

@@ -58,7 +58,9 @@ Never set either switch outside local development.
 | `CAP_A2A_SIGNING_KEY_FILE` | required | P-256 private key (PKCS#8 or SEC1 PEM) |
 | `CAP_A2A_RESULT_KEYS_DIR` | required | Public keys of trusted senders (below) |
 | `CAP_A2A_INPUT_TTL` | `24h` | TTL of each `ctx:<job_id>` turn input, 1m to 168h |
-| `CAP_A2A_MAX_TASKS` | `10000` | Bound of the in-memory task store |
+| `CAP_A2A_MAX_TASKS` | `10000` | Bound of the in-memory task store; at least the number of tenants |
+| `CAP_A2A_MAX_TASKS_PER_TENANT` | `0` | Tasks one tenant may hold; `0` means `CAP_A2A_MAX_TASKS` divided by the tenants, and a set value may not exceed that |
+| `CAP_A2A_TERMINAL_TASK_TTL` | `1h` | How long a terminal task is kept and deduplicated, 1m to 24h |
 | `CAP_A2A_CANCEL_GRACE` | `30s` | How long a cancel waits for a result, 1s to 60s |
 | `CAP_A2A_MAX_BLOCKING_WAIT` | `60s` | Longest blocking SendMessage, 1s to 300s |
 | `CAP_A2A_SHUTDOWN_TIMEOUT` | `10s` | Bound on shutdown, 1s to 60s |
@@ -125,8 +127,12 @@ Running against it today therefore needs `CAP_A2A_DEV_UNSIGNED=1`.
 ## Known limits
 
 - The task store is in memory, so a restart loses every task.
-- Terminal tasks do not expire. After `CAP_A2A_MAX_TASKS` tasks, new tasks are refused until
-  restart.
+- Each tenant holds at most `CAP_A2A_MAX_TASKS_PER_TENANT` tasks; a tenant at its quota gets an
+  internal error for a new task, and the other tenants are unaffected. A task that is not terminal
+  (`INPUT_REQUIRED` and `AUTH_REQUIRED` included) is never evicted and holds its slot. A terminal
+  task is kept for at least `CAP_A2A_TERMINAL_TASK_TTL`, then evicted: it becomes
+  `TASK_NOT_FOUND`, and a retry of its `messageId` starts a new task whose work may run again
+  ([spec §3.1](../../spec/interop/a2a-mapping.md#31-idempotency-key)).
 - One topic per process.
 - No streaming, push notifications, ListTasks or extended agent card.
 - The binary does not wire `ProductionTrust`.

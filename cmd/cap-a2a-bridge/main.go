@@ -51,8 +51,8 @@ type config struct {
 	signingKey                                            *ecdsa.PrivateKey
 	resultKeys                                            map[string]*ecdsa.PublicKey
 	unsigned, devInsecure                                 bool
-	maxTasks                                              int
-	inputTTL, cancelGrace, maxWait, shutdown              time.Duration
+	maxTasks, maxTasksPerTenant                           int
+	inputTTL, cancelGrace, maxWait, shutdown, terminalTTL time.Duration
 }
 
 func main() { os.Exit(run(context.Background(), os.Getenv, os.Stderr)) }
@@ -145,7 +145,8 @@ func start(c config, log *slog.Logger) (*bridge, int) {
 	rio := redisIO{c: rdb, ttl: c.inputTTL}
 	ing, err := a2abridge.New(a2abridge.Config{APIKeys: c.apiKeys, Topic: c.topic, SenderID: c.senderID,
 		SigningKey: c.signingKey, AllowUnsignedDev: c.unsigned, Publisher: nc, Inputs: rio, Results: rio,
-		MaxTasks: c.maxTasks, ResultKeys: c.resultKeys, MaxBlockingWait: c.maxWait, CancelGrace: c.cancelGrace})
+		MaxTasks: c.maxTasks, MaxTasksPerTenant: c.maxTasksPerTenant, TerminalTaskTTL: c.terminalTTL,
+		ResultKeys: c.resultKeys, MaxBlockingWait: c.maxWait, CancelGrace: c.cancelGrace})
 	code, stopEgress := 2, func() error { return nil }
 	if err == nil {
 		code = 1
@@ -259,11 +260,16 @@ func (c *config) loadLimits(env func(string, string) string) []error {
 	c.cancelGrace = dur("CAP_A2A_CANCEL_GRACE", "30s", time.Second, time.Minute)
 	c.maxWait = dur("CAP_A2A_MAX_BLOCKING_WAIT", "60s", time.Second, 5*time.Minute)
 	c.shutdown = dur("CAP_A2A_SHUTDOWN_TIMEOUT", "10s", time.Second, time.Minute)
-	n, err := strconv.Atoi(env("CAP_A2A_MAX_TASKS", "0"))
-	if err != nil || n < 0 {
-		errs = append(errs, errors.New("CAP_A2A_MAX_TASKS must be a non-negative integer (0 means the default)"))
+	c.terminalTTL = dur("CAP_A2A_TERMINAL_TASK_TTL", "1h", time.Minute, 24*time.Hour)
+	count := func(name, zero string) int {
+		n, err := strconv.Atoi(env(name, "0"))
+		if err != nil || n < 0 {
+			errs = append(errs, fmt.Errorf("%s must be a non-negative integer (0 means %s)", name, zero))
+		}
+		return n
 	}
-	c.maxTasks = n
+	c.maxTasks = count("CAP_A2A_MAX_TASKS", "the default")
+	c.maxTasksPerTenant = count("CAP_A2A_MAX_TASKS_PER_TENANT", "CAP_A2A_MAX_TASKS divided by the tenants")
 	return errs
 }
 
